@@ -31,8 +31,10 @@ namespace AbletonLiveConverter
                     case "Eq8":
                         var eq = new Eq(xelement);
                         break;
-                    case "AutoFilter":
                     case "Compressor2":
+                        var compressor = new Compressor(xelement);
+                        break;
+                    case "AutoFilter":
                     case "GlueCompressor":
                     case "MultibandDynamics":
                     case "Reverb":
