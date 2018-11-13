@@ -22,11 +22,11 @@ namespace AbletonLiveConverter
 
                 if (isOnA && gainA != 0)
                 {
-                    Console.WriteLine("ParameterA: {0:0.00} hz, gain: {1:0.00}, q: {2:0.00}, On: {3}", freqA, gainA, qA, isOnA);
+                    Console.WriteLine("ParameterA: {0:0.00} Hz, Gain: {1:0.00}, Q: {2:0.00}, On: {3}", freqA, gainA, qA, isOnA);
                 }
                 else
                 {
-                    // Console.WriteLine("OFF ParameterA: {0:0.00} hz, gain: {1:0.00}, q: {2:0.00}, On: {3}", freqA, gainA, qA, isOnA);
+                    // Console.WriteLine("OFF ParameterA: {0:0.00} Hz, Gain: {1:0.00}, Q: {2:0.00}, On: {3}", freqA, gainA, qA, isOnA);
                 }
 
                 var isOnB = band.Descendants("ParameterB").Descendants("IsOn").Descendants("Manual").Attributes("Value").First().Value.Equals("true");
@@ -36,11 +36,11 @@ namespace AbletonLiveConverter
 
                 if (isOnB && gainB != 0)
                 {
-                    Console.WriteLine("ParameterB: {0:0.00} hz, gain: {1:0.00}, q: {2:0.00}, On: {3}", freqB, gainB, qB, isOnB);
+                    Console.WriteLine("ParameterB: {0:0.00} Hz, Gain: {1:0.00}, Q: {2:0.00}, On: {3}", freqB, gainB, qB, isOnB);
                 }
                 else
                 {
-                    // Console.WriteLine("OFF ParameterB: {0:0.00} hz, gain: {1:0.00}, q: {2:0.00}, On: {3}", freqB, gainB, qB, isOnB);
+                    // Console.WriteLine("OFF ParameterB: {0:0.00} Hz, Gain: {1:0.00}, Q: {2:0.00}, On: {3}", freqB, gainB, qB, isOnB);
                 }
             }
             Console.WriteLine();
