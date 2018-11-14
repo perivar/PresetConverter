@@ -13,6 +13,9 @@ namespace AbletonLiveConverter
     {
         static void Main(string[] args)
         {
+            var vstPreset = new VstPreset(@"C:\Users\periv\Documents\VST3 Presets\Steinberg Media Technologies\Frequency\test-delete.vstpreset");
+
+            return;
             var app = new CommandLineApplication();
             app.Name = "AbletonLiveConverter";
             app.Description = "Convert Ableton Live presets to readable formats";
