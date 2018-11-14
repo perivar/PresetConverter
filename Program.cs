@@ -13,7 +13,8 @@ namespace AbletonLiveConverter
     {
         static void Main(string[] args)
         {
-            var vstPreset = new VstPreset(@"C:\Users\periv\Documents\VST3 Presets\Steinberg Media Technologies\Frequency\test-delete.vstpreset");
+            // var vstPreset = new VstPreset(@"C:\Users\periv\Documents\VST3 Presets\Steinberg Media Technologies\Frequency\test-delete.vstpreset");
+            var vstPreset = new VstPreset(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Ableton\test-delete.vstpreset");
 
             return;
             var app = new CommandLineApplication();
