@@ -170,15 +170,17 @@ namespace AbletonLiveConverter
                 throw new Exception("File Not Found: " + fileName);
 
             // Read the file:
-            using (Stream file = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            using (Stream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
                 try
                 {
                     // Create a binary reader:
-                    var br = new BinaryReader(file, Encoding.ASCII);
+                    var br = new BinaryReader(fs, Encoding.ASCII);
+
+                    // Find(br, "List");
 
                     // Get file size:
-                    UInt32 fileSize = (UInt32)file.Length;
+                    UInt32 fileSize = (UInt32)fs.Length;
                     if (fileSize < 64)
                         throw new Exception("Invalid file size: " + fileSize.ToString());
 
@@ -206,7 +208,7 @@ namespace AbletonLiveConverter
                     if (chunkID == "LPXF")
                     {
                         // Check file size:
-                        if (fileSize != (fileSize2 + (file.Position - 4)))
+                        if (fileSize != (fileSize2 + (fs.Position - 4)))
                             throw new Exception("Invalid file size: " + fileSize);
 
                         // This is most likely a single preset:
@@ -224,7 +226,7 @@ namespace AbletonLiveConverter
                         UInt32 unknown4 = ReadUInt32(br, ByteOrder.LittleEndian);
 
                         // Check file size (The other check is needed because Cubase tends to forget the items of this header:
-                        if ((fileSize != (fileSize2 + file.Position + 4)) && (fileSize != (fileSize2 + file.Position - 16)))
+                        if ((fileSize != (fileSize2 + fs.Position + 4)) && (fileSize != (fileSize2 + fs.Position - 16)))
                             throw new Exception("Invalid file size: " + fileSize);
 
                         // This is most likely a preset bank:
@@ -279,7 +281,7 @@ namespace AbletonLiveConverter
                     }
 
                     // OK, getting here we should have access to a fxp/fxb chunk:
-                    long chunkStart = file.Position;
+                    long chunkStart = fs.Position;
                     chunkID = ReadFourCC(br);
                     if (chunkID != "CcnK")
                     {
@@ -288,7 +290,7 @@ namespace AbletonLiveConverter
 
                     // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
                     UInt32 chunkSize = ReadUInt32(br, ByteOrder.BigEndian) + 8;
-                    if ((file.Position + chunkSize) >= fileSize)
+                    if ((fs.Position + chunkSize) >= fileSize)
                     {
                         throw new Exception("Invalid chunk size: " + chunkSize);
                     }
@@ -323,14 +325,14 @@ namespace AbletonLiveConverter
                     }
 
                     // Read the source data:
-                    file.Position = chunkStart;
+                    fs.Position = chunkStart;
                     byte[] fileData = br.ReadBytes((int)chunkSize);
                 }
                 finally
                 {
                     // Cleanup:
-                    if (file != null)
-                        file.Close();
+                    if (fs != null)
+                        fs.Close();
                 }
             }
         }
@@ -344,5 +346,34 @@ namespace AbletonLiveConverter
             Console.WriteLine("{0} {1} {2}", listElement, listValue1, listValue2);
         }
 
+        public int IndexOfBytes(byte[] array, byte[] pattern, int startIndex, int count)
+        {
+            if (array == null || array.Length == 0 || pattern == null || pattern.Length == 0 || count == 0)
+            {
+                return -1;
+            }
+
+            int i = startIndex;
+            int endIndex = count > 0 ? Math.Min(startIndex + count, array.Length) : array.Length;
+            int fidx = 0;
+            int lastFidx = 0;
+
+            while (i < endIndex)
+            {
+                lastFidx = fidx;
+                fidx = (array[i] == pattern[fidx]) ? ++fidx : 0;
+                if (fidx == pattern.Length)
+                {
+                    return i - fidx + 1;
+                }
+                if (lastFidx > 0 && fidx == 0)
+                {
+                    i = i - lastFidx;
+                    lastFidx = 0;
+                }
+                i++;
+            }
+            return -1;
+        }
     }
 }
