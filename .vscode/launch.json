@@ -12,8 +12,10 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
-                "-d",
-                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Ableton"
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Ableton",
+                "-o",
+                "C:\\Users\\perner\\My Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -29,7 +31,7 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
-                "-d",
+                "-i",
                 "C:\\Users\\periv\\Documents\\Ableton\\User Library\\Presets\\Audio Effects"
             ],
             "cwd": "${workspaceFolder}",

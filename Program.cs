@@ -13,54 +13,35 @@ namespace AbletonLiveConverter
     {
         static void Main(string[] args)
         {
-            // var vstPreset = new VstPreset(@"C:\Users\periv\Documents\VST3 Presets\Steinberg Media Technologies\Frequency\test-delete.vstpreset");
-            var vstPreset = new VstPreset(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Ableton\test-delete.vstpreset");
-
-            return;
             var app = new CommandLineApplication();
             app.Name = "AbletonLiveConverter";
             app.Description = "Convert Ableton Live presets to readable formats";
             app.HelpOption();
-            var optionDirectory = app.Option("-d|--directory <path>", "The directory", CommandOptionType.SingleValue);
+            var optionInputDirectory = app.Option("-i|--input <path>", "The Input directory", CommandOptionType.SingleValue);
+            var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
 
             app.OnExecute(() =>
             {
-                if (optionDirectory.HasValue())
+                if (optionInputDirectory.HasValue())
                 {
-                    string inputDirectoryPath = optionDirectory.Value();
+                    string inputDirectoryPath = optionInputDirectory.Value();
 
-                    string[] files = Directory.GetFiles(inputDirectoryPath, "*.adv", SearchOption.AllDirectories);
+                    var ext = new List<string> { ".adv", ".vstpreset" };
+                    var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
+                    .Where(s => ext.Contains(Path.GetExtension(s)));
+
                     foreach (var file in files)
                     {
                         Console.WriteLine("Processing {0} ...", file);
-                        byte[] bytes = File.ReadAllBytes(file);
-                        byte[] decompressed = Decompress(bytes);
-                        string str = Encoding.UTF8.GetString(decompressed);
 
-                        XElement xelement = XElement.Parse(str);
-
-                        // find preset type
-                        var presetType = xelement.Elements().First().Name.ToString();
-                        switch (presetType)
+                        string extension = new FileInfo(file).Extension;
+                        switch (extension)
                         {
-                            case "Eq8":
-                                var eq = new Eq(xelement);
+                            case ".adv":
+                                HandleAbletonLivePresets(file);
                                 break;
-                            case "Compressor2":
-                                var compressor = new Compressor(xelement);
-                                break;
-                            case "GlueCompressor":
-                                var glueCompressor = new GlueCompressor(xelement);
-                                break;
-                            case "MultibandDynamics":
-                            // var multibandCompressor = new MultibandCompressor(xelement);
-                            // break;
-                            case "AutoFilter":
-                            case "Reverb":
-                            case "Saturator":
-                            case "Tuner":
-                            default:
-                                Console.WriteLine("{0} not supported!", presetType);
+                            case ".vstpreset":
+                                HandleSteinbergVstPresets(file);
                                 break;
                         }
                     }
@@ -81,6 +62,45 @@ namespace AbletonLiveConverter
             {
                 Console.WriteLine("{0}", e.Message);
             }
+        }
+
+        private static void HandleAbletonLivePresets(string file)
+        {
+            byte[] bytes = File.ReadAllBytes(file);
+            byte[] decompressed = Decompress(bytes);
+            string str = Encoding.UTF8.GetString(decompressed);
+
+            XElement xelement = XElement.Parse(str);
+
+            // find preset type
+            var presetType = xelement.Elements().First().Name.ToString();
+            switch (presetType)
+            {
+                case "Eq8":
+                    var eq = new Eq(xelement);
+                    break;
+                case "Compressor2":
+                    var compressor = new Compressor(xelement);
+                    break;
+                case "GlueCompressor":
+                    var glueCompressor = new GlueCompressor(xelement);
+                    break;
+                case "MultibandDynamics":
+                // var multibandCompressor = new MultibandCompressor(xelement);
+                // break;
+                case "AutoFilter":
+                case "Reverb":
+                case "Saturator":
+                case "Tuner":
+                default:
+                    Console.WriteLine("{0} not supported!", presetType);
+                    break;
+            }
+        }
+
+        private static void HandleSteinbergVstPresets(string file)
+        {
+            var vstPreset = new VstPreset(file);
         }
 
         static byte[] Decompress(byte[] gzip)
