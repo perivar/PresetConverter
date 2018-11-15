@@ -172,6 +172,7 @@ namespace AbletonLiveConverter
                 {
                     // if Frequency preset
                     if (vst3ID.Equals("01F6CCC94CAE4668B7C6EC85E681E419"))
+                    // if (true)
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
@@ -211,7 +212,8 @@ namespace AbletonLiveConverter
                     }
                     else
                     {
-                        throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
+                        // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
+                        return;
                     }
                 }
 
