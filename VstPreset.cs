@@ -60,6 +60,12 @@ namespace AbletonLiveConverter
             if (!File.Exists(fileName))
                 throw new Exception("File Not Found: " + fileName);
 
+            if (fileName.Equals(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\Standard Panner\Mono.vstpreset"))
+            {
+                // break
+            }
+
+            /*
             // find the last 'List' entry
             // reading all bytes at once is not very performant, but works for these relatively small files
             byte[] allBytes = File.ReadAllBytes(fileName);
@@ -73,19 +79,24 @@ namespace AbletonLiveConverter
             }
             int index = allBytes.Length - reverseIndex - 4; // length of List is 4
             Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
+            */
 
             // Read the file
-            using (BinaryFile br = new BinaryFile(allBytes))
+            using (BinaryFile br = new BinaryFile(fileName))
             {
                 // Get file size:
                 UInt32 fileSize = (UInt32)br.Length;
                 if (fileSize < 64)
+                {
                     throw new Exception("Invalid file size: " + fileSize.ToString());
+                }
 
                 // Read file header:
                 string chunkID = ReadFourCC(br);
                 if (chunkID != "VST3")
+                {
                     throw new Exception("Invalid file type: " + chunkID);
+                }
 
                 // Read version:
                 UInt32 fileVersion = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
@@ -93,15 +104,17 @@ namespace AbletonLiveConverter
                 // Read VST3 ID:
                 string vst3ID = new string(br.ReadChars(32));
 
-                UInt32 fileSize2 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                UInt32 listPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                Console.WriteLine("DEBUG: listPos: {0}", listPos);
 
                 // Read unknown value:
                 UInt32 unknown1 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                Console.WriteLine("DEBUG: unknown1 '{0}'", unknown1);
 
                 long oldPos = br.Position;
 
                 // seek to the 'List' index
-                br.Seek(index, SeekOrigin.Begin);
+                br.Seek(listPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
                 string list = new string(br.ReadChars(4));
@@ -133,7 +146,6 @@ namespace AbletonLiveConverter
                 // reset position
                 br.Seek(oldPos, SeekOrigin.Begin);
 
-
                 // Read data chunk ID:
                 chunkID = ReadFourCC(br);
 
@@ -142,7 +154,7 @@ namespace AbletonLiveConverter
                 if (chunkID == "LPXF")
                 {
                     // Check file size:
-                    if (fileSize != (fileSize2 + (br.Position - 4)))
+                    if (fileSize != (listPos + (br.Position - 4)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a single preset:
@@ -160,7 +172,7 @@ namespace AbletonLiveConverter
                     UInt32 unknown4 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
 
                     // Check file size (The other check is needed because Cubase tends to forget the items of this header:
-                    if ((fileSize != (fileSize2 + br.Position + 4)) && (fileSize != (fileSize2 + br.Position - 16)))
+                    if ((fileSize != (listPos + br.Position + 4)) && (fileSize != (listPos + br.Position - 16)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a preset bank:
@@ -171,14 +183,28 @@ namespace AbletonLiveConverter
                 else
                 {
                     // if Frequency preset
-                    if (vst3ID.Equals("01F6CCC94CAE4668B7C6EC85E681E419"))
-                    // if (true)
+                    // if (vst3ID.Equals("01F6CCC94CAE4668B7C6EC85E681E419"))
+
+                    if (!vst3ID.Equals("D3F57B09EC6B49998C534F50787A9F86") // Groove Agent ONE
+                    && !vst3ID.Equals("91585860BA1748E581441ECD96B153ED") // Groove Agent SE
+                    && !vst3ID.Equals("FFF583CCDFB246F894308DB9C5D94C8D") // Prologue
+                    && !vst3ID.Equals("ED824AB48E0846D5959682F5626D0972") // REVerence
+                    && !vst3ID.Equals("44E1149EDB3E4387BDD827FEA3A39EE7") // Standard Panner
+                    && !vst3ID.Equals("04F35DB10F0C47B9965EA7D63B0CCE67") // VST Amp Rack
+                    )
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
                         while (br.Position != (long)paramChunkSize)
                         {
-                            string paramName = new string(br.ReadChars(128)).TrimEnd('\0');
+                            // read the null terminated string
+                            string paramName = br.ReadStringZ();
+                            // var par = br.ReadBytes(11);
+                            // var paramName = "1234567890";
+
+                            // read until 128 bytes have been read
+                            var ignore = br.ReadBytes(128 - paramName.Length - 1);
+
                             UInt32 paramNumber = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
                             var paramValue = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
 

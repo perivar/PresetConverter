@@ -272,6 +272,27 @@ namespace CommonUtils
         {
             return new string(binaryReader.ReadChars(size));
         }
+
+        /// <summary>
+        /// Read an AsciiZ string in from the binary reader
+        /// </summary>
+        /// <returns>String, null terminator is truncated,
+        /// stream reader positioned at byte after null
+        /// </returns>
+        public string ReadStringZ()
+        {
+            string result = "";
+            char c;
+            for (int i = 0; i < binaryReader.BaseStream.Length; i++)
+            {
+                if ((c = (char)binaryReader.ReadByte()) == 0)
+                {
+                    break;
+                }
+                result += c.ToString();
+            }
+            return result;
+        }
         #endregion
 
         #region Seek Methods
