@@ -37,7 +37,7 @@ namespace AbletonLiveConverter
             if (!isAscii)
             {
                 UInt32 value = (UInt32)(b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24));
-                Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
+                // Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
             }
 
             return Encoding.Default.GetString(b);
@@ -65,22 +65,6 @@ namespace AbletonLiveConverter
                 // break
             }
 
-            /*
-            // find the last 'List' entry
-            // reading all bytes at once is not very performant, but works for these relatively small files
-            byte[] allBytes = File.ReadAllBytes(fileName);
-            // reading from the end of the file by reversing the array
-            byte[] reversed = allBytes.Reverse().ToArray();
-            // find 'List' backwards
-            int reverseIndex = IndexOfBytes(reversed, Encoding.UTF8.GetBytes("tsiL"), 0, reversed.Length);
-            if (reverseIndex < 0)
-            {
-                reverseIndex = 64;
-            }
-            int index = allBytes.Length - reverseIndex - 4; // length of List is 4
-            Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
-            */
-
             // Read the file
             using (BinaryFile br = new BinaryFile(fileName))
             {
@@ -105,11 +89,11 @@ namespace AbletonLiveConverter
                 string vst3ID = new string(br.ReadChars(32));
 
                 UInt32 listPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG: listPos: {0}", listPos);
+                // Console.WriteLine("DEBUG: listPos: {0}", listPos);
 
                 // Read unknown value:
                 UInt32 unknown1 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG: unknown1 '{0}'", unknown1);
+                // Console.WriteLine("DEBUG: unknown1 '{0}'", unknown1);
 
                 long oldPos = br.Position;
 
@@ -119,7 +103,7 @@ namespace AbletonLiveConverter
                 // read LIST and 4 bytes
                 string list = new string(br.ReadChars(4));
                 UInt32 listValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG: '{0}' {1}", list, listValue);
+                // Console.WriteLine("DEBUG: '{0}' {1}", list, listValue);
 
                 ulong paramChunkSize = 0;
                 ulong xmlChunkSize = 0;
@@ -131,7 +115,7 @@ namespace AbletonLiveConverter
                         // read Cont and 16 bytes
                         // read Info and 16 bytes
                         var element = ReadListElement(br);
-                        Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                        // Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
 
                         if (element.Name.Equals("Info"))
                         {
@@ -206,7 +190,7 @@ namespace AbletonLiveConverter
                             UInt32 paramNumber = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
                             var paramValue = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
 
-                            Console.WriteLine("{0} {1} {2:0.00}", paramName, paramNumber, paramValue);
+                            Console.WriteLine("[{1}] {0} = {2:0.00}", paramName, paramNumber, paramValue);
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -218,7 +202,7 @@ namespace AbletonLiveConverter
                         // read LIST and 4 bytes
                         string listElement = new string(br.ReadChars(4));
                         UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
+                        // Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
                         {
@@ -228,7 +212,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(br);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                // Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
 
