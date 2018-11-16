@@ -270,7 +270,8 @@ namespace CommonUtils
 
         public string ReadString(int size)
         {
-            return new string(binaryReader.ReadChars(size));
+            var byteArray = binaryReader.ReadBytes(size);
+            return ByteArrayToString(byteArray);
         }
 
         /// <summary>

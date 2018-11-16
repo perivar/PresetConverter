@@ -199,8 +199,6 @@ namespace AbletonLiveConverter
                         {
                             // read the null terminated string
                             string paramName = br.ReadStringZ();
-                            // var par = br.ReadBytes(11);
-                            // var paramName = "1234567890";
 
                             // read until 128 bytes have been read
                             var ignore = br.ReadBytes(128 - paramName.Length - 1);
