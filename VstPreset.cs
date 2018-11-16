@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using CommonUtils;
 
 namespace AbletonLiveConverter
@@ -167,15 +169,15 @@ namespace AbletonLiveConverter
                 else
                 {
                     // if Frequency preset
-                    // if (vst3ID.Equals("01F6CCC94CAE4668B7C6EC85E681E419"))
+                    if (vst3ID.Equals("01F6CCC94CAE4668B7C6EC85E681E419"))
 
-                    if (!vst3ID.Equals("D3F57B09EC6B49998C534F50787A9F86") // Groove Agent ONE
-                    && !vst3ID.Equals("91585860BA1748E581441ECD96B153ED") // Groove Agent SE
-                    && !vst3ID.Equals("FFF583CCDFB246F894308DB9C5D94C8D") // Prologue
-                    && !vst3ID.Equals("ED824AB48E0846D5959682F5626D0972") // REVerence
-                    && !vst3ID.Equals("44E1149EDB3E4387BDD827FEA3A39EE7") // Standard Panner
-                    && !vst3ID.Equals("04F35DB10F0C47B9965EA7D63B0CCE67") // VST Amp Rack
-                    )
+                    // if (!vst3ID.Equals("D3F57B09EC6B49998C534F50787A9F86") // Groove Agent ONE
+                    // && !vst3ID.Equals("91585860BA1748E581441ECD96B153ED") // Groove Agent SE
+                    // && !vst3ID.Equals("FFF583CCDFB246F894308DB9C5D94C8D") // Prologue
+                    // && !vst3ID.Equals("ED824AB48E0846D5959682F5626D0972") // REVerence
+                    // && !vst3ID.Equals("44E1149EDB3E4387BDD827FEA3A39EE7") // Standard Panner
+                    // && !vst3ID.Equals("04F35DB10F0C47B9965EA7D63B0CCE67") // VST Amp Rack
+                    // )
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
@@ -325,23 +327,18 @@ namespace AbletonLiveConverter
         {
             var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true);
 
-            // Get file size:
-            UInt32 fileSize = 10000;
-
             // Write file header
             br.Write("VST3");
 
             // Write version
-            UInt32 fileVersion = 1;
-            br.Write(fileVersion);
+            br.Write((UInt32)1);
 
             // Write VST3 ID
-            string vst3ID = "01F6CCC94CAE4668B7C6EC85E681E419";
-            br.Write(vst3ID);
+            br.Write("01F6CCC94CAE4668B7C6EC85E681E419");
 
-            // Write fileSize2
-            UInt32 fileSize2 = 2;
-            br.Write(fileSize2);
+            // Write listPos
+            UInt32 listPos = 2;
+            br.Write(listPos);
 
             // Write unknown value
             UInt32 unknown1 = 0;
@@ -354,19 +351,167 @@ namespace AbletonLiveConverter
             // write chunks of 140 bytes until wrote 19180 bytes (header = 52 bytes)
             // (19180 + 52) = 19232 bytes
             ulong paramChunkSize = 19232;
-            while (br.Position != (long)paramChunkSize)
+            for (int i = 1; i <= 8; i++)
             {
-                string paramName = "";
-                // string paramName = new string(br.ReadChars(128)).TrimEnd('\0');
-                UInt32 paramNumber = 0;
-                //  = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                // var paramValue = BitConverter.ToDouble(ReadBytes(br, 8, ByteOrder.LittleEndian), 0);
+                var band = GetFrequencyBandParameters(i);
+                foreach (var bandParameter in band)
+                {
+                    var paramName = bandParameter.paramName.PadRight(128, '\0').Substring(0, 128);
+                    br.Write(paramName);
+                    br.Write(bandParameter.paramNumber);
+                    br.Write(bandParameter.paramValue);
+                }
+            }
+
+            var post = GetFrequencyPostParameters();
+            foreach (var postParameter in post)
+            {
+                var paramName = postParameter.paramName.PadRight(128, '\0').Substring(0, 128);
+                br.Write(paramName);
+                br.Write(postParameter.paramNumber);
+                br.Write(postParameter.paramValue);
             }
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            // var bytes = br.ReadBytes((int)xmlChunkSize);
-            // var xml = Encoding.UTF8.GetString(bytes);
+            var data = Encoding.UTF8.GetBytes(GetFrequencyXml());
+            var result = Encoding.UTF8.GetPreamble().Concat(data).ToArray();
+            br.Write(result);
+            br.Write("\r\n");
 
+            // write LIST and 4 bytes
+            br.Write("List");
+            br.Write((UInt32)3);
+
+            // write COMP and 16 bytes
+            br.Write("COMP");
+            br.Write((UInt64)0);
+            br.Write((UInt64)0);
+
+            // write Cont and 16 bytes
+            br.Write("Cont");
+            br.Write((UInt64)0);
+            br.Write((UInt64)0);
+
+            // write Info and 16 bytes
+            br.Write("Info");
+            br.Write((UInt64)0);
+            br.Write((UInt64)0);
+
+            br.Close();
+        }
+
+        class Parameter
+        {
+            public string paramName;
+            public UInt32 paramNumber;
+            public double paramValue;
+
+            public Parameter(string paramName, UInt32 paramNumber, double paramValue)
+            {
+                this.paramName = paramName;
+                this.paramNumber = paramNumber;
+                this.paramValue = paramValue;
+            }
+        }
+
+        private List<Parameter> GetFrequencyBandParameters(int bandNumber)
+        {
+            uint increment = (uint)bandNumber - 1;
+            var bandParameters = new List<Parameter>();
+            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, 3.00));
+            bandParameters.Add(new Parameter(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}Ch2 ", bandNumber), 260 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}Ch2 ", bandNumber), 268 + increment, 0.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}Ch2 ", bandNumber), 276 + increment, 25.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}Ch2 ", bandNumber), 284 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}Ch2 ", bandNumber), 292 + increment, 6.00));
+            bandParameters.Add(new Parameter(String.Format("invert{0}Ch2 ", bandNumber), 1030 + increment, 0.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, 2.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAbandon{0}", bandNumber), 58 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00));
+            return bandParameters;
+        }
+
+        private List<Parameter> GetFrequencyPostParameters()
+        {
+            var parameters = new List<Parameter>();
+            parameters.Add(new Parameter("equalizerAbypass", 1, 0.00));
+            parameters.Add(new Parameter("autoListen", 1005, 0.00));
+            parameters.Add(new Parameter("bypass", 1002, 0.00));
+            parameters.Add(new Parameter("reset", 1003, 0.00));
+            parameters.Add(new Parameter("spectrumonoff", 1007, 1.00));
+            parameters.Add(new Parameter("spectrum2ChMode", 1008, 0.00));
+            parameters.Add(new Parameter("spectrumintegrate", 1010, 40.00));
+            parameters.Add(new Parameter("spectrumPHonoff", 1011, 1.00));
+            parameters.Add(new Parameter("spectrumslope", 1012, 0.00));
+            parameters.Add(new Parameter("draweq", 1013, 1.00));
+            parameters.Add(new Parameter("draweqfilled", 1014, 1.00));
+            parameters.Add(new Parameter("spectrumbargraph", 1015, 0.00));
+            parameters.Add(new Parameter("showPianoRoll", 1019, 1.00));
+            parameters.Add(new Parameter("transparency", 1020, 0.30));
+            parameters.Add(new Parameter("autoGainOutputValue", 1021, 0.00));
+            parameters.Add(new Parameter("", 3, 0.00));
+            return parameters;
+        }
+
+        private string GetFrequencyXml()
+        {
+            XmlDocument xml = new XmlDocument();
+            XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
+            xml.AppendChild(docNode);
+            XmlElement root = xml.CreateElement("MetaInfo");
+            xml.AppendChild(root);
+
+            XmlElement attr1 = xml.CreateElement("Attribute");
+            attr1.SetAttribute("id", "MediaType");
+            attr1.SetAttribute("value", "VstPreset");
+            attr1.SetAttribute("type", "string");
+            attr1.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr1);
+
+            XmlElement attr2 = xml.CreateElement("Attribute");
+            attr2.SetAttribute("id", "PlugInCategory");
+            attr2.SetAttribute("value", "Fx|EQ");
+            attr2.SetAttribute("type", "string");
+            attr2.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr2);
+
+            XmlElement attr3 = xml.CreateElement("Attribute");
+            attr3.SetAttribute("id", "PlugInName");
+            attr3.SetAttribute("value", "Frequency");
+            attr3.SetAttribute("type", "string");
+            attr3.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr3);
+
+            XmlElement attr4 = xml.CreateElement("Attribute");
+            attr4.SetAttribute("id", "PlugInVendor");
+            attr4.SetAttribute("value", "Steinberg Media Technologies");
+            attr4.SetAttribute("type", "string");
+            attr4.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr4);
+
+            return BeautifyXml(xml);
+        }
+
+        public string BeautifyXml(XmlDocument doc)
+        {
+            StringBuilder sb = new StringBuilder();
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "\t",
+                NewLineChars = "\r\n",
+                NewLineHandling = NewLineHandling.Replace
+            };
+            using (XmlWriter writer = XmlWriter.Create(sb, settings))
+            {
+                doc.Save(writer);
+            }
+            return sb.ToString();
         }
         #endregion
     }

@@ -101,6 +101,7 @@ namespace AbletonLiveConverter
         private static void HandleSteinbergVstPresets(string file)
         {
             var vstPreset = new VstPreset(file);
+            vstPreset.Write(@"C:\Users\perner\My Projects\Temp\test.txt");
         }
 
         static byte[] Decompress(byte[] gzip)
