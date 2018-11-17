@@ -39,7 +39,7 @@ namespace AbletonLiveConverter
             if (!isAscii)
             {
                 UInt32 value = (UInt32)(b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24));
-                // Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
+                Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
             }
 
             return Encoding.Default.GetString(b);
@@ -91,11 +91,11 @@ namespace AbletonLiveConverter
                 string vst3ID = new string(br.ReadChars(32));
 
                 UInt32 listPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                // Console.WriteLine("DEBUG: listPos: {0}", listPos);
+                Console.WriteLine("DEBUG: listPos: {0}", listPos);
 
                 // Read unknown value:
                 UInt32 unknown1 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                // Console.WriteLine("DEBUG: unknown1 '{0}'", unknown1);
+                Console.WriteLine("DEBUG: unknown1 '{0}'", unknown1);
 
                 long oldPos = br.Position;
 
@@ -105,28 +105,36 @@ namespace AbletonLiveConverter
                 // read LIST and 4 bytes
                 string list = new string(br.ReadChars(4));
                 UInt32 listValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                // Console.WriteLine("DEBUG: '{0}' {1}", list, listValue);
+                Console.WriteLine("DEBUG: '{0}' {1}", list, listValue);
 
-                ulong paramChunkSize = 0;
+                ulong xmlStartPos = 0;
                 ulong xmlChunkSize = 0;
                 if (list.Equals("List"))
                 {
                     for (int i = 0; i < listValue; i++)
                     {
                         // read COMP and 16 bytes
+                        // parameter data start position
+                        // byte length from parameter data start position up until xml data
+
                         // read Cont and 16 bytes
+                        // xml start position
+                        // 0 ?
+
                         // read Info and 16 bytes
+                        // xml start position
+                        // byte length of xml data
                         var element = ReadListElement(br);
-                        // Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                        Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
 
                         if (element.Name.Equals("Info"))
                         {
-                            paramChunkSize = element.value1;
+                            xmlStartPos = element.value1;
                             xmlChunkSize = element.value2;
                         }
                     }
                 }
-                if (paramChunkSize == 0) paramChunkSize = (19180 + 52);
+                if (xmlStartPos == 0) xmlStartPos = (19180 + 52);
                 if (xmlChunkSize == 0) xmlChunkSize = 432;
 
                 // reset position
@@ -134,6 +142,7 @@ namespace AbletonLiveConverter
 
                 // Read data chunk ID:
                 chunkID = ReadFourCC(br);
+                Console.WriteLine("DEBUG: dataChunkID {0}", chunkID);
 
                 // Single preset?
                 bool singlePreset = false;
@@ -181,7 +190,7 @@ namespace AbletonLiveConverter
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
-                        while (br.Position != (long)paramChunkSize)
+                        while (br.Position != (long)xmlStartPos)
                         {
                             // read the null terminated string
                             string paramName = br.ReadStringZ();
@@ -204,7 +213,7 @@ namespace AbletonLiveConverter
                         // read LIST and 4 bytes
                         string listElement = new string(br.ReadChars(4));
                         UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                        // Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
+                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
                         {
@@ -214,7 +223,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(br);
-                                // Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
 
@@ -337,20 +346,18 @@ namespace AbletonLiveConverter
             br.Write("01F6CCC94CAE4668B7C6EC85E681E419");
 
             // Write listPos
-            UInt32 listPos = 2;
+            UInt32 listPos = 19669; // 19664;
             br.Write(listPos);
 
             // Write unknown value
-            UInt32 unknown1 = 0;
-            br.Write(unknown1);
+            br.Write((UInt32)0);
 
             // Write data chunk ID
-            UInt32 chunkID = 0;
+            UInt32 chunkID = 19737 - 4; // 19728; // total length minus 4 ('VST3')
             br.Write(chunkID);
 
-            // write chunks of 140 bytes until wrote 19180 bytes (header = 52 bytes)
+            // write parameters
             // (19180 + 52) = 19232 bytes
-            ulong paramChunkSize = 19232;
             for (int i = 1; i <= 8; i++)
             {
                 var band = GetFrequencyBandParameters(i);
@@ -373,9 +380,10 @@ namespace AbletonLiveConverter
             }
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var data = Encoding.UTF8.GetBytes(GetFrequencyXml());
-            var result = Encoding.UTF8.GetPreamble().Concat(data).ToArray();
-            br.Write(result);
+            var xmlString = GetFrequencyXml();
+            var xmlBytes = Encoding.UTF8.GetBytes(xmlString);
+            var xmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
+            br.Write(xmlBytesBOM);
             br.Write("\r\n");
 
             // write LIST and 4 bytes
@@ -383,19 +391,19 @@ namespace AbletonLiveConverter
             br.Write((UInt32)3);
 
             // write COMP and 16 bytes
-            br.Write("COMP");
-            br.Write((UInt64)0);
-            br.Write((UInt64)0);
+            br.Write("Comp");
+            br.Write((UInt64)48); // parameter data start position
+            br.Write((UInt64)19184); // byte length from parameter data start position up until xml data
 
             // write Cont and 16 bytes
             br.Write("Cont");
-            br.Write((UInt64)0);
-            br.Write((UInt64)0);
+            br.Write((UInt64)19232); // xml start position
+            br.Write((UInt64)0);// ?
 
             // write Info and 16 bytes
             br.Write("Info");
-            br.Write((UInt64)0);
-            br.Write((UInt64)0);
+            br.Write((UInt64)19232); // xml start position
+            br.Write((UInt64)xmlBytesBOM.Length); // byte length of xml data
 
             br.Close();
         }
@@ -420,16 +428,16 @@ namespace AbletonLiveConverter
             var bandParameters = new List<Parameter>();
             bandParameters.Add(new Parameter(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00));
             bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00 * bandNumber));
             bandParameters.Add(new Parameter(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, 3.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? 3.0 : 1.0)); // type
             bandParameters.Add(new Parameter(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}Ch2 ", bandNumber), 260 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}Ch2 ", bandNumber), 268 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}Ch2 ", bandNumber), 276 + increment, 25.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}Ch2 ", bandNumber), 284 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}Ch2 ", bandNumber), 292 + increment, 6.00));
-            bandParameters.Add(new Parameter(String.Format("invert{0}Ch2 ", bandNumber), 1030 + increment, 0.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}Ch2", bandNumber), 260 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}Ch2", bandNumber), 268 + increment, 0.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}Ch2", bandNumber), 276 + increment, 25.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}Ch2", bandNumber), 284 + increment, 1.00));
+            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}Ch2", bandNumber), 292 + increment, 6.00));
+            bandParameters.Add(new Parameter(String.Format("invert{0}Ch2", bandNumber), 1030 + increment, 0.00));
             bandParameters.Add(new Parameter(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, 2.00));
             bandParameters.Add(new Parameter(String.Format("equalizerAbandon{0}", bandNumber), 58 + increment, 1.00));
             bandParameters.Add(new Parameter(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00));
@@ -440,9 +448,10 @@ namespace AbletonLiveConverter
         {
             var parameters = new List<Parameter>();
             parameters.Add(new Parameter("equalizerAbypass", 1, 0.00));
-            parameters.Add(new Parameter("autoListen", 1005, 0.00));
+            parameters.Add(new Parameter("equalizerAoutput", 2, 0.00));
             parameters.Add(new Parameter("bypass", 1002, 0.00));
             parameters.Add(new Parameter("reset", 1003, 0.00));
+            parameters.Add(new Parameter("autoListen", 1005, 0.00));
             parameters.Add(new Parameter("spectrumonoff", 1007, 1.00));
             parameters.Add(new Parameter("spectrum2ChMode", 1008, 0.00));
             parameters.Add(new Parameter("spectrumintegrate", 1010, 40.00));
