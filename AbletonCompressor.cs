@@ -5,9 +5,9 @@ using System.Xml.Linq;
 
 namespace AbletonLiveConverter
 {
-    public class Compressor
+    public class AbletonCompressor
     {
-        public Compressor(XElement xelement)
+        public AbletonCompressor(XElement xelement)
         {
             var threshold = float.Parse(xelement.Descendants("Threshold").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
             var ratio = float.Parse(xelement.Descendants("Ratio").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);

@@ -38,10 +38,10 @@ namespace AbletonLiveConverter
                         switch (extension)
                         {
                             case ".adv":
-                                HandleAbletonLivePresets(file);
+                                HandleAbletonLivePreset(file);
                                 break;
                             case ".vstpreset":
-                                HandleSteinbergVstPresets(file);
+                                HandleSteinbergVstPreset(file);
                                 break;
                         }
                     }
@@ -64,7 +64,7 @@ namespace AbletonLiveConverter
             }
         }
 
-        private static void HandleAbletonLivePresets(string file)
+        private static void HandleAbletonLivePreset(string file)
         {
             byte[] bytes = File.ReadAllBytes(file);
             byte[] decompressed = Decompress(bytes);
@@ -77,13 +77,16 @@ namespace AbletonLiveConverter
             switch (presetType)
             {
                 case "Eq8":
-                    var eq = new Eq(xelement);
+                    var eq = new AbletonEq8(xelement);
+                    var eqAdapter = new AbletonEq8ToSteinbergFrequencyAdapter(eq);
+                    var steinbergFrequency = eqAdapter.ToSteinbergFrequencyPreset();
+                    steinbergFrequency.Write(@"C:\Users\perner\My Projects\Temp\test.vstpreset");
                     break;
                 case "Compressor2":
-                    var compressor = new Compressor(xelement);
+                    var compressor = new AbletonCompressor(xelement);
                     break;
                 case "GlueCompressor":
-                    var glueCompressor = new GlueCompressor(xelement);
+                    var glueCompressor = new AbletonGlueCompressor(xelement);
                     break;
                 case "MultibandDynamics":
                 // var multibandCompressor = new MultibandCompressor(xelement);
@@ -98,10 +101,10 @@ namespace AbletonLiveConverter
             }
         }
 
-        private static void HandleSteinbergVstPresets(string file)
+        private static void HandleSteinbergVstPreset(string file)
         {
             var vstPreset = new VstPreset(file);
-            vstPreset.Write(@"C:\Users\perner\My Projects\Temp\test.vstpreset");
+            Console.WriteLine(vstPreset);
         }
 
         static byte[] Decompress(byte[] gzip)

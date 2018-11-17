@@ -10,13 +10,53 @@ namespace AbletonLiveConverter
 {
     public class VstPreset
     {
-        class ListElement
+        private class ListElement
         {
             public string Name;
             public UInt64 value1;
             public UInt64 value2;
         }
 
+        public class Parameter
+        {
+            public string Name;
+            public UInt32 Number;
+            public double Value;
+
+            public Parameter()
+            {
+
+            }
+
+            public Parameter(string name, UInt32 number, double value)
+            {
+                this.Name = name;
+                this.Number = number;
+                this.Value = value;
+            }
+
+            public override string ToString()
+            {
+                return string.Format("[{1}] {0} = {2:0.00}", Name, Number, Value);
+            }
+        }
+
+        public List<Parameter> Parameters = new List<Parameter>();
+        public string Vst3ID;
+        public string Xml;
+        public byte[] FileData;
+
+        public VstPreset()
+        {
+
+        }
+
+        public VstPreset(string fileName)
+        {
+            ReadVstPreset(fileName);
+        }
+
+        #region ReadPreset Functions    
         /// <summary>
         /// Convenience function to read a FourCC chunk id as a string.
         /// </summary>
@@ -45,17 +85,6 @@ namespace AbletonLiveConverter
             return Encoding.Default.GetString(b);
         }
 
-        public VstPreset()
-        {
-
-        }
-
-        public VstPreset(string fileName)
-        {
-            ReadVstPreset(fileName);
-        }
-
-        #region ReadPreset Functions    
         private void ReadVstPreset(string fileName)
         {
             // Check file for existence:
@@ -88,14 +117,14 @@ namespace AbletonLiveConverter
                 UInt32 fileVersion = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
 
                 // Read VST3 ID:
-                string vst3ID = new string(br.ReadChars(32));
+                this.Vst3ID = new string(br.ReadChars(32));
 
                 UInt32 listPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG: listPos: {0}", listPos);
+                Console.WriteLine("DEBUG listPos: {0}", listPos);
 
                 // Read unknown value:
                 UInt32 unknown1 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG: unknown1 '{0}'", unknown1);
+                Console.WriteLine("DEBUG unknown1: {0}", unknown1);
 
                 long oldPos = br.Position;
 
@@ -105,7 +134,7 @@ namespace AbletonLiveConverter
                 // read LIST and 4 bytes
                 string list = new string(br.ReadChars(4));
                 UInt32 listValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG: '{0}' {1}", list, listValue);
+                Console.WriteLine("DEBUG: {0} {1}", list, listValue);
 
                 ulong xmlStartPos = 0;
                 ulong xmlChunkSize = 0;
@@ -140,7 +169,8 @@ namespace AbletonLiveConverter
                 // reset position
                 br.Seek(oldPos, SeekOrigin.Begin);
 
-                // Read data chunk ID:
+                // Read data chunk length. i.e. total length minus 4 ('VST3')
+                // In some cases this is supposedly the chunk ID
                 chunkID = ReadFourCC(br);
                 Console.WriteLine("DEBUG: dataChunkID {0}", chunkID);
 
@@ -178,7 +208,7 @@ namespace AbletonLiveConverter
                 else
                 {
                     // if Frequency preset
-                    if (vst3ID.Equals("01F6CCC94CAE4668B7C6EC85E681E419"))
+                    if (this.Vst3ID.Equals(SteinbergFrequency.Vst3ID))
 
                     // if (!vst3ID.Equals("D3F57B09EC6B49998C534F50787A9F86") // Groove Agent ONE
                     // && !vst3ID.Equals("91585860BA1748E581441ECD96B153ED") // Groove Agent SE
@@ -192,23 +222,23 @@ namespace AbletonLiveConverter
                         // (19180 + 52) = 19232 bytes
                         while (br.Position != (long)xmlStartPos)
                         {
+                            var parameter = new Parameter();
+
                             // read the null terminated string
-                            string paramName = br.ReadStringZ();
+                            parameter.Name = br.ReadStringZ();
 
                             // read until 128 bytes have been read
-                            var ignore = br.ReadBytes(128 - paramName.Length - 1);
+                            var ignore = br.ReadBytes(128 - parameter.Name.Length - 1);
 
-                            UInt32 paramNumber = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                            var paramValue = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
+                            parameter.Number = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                            parameter.Value = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
 
-                            Console.WriteLine("[{1}] {0} = {2:0.00}", paramName, paramNumber, paramValue);
+                            Parameters.Add(parameter);
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = br.ReadBytes((int)xmlChunkSize);
-                        var xml = Encoding.UTF8.GetString(bytes);
-
-                        Console.WriteLine("{0}", xml);
+                        this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
                         string listElement = new string(br.ReadChars(4));
@@ -282,7 +312,7 @@ namespace AbletonLiveConverter
 
                 // Read the source data:
                 br.Position = chunkStart;
-                byte[] fileData = br.ReadBytes((int)chunkSize);
+                this.FileData = br.ReadBytes((int)chunkSize);
             }
         }
 
@@ -300,6 +330,29 @@ namespace AbletonLiveConverter
             return elem;
         }
 
+        /// <summary>
+        /// Search with an array of bytes to find a specific pattern
+        /// </summary>
+        /// <param name="array">byte array</param>
+        /// <param name="pattern">byte array pattern</param>
+        /// <param name="startIndex">index to start searching at</param>
+        /// <param name="count">how many elements to look through</param>
+        /// <returns>position</returns>
+        /// <example>
+        /// find the last 'List' entry	
+        /// reading all bytes at once is not very performant, but works for these relatively small files	
+        /// byte[] allBytes = File.ReadAllBytes(fileName);
+        /// reading from the end of the file by reversing the array	
+        /// byte[] reversed = allBytes.Reverse().ToArray();
+        /// find 'List' backwards	
+        /// int reverseIndex = IndexOfBytes(reversed, Encoding.UTF8.GetBytes("tsiL"), 0, reversed.Length);
+        /// if (reverseIndex < 0)
+        /// {
+        /// reverseIndex = 64;
+        /// }
+        /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
+        /// Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
+        /// </example>
         public int IndexOfBytes(byte[] array, byte[] pattern, int startIndex, int count)
         {
             if (array == null || array.Length == 0 || pattern == null || pattern.Length == 0 || count == 0)
@@ -331,184 +384,10 @@ namespace AbletonLiveConverter
         }
         #endregion
 
-        #region WritePreset Functions
-        public void Write(string fileName)
-        {
-            var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true);
-
-            // Write file header
-            br.Write("VST3");
-
-            // Write version
-            br.Write((UInt32)1);
-
-            // Write VST3 ID
-            br.Write("01F6CCC94CAE4668B7C6EC85E681E419");
-
-            // Write listPos
-            UInt32 listPos = 19669; // 19664;
-            br.Write(listPos);
-
-            // Write unknown value
-            br.Write((UInt32)0);
-
-            // Write data chunk ID
-            UInt32 chunkID = 19737 - 4; // 19728; // total length minus 4 ('VST3')
-            br.Write(chunkID);
-
-            // write parameters
-            // (19180 + 52) = 19232 bytes
-            for (int i = 1; i <= 8; i++)
-            {
-                var band = GetFrequencyBandParameters(i);
-                foreach (var bandParameter in band)
-                {
-                    var paramName = bandParameter.paramName.PadRight(128, '\0').Substring(0, 128);
-                    br.Write(paramName);
-                    br.Write(bandParameter.paramNumber);
-                    br.Write(bandParameter.paramValue);
-                }
-            }
-
-            var post = GetFrequencyPostParameters();
-            foreach (var postParameter in post)
-            {
-                var paramName = postParameter.paramName.PadRight(128, '\0').Substring(0, 128);
-                br.Write(paramName);
-                br.Write(postParameter.paramNumber);
-                br.Write(postParameter.paramValue);
-            }
-
-            // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlString = GetFrequencyXml();
-            var xmlBytes = Encoding.UTF8.GetBytes(xmlString);
-            var xmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
-            br.Write(xmlBytesBOM);
-            br.Write("\r\n");
-
-            // write LIST and 4 bytes
-            br.Write("List");
-            br.Write((UInt32)3);
-
-            // write COMP and 16 bytes
-            br.Write("Comp");
-            br.Write((UInt64)48); // parameter data start position
-            br.Write((UInt64)19184); // byte length from parameter data start position up until xml data
-
-            // write Cont and 16 bytes
-            br.Write("Cont");
-            br.Write((UInt64)19232); // xml start position
-            br.Write((UInt64)0);// ?
-
-            // write Info and 16 bytes
-            br.Write("Info");
-            br.Write((UInt64)19232); // xml start position
-            br.Write((UInt64)xmlBytesBOM.Length); // byte length of xml data
-
-            br.Close();
-        }
-
-        class Parameter
-        {
-            public string paramName;
-            public UInt32 paramNumber;
-            public double paramValue;
-
-            public Parameter(string paramName, UInt32 paramNumber, double paramValue)
-            {
-                this.paramName = paramName;
-                this.paramNumber = paramNumber;
-                this.paramValue = paramValue;
-            }
-        }
-
-        private List<Parameter> GetFrequencyBandParameters(int bandNumber)
-        {
-            uint increment = (uint)bandNumber - 1;
-            var bandParameters = new List<Parameter>();
-            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00 * bandNumber));
-            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? 3.0 : 1.0)); // type
-            bandParameters.Add(new Parameter(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}Ch2", bandNumber), 260 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}Ch2", bandNumber), 268 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}Ch2", bandNumber), 276 + increment, 25.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}Ch2", bandNumber), 284 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}Ch2", bandNumber), 292 + increment, 6.00));
-            bandParameters.Add(new Parameter(String.Format("invert{0}Ch2", bandNumber), 1030 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, 2.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAbandon{0}", bandNumber), 58 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00));
-            return bandParameters;
-        }
-
-        private List<Parameter> GetFrequencyPostParameters()
-        {
-            var parameters = new List<Parameter>();
-            parameters.Add(new Parameter("equalizerAbypass", 1, 0.00));
-            parameters.Add(new Parameter("equalizerAoutput", 2, 0.00));
-            parameters.Add(new Parameter("bypass", 1002, 0.00));
-            parameters.Add(new Parameter("reset", 1003, 0.00));
-            parameters.Add(new Parameter("autoListen", 1005, 0.00));
-            parameters.Add(new Parameter("spectrumonoff", 1007, 1.00));
-            parameters.Add(new Parameter("spectrum2ChMode", 1008, 0.00));
-            parameters.Add(new Parameter("spectrumintegrate", 1010, 40.00));
-            parameters.Add(new Parameter("spectrumPHonoff", 1011, 1.00));
-            parameters.Add(new Parameter("spectrumslope", 1012, 0.00));
-            parameters.Add(new Parameter("draweq", 1013, 1.00));
-            parameters.Add(new Parameter("draweqfilled", 1014, 1.00));
-            parameters.Add(new Parameter("spectrumbargraph", 1015, 0.00));
-            parameters.Add(new Parameter("showPianoRoll", 1019, 1.00));
-            parameters.Add(new Parameter("transparency", 1020, 0.30));
-            parameters.Add(new Parameter("autoGainOutputValue", 1021, 0.00));
-            parameters.Add(new Parameter("", 3, 0.00));
-            return parameters;
-        }
-
-        private string GetFrequencyXml()
-        {
-            XmlDocument xml = new XmlDocument();
-            XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
-            xml.AppendChild(docNode);
-            XmlElement root = xml.CreateElement("MetaInfo");
-            xml.AppendChild(root);
-
-            XmlElement attr1 = xml.CreateElement("Attribute");
-            attr1.SetAttribute("id", "MediaType");
-            attr1.SetAttribute("value", "VstPreset");
-            attr1.SetAttribute("type", "string");
-            attr1.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr1);
-
-            XmlElement attr2 = xml.CreateElement("Attribute");
-            attr2.SetAttribute("id", "PlugInCategory");
-            attr2.SetAttribute("value", "Fx|EQ");
-            attr2.SetAttribute("type", "string");
-            attr2.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr2);
-
-            XmlElement attr3 = xml.CreateElement("Attribute");
-            attr3.SetAttribute("id", "PlugInName");
-            attr3.SetAttribute("value", "Frequency");
-            attr3.SetAttribute("type", "string");
-            attr3.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr3);
-
-            XmlElement attr4 = xml.CreateElement("Attribute");
-            attr4.SetAttribute("id", "PlugInVendor");
-            attr4.SetAttribute("value", "Steinberg Media Technologies");
-            attr4.SetAttribute("type", "string");
-            attr4.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr4);
-
-            return BeautifyXml(xml);
-        }
-
         public string BeautifyXml(XmlDocument doc)
         {
             StringBuilder sb = new StringBuilder();
+            StringWriterWithEncoding stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
             XmlWriterSettings settings = new XmlWriterSettings
             {
                 Indent = true,
@@ -516,12 +395,47 @@ namespace AbletonLiveConverter
                 NewLineChars = "\r\n",
                 NewLineHandling = NewLineHandling.Replace
             };
-            using (XmlWriter writer = XmlWriter.Create(sb, settings))
+            using (XmlWriter writer = XmlWriter.Create(stringWriter, settings))
             {
                 doc.Save(writer);
             }
+
+            // remove whitespace in self closing tags when writing xml document
+            var stripSelfClose = sb.ToString().Replace(" />", "/>");
+            return stripSelfClose;
+        }
+
+        // class to fix the problem of XmlWriter defaulting to utf-16
+        // see http://www.csharp411.com/how-to-force-xmlwriter-or-xmltextwriter-to-use-encoding-other-than-utf-16/
+        public class StringWriterWithEncoding : StringWriter
+        {
+            public StringWriterWithEncoding(StringBuilder sb, Encoding encoding)
+                : base(sb)
+            {
+                this.m_Encoding = encoding;
+            }
+            private readonly Encoding m_Encoding;
+            public override Encoding Encoding
+            {
+                get
+                {
+                    return this.m_Encoding;
+                }
+            }
+        }
+
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendFormat("Vst3ID: {0}\n", Vst3ID);
+            foreach (var parameter in Parameters)
+            {
+                sb.AppendLine(parameter.ToString());
+            }
+
+            if (null != Xml) sb.AppendLine(Xml);
             return sb.ToString();
         }
-        #endregion
     }
 }

@@ -5,9 +5,9 @@ using System.Xml.Linq;
 
 namespace AbletonLiveConverter
 {
-    public class MultibandCompressor
+    public class AbletonMultibandCompressor
     {
-        public MultibandCompressor(XElement xelement)
+        public AbletonMultibandCompressor(XElement xelement)
         {
 
         }

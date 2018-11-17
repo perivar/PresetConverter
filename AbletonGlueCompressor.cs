@@ -5,9 +5,9 @@ using System.Xml.Linq;
 
 namespace AbletonLiveConverter
 {
-    public class GlueCompressor
+    public class AbletonGlueCompressor
     {
-        public GlueCompressor(XElement xelement)
+        public AbletonGlueCompressor(XElement xelement)
         {
             var threshold = float.Parse(xelement.Descendants("Threshold").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
             var range = float.Parse(xelement.Descendants("Range").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
