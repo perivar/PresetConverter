@@ -108,7 +108,13 @@ namespace AbletonLiveConverter
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = new VstPreset(file);
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
             Console.WriteLine(vstPreset);
+            if (vstPreset.Parameters.Count > 0)
+            {
+                File.WriteAllText(outputFilePath, vstPreset.ToString());
+            }
         }
 
         static byte[] Decompress(byte[] gzip)

@@ -12,17 +12,25 @@ namespace AbletonLiveConverter
         public static string Vst3ID = "01F6CCC94CAE4668B7C6EC85E681E419";
 
         // cannot use Enums with doubles, struct works
-        public struct BandMode
+        public struct BandMode1And8
         {
-            public const double LowCut48 = 0.00;
-            public const double LowCut12 = 0.00;
-            public const double LeftShelf = 0.00;
-            public const double Bell = 0.00;
-            public const double Notch = 0.00;
-            public const double RightShelf = 0.00;
-            public const double HighCut12 = 0.00;
-            public const double HighCut48 = 0.00;
+            public const double Cut6 = 0.00;
+            public const double Cut12 = 1.00;
+            public const double Cut24 = 2.00;
+            public const double Cut48 = 3.00;
+            public const double Cut96 = 4.00;
+            public const double LowShelf = 5.00;
+            public const double Peak = 6.00;
+            public const double HighShelf = 7.00;
+            public const double Notch = 8.00;
+        }
 
+        public struct BandMode2To7
+        {
+            public const double LowShelf = 0.00;
+            public const double Peak = 1.00;
+            public const double HighShelf = 2.00;
+            public const double Notch = 3.00;
         }
 
         public SteinbergFrequency()
@@ -109,7 +117,7 @@ namespace AbletonLiveConverter
             AddParameterToDictionary(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00);
             AddParameterToDictionary(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00 * bandNumber);
             AddParameterToDictionary(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00);
-            AddParameterToDictionary(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? 3.0 : 1.0); // type
+            AddParameterToDictionary(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak);
             AddParameterToDictionary(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00);
             AddParameterToDictionary(String.Format("equalizerAon{0}Ch2", bandNumber), 260 + increment, 1.00);
             AddParameterToDictionary(String.Format("equalizerAgain{0}Ch2", bandNumber), 268 + increment, 0.00);
