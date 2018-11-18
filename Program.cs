@@ -74,6 +74,9 @@ namespace AbletonLiveConverter
 
             XElement xelement = XElement.Parse(str);
 
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = "";
+
             // find preset type
             var presetType = xelement.Elements().First().Name.ToString();
             switch (presetType)
@@ -81,13 +84,14 @@ namespace AbletonLiveConverter
                 case "Eq8":
                     var eq = new AbletonEq8(xelement);
                     var steinbergFrequency = eq.ToSteinbergFrequency();
-                    string outputFileName = Path.GetFileNameWithoutExtension(file);
-                    string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton2Frequency - " + outputFileName + ".vstpreset");
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Ableton2Frequency - " + outputFileName + ".vstpreset");
                     steinbergFrequency.Write(outputFilePath);
                     break;
                 case "Compressor2":
                     var compressor = new AbletonCompressor(xelement);
-                    Console.WriteLine(compressor);
+                    var steinbergCompressor = compressor.ToSteinbergCompressor();
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Ableton2Compressor - " + outputFileName + ".vstpreset");
+                    steinbergCompressor.Write(outputFilePath);
                     break;
                 case "GlueCompressor":
                     var glueCompressor = new AbletonGlueCompressor(xelement);

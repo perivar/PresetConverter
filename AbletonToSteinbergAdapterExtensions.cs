@@ -81,5 +81,30 @@ namespace AbletonLiveConverter
 
             return frequency;
         }
+
+        public static SteinbergCompressor ToSteinbergCompressor(this AbletonCompressor comp)
+        {
+            var compressor = new SteinbergCompressor();
+
+            compressor.Parameters["threshold"].Value = comp.Threshold;
+            compressor.Parameters["ratio"].Value = comp.Ratio;
+            compressor.Parameters["attack"].Value = comp.Attack;
+            compressor.Parameters["release"].Value = comp.Release;
+            compressor.Parameters["autorelease"].Value = 0.00;
+            compressor.Parameters["hold"].Value = 0.00;
+            compressor.Parameters["makeUp"].Value = comp.Gain;
+            compressor.Parameters["automakeup"].Value = 1.00;
+            compressor.Parameters["softknee"].Value = 0.00;
+            compressor.Parameters["rms"].Value = 0.00;
+            compressor.Parameters["live"].Value = 0.00;
+            compressor.Parameters["resetMaxGainRed"].Value = 0.00;
+            compressor.Parameters["bypass"].Value = 0.00;
+            compressor.Parameters["makeupMode"].Value = 0.00;
+
+            Console.WriteLine(comp);
+
+            return compressor;
+        }
+
     }
 }
