@@ -17,8 +17,14 @@ namespace AbletonLiveConverter
 
             foreach (var band in eq.Bands)
             {
-                if (band.IsOn && band.ParameterName.Equals("ParameterA"))
+                if (band.Parameter.Equals("ParameterA"))
                 {
+                    int bandNumber = band.Number + 1; // zero indexed
+                    frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].Value = band.IsOn ? 1.00 : 0.00;
+                    frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].Value = band.Gain;
+                    frequency.Parameters[String.Format("equalizerAfreq{0}", bandNumber)].Value = band.Freq;
+                    frequency.Parameters[String.Format("equalizerAq{0}", bandNumber)].Value = band.Q;
+                    frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Value = 0.0;
                     Console.WriteLine(band);
                 }
             }

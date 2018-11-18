@@ -11,6 +11,26 @@ namespace AbletonLiveConverter
     {
         public static string Vst3ID = "01F6CCC94CAE4668B7C6EC85E681E419";
 
+        // cannot use Enums with doubles, struct works
+        public struct BandMode
+        {
+            public const double LowCut48 = 0.00;
+            public const double LowCut12 = 0.00;
+            public const double LeftShelf = 0.00;
+            public const double Bell = 0.00;
+            public const double Notch = 0.00;
+            public const double RightShelf = 0.00;
+            public const double HighCut12 = 0.00;
+            public const double HighCut48 = 0.00;
+
+        }
+
+        public SteinbergFrequency()
+        {
+            SetParameters();
+            SetXml();
+        }
+
         public void Write(string fileName)
         {
             var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true);
@@ -36,31 +56,16 @@ namespace AbletonLiveConverter
             br.Write(chunkID);
 
             // write parameters
-            // (19180 + 52) = 19232 bytes
-            for (int i = 1; i <= 8; i++)
+            foreach (var parameter in Parameters.Values)
             {
-                var band = GetFrequencyBandParameters(i);
-                foreach (var bandParameter in band)
-                {
-                    var paramName = bandParameter.Name.PadRight(128, '\0').Substring(0, 128);
-                    br.Write(paramName);
-                    br.Write(bandParameter.Number);
-                    br.Write(bandParameter.Value);
-                }
-            }
-
-            var post = GetFrequencyPostParameters();
-            foreach (var postParameter in post)
-            {
-                var paramName = postParameter.Name.PadRight(128, '\0').Substring(0, 128);
+                var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
                 br.Write(paramName);
-                br.Write(postParameter.Number);
-                br.Write(postParameter.Value);
+                br.Write(parameter.Number);
+                br.Write(parameter.Value);
             }
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlString = GetFrequencyXml();
-            var xmlBytes = Encoding.UTF8.GetBytes(xmlString);
+            var xmlBytes = Encoding.UTF8.GetBytes(this.Xml);
             var xmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
             br.Write(xmlBytesBOM);
             br.Write("\r\n");
@@ -87,52 +92,64 @@ namespace AbletonLiveConverter
             br.Close();
         }
 
-        private List<Parameter> GetFrequencyBandParameters(int bandNumber)
+        private void SetParameters()
+        {
+            for (int i = 1; i <= 8; i++)
+            {
+                SetFrequencyBandParameters(i);
+            }
+
+            SetFrequencyPostParameters();
+        }
+
+        private void SetFrequencyBandParameters(int bandNumber)
         {
             uint increment = (uint)bandNumber - 1;
-            var bandParameters = new List<Parameter>();
-            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00 * bandNumber));
-            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? 3.0 : 1.0)); // type
-            bandParameters.Add(new Parameter(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAon{0}Ch2", bandNumber), 260 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAgain{0}Ch2", bandNumber), 268 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAfreq{0}Ch2", bandNumber), 276 + increment, 25.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAq{0}Ch2", bandNumber), 284 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAtype{0}Ch2", bandNumber), 292 + increment, 6.00));
-            bandParameters.Add(new Parameter(String.Format("invert{0}Ch2", bandNumber), 1030 + increment, 0.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, 2.00));
-            bandParameters.Add(new Parameter(String.Format("equalizerAbandon{0}", bandNumber), 58 + increment, 1.00));
-            bandParameters.Add(new Parameter(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00));
-            return bandParameters;
+            AddParameterToDictionary(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00);
+            AddParameterToDictionary(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00);
+            AddParameterToDictionary(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00 * bandNumber);
+            AddParameterToDictionary(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00);
+            AddParameterToDictionary(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? 3.0 : 1.0); // type
+            AddParameterToDictionary(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00);
+            AddParameterToDictionary(String.Format("equalizerAon{0}Ch2", bandNumber), 260 + increment, 1.00);
+            AddParameterToDictionary(String.Format("equalizerAgain{0}Ch2", bandNumber), 268 + increment, 0.00);
+            AddParameterToDictionary(String.Format("equalizerAfreq{0}Ch2", bandNumber), 276 + increment, 25.00);
+            AddParameterToDictionary(String.Format("equalizerAq{0}Ch2", bandNumber), 284 + increment, 1.00);
+            AddParameterToDictionary(String.Format("equalizerAtype{0}Ch2", bandNumber), 292 + increment, 6.00);
+            AddParameterToDictionary(String.Format("invert{0}Ch2", bandNumber), 1030 + increment, 0.00);
+            AddParameterToDictionary(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, 2.00);
+            AddParameterToDictionary(String.Format("equalizerAbandon{0}", bandNumber), 58 + increment, 1.00);
+            AddParameterToDictionary(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00);
         }
 
-        private List<Parameter> GetFrequencyPostParameters()
+        private void SetFrequencyPostParameters()
         {
-            var parameters = new List<Parameter>();
-            parameters.Add(new Parameter("equalizerAbypass", 1, 0.00));
-            parameters.Add(new Parameter("equalizerAoutput", 2, 0.00));
-            parameters.Add(new Parameter("bypass", 1002, 0.00));
-            parameters.Add(new Parameter("reset", 1003, 0.00));
-            parameters.Add(new Parameter("autoListen", 1005, 0.00));
-            parameters.Add(new Parameter("spectrumonoff", 1007, 1.00));
-            parameters.Add(new Parameter("spectrum2ChMode", 1008, 0.00));
-            parameters.Add(new Parameter("spectrumintegrate", 1010, 40.00));
-            parameters.Add(new Parameter("spectrumPHonoff", 1011, 1.00));
-            parameters.Add(new Parameter("spectrumslope", 1012, 0.00));
-            parameters.Add(new Parameter("draweq", 1013, 1.00));
-            parameters.Add(new Parameter("draweqfilled", 1014, 1.00));
-            parameters.Add(new Parameter("spectrumbargraph", 1015, 0.00));
-            parameters.Add(new Parameter("showPianoRoll", 1019, 1.00));
-            parameters.Add(new Parameter("transparency", 1020, 0.30));
-            parameters.Add(new Parameter("autoGainOutputValue", 1021, 0.00));
-            parameters.Add(new Parameter("", 3, 0.00));
-            return parameters;
+            AddParameterToDictionary("equalizerAbypass", 1, 0.00);
+            AddParameterToDictionary("equalizerAoutput", 2, 0.00);
+            AddParameterToDictionary("bypass", 1002, 0.00);
+            AddParameterToDictionary("reset", 1003, 0.00);
+            AddParameterToDictionary("autoListen", 1005, 0.00);
+            AddParameterToDictionary("spectrumonoff", 1007, 1.00);
+            AddParameterToDictionary("spectrum2ChMode", 1008, 0.00);
+            AddParameterToDictionary("spectrumintegrate", 1010, 40.00);
+            AddParameterToDictionary("spectrumPHonoff", 1011, 1.00);
+            AddParameterToDictionary("spectrumslope", 1012, 0.00);
+            AddParameterToDictionary("draweq", 1013, 1.00);
+            AddParameterToDictionary("draweqfilled", 1014, 1.00);
+            AddParameterToDictionary("spectrumbargraph", 1015, 0.00);
+            AddParameterToDictionary("showPianoRoll", 1019, 1.00);
+            AddParameterToDictionary("transparency", 1020, 0.30);
+            AddParameterToDictionary("autoGainOutputValue", 1021, 0.00);
+            AddParameterToDictionary("", 3, 0.00);
         }
 
-        private string GetFrequencyXml()
+        private void AddParameterToDictionary(string name, UInt32 number, double value)
+        {
+            var parameter = new Parameter(name, number, value);
+            this.Parameters.Add(name, parameter);
+        }
+
+        private void SetXml()
         {
             XmlDocument xml = new XmlDocument();
             XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
@@ -168,7 +185,7 @@ namespace AbletonLiveConverter
             attr4.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr4);
 
-            return BeautifyXml(xml);
+            this.Xml = BeautifyXml(xml);
         }
     }
 }

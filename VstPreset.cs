@@ -41,7 +41,7 @@ namespace AbletonLiveConverter
             }
         }
 
-        public List<Parameter> Parameters = new List<Parameter>();
+        public Dictionary<string, Parameter> Parameters = new Dictionary<string, Parameter>();
         public string Vst3ID;
         public string Xml;
         public byte[] FileData;
@@ -233,7 +233,7 @@ namespace AbletonLiveConverter
                             parameter.Number = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
                             parameter.Value = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
 
-                            Parameters.Add(parameter);
+                            Parameters.Add(parameter.Name, parameter);
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -429,7 +429,7 @@ namespace AbletonLiveConverter
         {
             var sb = new StringBuilder();
             sb.AppendFormat("Vst3ID: {0}\n", Vst3ID);
-            foreach (var parameter in Parameters)
+            foreach (var parameter in Parameters.Values)
             {
                 sb.AppendLine(parameter.ToString());
             }

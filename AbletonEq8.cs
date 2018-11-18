@@ -22,7 +22,8 @@ namespace AbletonLiveConverter
 
         public class Band
         {
-            public string ParameterName;
+            public string Parameter;
+            public int Number;
             public bool IsOn;
             public BandMode Mode;
             public float Freq;
@@ -31,7 +32,7 @@ namespace AbletonLiveConverter
 
             public override string ToString()
             {
-                return string.Format("{0}: {1:0.00} Hz, Gain: {2:0.00} dB, Q: {3:0.00}, Mode: {4}", ParameterName, Freq, Gain, Q, Mode);
+                return string.Format("{0}: Band: {1}, {2:0.00} Hz, Gain: {3:0.00} dB, Q: {4:0.00}, Mode: {5}, {6}", Parameter, Number, Freq, Gain, Q, Mode, IsOn ? "On" : "Off");
             }
         }
 
@@ -53,7 +54,8 @@ namespace AbletonLiveConverter
         private Band ParseBand(XElement bandElement, string parameter)
         {
             var band = new Band();
-            band.ParameterName = parameter;
+            band.Parameter = parameter;
+            band.Number = int.Parse(bandElement.Name.LocalName.Substring(bandElement.Name.LocalName.LastIndexOf('.') + 1));
             band.IsOn = bandElement.Descendants(parameter).Descendants("IsOn").Descendants("Manual").Attributes("Value").First().Value.Equals("true");
             band.Mode = (BandMode)int.Parse(bandElement.Descendants(parameter).Descendants("Mode").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
             band.Freq = float.Parse(bandElement.Descendants(parameter).Descendants("Freq").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);

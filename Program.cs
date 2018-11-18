@@ -22,9 +22,11 @@ namespace AbletonLiveConverter
 
             app.OnExecute(() =>
             {
-                if (optionInputDirectory.HasValue())
+                if (optionInputDirectory.HasValue()
+                && optionOutputDirectory.HasValue())
                 {
                     string inputDirectoryPath = optionInputDirectory.Value();
+                    string outputDirectoryPath = optionOutputDirectory.Value();
 
                     var ext = new List<string> { ".adv", ".vstpreset" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
@@ -38,10 +40,10 @@ namespace AbletonLiveConverter
                         switch (extension)
                         {
                             case ".adv":
-                                HandleAbletonLivePreset(file);
+                                HandleAbletonLivePreset(file, outputDirectoryPath);
                                 break;
                             case ".vstpreset":
-                                HandleSteinbergVstPreset(file);
+                                HandleSteinbergVstPreset(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -64,7 +66,7 @@ namespace AbletonLiveConverter
             }
         }
 
-        private static void HandleAbletonLivePreset(string file)
+        private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
         {
             byte[] bytes = File.ReadAllBytes(file);
             byte[] decompressed = Decompress(bytes);
@@ -80,7 +82,9 @@ namespace AbletonLiveConverter
                     var eq = new AbletonEq8(xelement);
                     var eqAdapter = new AbletonEq8ToSteinbergFrequencyAdapter(eq);
                     var steinbergFrequency = eqAdapter.ToSteinbergFrequencyPreset();
-                    steinbergFrequency.Write(@"C:\Users\perner\My Projects\Temp\test.vstpreset");
+                    string outputFileName = Path.GetFileNameWithoutExtension(file);
+                    string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".vstpreset");
+                    steinbergFrequency.Write(outputFilePath);
                     break;
                 case "Compressor2":
                     var compressor = new AbletonCompressor(xelement);
@@ -101,7 +105,7 @@ namespace AbletonLiveConverter
             }
         }
 
-        private static void HandleSteinbergVstPreset(string file)
+        private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = new VstPreset(file);
             Console.WriteLine(vstPreset);
