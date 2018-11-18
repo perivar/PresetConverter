@@ -10,6 +10,29 @@ namespace AbletonLiveConverter
 {
     public class VstPreset
     {
+
+        // cannot use Enums with strings, struct works
+        public struct VstIDs
+        {
+            public const string Compressor = "5B38F28281144FFE80285FF7CCF20483";
+            public const string DeEsser = "75FD13A528D24880982197D541BC582A";
+            public const string Distortion = "A990C1062CDE43839ECEF8FE91743DA5";
+            public const string EQ = "297BA567D83144E1AE921DEF07B41156";
+            public const string Expander = "2A4C06FF24F14078868891D184CEFB73";
+            public const string Frequency = "01F6CCC94CAE4668B7C6EC85E681E419";
+            public const string GrooveAgentONE = "D3F57B09EC6B49998C534F50787A9F86";
+            public const string GrooveAgentSE = "91585860BA1748E581441ECD96B153ED";
+            public const string MonoDelay = "42A36F8AEE394B98BB2E8B63CB68E3E7";
+            public const string MultibandCompressor = "86DFC3F5415C40388D3AA69030C380B1";
+            public const string PingPongDelay = "37A3AA84E3A24D069C39030EC68768E1";
+            public const string Prologue = "FFF583CCDFB246F894308DB9C5D94C8D";
+            public const string REVerence = "ED824AB48E0846D5959682F5626D0972";
+            public const string StandardPanner = "44E1149EDB3E4387BDD827FEA3A39EE7";
+            public const string StereoDelay = "001DCD3345D14A13B59DAECF75A37536";
+            public const string StudioEQ = "946051208E29496E804F64A825C8A047";
+            public const string VSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
+        }
+
         private class ListElement
         {
             public string Name;
@@ -208,15 +231,15 @@ namespace AbletonLiveConverter
                 else
                 {
                     // if Frequency preset
-                    if (this.Vst3ID.Equals(SteinbergFrequency.Vst3ID))
+                    // if (this.Vst3ID.Equals(VstIDs.Frequency))
 
-                    // if (!vst3ID.Equals("D3F57B09EC6B49998C534F50787A9F86") // Groove Agent ONE
-                    // && !vst3ID.Equals("91585860BA1748E581441ECD96B153ED") // Groove Agent SE
-                    // && !vst3ID.Equals("FFF583CCDFB246F894308DB9C5D94C8D") // Prologue
-                    // && !vst3ID.Equals("ED824AB48E0846D5959682F5626D0972") // REVerence
-                    // && !vst3ID.Equals("44E1149EDB3E4387BDD827FEA3A39EE7") // Standard Panner
-                    // && !vst3ID.Equals("04F35DB10F0C47B9965EA7D63B0CCE67") // VST Amp Rack
-                    // )
+                    if (!this.Vst3ID.Equals(VstIDs.GrooveAgentONE)
+                    && !this.Vst3ID.Equals(VstIDs.GrooveAgentSE) // Groove Agent SE
+                    && !this.Vst3ID.Equals(VstIDs.Prologue) // Prologue
+                    && !this.Vst3ID.Equals(VstIDs.REVerence) // REVerence
+                    && !this.Vst3ID.Equals(VstIDs.StandardPanner) // Standard Panner
+                    && !this.Vst3ID.Equals(VstIDs.VSTAmpRack) // VST Amp Rack
+                    )
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes

@@ -9,8 +9,6 @@ namespace AbletonLiveConverter
 {
     public class SteinbergFrequency : VstPreset
     {
-        public static string Vst3ID = "01F6CCC94CAE4668B7C6EC85E681E419";
-
         // cannot use Enums with doubles, struct works
         public struct BandMode1And8
         {
@@ -35,6 +33,7 @@ namespace AbletonLiveConverter
 
         public SteinbergFrequency()
         {
+            Vst3ID = VstPreset.VstIDs.Frequency;
             SetParameters();
             SetXml();
         }
@@ -50,7 +49,7 @@ namespace AbletonLiveConverter
             br.Write((UInt32)1);
 
             // Write VST3 ID
-            br.Write(Vst3ID);
+            br.Write(this.Vst3ID);
 
             // Write listPos
             UInt32 listPos = 19664;
@@ -64,7 +63,7 @@ namespace AbletonLiveConverter
             br.Write(chunkID);
 
             // write parameters
-            foreach (var parameter in Parameters.Values)
+            foreach (var parameter in this.Parameters.Values)
             {
                 var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
                 br.Write(paramName);

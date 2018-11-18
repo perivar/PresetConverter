@@ -263,6 +263,8 @@ namespace CommonUtils
             return ReadDouble(binaryReader, byteOrder);
         }
 
+        // ReadChars
+        // Note! On .NET Core, the Default Encoding property always returns the UTF8Encoding. This might give a different result in size than number of characters.
         public char[] ReadChars(int size)
         {
             return binaryReader.ReadChars(size);
