@@ -83,7 +83,7 @@ namespace AbletonLiveConverter
                     var eqAdapter = new AbletonEq8ToSteinbergFrequencyAdapter(eq);
                     var steinbergFrequency = eqAdapter.ToSteinbergFrequencyPreset();
                     string outputFileName = Path.GetFileNameWithoutExtension(file);
-                    string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton Converted - " + outputFileName + ".vstpreset");
+                    string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName + ".vstpreset");
                     steinbergFrequency.Write(outputFilePath);
                     break;
                 case "Compressor2":
