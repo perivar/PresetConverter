@@ -80,17 +80,18 @@ namespace AbletonLiveConverter
             {
                 case "Eq8":
                     var eq = new AbletonEq8(xelement);
-                    var eqAdapter = new AbletonEq8ToSteinbergFrequencyAdapter(eq);
-                    var steinbergFrequency = eqAdapter.ToSteinbergFrequencyPreset();
+                    var steinbergFrequency = eq.ToSteinbergFrequency();
                     string outputFileName = Path.GetFileNameWithoutExtension(file);
                     string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName + ".vstpreset");
                     steinbergFrequency.Write(outputFilePath);
                     break;
                 case "Compressor2":
                     var compressor = new AbletonCompressor(xelement);
+                    Console.WriteLine(compressor);
                     break;
                 case "GlueCompressor":
                     var glueCompressor = new AbletonGlueCompressor(xelement);
+                    Console.WriteLine(glueCompressor);
                     break;
                 case "MultibandDynamics":
                 // var multibandCompressor = new MultibandCompressor(xelement);

@@ -2,16 +2,10 @@ using System;
 
 namespace AbletonLiveConverter
 {
-    public class AbletonEq8ToSteinbergFrequencyAdapter
+    // see http://gigi.nullneuron.net/gigilabs/the-adapter-design-pattern-for-dtos-in-c/
+    public static class AbletonToSteinbergAdapterExtensions
     {
-        private AbletonEq8 eq;
-
-        public AbletonEq8ToSteinbergFrequencyAdapter(AbletonEq8 eq)
-        {
-            this.eq = eq;
-        }
-
-        public SteinbergFrequency ToSteinbergFrequencyPreset()
+        public static SteinbergFrequency ToSteinbergFrequency(this AbletonEq8 eq)
         {
             var frequency = new SteinbergFrequency();
 
@@ -80,7 +74,6 @@ namespace AbletonLiveConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Value = SteinbergFrequency.BandMode1And8.Cut48;
                             break;
                     }
-
 
                     Console.WriteLine(band);
                 }
