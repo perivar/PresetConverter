@@ -84,13 +84,15 @@ namespace AbletonLiveConverter
                 case "Eq8":
                     var eq = new AbletonEq8(xelement);
                     var steinbergFrequency = eq.ToSteinbergFrequency();
-                    outputFilePath = Path.Combine(outputDirectoryPath, "Ableton2Frequency - " + outputFileName + ".vstpreset");
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName + ".vstpreset");
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
                     steinbergFrequency.Write(outputFilePath);
                     break;
                 case "Compressor2":
                     var compressor = new AbletonCompressor(xelement);
                     var steinbergCompressor = compressor.ToSteinbergCompressor();
-                    outputFilePath = Path.Combine(outputDirectoryPath, "Ableton2Compressor - " + outputFileName + ".vstpreset");
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName + ".vstpreset");
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
                     steinbergCompressor.Write(outputFilePath);
                     break;
                 case "GlueCompressor":
@@ -107,6 +109,18 @@ namespace AbletonLiveConverter
                 default:
                     Console.WriteLine("{0} not supported!", presetType);
                     break;
+            }
+        }
+
+        private static void CreateDirectoryIfNotExist(string filePath)
+        {
+            try
+            {
+                Directory.CreateDirectory(filePath);
+            }
+            catch (Exception ex)
+            {
+                // handle them here
             }
         }
 
