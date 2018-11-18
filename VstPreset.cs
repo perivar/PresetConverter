@@ -66,8 +66,18 @@ namespace AbletonLiveConverter
 
         public Dictionary<string, Parameter> Parameters = new Dictionary<string, Parameter>();
         public string Vst3ID;
+        public string PlugInCategory;
+        public string PlugInName;
         public string Xml;
         public byte[] FileData;
+
+        // byte positions and sizes within a vstpreset (for writing)
+        public UInt32 ListPos; // position of List chunk
+        public UInt32 DataChunkSize; // data chunk length. i.e. total length minus 4 ('VST3')
+        public UInt64 ParameterDataStartPos; // parameter data start position
+        public UInt64 ParameterDataSize; // byte length from parameter data start position up until xml data
+        public UInt64 XmlStartPos; // xml start position
+        public UInt64 XmlChunkSize; // xml length in bytes (including BOM)
 
         public VstPreset()
         {
@@ -142,8 +152,8 @@ namespace AbletonLiveConverter
                 // Read VST3 ID:
                 this.Vst3ID = new string(br.ReadChars(32));
 
-                UInt32 listPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                Console.WriteLine("DEBUG listPos: {0}", listPos);
+                this.ListPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                Console.WriteLine("DEBUG listPos: {0}", ListPos);
 
                 // Read unknown value:
                 UInt32 unknown1 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
@@ -152,15 +162,13 @@ namespace AbletonLiveConverter
                 long oldPos = br.Position;
 
                 // seek to the 'List' index
-                br.Seek(listPos, SeekOrigin.Begin);
+                br.Seek(this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
                 string list = new string(br.ReadChars(4));
                 UInt32 listValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
                 Console.WriteLine("DEBUG: {0} {1}", list, listValue);
 
-                ulong xmlStartPos = 0;
-                ulong xmlChunkSize = 0;
                 if (list.Equals("List"))
                 {
                     for (int i = 0; i < listValue; i++)
@@ -181,13 +189,17 @@ namespace AbletonLiveConverter
 
                         if (element.Name.Equals("Info"))
                         {
-                            xmlStartPos = element.value1;
-                            xmlChunkSize = element.value2;
+                            this.XmlStartPos = element.value1;
+                            this.XmlChunkSize = element.value2;
+                        }
+
+                        if (element.Name.Equals("Comp"))
+                        {
+                            this.ParameterDataStartPos = element.value1;
+                            this.ParameterDataSize = element.value2;
                         }
                     }
                 }
-                if (xmlStartPos == 0) xmlStartPos = (19180 + 52);
-                if (xmlChunkSize == 0) xmlChunkSize = 432;
 
                 // reset position
                 br.Seek(oldPos, SeekOrigin.Begin);
@@ -202,7 +214,7 @@ namespace AbletonLiveConverter
                 if (chunkID == "LPXF")
                 {
                     // Check file size:
-                    if (fileSize != (listPos + (br.Position - 4)))
+                    if (fileSize != (this.ListPos + (br.Position - 4)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a single preset:
@@ -220,7 +232,7 @@ namespace AbletonLiveConverter
                     UInt32 unknown4 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
 
                     // Check file size (The other check is needed because Cubase tends to forget the items of this header:
-                    if ((fileSize != (listPos + br.Position + 4)) && (fileSize != (listPos + br.Position - 16)))
+                    if ((fileSize != (this.ListPos + br.Position + 4)) && (fileSize != (this.ListPos + br.Position - 16)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a preset bank:
@@ -243,7 +255,7 @@ namespace AbletonLiveConverter
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
-                        while (br.Position != (long)xmlStartPos)
+                        while (br.Position != (long)this.XmlStartPos)
                         {
                             var parameter = new Parameter();
 
@@ -260,7 +272,7 @@ namespace AbletonLiveConverter
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = br.ReadBytes((int)xmlChunkSize);
+                        var bytes = br.ReadBytes((int)this.XmlChunkSize);
                         this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
@@ -353,6 +365,71 @@ namespace AbletonLiveConverter
             return elem;
         }
 
+        public void AddParameterToDictionary(string name, UInt32 number, double value)
+        {
+            var parameter = new Parameter(name, number, value);
+            this.Parameters.Add(name, parameter);
+        }
+
+        public void Write(string fileName)
+        {
+            var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true);
+
+            // Write file header
+            br.Write("VST3");
+
+            // Write version
+            br.Write((UInt32)1);
+
+            // Write VST3 ID
+            br.Write(this.Vst3ID);
+
+            // Write listPos
+            br.Write(this.ListPos);
+
+            // Write unknown value
+            br.Write((UInt32)0);
+
+            // Write data chunk length. i.e. total length minus 4 ('VST3')
+            br.Write(this.DataChunkSize);
+
+            // write parameters
+            foreach (var parameter in this.Parameters.Values)
+            {
+                var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
+                br.Write(paramName);
+                br.Write(parameter.Number);
+                br.Write(parameter.Value);
+            }
+
+            // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+            var xmlBytes = Encoding.UTF8.GetBytes(this.Xml);
+            var xmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
+            br.Write(xmlBytesBOM);
+            br.Write("\r\n");
+
+            // write LIST and 4 bytes
+            br.Write("List");
+            br.Write((UInt32)3);
+
+            // write COMP and 16 bytes
+            br.Write("Comp");
+            br.Write(this.ParameterDataStartPos); // parameter data start position
+            br.Write(this.ParameterDataSize); // byte length from parameter data start position up until xml data
+
+            // write Cont and 16 bytes
+            br.Write("Cont");
+            br.Write(this.XmlStartPos); // xml start position
+            br.Write((UInt64)0);// ?
+
+            // write Info and 16 bytes
+            br.Write("Info");
+            br.Write(this.XmlStartPos); // xml start position
+            br.Write((UInt64)xmlBytesBOM.Length); // byte length of xml data
+
+            br.Close();
+        }
+
         /// <summary>
         /// Search with an array of bytes to find a specific pattern
         /// </summary>
@@ -406,6 +483,45 @@ namespace AbletonLiveConverter
             return -1;
         }
         #endregion
+
+        public void InitXml()
+        {
+            XmlDocument xml = new XmlDocument();
+            XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
+            xml.AppendChild(docNode);
+            XmlElement root = xml.CreateElement("MetaInfo");
+            xml.AppendChild(root);
+
+            XmlElement attr1 = xml.CreateElement("Attribute");
+            attr1.SetAttribute("id", "MediaType");
+            attr1.SetAttribute("value", "VstPreset");
+            attr1.SetAttribute("type", "string");
+            attr1.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr1);
+
+            XmlElement attr2 = xml.CreateElement("Attribute");
+            attr2.SetAttribute("id", "PlugInCategory");
+            attr2.SetAttribute("value", this.PlugInCategory);
+            attr2.SetAttribute("type", "string");
+            attr2.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr2);
+
+            XmlElement attr3 = xml.CreateElement("Attribute");
+            attr3.SetAttribute("id", "PlugInName");
+            attr3.SetAttribute("value", this.PlugInName);
+            attr3.SetAttribute("type", "string");
+            attr3.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr3);
+
+            XmlElement attr4 = xml.CreateElement("Attribute");
+            attr4.SetAttribute("id", "PlugInVendor");
+            attr4.SetAttribute("value", "Steinberg Media Technologies");
+            attr4.SetAttribute("type", "string");
+            attr4.SetAttribute("flags", "writeProtected");
+            root.AppendChild(attr4);
+
+            this.Xml = BeautifyXml(xml);
+        }
 
         public string BeautifyXml(XmlDocument doc)
         {

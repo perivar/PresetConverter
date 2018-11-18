@@ -34,82 +34,30 @@ namespace AbletonLiveConverter
         public SteinbergFrequency()
         {
             Vst3ID = VstPreset.VstIDs.Frequency;
-            SetParameters();
-            SetXml();
+            PlugInCategory = "Fx|EQ";
+            PlugInName = "Frequency";
+            InitXml();
+            InitParameters();
+
+            // set byte positions and sizes within the vstpreset (for writing)
+            ListPos = 19664; // position of List chunk
+            DataChunkSize = 19732 - 4; // data chunk length. i.e. total length minus 4 ('VST3')
+            ParameterDataStartPos = 48; // parameter data start position
+            ParameterDataSize = 19184; // byte length from parameter data start position up until xml data
+            XmlStartPos = 19232; // xml start position
         }
 
-        public void Write(string fileName)
-        {
-            var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true);
-
-            // Write file header
-            br.Write("VST3");
-
-            // Write version
-            br.Write((UInt32)1);
-
-            // Write VST3 ID
-            br.Write(this.Vst3ID);
-
-            // Write listPos
-            UInt32 listPos = 19664;
-            br.Write(listPos);
-
-            // Write unknown value
-            br.Write((UInt32)0);
-
-            // Write data chunk length. i.e. total length minus 4 ('VST3')
-            UInt32 chunkID = 19732 - 4; // 19728
-            br.Write(chunkID);
-
-            // write parameters
-            foreach (var parameter in this.Parameters.Values)
-            {
-                var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
-                br.Write(paramName);
-                br.Write(parameter.Number);
-                br.Write(parameter.Value);
-            }
-
-            // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlBytes = Encoding.UTF8.GetBytes(this.Xml);
-            var xmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
-            br.Write(xmlBytesBOM);
-            br.Write("\r\n");
-
-            // write LIST and 4 bytes
-            br.Write("List");
-            br.Write((UInt32)3);
-
-            // write COMP and 16 bytes
-            br.Write("Comp");
-            br.Write((UInt64)48); // parameter data start position
-            br.Write((UInt64)19184); // byte length from parameter data start position up until xml data
-
-            // write Cont and 16 bytes
-            br.Write("Cont");
-            br.Write((UInt64)19232); // xml start position
-            br.Write((UInt64)0);// ?
-
-            // write Info and 16 bytes
-            br.Write("Info");
-            br.Write((UInt64)19232); // xml start position
-            br.Write((UInt64)xmlBytesBOM.Length); // byte length of xml data
-
-            br.Close();
-        }
-
-        private void SetParameters()
+        private void InitParameters()
         {
             for (int i = 1; i <= 8; i++)
             {
-                SetFrequencyBandParameters(i);
+                InitFrequencyBandParameters(i);
             }
 
-            SetFrequencyPostParameters();
+            InitFrequencyPostParameters();
         }
 
-        private void SetFrequencyBandParameters(int bandNumber)
+        private void InitFrequencyBandParameters(int bandNumber)
         {
             uint increment = (uint)bandNumber - 1;
             AddParameterToDictionary(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00);
@@ -129,7 +77,7 @@ namespace AbletonLiveConverter
             AddParameterToDictionary(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00);
         }
 
-        private void SetFrequencyPostParameters()
+        private void InitFrequencyPostParameters()
         {
             AddParameterToDictionary("equalizerAbypass", 1, 0.00);
             AddParameterToDictionary("equalizerAoutput", 2, 0.00);
@@ -148,51 +96,6 @@ namespace AbletonLiveConverter
             AddParameterToDictionary("transparency", 1020, 0.30);
             AddParameterToDictionary("autoGainOutputValue", 1021, 0.00);
             AddParameterToDictionary("", 3, 0.00);
-        }
-
-        private void AddParameterToDictionary(string name, UInt32 number, double value)
-        {
-            var parameter = new Parameter(name, number, value);
-            this.Parameters.Add(name, parameter);
-        }
-
-        private void SetXml()
-        {
-            XmlDocument xml = new XmlDocument();
-            XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
-            xml.AppendChild(docNode);
-            XmlElement root = xml.CreateElement("MetaInfo");
-            xml.AppendChild(root);
-
-            XmlElement attr1 = xml.CreateElement("Attribute");
-            attr1.SetAttribute("id", "MediaType");
-            attr1.SetAttribute("value", "VstPreset");
-            attr1.SetAttribute("type", "string");
-            attr1.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr1);
-
-            XmlElement attr2 = xml.CreateElement("Attribute");
-            attr2.SetAttribute("id", "PlugInCategory");
-            attr2.SetAttribute("value", "Fx|EQ");
-            attr2.SetAttribute("type", "string");
-            attr2.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr2);
-
-            XmlElement attr3 = xml.CreateElement("Attribute");
-            attr3.SetAttribute("id", "PlugInName");
-            attr3.SetAttribute("value", "Frequency");
-            attr3.SetAttribute("type", "string");
-            attr3.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr3);
-
-            XmlElement attr4 = xml.CreateElement("Attribute");
-            attr4.SetAttribute("id", "PlugInVendor");
-            attr4.SetAttribute("value", "Steinberg Media Technologies");
-            attr4.SetAttribute("type", "string");
-            attr4.SetAttribute("flags", "writeProtected");
-            root.AppendChild(attr4);
-
-            this.Xml = BeautifyXml(xml);
         }
     }
 }
