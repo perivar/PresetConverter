@@ -69,6 +69,7 @@ namespace AbletonLiveConverter
         public string PlugInCategory;
         public string PlugInName;
         public string Xml;
+        public byte[] XmlBytesBOM;
         public byte[] FileData;
 
         // byte positions and sizes within a vstpreset (for writing)
@@ -403,10 +404,7 @@ namespace AbletonLiveConverter
             }
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlBytes = Encoding.UTF8.GetBytes(this.Xml);
-            var xmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
-            br.Write(xmlBytesBOM);
-            br.Write("\r\n");
+            br.Write(this.XmlBytesBOM);
 
             // write LIST and 4 bytes
             br.Write("List");
@@ -425,7 +423,7 @@ namespace AbletonLiveConverter
             // write Info and 16 bytes
             br.Write("Info");
             br.Write(this.XmlStartPos); // xml start position
-            br.Write((UInt64)xmlBytesBOM.Length); // byte length of xml data
+            br.Write((UInt64)XmlBytesBOM.Length); // byte length of xml data
 
             br.Close();
         }
@@ -521,6 +519,10 @@ namespace AbletonLiveConverter
             root.AppendChild(attr4);
 
             this.Xml = BeautifyXml(xml);
+
+            // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+            var xmlBytes = Encoding.UTF8.GetBytes(this.Xml);
+            this.XmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
         }
 
         public string BeautifyXml(XmlDocument doc)
@@ -538,6 +540,9 @@ namespace AbletonLiveConverter
             {
                 doc.Save(writer);
             }
+
+            // add \r \n at the end (0D 0A)
+            sb.Append("\r\n");
 
             // remove whitespace in self closing tags when writing xml document
             var stripSelfClose = sb.ToString().Replace(" />", "/>");

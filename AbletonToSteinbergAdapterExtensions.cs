@@ -86,21 +86,17 @@ namespace AbletonLiveConverter
         {
             var compressor = new SteinbergCompressor();
 
-            compressor.Parameters["threshold"].Value = comp.Threshold;
+            compressor.Parameters["threshold"].Value = 20 * Math.Log10(comp.Threshold); // 0.454823315 = -6.84dB, 0.0150452089 = -36.5dB, 0.110704564 = -19.1dB, 1 = 0.0dB, 0.151618019 = -16.4dB
             compressor.Parameters["ratio"].Value = comp.Ratio;
             compressor.Parameters["attack"].Value = comp.Attack;
             compressor.Parameters["release"].Value = comp.Release;
-            compressor.Parameters["autorelease"].Value = 0.00;
+            compressor.Parameters["autorelease"].Value = comp.AutoReleaseControlOnOff == true ? 1.00 : 0.00;
             compressor.Parameters["hold"].Value = 0.00;
             compressor.Parameters["makeUp"].Value = comp.Gain;
-            compressor.Parameters["automakeup"].Value = 1.00;
-            compressor.Parameters["softknee"].Value = 0.00;
-            compressor.Parameters["rms"].Value = 0.00;
-            compressor.Parameters["live"].Value = 0.00;
-            compressor.Parameters["resetMaxGainRed"].Value = 0.00;
-            compressor.Parameters["bypass"].Value = 0.00;
-            compressor.Parameters["makeupMode"].Value = 0.00;
-
+            compressor.Parameters["automakeup"].Value = comp.GainCompensation == true ? 1.00 : 0.00;
+            compressor.Parameters["softknee"].Value = comp.Knee > 6.00 ? 1.00 : 0.00; // Knee value of 0.00 is hard knee, up to 18.00 dB (default 6.00 dB)
+            compressor.Parameters["rms"].Value = comp.Model == 1 ? 100.00 : 00.00; // 0.00 - 100.00 - Model: 0 = Peak, 1 = RMS, 2 = Expand
+            compressor.Parameters["drymix"].Value = (1 - comp.DryWet) * 100; // 0.00 - 100.00
             Console.WriteLine(comp);
 
             return compressor;
