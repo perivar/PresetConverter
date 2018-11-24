@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using McMaster.Extensions.CommandLineUtils;
+using PresetConverter;
 
 namespace AbletonLiveConverter
 {
@@ -28,9 +29,9 @@ namespace AbletonLiveConverter
                     string inputDirectoryPath = optionInputDirectory.Value();
                     string outputDirectoryPath = optionOutputDirectory.Value();
 
-                    var ext = new List<string> { ".adv", ".vstpreset" };
+                    var extensions = new List<string> { ".adv", ".vstpreset", ".xps" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
-                    .Where(s => ext.Contains(Path.GetExtension(s)));
+                    .Where(s => extensions.Contains(Path.GetExtension(s)));
 
                     foreach (var file in files)
                     {
@@ -44,6 +45,9 @@ namespace AbletonLiveConverter
                                 break;
                             case ".vstpreset":
                                 HandleSteinbergVstPreset(file, outputDirectoryPath);
+                                break;
+                            case ".xps":
+                                HandleWavesXpsPreset(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -112,6 +116,58 @@ namespace AbletonLiveConverter
             }
         }
 
+        private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
+        {
+            var vstPreset = new VstPreset(file);
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
+            Console.WriteLine(vstPreset);
+            if (vstPreset.Parameters.Count > 0)
+            {
+                if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLComp))
+                {
+                    TextWriter tw = new StreamWriter(outputFilePath);
+                    var sslComp = new WavesSSLComp();
+                    if (sslComp.ParseXml(vstPreset.Parameters.FirstOrDefault().Value.StringValue, tw))
+                    {
+
+                    }
+                    tw.Close();
+                }
+                else
+                {
+                    File.WriteAllText(outputFilePath, vstPreset.ToString());
+                }
+            }
+        }
+
+        private static void HandleWavesXpsPreset(string file, string outputDirectoryPath)
+        {
+            // Convert Waves SSLChannel to UAD SSLChannel
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
+            TextWriter tw = new StreamWriter(outputFilePath);
+            List<WavesSSLChannel> channelPresetList = WavesPreset.ReadXps<WavesSSLChannel>(file);
+            foreach (var wavesSSLChannel in channelPresetList)
+            {
+                var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
+                string outputFxpFilePath = Path.Combine(outputDirectoryPath, uadSSLChannel.PresetName + ".fxp");
+                uadSSLChannel.Write(outputFxpFilePath);
+                tw.WriteLine(wavesSSLChannel);
+                tw.WriteLine();
+                tw.WriteLine("-------------------------------------------------------");
+            }
+
+            // Convert Waves SSLComp to UAD SSLComp
+            List<WavesSSLComp> compPresetList = WavesPreset.ReadXps<WavesSSLComp>(file);
+            foreach (var wavesSSLComp in compPresetList)
+            {
+                tw.WriteLine(wavesSSLComp);
+                tw.WriteLine();
+                tw.WriteLine("-------------------------------------------------------");
+            }
+        }
+
         private static void CreateDirectoryIfNotExist(string filePath)
         {
             try
@@ -124,19 +180,7 @@ namespace AbletonLiveConverter
             }
         }
 
-        private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
-        {
-            var vstPreset = new VstPreset(file);
-            string outputFileName = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
-            Console.WriteLine(vstPreset);
-            if (vstPreset.Parameters.Count > 0)
-            {
-                File.WriteAllText(outputFilePath, vstPreset.ToString());
-            }
-        }
-
-        static byte[] Decompress(byte[] gzip)
+        private static byte[] Decompress(byte[] gzip)
         {
             // Create a GZIP stream with decompression mode.
             // ... Then create a buffer and write into while reading from the GZIP stream.

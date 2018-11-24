@@ -33,7 +33,7 @@ namespace AbletonLiveConverter
 
         public SteinbergFrequency()
         {
-            Vst3ID = VstPreset.VstIDs.Frequency;
+            Vst3ID = VstPreset.VstIDs.SteinbergFrequency;
             PlugInCategory = "Fx|EQ";
             PlugInName = "Frequency";
             InitXml();

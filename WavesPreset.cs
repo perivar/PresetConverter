@@ -80,7 +80,7 @@ namespace PresetConverter
             {
                 if (xmlString != null) xml.LoadXml(xmlString);
 
-                // foreach Preset node that has a Name attribude
+                // foreach Preset node that has a Name attribute
                 XmlNodeList presetNodeList = xml.SelectNodes("//Preset[@Name]");
                 foreach (XmlNode presetNode in presetNodeList)
                 {
@@ -135,9 +135,7 @@ namespace PresetConverter
             string val4 = bf.ReadString(4);
             string val5 = bf.ReadString(4);
 
-            //int chunkSize = byteArray.Length - 32;
             int chunkSize = bf.ReadInt32();
-            //int val6 = bf.ReadInt32();
 
             string val7 = bf.ReadString(4);
 
@@ -172,7 +170,7 @@ namespace PresetConverter
             {
                 if (xmlString != null) xml.LoadXml(xmlString);
 
-                // Get preset node that has a Name attribude
+                // Get preset node that has a Name attribute
                 // e.g. <Preset Name=""><PresetHeader><PluginName>SSLChannel</PluginName></PresetHeader></Preset>
                 XmlNode firstPresetNode = xml.SelectSingleNode("//Preset[@Name]");
 
@@ -194,7 +192,7 @@ namespace PresetConverter
             }
         }
 
-        private bool ParseXml(string xmlString, TextWriter tw)
+        public bool ParseXml(string xmlString, TextWriter tw)
         {
 
             var xml = new XmlDocument();
@@ -202,7 +200,7 @@ namespace PresetConverter
             {
                 if (xmlString != null) xml.LoadXml(xmlString);
 
-                // foreach Preset node that has a Name attribude
+                // foreach Preset node that has a Name attribute
                 XmlNodeList presetNodeList = xml.SelectNodes("//Preset[@Name]");
                 foreach (XmlNode presetNode in presetNodeList)
                 {
@@ -222,9 +220,10 @@ namespace PresetConverter
                     }
                 }
             }
-            catch (XmlException)
+            catch (XmlException xe)
             {
-                return false;
+                throw (xe);
+                // return false;
             }
             return false;
         }

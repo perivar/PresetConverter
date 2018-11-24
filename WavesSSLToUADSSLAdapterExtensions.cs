@@ -3,20 +3,12 @@
 namespace PresetConverter
 {
     /// <summary>
-    /// Waves SSLChannel To UAD SSLChannel Adapter.
+    /// Waves SSL To UAD SSL Adapter.
     /// </summary>
-    public class WavesSSLChannelToUADSSLChannelAdapter
+    public static class WavesSSLToUADSSLAdapterExtensions
     {
-        WavesSSLChannel wavesSSLChannel = null;
-
-        public WavesSSLChannelToUADSSLChannelAdapter(WavesSSLChannel wavesSSLChannel)
+        public static UADSSLChannel ToUADSSLChannel(this WavesSSLChannel wavesSSLChannel)
         {
-            this.wavesSSLChannel = wavesSSLChannel;
-        }
-
-        public UADSSLChannel DoConvert()
-        {
-
             var uadSSLChannel = new UADSSLChannel();
             uadSSLChannel.PresetName = wavesSSLChannel.PresetName;
 
@@ -85,6 +77,5 @@ namespace PresetConverter
 
             return uadSSLChannel;
         }
-
     }
 }

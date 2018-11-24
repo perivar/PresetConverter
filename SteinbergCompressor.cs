@@ -11,7 +11,7 @@ namespace AbletonLiveConverter
     {
         public SteinbergCompressor()
         {
-            Vst3ID = VstPreset.VstIDs.Compressor;
+            Vst3ID = VstPreset.VstIDs.SteinbergCompressor;
             PlugInCategory = "Fx|Dynamics";
             PlugInName = "Compressor";
             InitXml();

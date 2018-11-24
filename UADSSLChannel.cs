@@ -82,7 +82,7 @@ namespace PresetConverter
 
 			//get two closest
 			var take = 2;
-			var closests = numbers.Select( n => new { n, distance = Math.Abs( n - target ) } )
+			var closest = numbers.Select( n => new { n, distance = Math.Abs( n - target ) } )
 				.OrderBy( p => p.distance )
 				.Select( p => p.n )
 				.Take( take );
@@ -239,7 +239,7 @@ namespace PresetConverter
             fxp.Version = 1; // Format Version (should be 1)
             fxp.FxID = "J9AU";
             fxp.FxVersion = 1;
-            fxp.ProgramCount = 36; // I.e. nummber of parameters
+            fxp.ProgramCount = 36; // I.e. number of parameters
             fxp.Name = PresetName;
 
             byte[] chunkData = GetChunkData();
