@@ -128,34 +128,6 @@ namespace AbletonLiveConverter
         }
 
         #region ReadPreset Functions    
-        /// <summary>
-        /// Convenience function to read a FourCC chunk id as a string.
-        /// </summary>
-        /// <param name="bf">
-        /// The source binary reader.
-        /// </param>
-        /// <returns>
-        /// The resulting fourCC code as string.
-        /// </returns>
-        private static string ReadFourCC(BinaryFile bf)
-        {
-            byte[] b = new byte[4];
-            b[0] = bf.ReadByte();
-            b[1] = bf.ReadByte();
-            b[2] = bf.ReadByte();
-            b[3] = bf.ReadByte();
-
-            // check if this might not be ascii
-            // bool isAscii = b[0] < 127 && b[0] > 31;
-            // if (!isAscii)
-            // {
-            //     UInt32 value = (UInt32)(b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24));
-            //     Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
-            // }
-
-            return Encoding.ASCII.GetString(b);
-        }
-
         private void ReadVstPreset(string fileName)
         {
             // Check file for existence
@@ -168,43 +140,43 @@ namespace AbletonLiveConverter
             }
 
             // Read the file
-            using (BinaryFile br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false, Encoding.ASCII))
+            using (BinaryFile bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false, Encoding.ASCII))
             {
                 // Get file size
-                UInt32 fileSize = (UInt32)br.Length;
+                UInt32 fileSize = (UInt32)bf.Length;
                 if (fileSize < 64)
                 {
                     throw new Exception("Invalid file size: " + fileSize.ToString());
                 }
 
                 // Read file header
-                string fileChunkID = ReadFourCC(br);
+                string fileChunkID = bf.ReadString(4);
                 if (fileChunkID != "VST3")
                 {
                     throw new Exception("Invalid file type: " + fileChunkID);
                 }
 
                 // Read version
-                UInt32 fileVersion = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                UInt32 fileVersion = bf.ReadUInt32();
 
                 // Read VST3 ID:
-                this.Vst3ID = new string(br.ReadChars(32));
+                this.Vst3ID = bf.ReadString(32);
 
-                this.ListPos = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                this.ListPos = bf.ReadUInt32();
                 Console.WriteLine("DEBUG listPos: {0}", ListPos);
 
                 // Read unknown value
-                UInt32 unknown1 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                UInt32 unknown1 = bf.ReadUInt32();
                 Console.WriteLine("DEBUG unknown1: {0}", unknown1);
 
-                long oldPos = br.Position;
+                long oldPos = bf.Position;
 
                 // seek to the 'List' index
-                br.Seek(this.ListPos, SeekOrigin.Begin);
+                bf.Seek(this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
-                string list = new string(br.ReadChars(4));
-                UInt32 listValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                string list = bf.ReadString(4);
+                UInt32 listValue = bf.ReadUInt32();
                 Console.WriteLine("DEBUG: {0} {1}", list, listValue);
 
                 if (list.Equals("List"))
@@ -222,7 +194,7 @@ namespace AbletonLiveConverter
                         // read Info and 16 bytes
                         // xml start position
                         // byte length of xml data
-                        var element = ReadListElement(br);
+                        var element = ReadListElement(bf);
                         Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
 
                         if (element.Name.Equals("Info"))
@@ -240,11 +212,11 @@ namespace AbletonLiveConverter
                 }
 
                 // reset position
-                br.Seek(oldPos, SeekOrigin.Begin);
+                bf.Seek(oldPos, SeekOrigin.Begin);
 
                 // Read data chunk length. i.e. total length minus 4 ('VST3')
                 // In some cases this is supposedly the chunk ID
-                string dataChunkID = ReadFourCC(br);
+                string dataChunkID = bf.ReadString(4);
                 Console.WriteLine("DEBUG: dataChunkID {0}", dataChunkID);
 
                 // Single preset?
@@ -252,7 +224,7 @@ namespace AbletonLiveConverter
                 if (dataChunkID == "LPXF")
                 {
                     // Check file size:
-                    if (fileSize != (this.ListPos + (br.Position - 4)))
+                    if (fileSize != (this.ListPos + (bf.Position - 4)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a single preset:
@@ -260,17 +232,18 @@ namespace AbletonLiveConverter
                 }
                 else if (dataChunkID == "VstW")
                 {
-                    // Read unknown value (most likely VstW chunk size):
-                    UInt32 unknown2 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    // Read unknown value (most likely VstW chunk size)
+                    UInt32 unknown2 = bf.ReadUInt32();
 
-                    // Read unknown value (most likely VstW chunk version):
-                    UInt32 unknown3 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    // Read unknown value (most likely VstW chunk version)
+                    UInt32 unknown3 = bf.ReadUInt32();
 
-                    // Read unknown value (no clue):
-                    UInt32 unknown4 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    // Read unknown value (no clue)
+                    UInt32 unknown4 = bf.ReadUInt32();
 
-                    // Check file size (The other check is needed because Cubase tends to forget the items of this header:
-                    if ((fileSize != (this.ListPos + br.Position + 4)) && (fileSize != (this.ListPos + br.Position - 16)))
+                    // Check file size (The other check is needed because Cubase tends to forget the items of this header
+                    if ((fileSize != (this.ListPos + bf.Position + 4))
+                    && (fileSize != (this.ListPos + bf.Position - 16)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a preset bank:
@@ -279,36 +252,36 @@ namespace AbletonLiveConverter
                 else if (dataChunkID == "FabF")
                 {
                     // Read unknown value (most likely VstW chunk size):
-                    UInt32 unknown2 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    UInt32 unknown2 = bf.ReadUInt32();
 
                     // Read unknown value (most likely VstW chunk version):
-                    UInt32 nameLength = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    UInt32 nameLength = bf.ReadUInt32();
 
-                    var name = br.ReadString((int)nameLength);
-                    UInt32 unknown3 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                    UInt32 unknown4 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                    UInt32 unknown5 = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    var name = bf.ReadString((int)nameLength);
+                    UInt32 unknown3 = bf.ReadUInt32();
+                    UInt32 unknown4 = bf.ReadUInt32();
+                    UInt32 unknown5 = bf.ReadUInt32();
 
                     Console.WriteLine("DEBUG: '{0}' {1} {2} {3} {4}", name, unknown2, unknown3, unknown4, unknown5);
 
                     var counter = 0;
-                    while (br.Position != (long)this.XmlStartPos)
+                    while (bf.Position != (long)this.XmlStartPos)
                     {
                         counter++;
 
                         var parameterName = string.Format("unknown{0}", counter); // don't have a name
                         var parameterNumber = (UInt32)counter;
-                        var parameterNumberValue = br.ReadSingle();
+                        var parameterNumberValue = bf.ReadSingle();
                         Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
                     }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = br.ReadBytes((int)this.XmlChunkSize);
+                    var bytes = bf.ReadBytes((int)this.XmlChunkSize);
                     this.Xml = Encoding.UTF8.GetString(bytes);
 
                     // read LIST and 4 bytes
-                    string listElement = new string(br.ReadChars(4));
-                    UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    string listElement = bf.ReadString(4);
+                    UInt32 listElementValue = bf.ReadUInt32();
                     Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                     if (listElement.Equals("List"))
@@ -318,7 +291,7 @@ namespace AbletonLiveConverter
                             // read COMP and 16 bytes
                             // read Cont and 16 bytes
                             // read Info and 16 bytes
-                            var element = ReadListElement(br);
+                            var element = ReadListElement(bf);
                             Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                         }
                     }
@@ -345,27 +318,29 @@ namespace AbletonLiveConverter
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
-                        while (br.Position != (long)this.XmlStartPos)
+                        while (bf.Position != (long)this.XmlStartPos)
                         {
                             // read the null terminated string
-                            var parameterName = br.ReadStringZ();
+                            var parameterName = bf.ReadStringZ();
 
                             // read until 128 bytes have been read
-                            var ignore = br.ReadBytes(128 - parameterName.Length - 1);
+                            var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
-                            var parameterNumber = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                            var parameterNumberValue = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
+                            var parameterNumber = bf.ReadUInt32();
+
+                            // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
+                            var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
 
                             Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = br.ReadBytes((int)this.XmlChunkSize);
+                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
                         this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
-                        string listElement = new string(br.ReadChars(4));
-                        UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                        string listElement = bf.ReadString(4);
+                        UInt32 listElementValue = bf.ReadUInt32();
                         Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
@@ -375,7 +350,7 @@ namespace AbletonLiveConverter
                                 // read COMP and 16 bytes
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
-                                var element = ReadListElement(br);
+                                var element = ReadListElement(bf);
                                 Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
@@ -386,23 +361,23 @@ namespace AbletonLiveConverter
                         this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
                     {
                         // rewind 4 bytes
-                        br.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
                         // var xmlContent = br.ReadString((int)this.ParameterDataSize);
-                        var xmlContent = br.ReadString((int)this.XmlStartPos - 48);
+                        var xmlContent = bf.ReadString((int)this.XmlStartPos - 48);
 
                         var parameterName = "XmlContent";
                         var parameterStringValue = xmlContent;
                         Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterStringValue));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = br.ReadBytes((int)this.XmlChunkSize);
+                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
                         this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
-                        string listElement = new string(br.ReadChars(4));
-                        UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                        string listElement = bf.ReadString(4);
+                        UInt32 listElementValue = bf.ReadUInt32();
                         Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
@@ -412,7 +387,7 @@ namespace AbletonLiveConverter
                                 // read COMP and 16 bytes
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
-                                var element = ReadListElement(br);
+                                var element = ReadListElement(bf);
                                 Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
@@ -428,22 +403,22 @@ namespace AbletonLiveConverter
                         )
                     {
                         // rewind 4 bytes
-                        br.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        var presetContent = br.ReadBytes((int)this.XmlStartPos - 48);
+                        var presetContent = bf.ReadBytes((int)this.XmlStartPos - 48);
 
                         var parameterName = "ByteContent";
                         var parameterByteValue = presetContent;
                         Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterByteValue));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = br.ReadBytes((int)this.XmlChunkSize);
+                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
                         this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
-                        string listElement = new string(br.ReadChars(4));
-                        UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                        string listElement = bf.ReadString(4);
+                        UInt32 listElementValue = bf.ReadUInt32();
                         Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
@@ -453,7 +428,7 @@ namespace AbletonLiveConverter
                                 // read COMP and 16 bytes
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
-                                var element = ReadListElement(br);
+                                var element = ReadListElement(bf);
                                 Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
@@ -465,24 +440,24 @@ namespace AbletonLiveConverter
                        this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
                     {
                         // rewind 4 bytes
-                        br.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
 
                         // read floats
-                        Parameters.Add("Unknown1", new Parameter("Unknown1", 1, br.ReadSingle()));
-                        Parameters.Add("Unknown2", new Parameter("Unknown2", 2, br.ReadSingle()));
+                        Parameters.Add("Unknown1", new Parameter("Unknown1", 1, bf.ReadSingle()));
+                        Parameters.Add("Unknown2", new Parameter("Unknown2", 2, bf.ReadSingle()));
 
                         // read ints
-                        Parameters.Add("Unknown3", new Parameter("Unknown3", 3, br.ReadUInt32()));
-                        Parameters.Add("Unknown4", new Parameter("Unknown4", 4, br.ReadUInt32()));
-                        Parameters.Add("Unknown5", new Parameter("Unknown5", 5, br.ReadUInt32()));
+                        Parameters.Add("Unknown3", new Parameter("Unknown3", 3, bf.ReadUInt32()));
+                        Parameters.Add("Unknown4", new Parameter("Unknown4", 4, bf.ReadUInt32()));
+                        Parameters.Add("Unknown5", new Parameter("Unknown5", 5, bf.ReadUInt32()));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = br.ReadBytes((int)this.XmlChunkSize);
+                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
                         this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
-                        string listElement = new string(br.ReadChars(4));
-                        UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                        string listElement = bf.ReadString(4);
+                        UInt32 listElementValue = bf.ReadUInt32();
                         Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
@@ -492,7 +467,7 @@ namespace AbletonLiveConverter
                                 // read COMP and 16 bytes
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
-                                var element = ReadListElement(br);
+                                var element = ReadListElement(bf);
                                 Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
@@ -504,52 +479,52 @@ namespace AbletonLiveConverter
                        this.Vst3ID.Equals(VstIDs.WavesSSLComp))
                     {
                         // rewind 4 bytes
-                        br.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
 
-                        var unknown2 = br.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-                        var unknown3 = br.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-                        var unknown4 = br.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+                        var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+                        var unknown3 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+                        var unknown4 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
-                        var presetType = ReadFourCC(br);
+                        var presetType = bf.ReadString(4);
                         if (presetType.Equals("SLCS"))
                         {
                             Console.WriteLine("DEBUG: Found SLCS content");
                         }
 
-                        var setType = ReadFourCC(br);
-                        Console.WriteLine("DEBUG: setType: {0}", setType);
+                        var setType = bf.ReadString(4);
+                        Console.WriteLine("DEBUG: SetType: {0}", setType);
 
-                        var unknown5 = br.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+                        var xmlMainLength = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
-                        var xpsID = ReadFourCC(br);
+                        var xpsID = bf.ReadString(4);
                         if (xpsID.Equals("XPst"))
                         {
                             Console.WriteLine("DEBUG: Found XPst content");
                         }
 
-                        var xmlContent = br.ReadString((int)unknown5);
+                        var xmlContent = bf.ReadString((int)xmlMainLength);
                         var param1Name = "XmlContent";
                         Parameters.Add(param1Name, new Parameter(param1Name, 1, xmlContent));
 
-                        var postType = ReadFourCC(br);
+                        var postType = bf.ReadString(4);
                         Console.WriteLine("DEBUG: PostType: {0}", setType);
 
                         // there is some xml content after the PresetChunkXMLTree chunk
                         // read in this also
                         // total size - PresetChunkXMLTree size - 32
                         // e.g. 844 - 777 - 32 = 35
-                        var xmlPostLength = this.ParameterDataSize - unknown5 - 32;
-                        var xmlPostContent = br.ReadString((int)xmlPostLength);
+                        var xmlPostLength = this.ParameterDataSize - xmlMainLength - 32;
+                        var xmlPostContent = bf.ReadString((int)xmlPostLength);
                         var param2Name = "XmlContentPost";
                         Parameters.Add(param2Name, new Parameter(param2Name, 2, xmlPostContent));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = br.ReadBytes((int)this.XmlChunkSize);
+                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
                         this.Xml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
-                        string listElement = new string(br.ReadChars(4));
-                        UInt32 listElementValue = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                        string listElement = bf.ReadString(4);
+                        UInt32 listElementValue = bf.ReadUInt32();
                         Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                         if (listElement.Equals("List"))
@@ -559,7 +534,7 @@ namespace AbletonLiveConverter
                                 // read COMP and 16 bytes
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
-                                var element = ReadListElement(br);
+                                var element = ReadListElement(bf);
                                 Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
                             }
                         }
@@ -574,22 +549,22 @@ namespace AbletonLiveConverter
                 }
 
                 // OK, getting here we should have access to a fxp/fxb chunk:
-                long chunkStart = br.Position;
-                string dataChunkStart = ReadFourCC(br);
+                long chunkStart = bf.Position;
+                string dataChunkStart = bf.ReadString(4);
                 if (dataChunkStart != "CcnK")
                 {
                     throw new Exception("This file does not contain any FXB or FXP data (2)");
                 }
 
                 // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
-                UInt32 chunkSize = br.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
-                if ((br.Position + chunkSize) >= fileSize)
+                UInt32 chunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
+                if ((bf.Position + chunkSize) >= fileSize)
                 {
                     throw new Exception("Invalid chunk size: " + chunkSize);
                 }
 
                 // Read magic value:
-                string magicChunkID = ReadFourCC(br);
+                string magicChunkID = bf.ReadString(4);
 
                 // Is a single preset?
                 if (magicChunkID == "FxCk" || magicChunkID == "FPCh")
@@ -618,14 +593,14 @@ namespace AbletonLiveConverter
                 }
 
                 // Read the source data:
-                br.Position = chunkStart;
-                this.FileData = br.ReadBytes((int)chunkSize);
+                bf.Position = chunkStart;
+                this.FileData = bf.ReadBytes((int)chunkSize);
             }
         }
 
         private ListElement ReadListElement(BinaryFile br)
         {
-            string name = new string(br.ReadChars(4));
+            string name = br.ReadString(4);
             UInt64 value1 = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
             UInt64 value2 = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
 

@@ -226,7 +226,6 @@ namespace CommonUtils
 
         public void ReadFXP(BinaryFile bf)
         {
-
             ChunkMagic = bf.ReadString(4);
             if (ChunkMagic != "CcnK")
             {
