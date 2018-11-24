@@ -44,27 +44,60 @@ namespace AbletonLiveConverter
 
         public class Parameter
         {
+            public enum ParameterType
+            {
+                Number,
+                String,
+                Bytes
+            }
+
             public string Name;
             public UInt32 Number;
             public double NumberValue;
             public string StringValue;
             public byte[] ByteValue;
-
-            public Parameter()
-            {
-
-            }
+            public ParameterType Type = ParameterType.Number;
 
             public Parameter(string name, UInt32 number, double value)
             {
                 this.Name = name;
                 this.Number = number;
                 this.NumberValue = value;
+                this.Type = ParameterType.Number;
+            }
+
+            public Parameter(string name, UInt32 number, string value)
+            {
+                this.Name = name;
+                this.Number = number;
+                this.StringValue = value;
+                this.Type = ParameterType.String;
+            }
+
+            public Parameter(string name, UInt32 number, byte[] value)
+            {
+                this.Name = name;
+                this.Number = number;
+                this.ByteValue = value;
+                this.Type = ParameterType.Bytes;
             }
 
             public override string ToString()
             {
-                return string.Format("[{1}] {0} = {2:0.00}", Name, Number, NumberValue);
+                string shortenedString;
+                switch (this.Type)
+                {
+                    case ParameterType.Number:
+                        return string.Format("[{1}] {0} = {2:0.00}", Name, Number, NumberValue);
+                    case ParameterType.String:
+                        shortenedString = string.Join(string.Empty, StringValue.Take(100));
+                        return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
+                    case ParameterType.Bytes:
+                        shortenedString = Encoding.ASCII.GetString(ByteValue.Take(100).ToArray()).Replace('\0', ' ');
+                        return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
+                    default:
+                        return string.Format("[{1}] {0} = 'No Values Set']", Name, Number);
+                }
             }
         }
 
@@ -113,14 +146,14 @@ namespace AbletonLiveConverter
             b[3] = bf.ReadByte();
 
             // check if this might not be ascii
-            bool isAscii = b[0] < 127 && b[0] > 31;
-            if (!isAscii)
-            {
-                UInt32 value = (UInt32)(b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24));
-                Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
-            }
+            // bool isAscii = b[0] < 127 && b[0] > 31;
+            // if (!isAscii)
+            // {
+            //     UInt32 value = (UInt32)(b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24));
+            //     Console.WriteLine("DEBUG: FourCC not ascii but number: {0}", value);
+            // }
 
-            return Encoding.Default.GetString(b);
+            return Encoding.ASCII.GetString(b);
         }
 
         private void ReadVstPreset(string fileName)
@@ -135,7 +168,7 @@ namespace AbletonLiveConverter
             }
 
             // Read the file
-            using (BinaryFile br = new BinaryFile(fileName))
+            using (BinaryFile br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false, Encoding.ASCII))
             {
                 // Get file size
                 UInt32 fileSize = (UInt32)br.Length;
@@ -263,11 +296,10 @@ namespace AbletonLiveConverter
                     {
                         counter++;
 
-                        var parameter = new Parameter();
-                        parameter.Name = string.Format("unknown{0}", counter); // don't have a name
-                        parameter.Number = (UInt32)counter;
-                        parameter.NumberValue = br.ReadSingle();
-                        Parameters.Add(parameter.Name, parameter);
+                        var parameterName = string.Format("unknown{0}", counter); // don't have a name
+                        var parameterNumber = (UInt32)counter;
+                        var parameterNumberValue = br.ReadSingle();
+                        Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
                     }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -315,18 +347,16 @@ namespace AbletonLiveConverter
                         // (19180 + 52) = 19232 bytes
                         while (br.Position != (long)this.XmlStartPos)
                         {
-                            var parameter = new Parameter();
-
                             // read the null terminated string
-                            parameter.Name = br.ReadStringZ();
+                            var parameterName = br.ReadStringZ();
 
                             // read until 128 bytes have been read
-                            var ignore = br.ReadBytes(128 - parameter.Name.Length - 1);
+                            var ignore = br.ReadBytes(128 - parameterName.Length - 1);
 
-                            parameter.Number = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
-                            parameter.NumberValue = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
+                            var parameterNumber = br.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                            var parameterNumberValue = BitConverter.ToDouble(br.ReadBytes(0, 8, BinaryFile.ByteOrder.LittleEndian), 0);
 
-                            Parameters.Add(parameter.Name, parameter);
+                            Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -362,10 +392,9 @@ namespace AbletonLiveConverter
                         // var xmlContent = br.ReadString((int)this.ParameterDataSize);
                         var xmlContent = br.ReadString((int)this.XmlStartPos - 48);
 
-                        var parameter = new Parameter();
-                        parameter.Name = "XmlContent";
-                        parameter.StringValue = xmlContent;
-                        Parameters.Add(parameter.Name, parameter);
+                        var parameterName = "XmlContent";
+                        var parameterStringValue = xmlContent;
+                        Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterStringValue));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = br.ReadBytes((int)this.XmlChunkSize);
@@ -404,10 +433,9 @@ namespace AbletonLiveConverter
                         // read until all bytes have been read
                         var presetContent = br.ReadBytes((int)this.XmlStartPos - 48);
 
-                        var parameter = new Parameter();
-                        parameter.Name = "ByteContent";
-                        parameter.ByteValue = presetContent;
-                        Parameters.Add(parameter.Name, parameter);
+                        var parameterName = "ByteContent";
+                        var parameterByteValue = presetContent;
+                        Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterByteValue));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = br.ReadBytes((int)this.XmlChunkSize);
@@ -500,14 +528,11 @@ namespace AbletonLiveConverter
                         }
 
                         var xmlContent = br.ReadString((int)unknown5);
-                        var param1 = new Parameter();
-                        param1.Name = "XmlContent";
-                        param1.Number = 1;
-                        param1.StringValue = xmlContent;
-                        Parameters.Add(param1.Name, param1);
+                        var param1Name = "XmlContent";
+                        Parameters.Add(param1Name, new Parameter(param1Name, 1, xmlContent));
 
                         var postType = ReadFourCC(br);
-                        Console.WriteLine("DEBUG: postType: {0}", setType);
+                        Console.WriteLine("DEBUG: PostType: {0}", setType);
 
                         // there is some xml content after the PresetChunkXMLTree chunk
                         // read in this also
@@ -515,11 +540,8 @@ namespace AbletonLiveConverter
                         // e.g. 844 - 777 - 32 = 35
                         var xmlPostLength = this.ParameterDataSize - unknown5 - 32;
                         var xmlPostContent = br.ReadString((int)xmlPostLength);
-                        var param2 = new Parameter();
-                        param2.Name = "XmlContentPost";
-                        param2.Number = 2;
-                        param2.StringValue = xmlPostContent;
-                        Parameters.Add(param2.Name, param2);
+                        var param2Name = "XmlContentPost";
+                        Parameters.Add(param2Name, new Parameter(param2Name, 2, xmlPostContent));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = br.ReadBytes((int)this.XmlChunkSize);
@@ -623,7 +645,7 @@ namespace AbletonLiveConverter
 
         public void Write(string fileName)
         {
-            var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true);
+            var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true, Encoding.ASCII);
 
             // Write file header
             br.Write("VST3");

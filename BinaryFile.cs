@@ -6,7 +6,7 @@ namespace CommonUtils
 {
     /// <summary>
     /// Class for reading and writing binary files.
-    /// Per Ivar Nerseth, 2011 - 2015
+    /// Per Ivar Nerseth, 2011 - 2018
     /// perivar@nerseth.com
     /// </summary>
     public class BinaryFile : IDisposable
@@ -19,18 +19,19 @@ namespace CommonUtils
         }
 
         private ByteOrder byteOrder = ByteOrder.LittleEndian;
-
         private BinaryReader binaryReader = null;
         private BinaryWriter binaryWriter = null;
         private FileStream fs = null;
         private MemoryStream memStream = null;
 
         #region Constructors
-        public BinaryFile(string filePath) : this(filePath, ByteOrder.LittleEndian, false) { }
+        public BinaryFile(string filePath) : this(filePath, ByteOrder.LittleEndian, false, Encoding.Default) { }
 
-        public BinaryFile(string filePath, ByteOrder byteOrder) : this(filePath, byteOrder, false) { }
+        public BinaryFile(string filePath, ByteOrder byteOrder) : this(filePath, byteOrder, false, Encoding.Default) { }
 
-        public BinaryFile(string filePath, ByteOrder byteOrder, bool createFile)
+        public BinaryFile(string filePath, ByteOrder byteOrder, bool createFile) : this(filePath, byteOrder, false, Encoding.Default) { }
+
+        public BinaryFile(string filePath, ByteOrder byteOrder, bool createFile, Encoding encoding)
         {
             if (createFile)
             {
@@ -41,17 +42,19 @@ namespace CommonUtils
                 this.fs = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite);
             }
 
-            this.binaryWriter = new BinaryWriter(fs, Encoding.Default);
-            this.binaryReader = new BinaryReader(fs, Encoding.Default);
+            this.binaryWriter = new BinaryWriter(fs, encoding);
+            this.binaryReader = new BinaryReader(fs, encoding);
             this.byteOrder = byteOrder;
         }
 
-        public BinaryFile(byte[] byteArray) : this(byteArray, ByteOrder.LittleEndian) { }
+        public BinaryFile(byte[] byteArray) : this(byteArray, ByteOrder.LittleEndian, Encoding.Default) { }
 
-        public BinaryFile(byte[] byteArray, ByteOrder byteOrder)
+        public BinaryFile(byte[] byteArray, ByteOrder byteOrder) : this(byteArray, byteOrder, Encoding.Default) { }
+
+        public BinaryFile(byte[] byteArray, ByteOrder byteOrder, Encoding encoding)
         {
             this.memStream = new MemoryStream(byteArray);
-            this.binaryReader = new BinaryReader(memStream);
+            this.binaryReader = new BinaryReader(memStream, encoding);
 
             // Set position to the beginning of the stream.
             this.memStream.Position = 0;
@@ -59,10 +62,12 @@ namespace CommonUtils
             this.byteOrder = byteOrder;
         }
 
-        public BinaryFile(MemoryStream stream, ByteOrder byteOrder)
+        public BinaryFile(MemoryStream stream, ByteOrder byteOrder) : this(stream, byteOrder, Encoding.Default) { }
+
+        public BinaryFile(MemoryStream stream, ByteOrder byteOrder, Encoding encoding)
         {
             this.memStream = stream;
-            this.binaryWriter = new BinaryWriter(memStream, Encoding.Default);
+            this.binaryWriter = new BinaryWriter(memStream, encoding);
 
             // Set position to the beginning of the stream.
             this.memStream.Position = 0;
@@ -263,8 +268,8 @@ namespace CommonUtils
             return ReadDouble(binaryReader, byteOrder);
         }
 
-        // ReadChars
-        // Note! On .NET Core, the Default Encoding property always returns the UTF8Encoding. This might give a different result in size than number of characters.
+        // Note! On .NET Core, the Default Encoding property always returns the UTF8Encoding. 
+        // This might give a different result in byte size than number of characters requested.
         public char[] ReadChars(int size)
         {
             return binaryReader.ReadChars(size);
@@ -272,8 +277,8 @@ namespace CommonUtils
 
         public string ReadString(int size)
         {
-            var byteArray = binaryReader.ReadBytes(size);
-            return ByteArrayToString(byteArray);
+            var chars = binaryReader.ReadChars(size);
+            return new string(chars);
         }
 
         /// <summary>

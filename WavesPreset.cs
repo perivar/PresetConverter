@@ -58,6 +58,7 @@ namespace PresetConverter
         /// C:\Users\Public\Waves Audio\Plug-In Settings\*.xps files
         /// </summary>
         /// <param name="filePath">file to xps file (e.g. with the filename '1000' or *.xps)</param>
+        /// <typeparam name="T">generics type</typeparam>
         /// <example>
         /// List<WavesSSLChannel> presetList = WavesPreset.ReadXps<WavesSSLChannel>(@"C:\Program Files (x86)\Waves\Plug-Ins\SSLChannel.bundle\Contents\Resources\XPst\1000");
         /// </example>
@@ -69,10 +70,18 @@ namespace PresetConverter
             return ParseXml<T>(xmlString);
         }
 
-        // Using generics to allow us to specify which preset type we are processing
-        private static List<T> ParseXml<T>(string xmlString) where T : WavesPreset, new()
+        /// <summary>
+        /// Parse Waves XPst content
+        /// </summary>
+        /// <param name="xmlString">file to xps file (e.g. with the filename '1000' or *.xps)</param>
+        /// <typeparam name="T">generics type</typeparam>
+        /// <example>
+        /// List<WavesSSLChannel> presetList = WavesPreset.ParseXml<WavesSSLChannel>(xmlContent);
+        /// </example>
+        /// <remarks>This method is using generics to allow us to specify which preset type we are processing</remarks>
+        /// <returns>a list of the WavesPreset type</returns>
+        public static List<T> ParseXml<T>(string xmlString) where T : WavesPreset, new()
         {
-
             var presetList = new List<T>();
 
             var xml = new XmlDocument();
@@ -127,7 +136,7 @@ namespace PresetConverter
         /// <returns>xml string</returns>
         private static string ParseChunkData(byte[] chunkDataByteArray)
         {
-            var bf = new BinaryFile(chunkDataByteArray, BinaryFile.ByteOrder.BigEndian);
+            var bf = new BinaryFile(chunkDataByteArray, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII);
 
             int val1 = bf.ReadInt32();
             int val2 = bf.ReadInt32();
@@ -192,7 +201,7 @@ namespace PresetConverter
             }
         }
 
-        public bool ParseXml(string xmlString, TextWriter tw)
+        private bool ParseXml(string xmlString, TextWriter tw)
         {
 
             var xml = new XmlDocument();
@@ -220,10 +229,9 @@ namespace PresetConverter
                     }
                 }
             }
-            catch (XmlException xe)
+            catch (XmlException)
             {
-                throw (xe);
-                // return false;
+                return false;
             }
             return false;
         }

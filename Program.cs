@@ -126,13 +126,16 @@ namespace AbletonLiveConverter
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLComp))
                 {
-                    TextWriter tw = new StreamWriter(outputFilePath);
-                    var sslComp = new WavesSSLComp();
-                    if (sslComp.ParseXml(vstPreset.Parameters.FirstOrDefault().Value.StringValue, tw))
+                    using (var tw = new StreamWriter(outputFilePath))
                     {
-
+                        List<WavesSSLComp> compPresetList = WavesPreset.ParseXml<WavesSSLComp>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
+                        foreach (var wavesSSLComp in compPresetList)
+                        {
+                            tw.WriteLine(wavesSSLComp);
+                            tw.WriteLine();
+                            tw.WriteLine("-------------------------------------------------------");
+                        }
                     }
-                    tw.Close();
                 }
                 else
                 {

@@ -179,7 +179,7 @@ namespace PresetConverter
         {
             if (fxp == null || fxp.ChunkDataByteArray == null) return false;
 
-            var bFile = new BinaryFile(fxp.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian);
+            var bFile = new BinaryFile(fxp.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
 
             // Read UAD Preset Header information
             PresetHeaderVar1 = bFile.ReadInt32();
@@ -277,7 +277,7 @@ namespace PresetConverter
         private byte[] GetChunkData()
         {
             var memStream = new MemoryStream();
-            var bFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian);
+            var bFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
 
             // Write UAD Preset Header information
             bFile.Write((int)PresetHeaderVar1);

@@ -1,6 +1,7 @@
 using System;
 using System.Xml;
 using System.IO;
+using System.Text;
 
 namespace CommonUtils
 {
@@ -111,14 +112,14 @@ namespace CommonUtils
         // constructor with byte array
         public FXP(byte[] values)
         {
-            BinaryFile bf = new BinaryFile(values, BinaryFile.ByteOrder.BigEndian);
+            BinaryFile bf = new BinaryFile(values, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII);
             ReadFXP(bf);
         }
 
         public void WriteFile(string filePath)
         {
 
-            BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian, true);
+            BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian, true, Encoding.ASCII);
 
             // determine if the chunkdata is saved as XML
             bool writeXMLChunkData = false;
@@ -219,7 +220,7 @@ namespace CommonUtils
 
         public void ReadFile(string filePath)
         {
-            BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian);
+            BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian, false, Encoding.ASCII);
             ReadFXP(bf);
         }
 
