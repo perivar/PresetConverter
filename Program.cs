@@ -72,11 +72,10 @@ namespace AbletonLiveConverter
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
         {
-            byte[] bytes = File.ReadAllBytes(file);
-            byte[] decompressed = Decompress(bytes);
-            string str = Encoding.UTF8.GetString(decompressed);
-
-            XElement xelement = XElement.Parse(str);
+            var bytes = File.ReadAllBytes(file);
+            var decompressed = Decompress(bytes);
+            var str = Encoding.UTF8.GetString(decompressed);
+            var xelement = XElement.Parse(str);
 
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = "";
@@ -101,10 +100,13 @@ namespace AbletonLiveConverter
                     break;
                 case "GlueCompressor":
                     var glueCompressor = new AbletonGlueCompressor(xelement);
+                    outputFilePath = Path.Combine(outputDirectoryPath, "GlueCompressor", "Ableton - " + outputFileName + ".txt");
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "GlueCompressor"));
+                    File.WriteAllText(outputFilePath, glueCompressor.ToString());
                     Console.WriteLine(glueCompressor);
                     break;
                 case "MultibandDynamics":
-                // var multibandCompressor = new MultibandCompressor(xelement);
+                // var multibandCompressor = new AbletonMultibandCompressor(xelement);
                 // break;
                 case "AutoFilter":
                 case "Reverb":
