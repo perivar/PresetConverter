@@ -6,7 +6,7 @@ using AbletonLiveConverter;
 namespace PresetConverter
 {
     /// <summary>
-    /// Waves SSLChannel.
+    /// Waves SSLChannel
     /// </summary>
     public class WavesSSLChannel : WavesPreset
     {

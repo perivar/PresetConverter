@@ -8,13 +8,14 @@ using System.Globalization;
 
 using PresetConverter;
 using CommonUtils;
+using AbletonLiveConverter;
 
 namespace PresetConverter
 {
     /// <summary>
-    /// UAD SSLChannel.
+    /// UAD SSLChannel
     /// </summary>
-    public class UADSSLChannel : Preset
+    public class UADSSLChannel : VstPreset
     {
         string FilePath;
         public string PresetName;
@@ -68,6 +69,9 @@ namespace PresetConverter
         public UADSSLChannel()
         {
             InitializeMappingTables("UADSSLChannelParametersMap.xml");
+            Vst3ID = "UNDEFINED";
+            PlugInCategory = "Fx|Channel Strip";
+            PlugInName = "SSLChannel Stereo";
         }
 
         #region FindClosest Example Methods
@@ -175,6 +179,42 @@ namespace PresetConverter
         #endregion
 
         #region Read and Write Methods
+        protected override bool PreparedForWriting()
+        {
+            InitChunkData();
+            InitMetaInfoXml();
+            CalculateBytePositions();
+            return true;
+        }
+
+        private void InitChunkData()
+        {
+            FXP fxp = GenerateFXP();
+
+            var memStream = new MemoryStream();
+            using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
+            {
+                fxp.WriteFXP(bf);
+            }
+
+            this.ChunkData = memStream.ToArray();
+        }
+
+        public bool ReadFXP(string filePath)
+        {
+            // store filepath
+            FilePath = filePath;
+
+            FXP fxp = new FXP();
+            fxp.ReadFile(filePath);
+
+            if (!ReadFXP(fxp, filePath))
+            {
+                return false;
+            }
+            return true;
+        }
+
         public bool ReadFXP(FXP fxp, string filePath = "")
         {
             if (fxp == null || fxp.ChunkDataByteArray == null) return false;
@@ -229,7 +269,13 @@ namespace PresetConverter
 
         public bool WriteFXP(string filePath)
         {
+            FXP fxp = GenerateFXP();
+            fxp.WriteFile(filePath);
+            return true;
+        }
 
+        private FXP GenerateFXP()
+        {
             FXP fxp = new FXP();
             fxp.ChunkMagic = "CcnK";
             fxp.ByteSize = 0; // will be set correctly by FXP class
@@ -246,32 +292,7 @@ namespace PresetConverter
             fxp.ChunkSize = chunkData.Length;
             fxp.ChunkDataByteArray = chunkData;
 
-            fxp.WriteFile(filePath);
-            return true;
-        }
-
-        public bool Read(string filePath)
-        {
-            // store filepath
-            FilePath = filePath;
-
-            FXP fxp = new FXP();
-            fxp.ReadFile(filePath);
-
-            if (!ReadFXP(fxp, filePath))
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public bool Write(string filePath)
-        {
-            if (!WriteFXP(filePath))
-            {
-                return false;
-            }
-            return true;
+            return fxp;
         }
 
         private byte[] GetChunkData()

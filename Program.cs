@@ -140,6 +140,17 @@ namespace AbletonLiveConverter
                         }
                     }
                 }
+                else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannel))
+                {
+                    using (var tw = new StreamWriter(outputFilePath))
+                    {
+                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
+                        foreach (var wavesSSLChannel in channelPresetList)
+                        {
+                            tw.WriteLine(wavesSSLChannel);
+                        }
+                    }
+                }
                 else
                 {
                     File.WriteAllText(outputFilePath, vstPreset.ToString());
@@ -156,9 +167,13 @@ namespace AbletonLiveConverter
             List<WavesSSLChannel> channelPresetList = WavesPreset.ReadXps<WavesSSLChannel>(file);
             foreach (var wavesSSLChannel in channelPresetList)
             {
+                // convert to UAD SSL Channel
                 var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
-                string outputFxpFilePath = Path.Combine(outputDirectoryPath, uadSSLChannel.PresetName + ".fxp");
-                uadSSLChannel.Write(outputFxpFilePath);
+                string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL Channel", uadSSLChannel.PresetName + ".vstpreset");
+                CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL Channel"));
+                uadSSLChannel.Write(outputPresetFilePath);
+
+                // write text content
                 tw.WriteLine(wavesSSLChannel);
                 tw.WriteLine();
                 tw.WriteLine("-------------------------------------------------------");
@@ -168,6 +183,7 @@ namespace AbletonLiveConverter
             List<WavesSSLComp> compPresetList = WavesPreset.ReadXps<WavesSSLComp>(file);
             foreach (var wavesSSLComp in compPresetList)
             {
+                // write text content
                 tw.WriteLine(wavesSSLComp);
                 tw.WriteLine();
                 tw.WriteLine("-------------------------------------------------------");

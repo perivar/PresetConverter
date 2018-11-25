@@ -8,6 +8,9 @@ using CommonUtils;
 
 namespace AbletonLiveConverter
 {
+    /// <summary>
+    /// A Steinberg .vstpreset file
+    /// </summary>
     public class SteinbergVstPreset : VstPreset
     {
         public SteinbergVstPreset() : base()

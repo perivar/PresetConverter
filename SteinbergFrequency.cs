@@ -7,6 +7,9 @@ using CommonUtils;
 
 namespace AbletonLiveConverter
 {
+    /// <summary>
+    /// A Steinberg Frequency Plugin .vstpreset file
+    /// </summary>
     public class SteinbergFrequency : SteinbergVstPreset
     {
         // cannot use Enums with doubles, struct works

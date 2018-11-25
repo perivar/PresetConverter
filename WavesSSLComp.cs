@@ -10,7 +10,7 @@ using AbletonLiveConverter;
 namespace PresetConverter
 {
     /// <summary>
-    /// Waves SSLComp.
+    /// Waves SSLComp
     /// </summary>
     public class WavesSSLComp : WavesPreset
     {

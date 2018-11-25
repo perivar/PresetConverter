@@ -9,6 +9,9 @@ using PresetConverter;
 
 namespace AbletonLiveConverter
 {
+    /// <summary>
+    /// A Steinberg .vstpreset file
+    /// </summary>
     public abstract class VstPreset : Preset
     {
 
@@ -34,7 +37,6 @@ namespace AbletonLiveConverter
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
             public const string WavesSSLComp = "565354534C435373736C636F6D702073";
             public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
-
         }
 
         private class ListElement
@@ -496,7 +498,8 @@ namespace AbletonLiveConverter
                     }
 
                     else if (
-                       this.Vst3ID.Equals(VstIDs.WavesSSLComp))
+                       this.Vst3ID.Equals(VstIDs.WavesSSLComp) ||
+                       this.Vst3ID.Equals(VstIDs.WavesSSLChannel))
                     {
                         // rewind 4 bytes
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
@@ -506,10 +509,7 @@ namespace AbletonLiveConverter
                         var unknown4 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
                         var presetType = bf.ReadString(4);
-                        if (presetType.Equals("SLCS"))
-                        {
-                            Console.WriteLine("DEBUG: Found SLCS content");
-                        }
+                        Console.WriteLine("DEBUG: PresetType: {0}", presetType);
 
                         var setType = bf.ReadString(4);
                         Console.WriteLine("DEBUG: SetType: {0}", setType);
@@ -527,7 +527,7 @@ namespace AbletonLiveConverter
                         Parameters.Add(param1Name, new Parameter(param1Name, 1, xmlContent));
 
                         var postType = bf.ReadString(4);
-                        Console.WriteLine("DEBUG: PostType: {0}", setType);
+                        Console.WriteLine("DEBUG: PostType: {0}", postType);
 
                         // there is some xml content after the PresetChunkXMLTree chunk
                         // read in this also

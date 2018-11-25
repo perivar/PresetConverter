@@ -7,6 +7,9 @@ using CommonUtils;
 
 namespace AbletonLiveConverter
 {
+    /// <summary>
+    /// A Steinberg Compressor Plugin .vstpreset file
+    /// </summary>
     public class SteinbergCompressor : SteinbergVstPreset
     {
         public SteinbergCompressor()

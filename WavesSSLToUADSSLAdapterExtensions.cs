@@ -3,7 +3,7 @@
 namespace PresetConverter
 {
     /// <summary>
-    /// Waves SSL To UAD SSL Adapter.
+    /// Waves SSL To UAD SSL Adapter
     /// </summary>
     public static class WavesSSLToUADSSLAdapterExtensions
     {

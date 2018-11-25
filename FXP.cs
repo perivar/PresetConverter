@@ -7,7 +7,7 @@ namespace CommonUtils
 {
     /// <summary>
     /// Class for reading and writing Steinberg Preset files and Bank files (fxp and fxb files).
-    /// Per Ivar Nerseth, 2011 - 2012
+    /// Per Ivar Nerseth, 2011 - 2018
     /// perivar@nerseth.com
     /// </summary>
     public class FXP
@@ -118,9 +118,15 @@ namespace CommonUtils
 
         public void WriteFile(string filePath)
         {
-
             BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian, true, Encoding.ASCII);
 
+            WriteFXP(bf);
+
+            bf.Close();
+        }
+
+        public void WriteFXP(BinaryFile bf)
+        {
             // determine if the chunkdata is saved as XML
             bool writeXMLChunkData = false;
             string xmlChunkData = "";
@@ -140,8 +146,6 @@ namespace CommonUtils
                 Console.Out.WriteLine("Cannot save the preset file. Missing preset header information.");
                 return;
             }
-
-            Console.Out.WriteLine("Writing FXP to {0} ...", filePath);
 
             bf.Write(ChunkMagic);                           // chunkMagic, 4
 
@@ -214,8 +218,6 @@ namespace CommonUtils
                     bf.Write((float)Parameters[i]);
                 }
             }
-
-            bf.Close();
         }
 
         public void ReadFile(string filePath)
