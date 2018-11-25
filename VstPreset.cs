@@ -62,6 +62,7 @@ namespace AbletonLiveConverter
             public const string SteinbergREVerence = "ED824AB48E0846D5959682F5626D0972";
             public const string SteinbergStandardPanner = "44E1149EDB3E4387BDD827FEA3A39EE7";
             public const string SteinbergStereoDelay = "001DCD3345D14A13B59DAECF75A37536";
+            public const string SteinbergStereoEnhancer = "77BBA7CA90F14C9BB298BA9010D6DD78";
             public const string SteinbergStudioEQ = "946051208E29496E804F64A825C8A047";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
             public const string WavesSSLComp = "565354534C435373736C636F6D702073";
@@ -229,17 +230,17 @@ namespace AbletonLiveConverter
                 bf.Seek(this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
-                string list = bf.ReadString(4);
-                UInt32 listValue = bf.ReadUInt32();
-                Console.WriteLine("DEBUG: {0} {1}", list, listValue);
+                string listElement = bf.ReadString(4);
+                UInt32 listElementValue = bf.ReadUInt32();
+                Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
 
                 // Comp = kComponentState
                 // Cont = kControllerState
                 // Prog = kProgramData
                 // Info = kMetaInfo
-                if (list.Equals("List"))
+                if (listElement.Equals("List"))
                 {
-                    for (int i = 0; i < listValue; i++)
+                    for (int i = 0; i < listElementValue; i++)
                     {
                         // read COMP and 16 bytes
                         // parameter data start position
@@ -293,17 +294,14 @@ namespace AbletonLiveConverter
                 {
                     // https://searchcode.com/codesearch/view/90021517/
 
-                    // Read unknown value (most likely VstW chunk size)
-                    // header size
-                    UInt32 unknown2 = bf.ReadUInt32();
+                    // Read VstW chunk size
+                    UInt32 vst2ChunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
-                    // Read unknown value (most likely VstW chunk version)
-                    // version
-                    UInt32 unknown3 = bf.ReadUInt32();
+                    // Read VstW chunk version
+                    UInt32 vst2Version = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
-                    // Read unknown value (no clue)
-                    // bypass
-                    UInt32 unknown4 = bf.ReadUInt32();
+                    // Read VstW bypass
+                    UInt32 vst2Bypass = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
                     // Check file size (The other check is needed because Cubase tends to forget the items of this header
                     if ((fileSize != (this.ListPos + bf.Position + 4))
@@ -343,22 +341,7 @@ namespace AbletonLiveConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    // read LIST and 4 bytes
-                    string listElement = bf.ReadString(4);
-                    UInt32 listElementValue = bf.ReadUInt32();
-                    Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
-                    if (listElement.Equals("List"))
-                    {
-                        for (int i = 0; i < listElementValue; i++)
-                        {
-                            // read COMP and 16 bytes
-                            // read Cont and 16 bytes
-                            // read Info and 16 bytes
-                            var element = ReadListElement(bf);
-                            Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
-                        }
-                    }
+                    WriteListElements(bf, Console.Out);
 
                     return;
                 }
@@ -377,6 +360,7 @@ namespace AbletonLiveConverter
                         this.Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
                         this.Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
                         this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
+                        this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
                         this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ))
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
@@ -401,22 +385,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        // read LIST and 4 bytes
-                        string listElement = bf.ReadString(4);
-                        UInt32 listElementValue = bf.ReadUInt32();
-                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
-                        if (listElement.Equals("List"))
-                        {
-                            for (int i = 0; i < listElementValue; i++)
-                            {
-                                // read COMP and 16 bytes
-                                // read Cont and 16 bytes
-                                // read Info and 16 bytes
-                                var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
-                            }
-                        }
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -438,22 +407,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        // read LIST and 4 bytes
-                        string listElement = bf.ReadString(4);
-                        UInt32 listElementValue = bf.ReadUInt32();
-                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
-                        if (listElement.Equals("List"))
-                        {
-                            for (int i = 0; i < listElementValue; i++)
-                            {
-                                // read COMP and 16 bytes
-                                // read Cont and 16 bytes
-                                // read Info and 16 bytes
-                                var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
-                            }
-                        }
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -479,22 +433,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        // read LIST and 4 bytes
-                        string listElement = bf.ReadString(4);
-                        UInt32 listElementValue = bf.ReadUInt32();
-                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
-                        if (listElement.Equals("List"))
-                        {
-                            for (int i = 0; i < listElementValue; i++)
-                            {
-                                // read COMP and 16 bytes
-                                // read Cont and 16 bytes
-                                // read Info and 16 bytes
-                                var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
-                            }
-                        }
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -518,22 +457,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        // read LIST and 4 bytes
-                        string listElement = bf.ReadString(4);
-                        UInt32 listElementValue = bf.ReadUInt32();
-                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
-                        if (listElement.Equals("List"))
-                        {
-                            for (int i = 0; i < listElementValue; i++)
-                            {
-                                // read COMP and 16 bytes
-                                // read Cont and 16 bytes
-                                // read Info and 16 bytes
-                                var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
-                            }
-                        }
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -583,28 +507,14 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        // read LIST and 4 bytes
-                        string listElement = bf.ReadString(4);
-                        UInt32 listElementValue = bf.ReadUInt32();
-                        Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
-                        if (listElement.Equals("List"))
-                        {
-                            for (int i = 0; i < listElementValue; i++)
-                            {
-                                // read COMP and 16 bytes
-                                // read Cont and 16 bytes
-                                // read Info and 16 bytes
-                                var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
-                            }
-                        }
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
                     else
                     {
                         // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
+                        Console.WriteLine("This file does not contain any known formats or FXB or FXP data (1)");
                         return;
                     }
                 }
@@ -618,6 +528,7 @@ namespace AbletonLiveConverter
                 }
 
                 // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
+                // add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
                 UInt32 chunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
                 if ((bf.Position + chunkSize) >= fileSize)
                 {
@@ -656,10 +567,36 @@ namespace AbletonLiveConverter
                 // Read the source data:
                 bf.Position = chunkStart;
                 this.ChunkData = bf.ReadBytes((int)chunkSize);
+
+                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
+
+                WriteListElements(bf, Console.Out);
             }
         }
 
-        private ListElement ReadListElement(BinaryFile br)
+        private void WriteListElements(BinaryFile bf, TextWriter writer)
+        {
+            // read LIST and 4 bytes
+            string listElement = bf.ReadString(4);
+            UInt32 listElementValue = bf.ReadUInt32();
+            writer.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
+
+            if (listElement.Equals("List"))
+            {
+                for (int i = 0; i < listElementValue; i++)
+                {
+                    // read COMP and 16 bytes
+                    // read Cont and 16 bytes
+                    // read Info and 16 bytes
+                    var element = ReadListElement(bf);
+                    writer.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
+                }
+            }
+        }
+
+        private ListElement ReadListElement(BinaryFile bf)
         {
             //  +----------------------+
             //  | chunk id             |    4 Bytes
@@ -667,9 +604,9 @@ namespace AbletonLiveConverter
             //  | size of chunk data   |    8 Bytes (int64)
             //  +----------------------+ 
 
-            string id = br.ReadString(4);
-            UInt64 offset = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
-            UInt64 size = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
+            string id = bf.ReadString(4);
+            UInt64 offset = bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
+            UInt64 size = bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
 
             var elem = new ListElement();
             elem.ID = id;

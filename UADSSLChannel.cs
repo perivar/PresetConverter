@@ -195,8 +195,20 @@ namespace PresetConverter
             var memStream = new MemoryStream();
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
             {
-                bf.Write("LPXF");
-            
+                bf.Write("VstW");
+
+                // Write VstW chunk size
+                UInt32 vst2ChunkSize = 8;
+                bf.Write(vst2ChunkSize);
+
+                // Write VstW chunk version
+                UInt32 vst2Version = 1;
+                bf.Write(vst2Version);
+
+                // Write VstW bypass
+                UInt32 vst2Bypass = 0;
+                bf.Write(vst2Bypass);
+
                 fxp.WriteFXP(bf);
             }
 
@@ -284,12 +296,13 @@ namespace PresetConverter
             fxp.ByteSize = 0; // will be set correctly by FXP class
 
             // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
-            fxp.FxMagic = "FPCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
+            fxp.FxMagic = "FBCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
             fxp.Version = 1; // Format Version (should be 1)
-            fxp.FxID = "J9AU"; 
+            fxp.FxID = "J9AU";
             fxp.FxVersion = 1;
             fxp.ProgramCount = 36; // I.e. number of parameters
             fxp.Name = PresetName;
+            fxp.Future = new string('\0', 128); // 128 bytes long
 
             byte[] chunkData = GetChunkData();
             fxp.ChunkSize = chunkData.Length;

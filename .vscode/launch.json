@@ -89,7 +89,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "C:\\Users\\periv\\Documents\\VST3 Presets\\Steinberg Media Technologies",
+                "C:\\Users\\periv\\Documents\\VST3 Presets",
                 "-o",
                 "D:\\Development Projects\\Own Projects\\Temp"
             ],
