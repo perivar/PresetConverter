@@ -17,6 +17,8 @@ namespace AbletonLiveConverter
             Vst3ID = VstPreset.VstIDs.SteinbergCompressor;
             PlugInCategory = "Fx|Dynamics";
             PlugInName = "Compressor";
+            PlugInVendor = "Steinberg Media Technologies";
+
             InitStartBytes(2304);
             InitParameters();
         }

@@ -69,9 +69,10 @@ namespace PresetConverter
         public UADSSLChannel()
         {
             InitializeMappingTables("UADSSLChannelParametersMap.xml");
-            Vst3ID = "UNDEFINED";
+            Vst3ID = VstPreset.VstIDs.UADSSLEChannel;
             PlugInCategory = "Fx|Channel Strip";
-            PlugInName = "SSLChannel Stereo";
+            PlugInName = "UAD SSL E Channel Strip";
+            PlugInVendor = "Universal Audio, Inc.";
         }
 
         #region FindClosest Example Methods
@@ -194,6 +195,8 @@ namespace PresetConverter
             var memStream = new MemoryStream();
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
             {
+                bf.Write("LPXF");
+            
                 fxp.WriteFXP(bf);
             }
 
@@ -283,7 +286,7 @@ namespace PresetConverter
             // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
             fxp.FxMagic = "FPCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
             fxp.Version = 1; // Format Version (should be 1)
-            fxp.FxID = "J9AU";
+            fxp.FxID = "J9AU"; 
             fxp.FxVersion = 1;
             fxp.ProgramCount = 36; // I.e. number of parameters
             fxp.Name = PresetName;

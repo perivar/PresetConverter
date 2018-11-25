@@ -39,6 +39,8 @@ namespace AbletonLiveConverter
             Vst3ID = VstPreset.VstIDs.SteinbergFrequency;
             PlugInCategory = "Fx|EQ";
             PlugInName = "Frequency";
+            PlugInVendor = "Steinberg Media Technologies";
+
             InitStartBytes(19728);
             InitParameters();
         }

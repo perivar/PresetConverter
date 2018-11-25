@@ -47,6 +47,7 @@ namespace PresetConverter
             Vst3ID = VstPreset.VstIDs.WavesSSLComp;
             PlugInCategory = "Fx|Dynamics";
             PlugInName = "SSLComp Stereo";
+            PlugInVendor = "Waves";
         }
 
         protected override bool ReadRealWorldParameters()

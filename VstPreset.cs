@@ -66,6 +66,7 @@ namespace AbletonLiveConverter
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
             public const string WavesSSLComp = "565354534C435373736C636F6D702073";
             public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
+            public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
         }
 
         private class ListElement
@@ -138,6 +139,7 @@ namespace AbletonLiveConverter
         public string Vst3ID;
         public string PlugInCategory;
         public string PlugInName;
+        public string PlugInVendor;
         public string MetaXml; // VstPreset MetaInfo Xml section as string
         public byte[] MetaXmlBytesWithBOM; // VstPreset MetaInfo Xml section as bytes, including the BOM
         public byte[] ChunkData;
@@ -788,7 +790,7 @@ namespace AbletonLiveConverter
 
             XmlElement attr4 = xml.CreateElement("Attribute");
             attr4.SetAttribute("id", "PlugInVendor");
-            attr4.SetAttribute("value", "Steinberg Media Technologies");
+            attr4.SetAttribute("value", this.PlugInVendor);
             attr4.SetAttribute("type", "string");
             attr4.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr4);
