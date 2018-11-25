@@ -136,9 +136,9 @@ namespace AbletonLiveConverter
                         List<WavesSSLComp> compPresetList = WavesPreset.ParseXml<WavesSSLComp>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
                         foreach (var wavesSSLComp in compPresetList)
                         {
+                            var xml = wavesSSLComp.GeneratePresetXML(outputFilePath);
+                            tw.WriteLine(xml);
                             tw.WriteLine(wavesSSLComp);
-                            tw.WriteLine();
-                            tw.WriteLine("-------------------------------------------------------");
                         }
                     }
                 }

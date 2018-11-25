@@ -643,10 +643,17 @@ namespace AbletonLiveConverter
             // write parameters
             foreach (var parameter in this.Parameters.Values)
             {
-                var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
-                br.Write(paramName);
-                br.Write(parameter.Number);
-                br.Write(parameter.NumberValue);
+                if (parameter.Type == Parameter.ParameterType.Number)
+                {
+                    var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
+                    br.Write(paramName);
+                    br.Write(parameter.Number);
+                    br.Write(parameter.NumberValue);
+                }
+                else
+                {
+                    // stop here
+                }
             }
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -731,8 +738,10 @@ namespace AbletonLiveConverter
         public void InitXml()
         {
             XmlDocument xml = new XmlDocument();
-            XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
-            xml.AppendChild(docNode);
+            // Adding the XmlDeclaration (version and utf-8) is not necessary as it is added  
+            // using the XmlWriterSettings
+            // XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
+            // xml.AppendChild(docNode);
             XmlElement root = xml.CreateElement("MetaInfo");
             xml.AppendChild(root);
 
@@ -777,6 +786,7 @@ namespace AbletonLiveConverter
             StringWriterWithEncoding stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
             XmlWriterSettings settings = new XmlWriterSettings
             {
+                OmitXmlDeclaration = false,
                 Indent = true,
                 IndentChars = "\t",
                 NewLineChars = "\r\n",
@@ -790,30 +800,11 @@ namespace AbletonLiveConverter
             // add \r \n at the end (0D 0A)
             sb.Append("\r\n");
 
-            // remove whitespace in self closing tags when writing xml document
-            var stripSelfClose = sb.ToString().Replace(" />", "/>");
-            return stripSelfClose;
-        }
+            // ugly way to remove whitespace in self closing tags when writing xml document
+            sb.Replace(" />", "/>");
 
-        // class to fix the problem of XmlWriter defaulting to utf-16
-        // see http://www.csharp411.com/how-to-force-xmlwriter-or-xmltextwriter-to-use-encoding-other-than-utf-16/
-        public class StringWriterWithEncoding : StringWriter
-        {
-            public StringWriterWithEncoding(StringBuilder sb, Encoding encoding)
-                : base(sb)
-            {
-                this.m_Encoding = encoding;
-            }
-            private readonly Encoding m_Encoding;
-            public override Encoding Encoding
-            {
-                get
-                {
-                    return this.m_Encoding;
-                }
-            }
+            return sb.ToString();
         }
-
 
         public override string ToString()
         {

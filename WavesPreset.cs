@@ -8,6 +8,7 @@ using System.Globalization;
 
 using PresetConverter;
 using CommonUtils;
+using System.Xml.Linq;
 
 namespace PresetConverter
 {
@@ -17,8 +18,10 @@ namespace PresetConverter
     public abstract class WavesPreset : Preset
     {
         public string PresetName = null;
+        public string PresetGenericType = null;
         public string PresetGroup = null;
         public string PluginName = null;
+        public string PluginSubComp = null;
         public string PluginVersion = null;
         public string ActiveSetup = "CURRENT";
         public string SetupName = null;
@@ -243,7 +246,6 @@ namespace PresetConverter
         /// <returns>true if parsing was successful</returns>
         private bool ParsePresetNode(XmlNode presetNode)
         {
-
             // Get the preset node's attributes
             XmlAttribute nameAtt = presetNode.Attributes["Name"];
             if (nameAtt != null && nameAtt.Value != null)
@@ -255,6 +257,16 @@ namespace PresetConverter
                 PresetName = "";
             }
 
+            XmlAttribute genericTypeAtt = presetNode.Attributes["GenericType"];
+            if (genericTypeAtt != null && genericTypeAtt.Value != null)
+            {
+                PresetGenericType = genericTypeAtt.Value;
+            }
+            else
+            {
+                PresetGenericType = "";
+            }
+
             // Read some values from the PresetHeader section
             XmlNode pluginNameNode = presetNode.SelectSingleNode("PresetHeader/PluginName");
             if (pluginNameNode != null && pluginNameNode.InnerText != null)
@@ -264,6 +276,16 @@ namespace PresetConverter
             else
             {
                 PluginName = "";
+            }
+
+            XmlNode pluginSubCompNode = presetNode.SelectSingleNode("PresetHeader/PluginSubComp");
+            if (pluginSubCompNode != null && pluginSubCompNode.InnerText != null)
+            {
+                PluginSubComp = pluginSubCompNode.InnerText;
+            }
+            else
+            {
+                PluginSubComp = "";
             }
 
             XmlNode pluginVersionNode = presetNode.SelectSingleNode("PresetHeader/PluginVersion");
@@ -318,6 +340,32 @@ namespace PresetConverter
             }
 
             return true;
+        }
+
+        public string BeautifyXml(XElement doc)
+        {
+            // Write Steinberg XML format (without XmlDeclaration)
+            StringBuilder sb = new StringBuilder();
+            StringWriterWithEncoding stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true,
+                Encoding = Encoding.UTF8,
+                Indent = true,
+                IndentChars = "    ",
+                NewLineChars = "\r\n",
+                NewLineHandling = NewLineHandling.Replace
+            };
+
+            using (XmlWriter writer = XmlWriter.Create(stringWriter, settings))
+            {
+                doc.Save(writer);
+            }
+
+            // ugly way to remove whitespace in self closing tags when writing xml document
+            sb.Replace(" />", "/>");
+
+            return sb.ToString();
         }
 
         protected abstract bool ReadRealWorldParameters();
