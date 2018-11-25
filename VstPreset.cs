@@ -15,6 +15,35 @@ namespace AbletonLiveConverter
     public abstract class VstPreset : Preset
     {
 
+        /*
+        VST3 Preset File Format Definition
+        ==================================
+
+        0   +---------------------------+
+            | HEADER                    |
+            | header id ('VST3')        |       4 Bytes
+            | version                   |       4 Bytes (int32)
+            | ASCII-encoded class id    |       32 Bytes 
+        +--| offset to chunk list      |       8 Bytes (int64)
+        |  +---------------------------+
+        |  | DATA AREA                 |<-+
+        |  | data of chunks 1..n       |  |
+        |  ...                       ...  |
+        |  |                           |  |
+        +->+---------------------------+  |
+            | CHUNK LIST                |  |
+            | list id ('List')          |  |    4 Bytes
+            | entry count               |  |    4 Bytes (int32)
+            +---------------------------+  |
+            |  1..n                     |  |
+            |  +----------------------+ |  |
+            |  | chunk id             | |  |    4 Bytes
+            |  | offset to chunk data |----+    8 Bytes (int64)
+            |  | size of chunk data   | |       8 Bytes (int64)
+            |  +----------------------+ |
+        EOF +---------------------------+   
+        */
+
         // cannot use Enums with strings, struct works
         public struct VstIDs
         {
@@ -41,9 +70,9 @@ namespace AbletonLiveConverter
 
         private class ListElement
         {
-            public string Name;
-            public UInt64 value1;
-            public UInt64 value2;
+            public string ID;
+            public UInt64 Offset;
+            public UInt64 Size;
         }
 
         public class Parameter
@@ -194,6 +223,7 @@ namespace AbletonLiveConverter
                 long oldPos = bf.Position;
 
                 // seek to the 'List' position
+                // List = kChunkList
                 bf.Seek(this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
@@ -201,6 +231,10 @@ namespace AbletonLiveConverter
                 UInt32 listValue = bf.ReadUInt32();
                 Console.WriteLine("DEBUG: {0} {1}", list, listValue);
 
+                // Comp = kComponentState
+                // Cont = kControllerState
+                // Prog = kProgramData
+                // Info = kMetaInfo
                 if (list.Equals("List"))
                 {
                     for (int i = 0; i < listValue; i++)
@@ -217,18 +251,18 @@ namespace AbletonLiveConverter
                         // xml start position
                         // byte length of xml data
                         var element = ReadListElement(bf);
-                        Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                        Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
 
-                        if (element.Name.Equals("Info"))
+                        if (element.ID.Equals("Info"))
                         {
-                            this.MetaXmlStartPos = element.value1;
-                            this.MetaXmlChunkSize = element.value2;
+                            this.MetaXmlStartPos = element.Offset;
+                            this.MetaXmlChunkSize = element.Size;
                         }
 
-                        if (element.Name.Equals("Comp"))
+                        if (element.ID.Equals("Comp"))
                         {
-                            this.DataStartPos = element.value1;
-                            this.DataSize = element.value2;
+                            this.DataStartPos = element.Offset;
+                            this.DataSize = element.Size;
                         }
                     }
                 }
@@ -315,7 +349,7 @@ namespace AbletonLiveConverter
                             // read Cont and 16 bytes
                             // read Info and 16 bytes
                             var element = ReadListElement(bf);
-                            Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                            Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                         }
                     }
 
@@ -373,7 +407,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                             }
                         }
 
@@ -410,7 +444,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                             }
                         }
 
@@ -451,7 +485,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                             }
                         }
 
@@ -490,7 +524,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                             }
                         }
 
@@ -555,7 +589,7 @@ namespace AbletonLiveConverter
                                 // read Cont and 16 bytes
                                 // read Info and 16 bytes
                                 var element = ReadListElement(bf);
-                                Console.WriteLine("DEBUG: {0} {1} {2}", element.Name, element.value1, element.value2);
+                                Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                             }
                         }
 
@@ -620,14 +654,20 @@ namespace AbletonLiveConverter
 
         private ListElement ReadListElement(BinaryFile br)
         {
-            string name = br.ReadString(4);
-            UInt64 value1 = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
-            UInt64 value2 = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
+            //  +----------------------+
+            //  | chunk id             |    4 Bytes
+            //  | offset to chunk data |    8 Bytes (int64)
+            //  | size of chunk data   |    8 Bytes (int64)
+            //  +----------------------+ 
+
+            string id = br.ReadString(4);
+            UInt64 offset = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
+            UInt64 size = br.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
 
             var elem = new ListElement();
-            elem.Name = name;
-            elem.value1 = value1;
-            elem.value2 = value2;
+            elem.ID = id;
+            elem.Offset = offset;
+            elem.Size = size;
 
             return elem;
         }
