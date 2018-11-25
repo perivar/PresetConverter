@@ -291,13 +291,18 @@ namespace AbletonLiveConverter
                 }
                 else if (dataChunkID == "VstW")
                 {
+                    // https://searchcode.com/codesearch/view/90021517/
+
                     // Read unknown value (most likely VstW chunk size)
+                    // header size
                     UInt32 unknown2 = bf.ReadUInt32();
 
                     // Read unknown value (most likely VstW chunk version)
+                    // version
                     UInt32 unknown3 = bf.ReadUInt32();
 
                     // Read unknown value (no clue)
+                    // bypass
                     UInt32 unknown4 = bf.ReadUInt32();
 
                     // Check file size (The other check is needed because Cubase tends to forget the items of this header
