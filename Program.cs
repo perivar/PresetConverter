@@ -123,7 +123,7 @@ namespace AbletonLiveConverter
 
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
-            var vstPreset = new VstPreset(file);
+            var vstPreset = new SteinbergVstPreset(file);
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
             Console.WriteLine(vstPreset);

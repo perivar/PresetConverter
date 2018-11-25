@@ -8,7 +8,7 @@ using CommonUtils;
 
 namespace AbletonLiveConverter
 {
-    public class VstPreset
+    public abstract class VstPreset
     {
 
         // cannot use Enums with strings, struct works
@@ -105,17 +105,16 @@ namespace AbletonLiveConverter
         public string Vst3ID;
         public string PlugInCategory;
         public string PlugInName;
-        public string Xml;
-        public byte[] XmlBytesBOM;
-        public byte[] FileData;
+        public string MetaXml; // VstPreset MetaInfo Xml section as string
+        public byte[] MetaXmlBytesWithBOM; // VstPreset MetaInfo Xml section as bytes, including the BOM
+        public byte[] ChunkData;
 
         // byte positions and sizes within a vstpreset (for writing)
         public UInt32 ListPos; // position of List chunk
-        public UInt32 DataChunkSize; // data chunk length. i.e. total length minus 4 ('VST3')
-        public UInt64 ParameterDataStartPos; // parameter data start position
-        public UInt64 ParameterDataSize; // byte length from parameter data start position up until xml data
-        public UInt64 XmlStartPos; // xml start position
-        public UInt64 XmlChunkSize; // xml length in bytes (including BOM)
+        public UInt64 DataStartPos; // data start position
+        public UInt64 DataSize; // byte length from data start position up until xml data
+        public UInt64 MetaXmlStartPos; // VstPreset MetaInfo Xml section start position
+        public UInt64 MetaXmlChunkSize; // VstPreset MetaInfo Xml section length in bytes (including BOM)
 
         public VstPreset()
         {
@@ -162,6 +161,7 @@ namespace AbletonLiveConverter
                 // Read VST3 ID:
                 this.Vst3ID = bf.ReadString(32);
 
+                // Read position of 'List' section 
                 this.ListPos = bf.ReadUInt32();
                 Console.WriteLine("DEBUG listPos: {0}", ListPos);
 
@@ -169,9 +169,10 @@ namespace AbletonLiveConverter
                 UInt32 unknown1 = bf.ReadUInt32();
                 Console.WriteLine("DEBUG unknown1: {0}", unknown1);
 
+                // Store current position
                 long oldPos = bf.Position;
 
-                // seek to the 'List' index
+                // seek to the 'List' position
                 bf.Seek(this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
@@ -199,23 +200,24 @@ namespace AbletonLiveConverter
 
                         if (element.Name.Equals("Info"))
                         {
-                            this.XmlStartPos = element.value1;
-                            this.XmlChunkSize = element.value2;
+                            this.MetaXmlStartPos = element.value1;
+                            this.MetaXmlChunkSize = element.value2;
                         }
 
                         if (element.Name.Equals("Comp"))
                         {
-                            this.ParameterDataStartPos = element.value1;
-                            this.ParameterDataSize = element.value2;
+                            this.DataStartPos = element.value1;
+                            this.DataSize = element.value2;
                         }
                     }
                 }
 
-                // reset position
+                // Reset position
                 bf.Seek(oldPos, SeekOrigin.Begin);
 
-                // Read data chunk length. i.e. total length minus 4 ('VST3')
-                // In some cases this is supposedly the chunk ID
+                // This is where the data start.
+                // Some presets start with a chunkID here,
+                // Others start with the preset content
                 string dataChunkID = bf.ReadString(4);
                 Console.WriteLine("DEBUG: dataChunkID {0}", dataChunkID);
 
@@ -265,7 +267,7 @@ namespace AbletonLiveConverter
                     Console.WriteLine("DEBUG: '{0}' {1} {2} {3} {4}", name, unknown2, unknown3, unknown4, unknown5);
 
                     var counter = 0;
-                    while (bf.Position != (long)this.XmlStartPos)
+                    while (bf.Position != (long)this.MetaXmlStartPos)
                     {
                         counter++;
 
@@ -276,8 +278,8 @@ namespace AbletonLiveConverter
                     }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.XmlChunkSize);
-                    this.Xml = Encoding.UTF8.GetString(bytes);
+                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                    this.MetaXml = Encoding.UTF8.GetString(bytes);
 
                     // read LIST and 4 bytes
                     string listElement = bf.ReadString(4);
@@ -297,7 +299,6 @@ namespace AbletonLiveConverter
                     }
 
                     return;
-
                 }
 
                 // Unknown file:
@@ -318,7 +319,7 @@ namespace AbletonLiveConverter
                     {
                         // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                         // (19180 + 52) = 19232 bytes
-                        while (bf.Position != (long)this.XmlStartPos)
+                        while (bf.Position != (long)this.MetaXmlStartPos)
                         {
                             // read the null terminated string
                             var parameterName = bf.ReadStringZ();
@@ -335,8 +336,8 @@ namespace AbletonLiveConverter
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
-                        this.Xml = Encoding.UTF8.GetString(bytes);
+                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                        this.MetaXml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
                         string listElement = bf.ReadString(4);
@@ -361,19 +362,19 @@ namespace AbletonLiveConverter
                         this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
                     {
                         // rewind 4 bytes
-                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
                         // var xmlContent = br.ReadString((int)this.ParameterDataSize);
-                        var xmlContent = bf.ReadString((int)this.XmlStartPos - 48);
+                        var xmlContent = bf.ReadString((int)this.MetaXmlStartPos - 48);
 
                         var parameterName = "XmlContent";
                         var parameterStringValue = xmlContent;
                         Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterStringValue));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
-                        this.Xml = Encoding.UTF8.GetString(bytes);
+                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                        this.MetaXml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
                         string listElement = bf.ReadString(4);
@@ -403,18 +404,18 @@ namespace AbletonLiveConverter
                         )
                     {
                         // rewind 4 bytes
-                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        var presetContent = bf.ReadBytes((int)this.XmlStartPos - 48);
+                        var presetContent = bf.ReadBytes((int)this.MetaXmlStartPos - 48);
 
                         var parameterName = "ByteContent";
                         var parameterByteValue = presetContent;
                         Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterByteValue));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
-                        this.Xml = Encoding.UTF8.GetString(bytes);
+                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                        this.MetaXml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
                         string listElement = bf.ReadString(4);
@@ -440,7 +441,7 @@ namespace AbletonLiveConverter
                        this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
                     {
                         // rewind 4 bytes
-                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         // read floats
                         Parameters.Add("Unknown1", new Parameter("Unknown1", 1, bf.ReadSingle()));
@@ -452,8 +453,8 @@ namespace AbletonLiveConverter
                         Parameters.Add("Unknown5", new Parameter("Unknown5", 5, bf.ReadUInt32()));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
-                        this.Xml = Encoding.UTF8.GetString(bytes);
+                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                        this.MetaXml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
                         string listElement = bf.ReadString(4);
@@ -479,7 +480,7 @@ namespace AbletonLiveConverter
                        this.Vst3ID.Equals(VstIDs.WavesSSLComp))
                     {
                         // rewind 4 bytes
-                        bf.Seek((long)this.ParameterDataStartPos, SeekOrigin.Begin);
+                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
                         var unknown3 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
@@ -513,14 +514,14 @@ namespace AbletonLiveConverter
                         // read in this also
                         // total size - PresetChunkXMLTree size - 32
                         // e.g. 844 - 777 - 32 = 35
-                        var xmlPostLength = this.ParameterDataSize - xmlMainLength - 32;
+                        var xmlPostLength = this.DataSize - xmlMainLength - 32;
                         var xmlPostContent = bf.ReadString((int)xmlPostLength);
                         var param2Name = "XmlContentPost";
                         Parameters.Add(param2Name, new Parameter(param2Name, 2, xmlPostContent));
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.XmlChunkSize);
-                        this.Xml = Encoding.UTF8.GetString(bytes);
+                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                        this.MetaXml = Encoding.UTF8.GetString(bytes);
 
                         // read LIST and 4 bytes
                         string listElement = bf.ReadString(4);
@@ -594,7 +595,7 @@ namespace AbletonLiveConverter
 
                 // Read the source data:
                 bf.Position = chunkStart;
-                this.FileData = bf.ReadBytes((int)chunkSize);
+                this.ChunkData = bf.ReadBytes((int)chunkSize);
             }
         }
 
@@ -612,73 +613,54 @@ namespace AbletonLiveConverter
             return elem;
         }
 
-        public void AddParameterToDictionary(string name, UInt32 number, double value)
-        {
-            var parameter = new Parameter(name, number, value);
-            this.Parameters.Add(name, parameter);
-        }
-
         public void Write(string fileName)
         {
-            var br = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true, Encoding.ASCII);
-
-            // Write file header
-            br.Write("VST3");
-
-            // Write version
-            br.Write((UInt32)1);
-
-            // Write VST3 ID
-            br.Write(this.Vst3ID);
-
-            // Write listPos
-            br.Write(this.ListPos);
-
-            // Write unknown value
-            br.Write((UInt32)0);
-
-            // Write data chunk length. i.e. total length minus 4 ('VST3')
-            br.Write(this.DataChunkSize);
-
-            // write parameters
-            foreach (var parameter in this.Parameters.Values)
+            if (PreparedForWriting())
             {
-                if (parameter.Type == Parameter.ParameterType.Number)
-                {
-                    var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
-                    br.Write(paramName);
-                    br.Write(parameter.Number);
-                    br.Write(parameter.NumberValue);
-                }
-                else
-                {
-                    // stop here
-                }
+                var bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true, Encoding.ASCII);
+
+                // Write file header
+                bf.Write("VST3");
+
+                // Write version
+                bf.Write((UInt32)1);
+
+                // Write VST3 ID
+                bf.Write(this.Vst3ID);
+
+                // Write listPos
+                bf.Write(this.ListPos);
+
+                // Write unknown value
+                bf.Write((UInt32)0);
+
+                // Write binary content
+                bf.Write(this.ChunkData);
+
+                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                bf.Write(this.MetaXmlBytesWithBOM);
+
+                // write LIST and 4 bytes
+                bf.Write("List");
+                bf.Write((UInt32)3);
+
+                // write COMP and 16 bytes
+                bf.Write("Comp");
+                bf.Write(this.DataStartPos); // parameter data start position
+                bf.Write(this.DataSize); // byte length from parameter data start position up until xml data
+
+                // write Cont and 16 bytes
+                bf.Write("Cont");
+                bf.Write(this.MetaXmlStartPos); // xml start position
+                bf.Write((UInt64)0);// ?
+
+                // write Info and 16 bytes
+                bf.Write("Info");
+                bf.Write(this.MetaXmlStartPos); // xml start position
+                bf.Write((UInt64)MetaXmlBytesWithBOM.Length); // byte length of xml data
+
+                bf.Close();
             }
-
-            // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            br.Write(this.XmlBytesBOM);
-
-            // write LIST and 4 bytes
-            br.Write("List");
-            br.Write((UInt32)3);
-
-            // write COMP and 16 bytes
-            br.Write("Comp");
-            br.Write(this.ParameterDataStartPos); // parameter data start position
-            br.Write(this.ParameterDataSize); // byte length from parameter data start position up until xml data
-
-            // write Cont and 16 bytes
-            br.Write("Cont");
-            br.Write(this.XmlStartPos); // xml start position
-            br.Write((UInt64)0);// ?
-
-            // write Info and 16 bytes
-            br.Write("Info");
-            br.Write(this.XmlStartPos); // xml start position
-            br.Write((UInt64)XmlBytesBOM.Length); // byte length of xml data
-
-            br.Close();
         }
 
         /// <summary>
@@ -735,7 +717,10 @@ namespace AbletonLiveConverter
         }
         #endregion
 
-        public void InitXml()
+        /// <summary>
+        /// Initialize VstPreset MetaInfo Xml Section as both string and bytes array (including the Byte Order Mark)    
+        /// </summary>
+        public void InitMetaInfoXml()
         {
             XmlDocument xml = new XmlDocument();
             // Adding the XmlDeclaration (version and utf-8) is not necessary as it is added  
@@ -773,11 +758,11 @@ namespace AbletonLiveConverter
             attr4.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr4);
 
-            this.Xml = BeautifyXml(xml);
+            this.MetaXml = BeautifyXml(xml);
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlBytes = Encoding.UTF8.GetBytes(this.Xml);
-            this.XmlBytesBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
+            var xmlBytes = Encoding.UTF8.GetBytes(this.MetaXml);
+            this.MetaXmlBytesWithBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
         }
 
         public string BeautifyXml(XmlDocument doc)
@@ -815,8 +800,16 @@ namespace AbletonLiveConverter
                 sb.AppendLine(parameter.ToString());
             }
 
-            if (null != Xml) sb.AppendLine(Xml);
+            if (null != MetaXml) sb.AppendLine(MetaXml);
             return sb.ToString();
         }
+
+        /// <summary>
+        /// Ensure all variables are ready and populated before writing the preset
+        /// I.e. the binary content (ChunkData, MetaXmlBytesWithBOM etc.) 
+        /// and the calculated positions (ListPos etc.)
+        /// </summary>
+        /// <returns>true if ready</returns>
+        protected abstract bool PreparedForWriting();
     }
 }
