@@ -103,10 +103,10 @@ namespace AbletonLiveConverter
                 case "GlueCompressor":
                     // Convert Glue compressor to Waves SSL Compressor
                     var glueCompressor = new AbletonGlueCompressor(xelement);
-                    outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName + ".txt");
+                    var wavesSSLComp = glueCompressor.ToWavesSSLComp();
+                    outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName + ".vstpreset");
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
-                    File.WriteAllText(outputFilePath, glueCompressor.ToString());
-                    Console.WriteLine(glueCompressor);
+                    wavesSSLComp.Write(outputFilePath);
                     break;
                 case "MultibandDynamics":
                 // var multibandCompressor = new AbletonMultibandCompressor(xelement);
@@ -136,8 +136,6 @@ namespace AbletonLiveConverter
                         List<WavesSSLComp> compPresetList = WavesPreset.ParseXml<WavesSSLComp>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
                         foreach (var wavesSSLComp in compPresetList)
                         {
-                            var xml = wavesSSLComp.GeneratePresetXML(outputFilePath);
-                            tw.WriteLine(xml);
                             tw.WriteLine(wavesSSLComp);
                         }
                     }

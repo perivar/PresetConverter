@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Linq;
 using CommonUtils;
 using System.IO;
+using AbletonLiveConverter;
 
 namespace PresetConverter
 {
@@ -43,6 +44,9 @@ namespace PresetConverter
 
         public WavesSSLComp()
         {
+            Vst3ID = VstPreset.VstIDs.WavesSSLComp;
+            PlugInCategory = "Fx|Dynamics";
+            PlugInName = "SSLComp Stereo";
         }
 
         protected override bool ReadRealWorldParameters()
@@ -262,7 +266,7 @@ namespace PresetConverter
             return sb.ToString();
         }
 
-        public string GeneratePresetXML(string outputFilePath)
+        private string GeneratePresetXML()
         {
             // string realWorldParameters = RealWorldParameters + '\n';
             string realWorldParameters = GenerateRealWorldParameters();
@@ -287,5 +291,35 @@ namespace PresetConverter
 
             return BeautifyXml(doc);
         }
+
+        protected override void InitChunkData()
+        {
+            var xmlContent = GeneratePresetXML();
+            var xmlPostContent = "<Bypass Version=\"1.0\" Bypass=\"0\"/>\n";
+
+            var memStream = new MemoryStream();
+            using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
+            {
+                bf.Write((UInt32)809);
+                bf.Write((UInt32)3);
+                bf.Write((UInt32)1);
+
+                bf.Write("SLCS");
+                bf.Write("setA");
+
+                UInt32 xmlMainLength = (uint)xmlContent.Length;
+                bf.Write(xmlMainLength);
+
+                bf.Write("XPst");
+                bf.Write(xmlContent);
+
+                bf.Write("Ref\0");
+
+                bf.Write(xmlPostContent);
+            }
+
+            this.ChunkData = memStream.ToArray();
+        }
+
     }
 }

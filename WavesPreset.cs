@@ -9,13 +9,14 @@ using System.Globalization;
 using PresetConverter;
 using CommonUtils;
 using System.Xml.Linq;
+using AbletonLiveConverter;
 
 namespace PresetConverter
 {
     /// <summary>
     /// a Waves Preset
     /// </summary>
-    public abstract class WavesPreset : Preset
+    public abstract class WavesPreset : VstPreset
     {
         public string PresetName = null;
         public string PresetGenericType = null;
@@ -27,7 +28,7 @@ namespace PresetConverter
         public string SetupName = null;
         public string RealWorldParameters = null;
 
-        public bool Read(string filePath)
+        public bool ReadFXP(string filePath)
         {
             var fxp = new FXP();
             fxp.ReadFile(filePath);
@@ -35,7 +36,7 @@ namespace PresetConverter
             return ReadChunkData(chunkDataByteArray);
         }
 
-        public bool Write(string filePath)
+        public bool WriteTextSummary(string filePath)
         {
             if (PluginName != null)
             {
@@ -52,6 +53,16 @@ namespace PresetConverter
             }
             return false;
         }
+
+        protected override bool PreparedForWriting()
+        {
+            InitChunkData();
+            InitMetaInfoXml();
+            CalculateBytePositions();
+            return true;
+        }
+
+        protected abstract void InitChunkData();
 
         /// <summary>
         /// Read Waves XPst files
@@ -353,7 +364,7 @@ namespace PresetConverter
                 Encoding = Encoding.UTF8,
                 Indent = true,
                 IndentChars = "    ",
-                NewLineChars = "\r\n",
+                NewLineChars = "\n",
                 NewLineHandling = NewLineHandling.Replace
             };
 
@@ -361,6 +372,9 @@ namespace PresetConverter
             {
                 doc.Save(writer);
             }
+
+            // add \n at the end (0A)
+            sb.Append("\n");
 
             // ugly way to remove whitespace in self closing tags when writing xml document
             sb.Replace(" />", "/>");

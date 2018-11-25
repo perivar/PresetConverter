@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Globalization;
+using AbletonLiveConverter;
 
 namespace PresetConverter
 {
@@ -56,6 +57,9 @@ namespace PresetConverter
 
         public WavesSSLChannel()
         {
+            Vst3ID = VstPreset.VstIDs.WavesSSLChannel;
+            PlugInCategory = "Fx|Channel Strip";
+            PlugInName = "SSLChannel Stereo";
         }
 
         protected override bool ReadRealWorldParameters()
@@ -217,5 +221,9 @@ namespace PresetConverter
             return sb.ToString();
         }
 
+        protected override void InitChunkData()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

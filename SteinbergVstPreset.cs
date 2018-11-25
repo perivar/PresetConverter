@@ -68,28 +68,5 @@ namespace AbletonLiveConverter
 
             this.ChunkData = memStream.ToArray();
         }
-
-        /// <summary>
-        /// Calculate byte positions and sizes within the vstpreset (for writing)
-        /// </summary>
-        public void CalculateBytePositions()
-        {
-            // Frequency:
-            // ListPos = 19664; // position of List chunk
-            // DataStartPos = 48; // parameter data start position
-            // DataSize = 19184; // byte length from parameter data start position up until xml data
-            // MetaXmlStartPos = 19232; // xml start position
-
-            // Compressor:
-            // ListPos = 2731; // position of List chunk
-            // DataStartPos = 48; // parameter data start position
-            // DataSize = 2244; // byte length from parameter data start position up until xml data
-            // MetaXmlStartPos = 2292; // xml start position
-
-            DataStartPos = 48; // parameter data start position
-            DataSize = (ulong)this.ChunkData.Length; // byte length from parameter data start position up until xml data
-            MetaXmlStartPos = this.DataStartPos + this.DataSize; // xml start position
-            ListPos = (uint)(this.MetaXmlStartPos + (ulong)this.MetaXmlBytesWithBOM.Length); // position of List chunk
-        }
     }
 }

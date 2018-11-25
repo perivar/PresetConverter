@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using CommonUtils;
+using PresetConverter;
 
 namespace AbletonLiveConverter
 {
-    public abstract class VstPreset
+    public abstract class VstPreset : Preset
     {
 
         // cannot use Enums with strings, struct works
@@ -32,6 +33,7 @@ namespace AbletonLiveConverter
             public const string SteinbergStudioEQ = "946051208E29496E804F64A825C8A047";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
             public const string WavesSSLComp = "565354534C435373736C636F6D702073";
+            public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
 
         }
 
@@ -123,7 +125,24 @@ namespace AbletonLiveConverter
 
         public VstPreset(string fileName)
         {
-            ReadVstPreset(fileName);
+            Read(fileName);
+        }
+
+        public bool Read(string filePath)
+        {
+            ReadVstPreset(filePath);
+
+            // check that it worked
+            if (Parameters.Count == 0 && this.ChunkData == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool Write(string filePath)
+        {
+            return WritePreset(filePath);
         }
 
         #region ReadPreset Functions    
@@ -612,8 +631,10 @@ namespace AbletonLiveConverter
 
             return elem;
         }
+        #endregion
 
-        public void Write(string fileName)
+        #region WritePreset Functions    
+        private bool WritePreset(string fileName)
         {
             if (PreparedForWriting())
             {
@@ -660,62 +681,36 @@ namespace AbletonLiveConverter
                 bf.Write((UInt64)MetaXmlBytesWithBOM.Length); // byte length of xml data
 
                 bf.Close();
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
         /// <summary>
-        /// Search with an array of bytes to find a specific pattern
+        /// Calculate byte positions and sizes within the vstpreset (for writing)
         /// </summary>
-        /// <param name="array">byte array</param>
-        /// <param name="pattern">byte array pattern</param>
-        /// <param name="startIndex">index to start searching at</param>
-        /// <param name="count">how many elements to look through</param>
-        /// <returns>position</returns>
-        /// <example>
-        /// find the last 'List' entry	
-        /// reading all bytes at once is not very performant, but works for these relatively small files	
-        /// byte[] allBytes = File.ReadAllBytes(fileName);
-        /// reading from the end of the file by reversing the array	
-        /// byte[] reversed = allBytes.Reverse().ToArray();
-        /// find 'List' backwards	
-        /// int reverseIndex = IndexOfBytes(reversed, Encoding.UTF8.GetBytes("tsiL"), 0, reversed.Length);
-        /// if (reverseIndex < 0)
-        /// {
-        /// reverseIndex = 64;
-        /// }
-        /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
-        /// Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
-        /// </example>
-        public int IndexOfBytes(byte[] array, byte[] pattern, int startIndex, int count)
+        public void CalculateBytePositions()
         {
-            if (array == null || array.Length == 0 || pattern == null || pattern.Length == 0 || count == 0)
-            {
-                return -1;
-            }
+            // Frequency:
+            // ListPos = 19664; // position of List chunk
+            // DataStartPos = 48; // parameter data start position
+            // DataSize = 19184; // byte length from parameter data start position up until xml data
+            // MetaXmlStartPos = 19232; // xml start position
 
-            int i = startIndex;
-            int endIndex = count > 0 ? Math.Min(startIndex + count, array.Length) : array.Length;
-            int fidx = 0;
-            int lastFidx = 0;
+            // Compressor:
+            // ListPos = 2731; // position of List chunk
+            // DataStartPos = 48; // parameter data start position
+            // DataSize = 2244; // byte length from parameter data start position up until xml data
+            // MetaXmlStartPos = 2292; // xml start position
 
-            while (i < endIndex)
-            {
-                lastFidx = fidx;
-                fidx = (array[i] == pattern[fidx]) ? ++fidx : 0;
-                if (fidx == pattern.Length)
-                {
-                    return i - fidx + 1;
-                }
-                if (lastFidx > 0 && fidx == 0)
-                {
-                    i = i - lastFidx;
-                    lastFidx = 0;
-                }
-                i++;
-            }
-            return -1;
+            DataStartPos = 48; // parameter data start position
+            DataSize = (ulong)this.ChunkData.Length; // byte length from parameter data start position up until xml data
+            MetaXmlStartPos = this.DataStartPos + this.DataSize; // xml start position
+            ListPos = (uint)(this.MetaXmlStartPos + (ulong)this.MetaXmlBytesWithBOM.Length); // position of List chunk
         }
-        #endregion
 
         /// <summary>
         /// Initialize VstPreset MetaInfo Xml Section as both string and bytes array (including the Byte Order Mark)    
@@ -791,6 +786,69 @@ namespace AbletonLiveConverter
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Ensure all variables are ready and populated before writing the preset
+        /// I.e. the binary content (ChunkData, MetaXmlBytesWithBOM etc.) 
+        /// and the calculated positions (ListPos etc.)
+        /// </summary>
+        /// <returns>true if ready</returns>
+        protected abstract bool PreparedForWriting();
+
+        #endregion
+
+        /// <summary>
+        /// Search with an array of bytes to find a specific pattern
+        /// </summary>
+        /// <param name="array">byte array</param>
+        /// <param name="pattern">byte array pattern</param>
+        /// <param name="startIndex">index to start searching at</param>
+        /// <param name="count">how many elements to look through</param>
+        /// <returns>position</returns>
+        /// <example>
+        /// find the last 'List' entry	
+        /// reading all bytes at once is not very performant, but works for these relatively small files	
+        /// byte[] allBytes = File.ReadAllBytes(fileName);
+        /// reading from the end of the file by reversing the array	
+        /// byte[] reversed = allBytes.Reverse().ToArray();
+        /// find 'List' backwards	
+        /// int reverseIndex = IndexOfBytes(reversed, Encoding.UTF8.GetBytes("tsiL"), 0, reversed.Length);
+        /// if (reverseIndex < 0)
+        /// {
+        /// reverseIndex = 64;
+        /// }
+        /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
+        /// Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
+        /// </example>
+        public int IndexOfBytes(byte[] array, byte[] pattern, int startIndex, int count)
+        {
+            if (array == null || array.Length == 0 || pattern == null || pattern.Length == 0 || count == 0)
+            {
+                return -1;
+            }
+
+            int i = startIndex;
+            int endIndex = count > 0 ? Math.Min(startIndex + count, array.Length) : array.Length;
+            int fidx = 0;
+            int lastFidx = 0;
+
+            while (i < endIndex)
+            {
+                lastFidx = fidx;
+                fidx = (array[i] == pattern[fidx]) ? ++fidx : 0;
+                if (fidx == pattern.Length)
+                {
+                    return i - fidx + 1;
+                }
+                if (lastFidx > 0 && fidx == 0)
+                {
+                    i = i - lastFidx;
+                    lastFidx = 0;
+                }
+                i++;
+            }
+            return -1;
+        }
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -803,13 +861,5 @@ namespace AbletonLiveConverter
             if (null != MetaXml) sb.AppendLine(MetaXml);
             return sb.ToString();
         }
-
-        /// <summary>
-        /// Ensure all variables are ready and populated before writing the preset
-        /// I.e. the binary content (ChunkData, MetaXmlBytesWithBOM etc.) 
-        /// and the calculated positions (ListPos etc.)
-        /// </summary>
-        /// <returns>true if ready</returns>
-        protected abstract bool PreparedForWriting();
     }
 }
