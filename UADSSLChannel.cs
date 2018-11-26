@@ -190,7 +190,7 @@ namespace PresetConverter
 
         private void InitChunkData()
         {
-            FXP fxp = GenerateFXP();
+            FXP fxp = GenerateFXP(true);
 
             var memStream = new MemoryStream();
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
@@ -284,80 +284,87 @@ namespace PresetConverter
 
         public bool WriteFXP(string filePath)
         {
-            FXP fxp = GenerateFXP();
+            FXP fxp = GenerateFXP(false);
             fxp.WriteFile(filePath);
             return true;
         }
 
-        private FXP GenerateFXP()
+        private FXP GenerateFXP(bool isBank)
         {
             FXP fxp = new FXP();
             fxp.ChunkMagic = "CcnK";
             fxp.ByteSize = 0; // will be set correctly by FXP class
 
             // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
-            fxp.FxMagic = "FBCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
-            fxp.Version = 1; // Format Version (should be 1)
+            fxp.FxMagic = isBank ? "FBCh" : "FPCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
+            fxp.Version = 1; //isBank ? 2 : 1; // Format Version (should be 1)
             fxp.FxID = "J9AU";
             fxp.FxVersion = 1;
-            fxp.ProgramCount = 36; // I.e. number of parameters
+            fxp.ProgramCount = 1; // I.e. number of programs (number of presets in one file)
             fxp.Name = PresetName;
             fxp.Future = new string('\0', 128); // 128 bytes long
 
-            byte[] chunkData = GetChunkData();
+            byte[] chunkData = GetChunkData(fxp.FxMagic);
             fxp.ChunkSize = chunkData.Length;
             fxp.ChunkDataByteArray = chunkData;
 
             return fxp;
         }
 
-        private byte[] GetChunkData()
+        private byte[] GetChunkData(string fxMagic)
         {
             var memStream = new MemoryStream();
-            var bFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
+            var bf = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
+
+            if (fxMagic.Equals("FBCh"))
+            {
+                bf.Write((UInt32)3);
+                bf.Write((UInt32)0);
+                bf.Write((UInt32)32);
+            }
 
             // Write UAD Preset Header information
-            bFile.Write((int)PresetHeaderVar1);
-            bFile.Write((int)PresetHeaderVar2);
-            bFile.Write(PresetName, 32);
+            bf.Write((int)PresetHeaderVar1);
+            bf.Write((int)PresetHeaderVar2);
+            bf.Write(PresetName, 32);
 
             // Write Parameters
-            bFile.Write((float)Input); // (-20.0 dB -> 20.0 dB)
-            bFile.Write((float)Phase); // (Normal -> Inverted)
-            bFile.Write((float)HPFreq); // (Out -> 304 Hz)
-            bFile.Write((float)LPFreq); // (Out -> 3.21 k)
-            bFile.Write((float)HP_LPDynSC); // (Off -> On)
-            bFile.Write((float)CMPRatio); // (1.00:1 -> Limit)
-            bFile.Write((float)CMPThresh); // (10.0 dB -> -20.0 dB)
-            bFile.Write((float)CMPRelease); // (0.10 s -> 4.00 s)
-            bFile.Write((float)CMPAttack); // (Auto -> Fast)
-            bFile.Write((float)StereoLink); // (UnLink -> Link)
-            bFile.Write((float)Select); // (Expand -> Gate 2)
-            bFile.Write((float)EXPThresh); // (-30.0 dB -> 10.0 dB)
-            bFile.Write((float)EXPRange); // (0.0 dB -> 40.0 dB)
-            bFile.Write((float)EXPRelease); // (0.10 s -> 4.00 s)
-            bFile.Write((float)EXPAttack); // (Auto -> Fast)
-            bFile.Write((float)DYNIn); // (Out -> In)
-            bFile.Write((float)CompIn); // (Out -> In)
-            bFile.Write((float)ExpIn); // (Out -> In)
-            bFile.Write((float)LFGain); // (-10.0 dB -> 10.0 dB)
-            bFile.Write((float)LFFreq); // (36.1 Hz -> 355 Hz)
-            bFile.Write((float)LFBell); // (Shelf -> Bell)
-            bFile.Write((float)LMFGain); // (-15.6 dB -> 15.6 dB)
-            bFile.Write((float)LMFFreq); // (251 Hz -> 2.17 k)
-            bFile.Write((float)LMFQ); // (2.50 -> 2.50)
-            bFile.Write((float)HMFQ); // (4.00 -> 0.40)
-            bFile.Write((float)HMFGain); // (-16.5 dB -> 16.5 dB)
-            bFile.Write((float)HMFFreq); // (735 Hz -> 6.77 k)
-            bFile.Write((float)HFGain); // (-16.0 dB -> 16.1 dB)
-            bFile.Write((float)HFFreq); // (6.93 k -> 21.7 k)
-            bFile.Write((float)HFBell); // (Shelf -> Bell)
-            bFile.Write((float)EQIn); // (Out -> In)
-            bFile.Write((float)EQDynSC); // (Off -> On)
-            bFile.Write((float)PreDyn); // (Off -> On)
-            bFile.Write((float)Output); // (-20.0 dB -> 20.0 dB)
-            bFile.Write((float)EQType); // (Black -> Brown)
-            bFile.Write((float)Power); // (Off -> On)
+            bf.Write((float)Input); // (-20.0 dB -> 20.0 dB)
+            bf.Write((float)Phase); // (Normal -> Inverted)
+            bf.Write((float)HPFreq); // (Out -> 304 Hz)
+            bf.Write((float)LPFreq); // (Out -> 3.21 k)
+            bf.Write((float)HP_LPDynSC); // (Off -> On)
+            bf.Write((float)CMPRatio); // (1.00:1 -> Limit)
+            bf.Write((float)CMPThresh); // (10.0 dB -> -20.0 dB)
+            bf.Write((float)CMPRelease); // (0.10 s -> 4.00 s)
+            bf.Write((float)CMPAttack); // (Auto -> Fast)
+            bf.Write((float)StereoLink); // (UnLink -> Link)
+            bf.Write((float)Select); // (Expand -> Gate 2)
+            bf.Write((float)EXPThresh); // (-30.0 dB -> 10.0 dB)
+            bf.Write((float)EXPRange); // (0.0 dB -> 40.0 dB)
+            bf.Write((float)EXPRelease); // (0.10 s -> 4.00 s)
+            bf.Write((float)EXPAttack); // (Auto -> Fast)
+            bf.Write((float)DYNIn); // (Out -> In)
+            bf.Write((float)CompIn); // (Out -> In)
+            bf.Write((float)ExpIn); // (Out -> In)
+            bf.Write((float)LFGain); // (-10.0 dB -> 10.0 dB)
+            bf.Write((float)LFFreq); // (36.1 Hz -> 355 Hz)
+            bf.Write((float)LFBell); // (Shelf -> Bell)
+            bf.Write((float)LMFGain); // (-15.6 dB -> 15.6 dB)
+            bf.Write((float)LMFFreq); // (251 Hz -> 2.17 k)
+            bf.Write((float)LMFQ); // (2.50 -> 2.50)
+            bf.Write((float)HMFQ); // (4.00 -> 0.40)
+            bf.Write((float)HMFGain); // (-16.5 dB -> 16.5 dB)
+            bf.Write((float)HMFFreq); // (735 Hz -> 6.77 k)
+            bf.Write((float)HFGain); // (-16.0 dB -> 16.1 dB)
+            bf.Write((float)HFFreq); // (6.93 k -> 21.7 k)
+            bf.Write((float)HFBell); // (Shelf -> Bell)
+            bf.Write((float)EQIn); // (Out -> In)
+            bf.Write((float)EQDynSC); // (Off -> On)
+            bf.Write((float)PreDyn); // (Off -> On)
+            bf.Write((float)Output); // (-20.0 dB -> 20.0 dB)
+            bf.Write((float)EQType); // (Black -> Brown)
+            bf.Write((float)Power); // (Off -> On)
 
             byte[] chunkData = memStream.ToArray();
             memStream.Close();
