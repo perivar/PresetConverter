@@ -67,7 +67,6 @@ namespace PresetConverter
         {
             if (PluginName == "SSLChannel")
             {
-
                 // split the parameters text into sections
                 string[] splittedPhrase = RealWorldParameters.Split(' ', '\n');
 
