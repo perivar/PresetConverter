@@ -30,11 +30,30 @@ namespace PresetConverter
             In = 2
         }
 
+        public enum AttackType // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
+        {
+            Attack_0_1,
+            Attack_0_3,
+            Attack_1,
+            Attack_3,
+            Attack_10,
+            Attack_30
+        }
+
+        public enum ReleaseType // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto (-1)
+        {
+            Release_0_1,
+            Release_0_3,
+            Release_0_6,
+            Release_1_2,
+            Release_Auto
+        }
+
         #region Public Fields
         public float Threshold;
         public RatioType Ratio;
-        public float Attack;
-        public float Release;
+        public AttackType Attack;
+        public ReleaseType Release;
         public float MakeupGain;
         public float RateS;
         public bool In;
@@ -76,50 +95,11 @@ namespace PresetConverter
                     Fade = FadeType.Off;
                 }
 
-                // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
-                int attack = int.Parse(splittedPhrase[3]);
-                switch (attack)
-                {
-                    case 0:
-                        Attack = 0.1f;
-                        break;
-                    case 1:
-                        Attack = 0.3f;
-                        break;
-                    case 2:
-                        Attack = 1.0f;
-                        break;
-                    case 3:
-                        Attack = 3.0f;
-                        break;
-                    case 4:
-                        Attack = 10.0f;
-                        break;
-                    case 5:
-                        Attack = 30.0f;
-                        break;
-                }
+                // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)        
+                Attack = (AttackType)int.Parse(splittedPhrase[3]);
 
-                // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto (-1)
-                int release = int.Parse(splittedPhrase[4]);
-                switch (release)
-                {
-                    case 0:
-                        Release = 0.1f;
-                        break;
-                    case 1:
-                        Release = 0.3f;
-                        break;
-                    case 2:
-                        Release = 0.6f;
-                        break;
-                    case 3:
-                        Release = 1.2f;
-                        break;
-                    case 4:
-                        Release = -1.0f;
-                        break;
-                }
+                // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto
+                Release = (ReleaseType)int.Parse(splittedPhrase[4]);
 
                 // Make-Up Gain (-5 - +15) dB
                 MakeupGain = float.Parse(splittedPhrase[5], CultureInfo.InvariantCulture);
@@ -159,15 +139,59 @@ namespace PresetConverter
             sb.AppendLine("Compression:");
             sb.AppendLine(String.Format("\tThreshold: {0:0.##} dB", Threshold));
             sb.AppendLine(String.Format("\tMake-up Gain: {0:0.##} dB", MakeupGain));
-            sb.AppendLine(String.Format("\tAttack: {0:0.##} ms", Attack));
-            if (Release == -1.0f)
+
+            float attack = 0;
+            switch (Attack)
+            {
+                case AttackType.Attack_0_1:
+                    attack = 0.1f;
+                    break;
+                case AttackType.Attack_0_3:
+                    attack = 0.3f;
+                    break;
+                case AttackType.Attack_1:
+                    attack = 1.0f;
+                    break;
+                case AttackType.Attack_3:
+                    attack = 3.0f;
+                    break;
+                case AttackType.Attack_10:
+                    attack = 10.0f;
+                    break;
+                case AttackType.Attack_30:
+                    attack = 30.0f;
+                    break;
+            }
+            sb.AppendLine(String.Format("\tAttack: {0:0.##} ms", attack));
+
+            if (Release == ReleaseType.Release_Auto)
             {
                 sb.AppendLine("\tRelease: Auto");
             }
             else
             {
-                sb.AppendLine(String.Format("\tRelease: {0} s", Release));
+                float release = 0;
+                switch (Release)
+                {
+                    case ReleaseType.Release_0_1:
+                        release = 0.1f;
+                        break;
+                    case ReleaseType.Release_0_3:
+                        release = 0.3f;
+                        break;
+                    case ReleaseType.Release_0_6:
+                        release = 0.6f;
+                        break;
+                    case ReleaseType.Release_1_2:
+                        release = 1.2f;
+                        break;
+                    case ReleaseType.Release_Auto:
+                        release = -1.0f;
+                        break;
+                }
+                sb.AppendLine(String.Format("\tRelease: {0} s", release));
             }
+
             sb.AppendLine(String.Format("\tRatio: {0}", Ratio));
             sb.AppendLine(String.Format("\tRate-S (Autofade duration): {0} s", RateS));
             sb.AppendLine(String.Format("\tIn: {0}", In));
@@ -189,57 +213,16 @@ namespace PresetConverter
             sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Threshold); // compression threshold in dB
 
             // Ratio (2:1=0, 4:1=1, 10:1=2)
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (float)Ratio);
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (int)Ratio);
 
             // Fade [Off=0 or *, Out=1, In=2]
-            sb.AppendFormat("{0} ", (float)Fade);
+            sb.AppendFormat("{0} ", (int)Fade);
 
             // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
-            int attack = 0;
-            switch (Attack)
-            {
-                case 0.1f:
-                    attack = 0;
-                    break;
-                case 0.3f:
-                    attack = 1;
-                    break;
-                case 1.0f:
-                    attack = 2;
-                    break;
-                case 3.0f:
-                    attack = 3;
-                    break;
-                case 10.0f:
-                    attack = 4;
-                    break;
-                case 30.0f:
-                    attack = 5;
-                    break;
-            }
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", attack);
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (int)Attack);
 
-            // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto (-1)
-            int release = 0;
-            switch (Release)
-            {
-                case 0.1f:
-                    release = 0;
-                    break;
-                case 0.3f:
-                    release = 1;
-                    break;
-                case 0.6f:
-                    release = 2;
-                    break;
-                case 1.2f:
-                    release = 3;
-                    break;
-                case -1.0f:
-                    release = 4;
-                    break;
-            }
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", release);
+            // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (int)Release);
 
             // Make-Up Gain (-5 - +15) dB
             sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", MakeupGain);
