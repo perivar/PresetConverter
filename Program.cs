@@ -29,7 +29,7 @@ namespace AbletonLiveConverter
                     string inputDirectoryPath = optionInputDirectory.Value();
                     string outputDirectoryPath = optionOutputDirectory.Value();
 
-                    var extensions = new List<string> { ".adv", ".vstpreset", ".xps" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s)));
 
@@ -40,6 +40,9 @@ namespace AbletonLiveConverter
                         string extension = new FileInfo(file).Extension;
                         switch (extension)
                         {
+                            case ".als":
+                                HandleAbletonLiveProject(file, outputDirectoryPath);
+                                break;
                             case ".adv":
                                 HandleAbletonLivePreset(file, outputDirectoryPath);
                                 break;
@@ -68,6 +71,17 @@ namespace AbletonLiveConverter
             {
                 Console.WriteLine("{0}", e.Message);
             }
+        }
+
+        private static void HandleAbletonLiveProject(string file, string outputDirectoryPath)
+        {
+            var bytes = File.ReadAllBytes(file);
+            var decompressed = Decompress(bytes);
+            var str = Encoding.UTF8.GetString(decompressed);
+            var xelement = XElement.Parse(str);
+
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = "";
         }
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
