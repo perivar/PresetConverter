@@ -2,6 +2,9 @@
 using System.Text;
 using System.Globalization;
 using AbletonLiveConverter;
+using CommonUtils;
+using System.IO;
+using System.Xml.Linq;
 
 namespace PresetConverter
 {
@@ -221,9 +224,139 @@ namespace PresetConverter
             return sb.ToString();
         }
 
+        public string GenerateRealWorldParameters()
+        {
+            var sb = new StringBuilder();
+
+            // -0.5 2.7999999999999998224 1 0.27000000000000001776 * -30 0 0 0 0.2000000000000000111
+            // * 0 0 0 0 52 2.3999999999999999112 1.8000000000000000444 1.1499999999999999112
+            // 1.3999999999999999112 5.5199999999999995737 0.85999999999999998668 0 1.1999999999999999556 9.2799999999999993605 0 0 79
+            // 30 1 0 1 * * 1 * *
+            // 7 -18 0 0 * * * * *
+            // * -18 -18 -18 -18 -18 -18 -18 -18
+            // 0 0 
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", CompThreshold); // compression threshold in dB
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", CompRatio); // compression ratio
+            sb.AppendFormat("{0} ", CompFastAttack ? 1 : 0); // compression fast attack
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", CompRelease); // compression release in ms
+
+            sb.AppendFormat("* ");
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", ExpThreshold); // expander threshold in dB
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", ExpRange); // expander range in dB
+            sb.AppendFormat("{0} ", ExpGate ? 1 : 0); // expander gate
+            sb.AppendFormat("{0} ", ExpFastAttack ? 1 : 0); // expander fast attack
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}\n", ExpRelease); // expander release in ms
+
+            sb.AppendFormat("* ");
+
+            sb.AppendFormat("{0} ", DynToByPass ? 1 : 0); // Dyn To By Pass
+            sb.AppendFormat("{0} ", DynToChannelOut ? 1 : 0); // Dyn To Channel Out
+
+            sb.AppendFormat("{0} ", LFTypeBell ? 1 : 0); // Bell
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LFGain); // dB
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LFFrq); // Hz
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LMFGain); // dB
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LMFFrq); // KHz
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}\n", LMFQ);
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HMFGain); // dB
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HMFFrq); // KHz
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HMFQ);
+
+            sb.AppendFormat("{0} ", HFTypeBell ? 1 : 0); // Bell
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HFGain); // dB
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HFFrq); // KHz
+
+            sb.AppendFormat("{0} ", EQToBypass ? 1 : 0);
+            sb.AppendFormat("{0} ", EQToDynSC ? 1 : 0);
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}\n", HPFrq); // Hz
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LPFrq); // KHz
+
+            sb.AppendFormat("{0} ", FilterSplit ? 1 : 0);
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Gain); // dB
+
+            sb.AppendFormat("{0} ", Analog ? 1 : 0);
+
+            sb.AppendFormat("* ");
+            sb.AppendFormat("* ");
+
+            sb.AppendFormat("{0} ", VUShowOutput ? 1 : 0);
+
+            sb.AppendFormat("* ");
+            sb.AppendFormat("*\n");
+
+            sb.AppendFormat("{0} ", 7); // unknown
+            sb.AppendFormat("{0} ", -18); // unknown
+
+            sb.AppendFormat("{0} ", PhaseReverse ? 1 : 0);
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", InputTrim); // dB
+
+            // append end
+            sb.AppendFormat("* * * * *\n* -18 -18 -18 -18 -18 -18 -18 -18\n0 0 ");
+
+            return sb.ToString();
+        }
+
+        private string GeneratePresetXML()
+        {
+            // string realWorldParameters = RealWorldParameters + '\n';
+            string realWorldParameters = GenerateRealWorldParameters();
+
+            // Use Linq XML (XElement) because they are easier to work with
+            XElement doc = new XElement("PresetChunkXMLTree", new XAttribute("version", "2"),
+                        new XElement("Preset", new XAttribute("Name", PresetName), new XAttribute("GenericType", PresetGenericType),
+                        new XElement("PresetHeader",
+                            new XElement("PluginName", PluginName),
+                            new XElement("PluginSubComp", PluginSubComp),
+                            new XElement("PluginVersion", PluginVersion),
+                            new XElement("ActiveSetup", ActiveSetup),
+                            new XElement("ReadOnly", "true")
+                            ),
+                        new XElement("PresetData", new XAttribute("Setup", "SETUP_A"),
+                            new XElement("Parameters", realWorldParameters,
+                            new XAttribute("Type", "RealWorld"))),
+                        new XElement("PresetData", new XAttribute("Setup", "SETUP_B"),
+                            new XElement("Parameters", realWorldParameters,
+                            new XAttribute("Type", "RealWorld")))
+                        ));
+
+            return BeautifyXml(doc);
+        }
+
         protected override void InitChunkData()
         {
-            throw new NotImplementedException();
+            var xmlContent = GeneratePresetXML();
+            var xmlPostContent = "<Bypass Version=\"1.0\" Bypass=\"0\"/>\n";
+
+            var memStream = new MemoryStream();
+            using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
+            {
+                // length of the xml section until xmlPostContent including 12 bytes
+                UInt32 xmlContentFullLength = (uint)xmlContent.Length + 32;
+                bf.Write((UInt32)xmlContentFullLength);
+                bf.Write((UInt32)3);
+                bf.Write((UInt32)1);
+
+                bf.Write("SCHS");
+                bf.Write("setA");
+
+                UInt32 xmlMainLength = (uint)xmlContent.Length;
+                bf.Write(xmlMainLength);
+
+                bf.Write("XPst");
+                bf.Write(xmlContent);
+
+                bf.Write("\0\0\0\0");
+
+                bf.Write(xmlPostContent);
+            }
+
+            this.ChunkData = memStream.ToArray();
         }
     }
 }

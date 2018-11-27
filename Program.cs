@@ -142,14 +142,15 @@ namespace AbletonLiveConverter
                 }
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannel))
                 {
-                    using (var tw = new StreamWriter(outputFilePath))
-                    {
+                    // using (var tw = new StreamWriter(outputFilePath))
+                    // {
                         List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
                         foreach (var wavesSSLChannel in channelPresetList)
                         {
-                            tw.WriteLine(wavesSSLChannel);
+                            // tw.WriteLine(wavesSSLChannel);
+                            wavesSSLChannel.Write(outputFilePath + ".vstpreset");
                         }
-                    }
+                    // }
                 }
                 else
                 {
