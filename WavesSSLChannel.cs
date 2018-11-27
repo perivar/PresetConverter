@@ -236,18 +236,19 @@ namespace PresetConverter
             // * -18 -18 -18 -18 -18 -18 -18 -18
             // 0 0 
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", CompThreshold); // compression threshold in dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", CompRatio); // compression ratio
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(CompThreshold)); // compression threshold in dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(CompRatio)); // compression ratio
             sb.AppendFormat("{0} ", CompFastAttack ? 1 : 0); // compression fast attack
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", CompRelease); // compression release in ms
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(CompRelease)); // compression release in ms
 
             sb.AppendFormat("* ");
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", ExpThreshold); // expander threshold in dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", ExpRange); // expander range in dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(ExpThreshold)); // expander threshold in dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(ExpRange)); // expander range in dB
             sb.AppendFormat("{0} ", ExpGate ? 1 : 0); // expander gate
             sb.AppendFormat("{0} ", ExpFastAttack ? 1 : 0); // expander fast attack
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}\n", ExpRelease); // expander release in ms
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(ExpRelease)); // expander release in ms
+            sb.Append("\n");
 
             sb.AppendFormat("* ");
 
@@ -255,30 +256,33 @@ namespace PresetConverter
             sb.AppendFormat("{0} ", DynToChannelOut ? 1 : 0); // Dyn To Channel Out
 
             sb.AppendFormat("{0} ", LFTypeBell ? 1 : 0); // Bell
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LFGain); // dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LFFrq); // Hz
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(LFGain)); // dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(LFFrq)); // Hz
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LMFGain); // dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LMFFrq); // KHz
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}\n", LMFQ);
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(LMFGain)); // dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(LMFFrq)); // KHz
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(LMFQ));
+            sb.Append("\n");
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HMFGain); // dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HMFFrq); // KHz
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HMFQ);
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(HMFGain)); // dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(HMFFrq)); // KHz
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(HMFQ));
 
             sb.AppendFormat("{0} ", HFTypeBell ? 1 : 0); // Bell
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HFGain); // dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", HFFrq); // KHz
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(HFGain)); // dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(HFFrq)); // KHz
 
             sb.AppendFormat("{0} ", EQToBypass ? 1 : 0);
             sb.AppendFormat("{0} ", EQToDynSC ? 1 : 0);
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}\n", HPFrq); // Hz
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", LPFrq); // KHz
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(HPFrq)); // Hz
+            sb.Append("\n");
+
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(LPFrq)); // KHz
 
             sb.AppendFormat("{0} ", FilterSplit ? 1 : 0);
 
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Gain); // dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(Gain)); // dB
 
             sb.AppendFormat("{0} ", Analog ? 1 : 0);
 
@@ -294,12 +298,24 @@ namespace PresetConverter
             sb.AppendFormat("{0} ", -18); // unknown
 
             sb.AppendFormat("{0} ", PhaseReverse ? 1 : 0);
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", InputTrim); // dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(InputTrim)); // dB
 
             // append end
             sb.AppendFormat("* * * * *\n* -18 -18 -18 -18 -18 -18 -18 -18\n0 0 ");
 
             return sb.ToString();
+        }
+
+        protected string FormatRealWorldParameter(float value)
+        {
+            if (Math.Abs(value) >= 0.01 && Math.Abs(value) <= 1000.0 || value == 0)
+            {
+                return string.Format(CultureInfo.InvariantCulture, "{0:0.##}", value);
+            }
+            else
+            {
+                return (string.Format(CultureInfo.InvariantCulture, "{0:0.#####e-000}", value));
+            }
         }
 
         private string GeneratePresetXML()

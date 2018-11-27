@@ -144,12 +144,12 @@ namespace AbletonLiveConverter
                 {
                     // using (var tw = new StreamWriter(outputFilePath))
                     // {
-                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
-                        foreach (var wavesSSLChannel in channelPresetList)
-                        {
-                            // tw.WriteLine(wavesSSLChannel);
-                            wavesSSLChannel.Write(outputFilePath + ".vstpreset");
-                        }
+                    List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
+                    foreach (var wavesSSLChannel in channelPresetList)
+                    {
+                        // tw.WriteLine(wavesSSLChannel);
+                        wavesSSLChannel.Write(outputFilePath + ".vstpreset");
+                    }
                     // }
                 }
                 else
@@ -176,6 +176,15 @@ namespace AbletonLiveConverter
 
                 string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
                 uadSSLChannel.WriteFXP(outputFXPFilePath);
+
+                // dump original Wave SSL Channel preset
+                string outputPresetFilePathOrig = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesorig.vstpreset");
+                wavesSSLChannel.Write(outputPresetFilePathOrig);
+
+                // convert back to Waves SSL Channel
+                var wavesSSLChannelNew = uadSSLChannel.ToWavesSSLChannel();
+                string outputPresetFilePathNew = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesnew.vstpreset");
+                wavesSSLChannelNew.Write(outputPresetFilePathNew);
 
                 // write text content
                 tw.WriteLine(wavesSSLChannel);

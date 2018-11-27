@@ -126,7 +126,6 @@ namespace PresetConverter
         /// <returns>the float value (between 0 - 1) that corresponds to the closest match</returns>
         public float FindClosestValue(string paramName, float searchDisplayValue)
         {
-
             // find closest float value
             float foundClosest = displayNumbersDict[paramName].Aggregate((x, y) => Math.Abs(x - searchDisplayValue) < Math.Abs(y - searchDisplayValue) ? x : y);
             int foundIndex = displayNumbersDict[paramName].IndexOf(foundClosest);
@@ -146,16 +145,33 @@ namespace PresetConverter
         /// <returns>the display text that corresponds to the closest match</returns>
         public string FindClosestDisplayText(string paramName, float searchParamValue)
         {
-
             // find closest display text
             float foundClosest = valuesDict[paramName].Aggregate((x, y) => Math.Abs(x - searchParamValue) < Math.Abs(y - searchParamValue) ? x : y);
             int foundIndex = valuesDict[paramName].IndexOf(foundClosest);
             string foundClosestDisplayText = displayTextDict[paramName][foundIndex];
-            float foundParameterValue = valuesDict[paramName][foundIndex];
 
             //Console.Out.WriteLine("Searching '{0}' for value {1}. Found {2} with text '{3}'. Value = {4}", paramName, searchParamValue, foundClosest, foundClosestDisplayText, foundParameterValue);
 
             return foundClosestDisplayText;
+        }
+
+        /// <summary>
+        /// Search for the float value that is closest to the passed parameter and return the display text
+        /// </summary>
+        /// <param name="paramName">parameter to search within</param>
+        /// <param name="searchParamValue">float value (between 0 - 1)</param>
+        /// <returns>the display text that corresponds to the closest match</returns>
+        public float FindClosestParameterValue(string paramName, float searchParamValue)
+        {
+            // find closest display text
+            float foundClosest = valuesDict[paramName].Aggregate((x, y) => Math.Abs(x - searchParamValue) < Math.Abs(y - searchParamValue) ? x : y);
+            int foundIndex = valuesDict[paramName].IndexOf(foundClosest);
+            string foundClosestDisplayText = displayTextDict[paramName][foundIndex];
+            float foundParameterValue = displayNumbersDict[paramName][foundIndex];
+
+            //Console.Out.WriteLine("Searching '{0}' for value {1}. Found {2} with text '{3}'. Value = {4}", paramName, searchParamValue, foundClosest, foundClosestDisplayText, foundParameterValue);
+
+            return foundParameterValue;
         }
 
         private static double GetDouble(string value, double defaultValue)
