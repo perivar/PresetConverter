@@ -306,18 +306,6 @@ namespace PresetConverter
             return sb.ToString();
         }
 
-        protected string FormatRealWorldParameter(float value)
-        {
-            if (Math.Abs(value) >= 0.01 && Math.Abs(value) <= 1000.0 || value == 0)
-            {
-                return string.Format(CultureInfo.InvariantCulture, "{0:0.##}", value);
-            }
-            else
-            {
-                return (string.Format(CultureInfo.InvariantCulture, "{0:0.#####e-000}", value));
-            }
-        }
-
         private string GeneratePresetXML()
         {
             // string realWorldParameters = RealWorldParameters + '\n';

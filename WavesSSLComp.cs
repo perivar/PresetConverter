@@ -210,35 +210,35 @@ namespace PresetConverter
             // 0 0 0.95000000000000006661 1 0.95000000000000006661 </Parameters>
 
             // Threshold (-15 - +15)
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", Threshold); // compression threshold in dB
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(Threshold)); // compression threshold in dB
 
             // Ratio (2:1=0, 4:1=1, 10:1=2)
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (int)Ratio);
+            sb.AppendFormat("{0} ", (int)Ratio);
 
             // Fade [Off=0 or *, Out=1, In=2]
             sb.AppendFormat("{0} ", (int)Fade);
 
             // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (int)Attack);
+            sb.AppendFormat("{0} ", (int)Attack);
 
             // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", (int)Release);
+            sb.AppendFormat("{0} ", (int)Release);
 
             // Make-Up Gain (-5 - +15) dB
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", MakeupGain);
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(MakeupGain));
 
             // *
             sb.Append("* ");
 
             // Rate-S (1 - +60) seconds
             // Autofade duration. Variable from 1 to 60 seconds
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", RateS);
+            sb.AppendFormat("{0} ", FormatRealWorldParameter(RateS));
 
             // In
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} ", In ? "1" : "0");
+            sb.AppendFormat("{0} ", In ? "1" : "0");
 
             // Analog
-            sb.AppendFormat(CultureInfo.InvariantCulture, "{0}", Analog ? "1" : "0");
+            sb.AppendFormat("{0}", Analog ? "1" : "0");
 
             // New line
             sb.Append("\n");
@@ -284,7 +284,9 @@ namespace PresetConverter
             var memStream = new MemoryStream();
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
             {
-                bf.Write((UInt32)809);
+                // length of the xml section until xmlPostContent including 12 bytes
+                UInt32 xmlContentFullLength = (uint)xmlContent.Length + 32;
+                bf.Write((UInt32)xmlContentFullLength); // 809 ?
                 bf.Write((UInt32)3);
                 bf.Write((UInt32)1);
 

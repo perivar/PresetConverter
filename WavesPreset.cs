@@ -382,6 +382,23 @@ namespace PresetConverter
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Format the float value as a real world parameter
+        /// </summary>
+        /// <param name="value">float value</param>
+        /// <returns>formatted value</returns>
+        protected string FormatRealWorldParameter(float value)
+        {
+            if (Math.Abs(value) >= 0.01 && Math.Abs(value) <= 1000.0 || value == 0)
+            {
+                return string.Format(CultureInfo.InvariantCulture, "{0:0.##}", value);
+            }
+            else
+            {
+                return (string.Format(CultureInfo.InvariantCulture, "{0:0.#####e-000}", value));
+            }
+        }
+
         protected abstract bool ReadRealWorldParameters();
 
     }
