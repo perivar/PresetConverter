@@ -12,7 +12,7 @@ namespace PresetConverter
             var wavesSSLChannel = new WavesSSLChannel();
             wavesSSLChannel.PresetName = uadSSLChannel.PresetName;
             wavesSSLChannel.PresetGenericType = "SLCH";
-            wavesSSLChannel.PresetGroup = "";
+            wavesSSLChannel.PresetGroup = null;
             wavesSSLChannel.PluginName = "SSLChannel";
             wavesSSLChannel.PluginSubComp = "SCHS";
             wavesSSLChannel.PluginVersion = "9.92.0.45";
@@ -26,7 +26,9 @@ namespace PresetConverter
 
             wavesSSLChannel.ExpThreshold = uadSSLChannel.FindClosestParameterValue("EXP Thresh", uadSSLChannel.EXPThresh);
             wavesSSLChannel.ExpRange = uadSSLChannel.FindClosestParameterValue("EXP Range", uadSSLChannel.EXPRange);
-            wavesSSLChannel.ExpGate = uadSSLChannel.Select == 1 ? true : false;
+
+            wavesSSLChannel.ExpGate = uadSSLChannel.Select >= 0.25 ? true : false;
+
             wavesSSLChannel.ExpFastAttack = uadSSLChannel.EXPAttack == 1 ? true : false;
             wavesSSLChannel.ExpRelease = uadSSLChannel.FindClosestParameterValue("EXP Release", uadSSLChannel.EXPRelease);
 
@@ -42,7 +44,7 @@ namespace PresetConverter
             wavesSSLChannel.LMFQ = uadSSLChannel.FindClosestParameterValue("LMF Q", uadSSLChannel.LMFQ);
 
             wavesSSLChannel.HMFGain = uadSSLChannel.FindClosestParameterValue("HMF Gain", uadSSLChannel.HMFGain);
-            wavesSSLChannel.HMFFrq = uadSSLChannel.FindClosestParameterValue("HF Freq", uadSSLChannel.HMFFreq) / 1000;
+            wavesSSLChannel.HMFFrq = uadSSLChannel.FindClosestParameterValue("HMF Freq", uadSSLChannel.HMFFreq) / 1000;
             wavesSSLChannel.HMFQ = uadSSLChannel.FindClosestParameterValue("HMF Q", uadSSLChannel.HMFQ);
 
             wavesSSLChannel.HFTypeBell = uadSSLChannel.HFBell == 1 ? true : false;
@@ -64,8 +66,9 @@ namespace PresetConverter
             }
 
             wavesSSLChannel.FilterSplit = true;
+
             wavesSSLChannel.Gain = uadSSLChannel.FindClosestParameterValue("Output", uadSSLChannel.Output);
-            wavesSSLChannel.Analog = true;
+            wavesSSLChannel.Analog = false;
             wavesSSLChannel.VUShowOutput = true;
             wavesSSLChannel.PhaseReverse = uadSSLChannel.Phase == 1 ? true : false;
             wavesSSLChannel.InputTrim = uadSSLChannel.FindClosestParameterValue("Input", uadSSLChannel.Input);

@@ -132,8 +132,6 @@ namespace PresetConverter
             string foundClosestDisplayText = displayTextDict[paramName][foundIndex];
             float foundParameterValue = valuesDict[paramName][foundIndex];
 
-            //Console.Out.WriteLine("Searching '{0}' for value {1}. Found {2} with text '{3}'. Value = {4}", paramName, searchDisplayValue, foundClosest, foundClosestDisplayText, foundParameterValue);
-
             return foundParameterValue;
         }
 
@@ -149,8 +147,6 @@ namespace PresetConverter
             float foundClosest = valuesDict[paramName].Aggregate((x, y) => Math.Abs(x - searchParamValue) < Math.Abs(y - searchParamValue) ? x : y);
             int foundIndex = valuesDict[paramName].IndexOf(foundClosest);
             string foundClosestDisplayText = displayTextDict[paramName][foundIndex];
-
-            //Console.Out.WriteLine("Searching '{0}' for value {1}. Found {2} with text '{3}'. Value = {4}", paramName, searchParamValue, foundClosest, foundClosestDisplayText, foundParameterValue);
 
             return foundClosestDisplayText;
         }
@@ -168,8 +164,6 @@ namespace PresetConverter
             int foundIndex = valuesDict[paramName].IndexOf(foundClosest);
             string foundClosestDisplayText = displayTextDict[paramName][foundIndex];
             float foundParameterValue = displayNumbersDict[paramName][foundIndex];
-
-            //Console.Out.WriteLine("Searching '{0}' for value {1}. Found {2} with text '{3}'. Value = {4}", paramName, searchParamValue, foundClosest, foundClosestDisplayText, foundParameterValue);
 
             return foundParameterValue;
         }
@@ -189,7 +183,10 @@ namespace PresetConverter
             }
 
             // special case
-            if (result == 3.911555E-07) result = 0;
+            if (Math.Abs(result) > 0 && Math.Abs(result) < 10e-10)
+            {
+                result = 0;
+            }
 
             return result;
         }

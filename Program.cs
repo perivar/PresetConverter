@@ -142,15 +142,14 @@ namespace AbletonLiveConverter
                 }
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannel))
                 {
-                    // using (var tw = new StreamWriter(outputFilePath))
-                    // {
-                    List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
-                    foreach (var wavesSSLChannel in channelPresetList)
+                    using (var tw = new StreamWriter(outputFilePath))
                     {
-                        // tw.WriteLine(wavesSSLChannel);
-                        wavesSSLChannel.Write(outputFilePath + ".vstpreset");
+                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
+                        foreach (var wavesSSLChannel in channelPresetList)
+                        {
+                            tw.WriteLine(wavesSSLChannel);
+                        }
                     }
-                    // }
                 }
                 else
                 {
@@ -177,14 +176,16 @@ namespace AbletonLiveConverter
                 string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
                 uadSSLChannel.WriteFXP(outputFXPFilePath);
 
-                // dump original Wave SSL Channel preset
-                string outputPresetFilePathOrig = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesorig.vstpreset");
-                wavesSSLChannel.Write(outputPresetFilePathOrig);
+                // // dump original Wave SSL Channel preset
+                // string outputPresetFilePathOrig = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesorig.vstpreset");
+                // wavesSSLChannel.Write(outputPresetFilePathOrig);
+                // wavesSSLChannel.WriteTextSummary(outputPresetFilePathOrig + "_text.txt");
 
-                // convert back to Waves SSL Channel
-                var wavesSSLChannelNew = uadSSLChannel.ToWavesSSLChannel();
-                string outputPresetFilePathNew = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesnew.vstpreset");
-                wavesSSLChannelNew.Write(outputPresetFilePathNew);
+                // // convert back to Waves SSL Channel
+                // var wavesSSLChannelNew = uadSSLChannel.ToWavesSSLChannel();
+                // string outputPresetFilePathNew = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesnew.vstpreset");
+                // wavesSSLChannelNew.Write(outputPresetFilePathNew);
+                // wavesSSLChannelNew.WriteTextSummary(outputPresetFilePathNew + "_text.txt");
 
                 // write text content
                 tw.WriteLine(wavesSSLChannel);
