@@ -440,15 +440,31 @@ namespace AbletonLiveConverter
                         // rewind 4 bytes
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
-                        var s1 = bf.ReadStringZ();
-                        var ignore1 = bf.ReadBytes(1028 - s1.Length - 1);
-                        var s2 = bf.ReadStringZ();
-                        var ignore2 = bf.ReadBytes(1028 - s2.Length - 1);
-                        var s3 = bf.ReadStringZ();
-                        var ignore3 = bf.ReadBytes(1028 - s3.Length - 1);
+                        var s1 = bf.ReadString(50);
+                        var ignore1 = bf.ReadBytes(1028 - s1.Length);
 
+                        // check if the next is zero
+                        var test1 = bf.ReadUInt32();
 
-                        bf.Seek(1080, SeekOrigin.Begin);
+                        if (test1 == 0)
+                        {
+                            var s2 = bf.ReadString(50);
+                            var ignore2 = bf.ReadBytes(1024 - s2.Length);
+
+                            var s3 = bf.ReadString(50);
+                            var ignore3 = bf.ReadBytes(1024 - s3.Length);
+
+                            var imageCount = bf.ReadUInt32();
+
+                            if (imageCount > 0)
+                            {
+                                // images
+                                var s4 = bf.ReadString(50);
+                                var ignore4 = bf.ReadBytes(1024 - s4.Length);
+                                var test2 = bf.ReadUInt32();
+                            }
+                        }
+                        // bf.Seek(1080, SeekOrigin.Begin);
 
                         while (bf.Position != (long)this.MetaXmlStartPos)
                         {
