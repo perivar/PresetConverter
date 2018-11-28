@@ -436,6 +436,18 @@ namespace AbletonLiveConverter
                     else if (
                         this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
                     {
+
+                        // rewind 4 bytes
+                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+
+                        var s1 = bf.ReadStringZ();
+                        var ignore1 = bf.ReadBytes(1028 - s1.Length - 1);
+                        var s2 = bf.ReadStringZ();
+                        var ignore2 = bf.ReadBytes(1028 - s2.Length - 1);
+                        var s3 = bf.ReadStringZ();
+                        var ignore3 = bf.ReadBytes(1028 - s3.Length - 1);
+
+
                         bf.Seek(1080, SeekOrigin.Begin);
 
                         while (bf.Position != (long)this.MetaXmlStartPos)
