@@ -19,7 +19,7 @@ using System.Collections.Specialized;
 using CommandLine.Utility;
 using CommonUtils;
 
-class Script
+public static class REverenceVSTPresetGenerator
 {
     static string _version = "1.6";
 
@@ -74,8 +74,16 @@ class Script
         Console.WriteLine("\t-prefixparentlevels - Number of levels to prefix vstpreset filename with parent folder name.");
     }
 
-    static public void CommandLine(string[] args)
+    public static void CommandLine(string[] args)
     {
+        // DirectoryInfo di = new DirectoryInfo(@"C:\Users\periv\Documents\VST3 Presets\Steinberg Media Technologies\REVerence");
+        // FileInfo[] presetFiles = di.GetFiles("*.vstpreset");
+        // int presetCounter = 0;
+        // foreach (FileInfo fi in presetFiles)
+        // {
+        //     PresetFile.LoadPreset(fi.FullName, _vst3UniqueID);
+        // }
+        // return;
 
         // Command line parsing
         Arguments CommandLine = new Arguments(args);
@@ -307,37 +315,6 @@ class Script
         {
             Console.WriteLine("Error: {0}", e.ToString());
         }
-
-        /*
-		DirectoryInfo di = new DirectoryInfo(_presetDir);
-		FileInfo[] presetFiles = di.GetFiles("*.vstpreset");
-		int presetCounter = 0;
-		foreach(FileInfo fi in presetFiles)
-		{
-			PresetFile.LoadPreset(Path.Combine(_presetDir, fi.Name), _vst3UniqueID);
-		}
-		
-		DirectoryInfo di = new DirectoryInfo(_scriptDir);
-		FileInfo[] fxpFiles = di.GetFiles("*.fxp");
-		int fxpCounter = 0;
-		FXP fxp = new FXP();
-		foreach(FileInfo fi in fxpFiles)
-		{
-			fxp.ReadFile(Path.Combine(_scriptDir, fi.Name));
-			Console.Out.WriteLine("--------------------------------");
-			Console.Out.WriteLine("chunkMagic: {0}", fxp.chunkMagic);
-			Console.Out.WriteLine("byteSize: {0}", fxp.byteSize);
-			Console.Out.WriteLine("fxMagic: {0}", fxp.fxMagic);
-			Console.Out.WriteLine("version: {0}", fxp.version);
-			Console.Out.WriteLine("fxID: {0}", fxp.fxID);
-			Console.Out.WriteLine("fxVersion: {0}", fxp.fxVersion);
-			Console.Out.WriteLine("numPrograms: {0}", fxp.numPrograms);
-			Console.Out.WriteLine("name: {0}", fxp.name);
-			Console.Out.WriteLine("chunkSize: {0}", fxp.chunkSize);		
-
-			fxp.WriteFile(Path.Combine(_scriptDir, String.Format("{0}-test.fxp", fi.Name)));			
-		}
-		*/
     }
 
     public static string GetParentPrefix(string fileName, DirectoryInfo dirNode, int intMaxLevels)
@@ -457,7 +434,7 @@ public class PresetFile
     public PresetFile(String value)
     {
         this.fileName = value;
-        bf = new BinaryFile(value, BinaryFile.ByteOrder.LittleEndian, true);
+        bf = new BinaryFile(value, BinaryFile.ByteOrder.LittleEndian, false);
     }
 
     public ChunkType ChunkTypeFromValue(string stringValue)
@@ -582,7 +559,6 @@ public class PresetFile
         Console.Out.WriteLine("chunkHeaderID: {0}", chunkHeaderID);
         if (tempHeaderID != chunkHeaderID) return false;
 
-        // Read sample rate, 4 bytes	
         int version = bf.ReadInt32();
         Console.Out.WriteLine("version: {0}", version);
 
@@ -789,7 +765,8 @@ public class PresetFile
         Entry e = GetEntry(type);
         if (e != null)
         {
-            b = bf.ReadBytes((int)e.offset, (int)e.size);
+            bf.SeekTo(e.offset);
+            b = bf.ReadBytes((int)e.size);
             e.bytes = b;
             return true;
         }
@@ -811,12 +788,7 @@ public class PresetFile
             if (metaDataID != null)
             {
                 int alreadyRead = 3;
-
-                //byte[] b;               
                 bf.SeekTo(e.offset + alreadyRead);
-
-                //b = ReadBytes((int) e.size - alreadyRead);                              
-                //Console.Out.WriteLine(BinaryFile.ByteArrayToString(b));
 
                 string xmlData = bf.ReadString((int)e.size - alreadyRead);
                 XmlDocument xmlDocument = new XmlDocument();
@@ -874,21 +846,19 @@ public class PresetFile
         if (pf.ClassID != classID)
             return false;
 
-        if (!pf.RestoreState(component))
-            return false;
+        // if (!pf.RestoreState(component))
+        //     return false;
 
-        /*
-        if (editController != 0)
-        {
-            // assign component state to controller
-            if (!pf.RestoreState(editController))
-				return false;
-    
-           // restore controller-only state (if present)
-            if (pf.Contains(ChunkType.CONTROLLERSTATE) && !pf.RestoreState(editController))
-                return false; 	
-        }
-		*/
+        // if (editController != 0)
+        // {
+        //     // assign component state to controller
+        //     if (!pf.RestoreState(editController))
+        //         return false;
+
+        //     // restore controller-only state (if present)
+        //     if (pf.Contains(ChunkType.CONTROLLERSTATE) && !pf.RestoreState(editController))
+        //         return false;
+        // }
 
         pf.Close();
         return true;

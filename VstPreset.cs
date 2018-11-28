@@ -146,7 +146,7 @@ namespace AbletonLiveConverter
         public byte[] ChunkData;
 
         // byte positions and sizes within a vstpreset (for writing)
-        public UInt32 ListPos; // position of List chunk
+        public UInt64 ListPos; // position of List chunk
         public UInt64 DataStartPos; // data start position
         public UInt64 DataSize; // byte length from data start position up until xml data
         public UInt64 MetaXmlStartPos; // VstPreset MetaInfo Xml section start position
@@ -215,19 +215,15 @@ namespace AbletonLiveConverter
                 this.Vst3ID = bf.ReadString(32);
 
                 // Read position of 'List' section 
-                this.ListPos = bf.ReadUInt32();
+                this.ListPos = bf.ReadUInt64();
                 Console.WriteLine("DEBUG listPos: {0}", ListPos);
-
-                // Read unknown value
-                UInt32 unknown1 = bf.ReadUInt32();
-                Console.WriteLine("DEBUG unknown1: {0}", unknown1);
 
                 // Store current position
                 long oldPos = bf.Position;
 
                 // seek to the 'List' position
                 // List = kChunkList
-                bf.Seek(this.ListPos, SeekOrigin.Begin);
+                bf.Seek((long)this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
                 string listElement = bf.ReadString(4);
@@ -284,7 +280,7 @@ namespace AbletonLiveConverter
                 if (dataChunkID == "LPXF")
                 {
                     // Check file size:
-                    if (fileSize != (this.ListPos + (bf.Position - 4)))
+                    if (fileSize != ((long)this.ListPos + (bf.Position - 4)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a single preset:
@@ -304,8 +300,8 @@ namespace AbletonLiveConverter
                     UInt32 vst2Bypass = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
                     // Check file size (The other check is needed because Cubase tends to forget the items of this header
-                    if ((fileSize != (this.ListPos + bf.Position + 4))
-                    && (fileSize != (this.ListPos + bf.Position - 16)))
+                    if ((fileSize != ((long)this.ListPos + bf.Position + 4))
+                    && (fileSize != ((long)this.ListPos + bf.Position - 16)))
                         throw new Exception("Invalid file size: " + fileSize);
 
                     // This is most likely a preset bank:
@@ -414,7 +410,6 @@ namespace AbletonLiveConverter
 
                     else if (
                         this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergREVerence) ||
                         this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
                         this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                         )
@@ -437,6 +432,37 @@ namespace AbletonLiveConverter
 
                         return;
                     }
+
+                    else if (
+                        this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
+                    {
+                        bf.Seek(1080, SeekOrigin.Begin);
+
+                        while (bf.Position != (long)this.MetaXmlStartPos)
+                        {
+                            // read the null terminated string
+                            var parameterName = bf.ReadStringZ();
+
+                            // read until 128 bytes have been read
+                            var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
+
+                            var parameterNumber = bf.ReadUInt32();
+
+                            // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
+                            var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
+
+                            Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
+                        }
+
+                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                        this.MetaXml = Encoding.UTF8.GetString(bytes);
+
+                        WriteListElements(bf, Console.Out);
+
+                        return;
+                    }
+
 
                     else if (
                        this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
@@ -635,9 +661,6 @@ namespace AbletonLiveConverter
 
                 // Write listPos
                 bf.Write(this.ListPos);
-
-                // Write unknown value
-                bf.Write((UInt32)0);
 
                 // Write binary content
                 bf.Write(this.ChunkData);

@@ -29,7 +29,7 @@ namespace AbletonLiveConverter
                     string inputDirectoryPath = optionInputDirectory.Value();
                     string outputDirectoryPath = optionOutputDirectory.Value();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s)));
 
@@ -51,6 +51,9 @@ namespace AbletonLiveConverter
                                 break;
                             case ".xps":
                                 HandleWavesXpsPreset(file, outputDirectoryPath);
+                                break;
+                            case ".wav":
+                                HandleWaveFile(file, inputDirectoryPath, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -217,6 +220,21 @@ namespace AbletonLiveConverter
                 tw.WriteLine("-------------------------------------------------------");
             }
             tw.Close();
+        }
+
+        private static void HandleWaveFile(string file, string inputDirectoryPath, string outputDirectoryPath)
+        {
+            if (file.Contains("_Quad"))
+            {
+                // string outputFileName = Path.GetFileNameWithoutExtension(file);
+                // string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
+                // REverenceVSTPresetGenerator.CommandLine(new string[] {
+                //     "-wavdir=\"" + inputDirectoryPath + "\"",
+                //     "-presetdir=\"" + outputDirectoryPath + "\"",
+                //     "-mediafamily=\"TODD-AO\"",
+                //     "-altiverb"
+                //      });
+            }
         }
 
         private static void CreateDirectoryIfNotExist(string filePath)

@@ -29,7 +29,7 @@ namespace CommonUtils
 
         public BinaryFile(string filePath, ByteOrder byteOrder) : this(filePath, byteOrder, false, Encoding.Default) { }
 
-        public BinaryFile(string filePath, ByteOrder byteOrder, bool createFile) : this(filePath, byteOrder, false, Encoding.Default) { }
+        public BinaryFile(string filePath, ByteOrder byteOrder, bool createFile) : this(filePath, byteOrder, createFile, Encoding.Default) { }
 
         public BinaryFile(string filePath, ByteOrder byteOrder, bool createFile, Encoding encoding)
         {
