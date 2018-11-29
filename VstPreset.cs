@@ -273,7 +273,7 @@ namespace AbletonLiveConverter
                 // Some presets start with a chunkID here,
                 // Others start with the preset content
                 string dataChunkID = bf.ReadString(4);
-                Console.WriteLine("DEBUG: dataChunkID {0}", dataChunkID);
+                Console.WriteLine("DEBUG: data chunk id: '{0}'", dataChunkID);
 
                 // Single preset?
                 bool singlePreset = false;
@@ -440,60 +440,63 @@ namespace AbletonLiveConverter
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         var waveFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1028);
-                        Console.Out.WriteLine("{0}", waveFilePath1);
+                        Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", waveFilePath1);
 
                         // check if the next is zero
                         var waveCheck = bf.ReadUInt32();
-                        Console.Out.WriteLine("{0}", waveCheck);
+                        Console.Out.WriteLine("DEBUG: waveCheck: {0}", waveCheck);
 
-                        UInt32 numParameters = 0;
+                        int numParameters = -1;
                         if (waveCheck == 0)
                         {
                             var waveFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                            Console.Out.WriteLine("{0}", waveFilePath2);
+                            Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", waveFilePath2);
 
                             var wavFileName = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                            Console.Out.WriteLine("wavFileName: {0}", wavFileName);
+                            Console.Out.WriteLine("DEBUG: Wav filename: {0}", wavFileName);
 
                             var imageCount = bf.ReadUInt32();
-                            Console.Out.WriteLine("imageCount: {0}", imageCount);
+                            Console.Out.WriteLine("DEBUG: Image count: {0}", imageCount);
 
-                            if (imageCount > 0)
+                            for (int i = 0; i < imageCount; i++)
                             {
                                 // images
-                                var image1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                                Console.Out.WriteLine("image1: {0}", image1);
-
-                                numParameters = bf.ReadUInt32();
-                                Console.Out.WriteLine("numParameters: {0}", numParameters);
+                                var imagePath = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                                Console.Out.WriteLine("DEBUG: Image {0}: {1}", i+1, imagePath);
                             }
+
+                            numParameters = bf.ReadInt32();
+                            Console.Out.WriteLine("DEBUG: Num parameters: {0}", numParameters);
                         }
-                        // bf.Seek(1080, SeekOrigin.Begin);
 
                         int parameterCounter = 0;
-                        while (bf.Position != (long)this.DataSize)
+                        while (bf.Position < (long)this.DataSize)
                         {
                             parameterCounter++;
 
-                            if (parameterCounter > numParameters) break;
+                            if (numParameters > 0 && parameterCounter > numParameters) break;
 
                             // read the null terminated string
                             var parameterName = bf.ReadStringNull();
-                            Console.Out.WriteLine("parameterName: [{0}] {1}", parameterCounter, parameterName);
+                            // Console.Out.WriteLine("parameterName: [{0}] {1}", parameterCounter, parameterName);
 
                             // read until 128 bytes have been read
                             var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
                             var parameterNumber = bf.ReadUInt32();
-                            Console.Out.WriteLine("parameterNumber: {0}", parameterNumber);
+                            // Console.Out.WriteLine("parameterNumber: {0}", parameterNumber);
 
                             // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
                             var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
-                            Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
+                            // Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
 
                             Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
                         }
 
+                        long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
+                        Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+
+                        // seek to start of meta xml
                         bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
