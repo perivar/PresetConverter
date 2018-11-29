@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace CommonUtils
@@ -281,13 +283,19 @@ namespace CommonUtils
             return new string(chars);
         }
 
+        public string ReadString(int size, Encoding encoding)
+        {
+            byte[] bytes = binaryReader.ReadBytes(size);
+            return encoding.GetString(bytes);
+        }
+
         /// <summary>
         /// Read an AsciiZ string in from the binary reader
         /// </summary>
         /// <returns>String, null terminator is truncated,
         /// stream reader positioned at byte after null
         /// </returns>
-        public string ReadStringZ()
+        public string ReadStringNull()
         {
             string result = "";
             char c;
@@ -300,6 +308,29 @@ namespace CommonUtils
                 result += c.ToString();
             }
             return result;
+        }
+
+        public string ReadStringNull(Encoding encoding)
+        {
+            if (binaryReader == null)
+                throw new ArgumentNullException("input");
+
+            if (encoding == null)
+                throw new ArgumentNullException("encoding");
+
+            byte[] terminator = encoding.GetBytes("\0"); // Problem: The encoding may not have a NULL character
+            int charSize = terminator.Length; // Problem: The character size may be variable
+            List<byte> strBytes = new List<byte>();
+            byte[] chr;
+            while (!(chr = binaryReader.ReadBytes(charSize)).SequenceEqual(terminator))
+            {
+                if (chr.Length != charSize)
+                    throw new EndOfStreamException();
+
+                strBytes.AddRange(chr);
+            }
+
+            return encoding.GetString(strBytes.ToArray());
         }
         #endregion
 
@@ -504,6 +535,21 @@ namespace CommonUtils
             byte b = Convert.ToByte(value);
             binaryWriter.Write(b);
             return true;
+        }
+
+        public void WriteStringNull(string text, Encoding encoding)
+        {
+            if (binaryWriter == null)
+                throw new ArgumentNullException("output");
+
+            if (text == null)
+                throw new ArgumentNullException("text");
+
+            if (encoding == null)
+                throw new ArgumentNullException("encoding");
+
+            binaryWriter.Write(encoding.GetBytes(text));
+            binaryWriter.Write(encoding.GetBytes("\0"));
         }
         #endregion
 

@@ -364,7 +364,7 @@ namespace AbletonLiveConverter
                         while (bf.Position != (long)this.MetaXmlStartPos)
                         {
                             // read the null terminated string
-                            var parameterName = bf.ReadStringZ();
+                            var parameterName = bf.ReadStringNull();
 
                             // read until 128 bytes have been read
                             var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
@@ -436,51 +436,65 @@ namespace AbletonLiveConverter
                     else if (
                         this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
                     {
-
                         // rewind 4 bytes
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
-                        var s1 = bf.ReadString(50);
-                        var ignore1 = bf.ReadBytes(1028 - s1.Length);
+                        var waveFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1028);
+                        Console.Out.WriteLine("{0}", waveFilePath1);
 
                         // check if the next is zero
-                        var test1 = bf.ReadUInt32();
+                        var waveCheck = bf.ReadUInt32();
+                        Console.Out.WriteLine("{0}", waveCheck);
 
-                        if (test1 == 0)
+                        UInt32 numParameters = 0;
+                        if (waveCheck == 0)
                         {
-                            var s2 = bf.ReadString(50);
-                            var ignore2 = bf.ReadBytes(1024 - s2.Length);
+                            var waveFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                            Console.Out.WriteLine("{0}", waveFilePath2);
 
-                            var s3 = bf.ReadString(50);
-                            var ignore3 = bf.ReadBytes(1024 - s3.Length);
+                            var wavFileName = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                            Console.Out.WriteLine("wavFileName: {0}", wavFileName);
 
                             var imageCount = bf.ReadUInt32();
+                            Console.Out.WriteLine("imageCount: {0}", imageCount);
 
                             if (imageCount > 0)
                             {
                                 // images
-                                var s4 = bf.ReadString(50);
-                                var ignore4 = bf.ReadBytes(1024 - s4.Length);
-                                var test2 = bf.ReadUInt32();
+                                var image1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                                Console.Out.WriteLine("image1: {0}", image1);
+
+                                numParameters = bf.ReadUInt32();
+                                Console.Out.WriteLine("numParameters: {0}", numParameters);
                             }
                         }
                         // bf.Seek(1080, SeekOrigin.Begin);
 
-                        while (bf.Position != (long)this.MetaXmlStartPos)
+                        int parameterCounter = 0;
+                        while (bf.Position != (long)this.DataSize)
                         {
+                            parameterCounter++;
+
+                            if (parameterCounter > numParameters) break;
+
                             // read the null terminated string
-                            var parameterName = bf.ReadStringZ();
+                            var parameterName = bf.ReadStringNull();
+                            Console.Out.WriteLine("parameterName: [{0}] {1}", parameterCounter, parameterName);
 
                             // read until 128 bytes have been read
                             var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
                             var parameterNumber = bf.ReadUInt32();
+                            Console.Out.WriteLine("parameterNumber: {0}", parameterNumber);
 
                             // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
                             var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
+                            Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
 
                             Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
                         }
+
+                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
@@ -668,6 +682,16 @@ namespace AbletonLiveConverter
             elem.Size = size;
 
             return elem;
+        }
+
+        private string ReadStringNullAndSkip(BinaryFile bf, Encoding encoding, long totalBytes)
+        {
+            long posBeforeNull = bf.Position;
+            var text = bf.ReadStringNull(Encoding.Unicode);
+            long posAfterNull = bf.Position;
+            long bytesToSkip = totalBytes - (posAfterNull - posBeforeNull);
+            var ignore = bf.ReadBytes((int)bytesToSkip);
+            return text;
         }
         #endregion
 
