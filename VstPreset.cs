@@ -439,15 +439,17 @@ namespace AbletonLiveConverter
                         // rewind 4 bytes
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
-                        var waveFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1028);
+                        var waveFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                         Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", waveFilePath1);
 
-                        // check if the next is zero
-                        var waveCheck = bf.ReadUInt32();
-                        Console.Out.WriteLine("DEBUG: waveCheck: {0}", waveCheck);
+                        var numWavFiles = bf.ReadUInt32();
+                        Console.Out.WriteLine("DEBUG: numWavFiles: {0}", numWavFiles);
+
+                        var unknown = bf.ReadUInt32();
+                        Console.Out.WriteLine("DEBUG: unknown: {0}", unknown);
 
                         int numParameters = -1;
-                        if (waveCheck == 0)
+                        if (numWavFiles > 0)
                         {
                             var waveFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                             Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", waveFilePath2);
@@ -462,7 +464,7 @@ namespace AbletonLiveConverter
                             {
                                 // images
                                 var imagePath = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                                Console.Out.WriteLine("DEBUG: Image {0}: {1}", i+1, imagePath);
+                                Console.Out.WriteLine("DEBUG: Image {0}: {1}", i + 1, imagePath);
                             }
 
                             numParameters = bf.ReadInt32();
