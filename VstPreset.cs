@@ -330,14 +330,14 @@ namespace AbletonLiveConverter
                         var parameterName = string.Format("unknown{0}", counter); // don't have a name
                         var parameterNumber = (UInt32)counter;
                         var parameterNumberValue = bf.ReadSingle();
-                        Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
+                        AddParameter(parameterName, parameterNumber, parameterNumberValue);
                     }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    WriteListElements(bf, Console.Out);
+                    //WriteListElements(bf, Console.Out);
 
                     return;
                 }
@@ -374,14 +374,14 @@ namespace AbletonLiveConverter
                             // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
                             var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
 
-                            Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
+                            AddParameter(parameterName, parameterNumber, parameterNumberValue);
                         }
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        //WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -395,15 +395,13 @@ namespace AbletonLiveConverter
                         // var xmlContent = br.ReadString((int)this.ParameterDataSize);
                         var xmlContent = bf.ReadString((int)this.MetaXmlStartPos - 48);
 
-                        var parameterName = "XmlContent";
-                        var parameterStringValue = xmlContent;
-                        Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterStringValue));
+                        AddParameter("XmlContent", 1, xmlContent);
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        //WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -418,17 +416,15 @@ namespace AbletonLiveConverter
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        var presetContent = bf.ReadBytes((int)this.MetaXmlStartPos - 48);
+                        var byteContent = bf.ReadBytes((int)this.MetaXmlStartPos - 48);
 
-                        var parameterName = "ByteContent";
-                        var parameterByteValue = presetContent;
-                        Parameters.Add(parameterName, new Parameter(parameterName, 1, parameterByteValue));
+                        AddParameter("ByteContent", 1, byteContent);
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        //WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -439,36 +435,43 @@ namespace AbletonLiveConverter
                         // rewind 4 bytes
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
-                        var waveFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                        Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", waveFilePath1);
+                        var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                        Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", wavFilePath1);
+                        AddParameter("wave-file-path-1", 0, wavFilePath1);
 
-                        var numWavFiles = bf.ReadUInt32();
-                        Console.Out.WriteLine("DEBUG: numWavFiles: {0}", numWavFiles);
+                        var wavCount = bf.ReadUInt32();
+                        Console.Out.WriteLine("DEBUG: numWavFiles: {0}", wavCount);
+                        AddParameter("wav-count", 0, wavCount);
 
                         var unknown = bf.ReadUInt32();
                         Console.Out.WriteLine("DEBUG: unknown: {0}", unknown);
 
-                        int numParameters = -1;
-                        if (numWavFiles > 0)
+                        int parameterCount = -1;
+                        if (wavCount > 0)
                         {
-                            var waveFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                            Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", waveFilePath2);
+                            var wavFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                            AddParameter("wave-file-path-2", 0, wavFilePath2);
+                            Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", wavFilePath2);
 
                             var wavFileName = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                            AddParameter("wave-file-name", 0, wavFileName);
                             Console.Out.WriteLine("DEBUG: Wav filename: {0}", wavFileName);
 
                             var imageCount = bf.ReadUInt32();
+                            AddParameter("image-count", 0, imageCount);
                             Console.Out.WriteLine("DEBUG: Image count: {0}", imageCount);
 
                             for (int i = 0; i < imageCount; i++)
                             {
                                 // images
                                 var imagePath = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                                AddParameter("image-file-name-" + (i + 1), 0, imagePath);
                                 Console.Out.WriteLine("DEBUG: Image {0}: {1}", i + 1, imagePath);
                             }
 
-                            numParameters = bf.ReadInt32();
-                            Console.Out.WriteLine("DEBUG: Num parameters: {0}", numParameters);
+                            parameterCount = bf.ReadInt32();
+                            AddParameter("parameter-count", 0, parameterCount);
+                            Console.Out.WriteLine("DEBUG: Parameter count: {0}", parameterCount);
                         }
 
                         int parameterCounter = 0;
@@ -476,7 +479,7 @@ namespace AbletonLiveConverter
                         {
                             parameterCounter++;
 
-                            if (numParameters > 0 && parameterCounter > numParameters) break;
+                            if (parameterCount > 0 && parameterCounter > parameterCount) break;
 
                             // read the null terminated string
                             var parameterName = bf.ReadStringNull();
@@ -492,7 +495,7 @@ namespace AbletonLiveConverter
                             var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
                             // Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
 
-                            Parameters.Add(parameterName, new Parameter(parameterName, parameterNumber, parameterNumberValue));
+                            AddParameter(parameterName, parameterNumber, parameterNumberValue);
                         }
 
                         long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
@@ -505,7 +508,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        //WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -518,19 +521,19 @@ namespace AbletonLiveConverter
                         bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                         // read floats
-                        Parameters.Add("Unknown1", new Parameter("Unknown1", 1, bf.ReadSingle()));
-                        Parameters.Add("Unknown2", new Parameter("Unknown2", 2, bf.ReadSingle()));
+                        AddParameter("Unknown1", 1, bf.ReadSingle());
+                        AddParameter("Unknown2", 2, bf.ReadSingle());
 
                         // read ints
-                        Parameters.Add("Unknown3", new Parameter("Unknown3", 3, bf.ReadUInt32()));
-                        Parameters.Add("Unknown4", new Parameter("Unknown4", 4, bf.ReadUInt32()));
-                        Parameters.Add("Unknown5", new Parameter("Unknown5", 5, bf.ReadUInt32()));
+                        AddParameter("Unknown3", 3, bf.ReadUInt32());
+                        AddParameter("Unknown4", 4, bf.ReadUInt32());
+                        AddParameter("Unknown5", 5, bf.ReadUInt32());
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        //WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -562,7 +565,7 @@ namespace AbletonLiveConverter
 
                         var xmlContent = bf.ReadString((int)xmlMainLength);
                         var param1Name = "XmlContent";
-                        Parameters.Add(param1Name, new Parameter(param1Name, 1, xmlContent));
+                        AddParameter(param1Name, 1, xmlContent);
 
                         var postType = bf.ReadString(4);
                         Console.WriteLine("DEBUG: PostType: {0}", postType);
@@ -574,13 +577,13 @@ namespace AbletonLiveConverter
                         var xmlPostLength = this.DataSize - xmlMainLength - 32;
                         var xmlPostContent = bf.ReadString((int)xmlPostLength);
                         var param2Name = "XmlContentPost";
-                        Parameters.Add(param2Name, new Parameter(param2Name, 2, xmlPostContent));
+                        AddParameter(param2Name, 2, xmlPostContent);
 
                         // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        //WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -645,7 +648,7 @@ namespace AbletonLiveConverter
                 var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                 this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
 
-                WriteListElements(bf, Console.Out);
+                //WriteListElements(bf, Console.Out);
             }
         }
 
@@ -697,6 +700,21 @@ namespace AbletonLiveConverter
             long bytesToSkip = totalBytes - (posAfterNull - posBeforeNull);
             var ignore = bf.ReadBytes((int)bytesToSkip);
             return text;
+        }
+
+        private void AddParameter(string name, UInt32 number, double value)
+        {
+            Parameters.Add(name, new Parameter(name, number, value));
+        }
+
+        private void AddParameter(string name, UInt32 number, string value)
+        {
+            Parameters.Add(name, new Parameter(name, number, value));
+        }
+
+        private void AddParameter(string name, UInt32 number, byte[] value)
+        {
+            Parameters.Add(name, new Parameter(name, number, value));
         }
         #endregion
 
