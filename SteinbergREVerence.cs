@@ -84,11 +84,11 @@ namespace AbletonLiveConverter
                 // write wave count
                 bf.Write((UInt32)wavCount);
 
-                // write unknown
-                bf.Write((UInt32)0);
-
                 if (wavCount > 0)
                 {
+                    // write unknown
+                    bf.Write((UInt32)0);
+
                     // write 1024 bytes
                     WritePaddedUnicodeString(bf, WavFilePath2, 1024);
 
@@ -108,6 +108,11 @@ namespace AbletonLiveConverter
                     // write parameter count
                     bf.Write((UInt32)parameterCount);
                 }
+                else
+                {
+                    // write unknown
+                    bf.Write((UInt32)5328);
+                }
 
                 // write parameters
                 foreach (var parameter in this.Parameters.Values)
@@ -118,6 +123,24 @@ namespace AbletonLiveConverter
                         bf.Write(paramName);
                         bf.Write(parameter.Number);
                         bf.Write(parameter.NumberValue);
+                    }
+                }
+
+                if (wavCount > 0)
+                {
+                    // write unknown
+                    bf.Write((UInt32)5328);
+
+                    // write parameters once more
+                    foreach (var parameter in this.Parameters.Values)
+                    {
+                        if (parameter.Type == Parameter.ParameterType.Number)
+                        {
+                            var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
+                            bf.Write(paramName);
+                            bf.Write(parameter.Number);
+                            bf.Write(parameter.NumberValue);
+                        }
                     }
                 }
             }

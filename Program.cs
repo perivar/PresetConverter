@@ -171,10 +171,13 @@ namespace AbletonLiveConverter
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.SteinbergREVerence))
                 {
                     var reverence = new SteinbergREVerence();
+
+                    // copy parameters to the new preset
                     if (vstPreset.Parameters.ContainsKey("wave-file-path-1")) reverence.WavFilePath1 = vstPreset.Parameters["wave-file-path-1"].StringValue;
                     if (vstPreset.Parameters.ContainsKey("wave-file-path-2")) reverence.WavFilePath2 = vstPreset.Parameters["wave-file-path-2"].StringValue;
                     if (vstPreset.Parameters.ContainsKey("wave-file-name")) reverence.WavFileName = vstPreset.Parameters["wave-file-name"].StringValue;
 
+                    // and copy the images
                     for (int i = 0; i < 10; i++)
                     {
                         string key = string.Format("image-file-name-{0}", (i + 1));
@@ -182,11 +185,57 @@ namespace AbletonLiveConverter
                         {
                             reverence.Images.Add(vstPreset.Parameters[key].StringValue);
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
 
-                    reverence.Write(outputFilePath + ".vstpreset");
+                    // set parameters
+                    reverence.Parameters["mix"].NumberValue = vstPreset.Parameters["mix"].NumberValue;
+                    reverence.Parameters["predelay"].NumberValue = vstPreset.Parameters["predelay"].NumberValue;
+                    reverence.Parameters["time"].NumberValue = vstPreset.Parameters["time"].NumberValue;
+                    reverence.Parameters["size"].NumberValue = vstPreset.Parameters["size"].NumberValue;
+                    reverence.Parameters["level"].NumberValue = vstPreset.Parameters["level"].NumberValue;
+                    reverence.Parameters["ertailsplit"].NumberValue = vstPreset.Parameters["ertailsplit"].NumberValue;
+                    reverence.Parameters["ertailmix"].NumberValue = vstPreset.Parameters["ertailmix"].NumberValue;
+                    reverence.Parameters["reverse"].NumberValue = vstPreset.Parameters["reverse"].NumberValue;
+                    reverence.Parameters["trim"].NumberValue = vstPreset.Parameters["trim"].NumberValue;
+                    reverence.Parameters["autolevel"].NumberValue = vstPreset.Parameters["autolevel"].NumberValue;
+                    reverence.Parameters["trimstart"].NumberValue = vstPreset.Parameters["trimstart"].NumberValue;
+                    reverence.Parameters["trimend"].NumberValue = vstPreset.Parameters["trimend"].NumberValue;
+                    reverence.Parameters["eqon"].NumberValue = vstPreset.Parameters["eqon"].NumberValue;
+                    reverence.Parameters["lowfilterfreq"].NumberValue = vstPreset.Parameters["lowfilterfreq"].NumberValue;
+                    reverence.Parameters["lowfiltergain"].NumberValue = vstPreset.Parameters["lowfiltergain"].NumberValue;
+                    reverence.Parameters["peakfreq"].NumberValue = vstPreset.Parameters["peakfreq"].NumberValue;
+                    reverence.Parameters["peakgain"].NumberValue = vstPreset.Parameters["peakgain"].NumberValue;
+                    reverence.Parameters["highfilterfreq"].NumberValue = vstPreset.Parameters["highfilterfreq"].NumberValue;
+                    reverence.Parameters["highfiltergain"].NumberValue = vstPreset.Parameters["highfiltergain"].NumberValue;
+                    reverence.Parameters["lowfilteron"].NumberValue = vstPreset.Parameters["lowfilteron"].NumberValue;
+                    reverence.Parameters["peakon"].NumberValue = vstPreset.Parameters["peakon"].NumberValue;
+                    reverence.Parameters["highfilteron"].NumberValue = vstPreset.Parameters["highfilteron"].NumberValue;
+                    reverence.Parameters["output"].NumberValue = vstPreset.Parameters["output"].NumberValue;
+                    reverence.Parameters["predelayoffset"].NumberValue = vstPreset.Parameters["predelayoffset"].NumberValue;
+                    reverence.Parameters["timeoffset"].NumberValue = vstPreset.Parameters["timeoffset"].NumberValue;
+                    reverence.Parameters["sizeoffset"].NumberValue = vstPreset.Parameters["sizeoffset"].NumberValue;
+                    reverence.Parameters["leveloffset"].NumberValue = vstPreset.Parameters["leveloffset"].NumberValue;
+                    reverence.Parameters["ertailsplitoffset"].NumberValue = vstPreset.Parameters["ertailsplitoffset"].NumberValue;
+                    reverence.Parameters["ertailmixoffset"].NumberValue = vstPreset.Parameters["ertailmixoffset"].NumberValue;
+                    reverence.Parameters["store"].NumberValue = vstPreset.Parameters["store"].NumberValue;
+                    reverence.Parameters["erase"].NumberValue = vstPreset.Parameters["erase"].NumberValue;
+                    reverence.Parameters["autopresetnr"].NumberValue = vstPreset.Parameters["autopresetnr"].NumberValue;
+                    reverence.Parameters["channelselect"].NumberValue = vstPreset.Parameters["channelselect"].NumberValue;
+                    reverence.Parameters["transProgress"].NumberValue = vstPreset.Parameters["transProgress"].NumberValue;
+                    reverence.Parameters["impulseTrigger"].NumberValue = vstPreset.Parameters["impulseTrigger"].NumberValue;
+                    reverence.Parameters["bypass"].NumberValue = vstPreset.Parameters["bypass"].NumberValue;
+                    reverence.Parameters["allowFading"].NumberValue = vstPreset.Parameters["allowFading"].NumberValue;
 
-                    using (var tw = new StreamWriter(outputFilePath))
+                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", outputFileName);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
+
+                    reverence.Write(outputFilePathNew + ".vstpreset");
+
+                    using (var tw = new StreamWriter(outputFilePathNew + ".txt"))
                     {
                         foreach (var param in vstPreset.Parameters)
                         {
