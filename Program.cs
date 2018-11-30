@@ -168,6 +168,32 @@ namespace AbletonLiveConverter
                         }
                     }
                 }
+                else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.SteinbergREVerence))
+                {
+                    var reverence = new SteinbergREVerence();
+                    if (vstPreset.Parameters.ContainsKey("wave-file-path-1")) reverence.WavFilePath1 = vstPreset.Parameters["wave-file-path-1"].StringValue;
+                    if (vstPreset.Parameters.ContainsKey("wave-file-path-2")) reverence.WavFilePath2 = vstPreset.Parameters["wave-file-path-2"].StringValue;
+                    if (vstPreset.Parameters.ContainsKey("wave-file-name")) reverence.WavFileName = vstPreset.Parameters["wave-file-name"].StringValue;
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        string key = string.Format("image-file-name-{0}", (i + 1));
+                        if (vstPreset.Parameters.ContainsKey(key))
+                        {
+                            reverence.Images.Add(vstPreset.Parameters[key].StringValue);
+                        }
+                    }
+
+                    reverence.Write(outputFilePath + ".vstpreset");
+
+                    using (var tw = new StreamWriter(outputFilePath))
+                    {
+                        foreach (var param in vstPreset.Parameters)
+                        {
+                            tw.WriteLine(param.Value);
+                        }
+                    }
+                }
                 else
                 {
                     File.WriteAllText(outputFilePath, vstPreset.ToString());

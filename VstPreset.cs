@@ -337,7 +337,7 @@ namespace AbletonLiveConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    //WriteListElements(bf, Console.Out);
+                    WriteListElements(bf, Console.Out);
 
                     return;
                 }
@@ -381,7 +381,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        //WriteListElements(bf, Console.Out);
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -401,7 +401,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        //WriteListElements(bf, Console.Out);
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -424,7 +424,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        //WriteListElements(bf, Console.Out);
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -508,7 +508,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        //WriteListElements(bf, Console.Out);
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -533,7 +533,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        //WriteListElements(bf, Console.Out);
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -583,7 +583,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        //WriteListElements(bf, Console.Out);
+                        WriteListElements(bf, Console.Out);
 
                         return;
                     }
@@ -648,7 +648,7 @@ namespace AbletonLiveConverter
                 var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                 this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
 
-                //WriteListElements(bf, Console.Out);
+                WriteListElements(bf, Console.Out);
             }
         }
 

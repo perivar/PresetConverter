@@ -537,7 +537,7 @@ namespace CommonUtils
             return true;
         }
 
-        public void WriteStringNull(string text, Encoding encoding)
+        public int WriteStringNull(string text, Encoding encoding)
         {
             if (binaryWriter == null)
                 throw new ArgumentNullException("output");
@@ -548,8 +548,13 @@ namespace CommonUtils
             if (encoding == null)
                 throw new ArgumentNullException("encoding");
 
-            binaryWriter.Write(encoding.GetBytes(text));
-            binaryWriter.Write(encoding.GetBytes("\0"));
+            var contentBytes = encoding.GetBytes(text);
+            var endBytes = encoding.GetBytes("\0");
+
+            binaryWriter.Write(contentBytes);
+            binaryWriter.Write(endBytes);
+
+            return contentBytes.Length + endBytes.Length;
         }
         #endregion
 

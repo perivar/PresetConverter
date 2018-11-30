@@ -41,7 +41,7 @@ namespace AbletonLiveConverter
             this.Parameters.Add(name, parameter);
         }
 
-        public void InitChunkData()
+        public virtual void InitChunkData()
         {
             var memStream = new MemoryStream();
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
