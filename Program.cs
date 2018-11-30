@@ -230,7 +230,7 @@ namespace AbletonLiveConverter
                     reverence.Parameters["bypass"].NumberValue = vstPreset.Parameters["bypass"].NumberValue;
                     reverence.Parameters["allowFading"].NumberValue = vstPreset.Parameters["allowFading"].NumberValue;
 
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", outputFileName);
+                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", "Convert_" + outputFileName);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
 
                     reverence.Write(outputFilePathNew + ".vstpreset");
@@ -239,7 +239,19 @@ namespace AbletonLiveConverter
                     {
                         foreach (var param in vstPreset.Parameters)
                         {
-                            tw.WriteLine(param.Value);
+                            switch (param.Value.Type)
+                            {
+                                case VstPreset.Parameter.ParameterType.Number:
+                                    tw.WriteLine(string.Format("[{1}] {0} = {2:0.00}", param.Value.Name, param.Value.Number, param.Value.NumberValue));
+                                    break;
+                                case VstPreset.Parameter.ParameterType.String:
+                                    tw.WriteLine(string.Format("[{0}] = {1}", param.Value.Name, param.Value.StringValue));
+                                    break;
+                                case VstPreset.Parameter.ParameterType.Bytes:
+                                    var shortenedString = Encoding.ASCII.GetString(param.Value.ByteValue.Take(100).ToArray()).Replace('\0', ' ');
+                                    tw.WriteLine(string.Format("[{1}] {0} = {2}", param.Value.Name, param.Value.Number, shortenedString));
+                                    break;
+                            }
                         }
                     }
                 }
