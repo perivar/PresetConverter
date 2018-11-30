@@ -313,14 +313,8 @@ namespace AbletonLiveConverter
         {
             if (file.Contains("_Quad"))
             {
-                // string outputFileName = Path.GetFileNameWithoutExtension(file);
-                // string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
-                // REverenceVSTPresetGenerator.CommandLine(new string[] {
-                //     "-wavdir=\"" + inputDirectoryPath + "\"",
-                //     "-presetdir=\"" + outputDirectoryPath + "\"",
-                //     "-mediafamily=\"TODD-AO\"",
-                //     "-altiverb"
-                //      });
+                // Generate Steinberg REVerence vst preset
+                REverenceVSTPresetGenerator.CreatePreset(file, null, inputDirectoryPath, outputDirectoryPath);
             }
         }
 
