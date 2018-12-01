@@ -119,7 +119,7 @@ public static class REverenceVSTPresetGenerator
         reverence.Parameters["allowFading"].NumberValue = 0.00;
 
         string outputFileName = Path.GetFileNameWithoutExtension(wavFilePath);
-        outputFileName = GetParentPrefix(outputFileName, new DirectoryInfo(wavFilePath), 1).Replace("_Quad", "");
+        outputFileName = GetParentPrefix(outputFileName, new DirectoryInfo(wavFilePath), 2).Replace("_Quad", "");
 
         reverence.WavFilePath1 = wavFilePath;
         reverence.WavFilePath2 = wavFilePath;

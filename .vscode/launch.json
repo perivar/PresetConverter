@@ -127,7 +127,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)\\Scoring Stages (Orchestral Studios)\\Todd-AO - California US",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
                 "-o",
                 "D:\\Development Projects\\Own Projects\\Temp"
             ],
