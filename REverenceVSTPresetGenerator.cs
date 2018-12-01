@@ -60,7 +60,7 @@ public static class REVerenceVSTPresetGenerator
         reverence.Parameters["size"].NumberValue = 100.00;
         reverence.Parameters["level"].NumberValue = 0.00;
         reverence.Parameters["ertailsplit"].NumberValue = 35.00;
-        reverence.Parameters["ertailmix"].NumberValue = 100.00;
+        reverence.Parameters["ertailmix"].NumberValue = 50.00;
         reverence.Parameters["reverse"].NumberValue = 0.00;
         reverence.Parameters["trim"].NumberValue = 0.00;
         reverence.Parameters["autolevel"].NumberValue = 1.00;
