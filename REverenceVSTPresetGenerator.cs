@@ -19,33 +19,18 @@ using AbletonLiveConverter;
 
 public static class REverenceVSTPresetGenerator
 {
-    public static void CreatePreset(string wavFilePath, string imageFilePath, string inputDirectoryPath, string outputDirectoryPath)
+    /// <summary>
+    /// Generate REVerence preset
+    /// </summary>
+    /// <param name="wavFilePath"></param>
+    /// <param name="imagePaths">optional images.</param>
+    /// <param name="outputDirectoryPath"></param>
+    /// <param name="includeParentDirsInName">if number > 0 we are using the number of parent directories in the filename</param>
+    public static void CreatePreset(string wavFilePath, List<string> imagePaths, string outputDirectoryPath, int includeParentDirsInName)
     {
-        bool automaticImageMode = imageFilePath == null ? true : false;
+        bool automaticImageMode = imagePaths == null || imagePaths.Count == 0 ? true : false;
         var images = new List<string>();
 
-        // Altiverb mode?
-        // guess image name based on the image content in the parent directory?
-        // i.e 
-        // Scoring Stages (Orchestral Studios)\Todd-AO - California US:
-        // Todd-AO-2779.jpg
-        // Todd-AO-2782.jpg
-        // Todd-AO-2813.jpg
-        // Todd-AO-Marcs-layout.jpg
-        // TODD-stats.jpg
-        //
-        // Cathedrals\Caen - Saint-Etienne:
-        // caen  interior 1.jpg
-        // caen  interior 2 .jpg
-        // caen  interior 3.jpg
-        // caen  exterior.jpg
-        // caen IR stats.jpg
-        // St Etienne Caen.mov ?!!!
-        //
-        // Tombs\Vigeland Mausoleum (Oslo):
-        // 1 Vigeland-Museum-interior.jpg
-        // Vigeland-Museum-exterior.jpg
-        // Vigeland-Museum-stats.jpg				
         if (automaticImageMode)
         {
             // Rule, look in parent directory for file
@@ -56,13 +41,13 @@ public static class REverenceVSTPresetGenerator
                 foreach (FileInfo fi in imageFiles)
                 {
                     images.Add(fi.FullName);
-                    Console.Out.WriteLine("Altiverb Mode - Found image file to use: {0}", fi.Name);
+                    Console.Out.WriteLine("Found image file to use: {0}", fi.Name);
                 }
             }
         }
         else
         {
-            if (imageFilePath != null) images.Add(imageFilePath);
+            if (imagePaths != null && imagePaths.Count > 0) images.AddRange(imagePaths);
         }
 
         if (images.Count == 0)
@@ -71,9 +56,10 @@ public static class REverenceVSTPresetGenerator
         }
         else
         {
-            Console.WriteLine("Using images: {0}", images.Count);
+            Console.WriteLine("Using {0} images.", images.Count);
         }
 
+        // build preset
         var reverence = new SteinbergREVerence();
 
         // copy the images
@@ -119,16 +105,23 @@ public static class REverenceVSTPresetGenerator
         reverence.Parameters["allowFading"].NumberValue = 0.00;
 
         string outputFileName = Path.GetFileNameWithoutExtension(wavFilePath);
-        outputFileName = GetParentPrefix(outputFileName, new DirectoryInfo(wavFilePath), 2).Replace("_Quad", "");
+        if (includeParentDirsInName > 0)
+        {
+            outputFileName = GetParentPrefix(outputFileName, new DirectoryInfo(wavFilePath), includeParentDirsInName);
+        }
+
+        // remove the Quad term from the file name
+        outputFileName.Replace("_Quad", "");
+        outputFileName.Replace("Quad", "");
 
         reverence.WavFilePath1 = wavFilePath;
         reverence.WavFilePath2 = wavFilePath;
         reverence.WavFileName = outputFileName;
 
-        string outputFilePath = Path.Combine(outputDirectoryPath, "REVerence", "Imported_" + outputFileName);
         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
+        string outputFilePath = Path.Combine(outputDirectoryPath, "REVerence", "Imported-" + outputFileName + ".vstpreset");
 
-        reverence.Write(outputFilePath + ".vstpreset");
+        reverence.Write(outputFilePath);
     }
 
     private static void CreateDirectoryIfNotExist(string filePath)
@@ -149,7 +142,7 @@ public static class REverenceVSTPresetGenerator
         while (currentLevel < intMaxLevels)
         {
             DirectoryInfo parent = dirNode.Parent;
-            fileName = String.Format("{0}_{1}", parent.Name, fileName);
+            fileName = String.Format("{0} - {1}", parent.Name, fileName);
             dirNode = parent;
             currentLevel++;
         }

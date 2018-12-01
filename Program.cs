@@ -53,7 +53,7 @@ namespace AbletonLiveConverter
                                 HandleWavesXpsPreset(file, outputDirectoryPath);
                                 break;
                             case ".wav":
-                                HandleWaveFile(file, inputDirectoryPath, outputDirectoryPath);
+                                HandleWaveFile(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -84,7 +84,6 @@ namespace AbletonLiveConverter
             var xelement = XElement.Parse(str);
 
             string outputFileName = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = "";
         }
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
@@ -309,12 +308,19 @@ namespace AbletonLiveConverter
             tw.Close();
         }
 
-        private static void HandleWaveFile(string file, string inputDirectoryPath, string outputDirectoryPath)
+        private static void HandleWaveFile(string file, string outputDirectoryPath)
         {
-            if (file.Contains("_Quad"))
+            if (file.Contains("Quad"))
             {
                 // Generate Steinberg REVerence vst preset
-                REverenceVSTPresetGenerator.CreatePreset(file, null, inputDirectoryPath, outputDirectoryPath);
+                if (file.Contains("Altiverb"))
+                {
+                    REverenceVSTPresetGenerator.CreatePreset(file, null, outputDirectoryPath, 2);
+                }
+                else
+                {
+                    REverenceVSTPresetGenerator.CreatePreset(file, null, outputDirectoryPath, 0);
+                }
             }
         }
 
