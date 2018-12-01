@@ -20,6 +20,7 @@ namespace AbletonLiveConverter
             app.HelpOption();
             var optionInputDirectory = app.Option("-i|--input <path>", "The Input directory", CommandOptionType.SingleValue);
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
+            var optionInputExtra = app.Option("-e|--extra <path>", "Extra information as used by the different converters", CommandOptionType.SingleValue);
 
             app.OnExecute(() =>
             {
@@ -28,6 +29,7 @@ namespace AbletonLiveConverter
                 {
                     string inputDirectoryPath = optionInputDirectory.Value();
                     string outputDirectoryPath = optionOutputDirectory.Value();
+                    string inputExtra = optionInputExtra.Value();
 
                     var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
@@ -53,7 +55,7 @@ namespace AbletonLiveConverter
                                 HandleWavesXpsPreset(file, outputDirectoryPath);
                                 break;
                             case ".wav":
-                                HandleWaveFile(file, outputDirectoryPath);
+                                HandleWaveFile(file, outputDirectoryPath, inputExtra);
                                 break;
                         }
                     }
@@ -308,19 +310,34 @@ namespace AbletonLiveConverter
             tw.Close();
         }
 
-        private static void HandleWaveFile(string file, string outputDirectoryPath)
+        private static void HandleWaveFile(string file, string outputDirectoryPath, string inputExtra)
         {
-            if (file.Contains("Quad"))
+            if (file.Contains("Quad.wav"))
             {
+                var images = new List<string>();
+                if (inputExtra != null) images.Add(inputExtra);
+
                 // Generate Steinberg REVerence vst preset
                 if (file.Contains("Altiverb"))
                 {
-                    REverenceVSTPresetGenerator.CreatePreset(file, null, outputDirectoryPath, 2);
+                    REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "Altiverb_", 2);
+                }
+                else if (file.Contains("Bricasti"))
+                {
+                    REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "Bricasti_");
+                }
+                else if (file.Contains("Lexicon"))
+                {
+                    REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "Lexicon_");
                 }
                 else
                 {
-                    REverenceVSTPresetGenerator.CreatePreset(file, null, outputDirectoryPath, 0);
+                    REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath);
                 }
+            }
+            else
+            {
+                Console.WriteLine("Ignoring {0} ...", file);
             }
         }
 

@@ -119,7 +119,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (DAW) WAV",
+            "name": ".NET Core Launch (DAW) Altiverb Wav",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -130,6 +130,27 @@
                 "G:\\SAMPLES\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
                 "-o",
                 "D:\\Development Projects\\Own Projects\\Temp"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (DAW) Bricasti Wav",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "args": [
+                "-i",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
+                "-o",
+                "D:\\Development Projects\\Own Projects\\Temp",
+                "-e",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Bricasti M7.JPG",
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

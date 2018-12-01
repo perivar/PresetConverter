@@ -1,33 +1,21 @@
-/* 
-	REVerenceVSTPresetGenerator 
-	Copyright  Per Ivar Nerseth 2011 
-	Version 1.6
-    http://192.168.10.159/backup/
-*/
 using System;
-using System.Xml;
-using System.IO;
-using System.Globalization;
-using System.Net;
 using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Linq;
-
-using CommonUtils;
+using System.IO;
 using AbletonLiveConverter;
 
-public static class REverenceVSTPresetGenerator
+public static class REVerenceVSTPresetGenerator
 {
     /// <summary>
     /// Generate REVerence preset
     /// </summary>
-    /// <param name="wavFilePath"></param>
-    /// <param name="imagePaths">optional images.</param>
-    /// <param name="outputDirectoryPath"></param>
-    /// <param name="includeParentDirsInName">if number > 0 we are using the number of parent directories in the filename</param>
-    public static void CreatePreset(string wavFilePath, List<string> imagePaths, string outputDirectoryPath, int includeParentDirsInName)
+    /// <param name="wavFilePath">input wav</param>
+    /// <param name="imagePaths">optional images (null or zero for automatic)</param>
+    /// <param name="outputDirectoryPath">output directory</param>
+    /// <param name="filePrefix">file name prefix (null for 'Imported')</param>
+    /// <param name="includeParentDirsInName">if number > 0 we are using the number of parent directories in the filename</param>    
+    public static void CreatePreset(string wavFilePath, List<string> imagePaths, string outputDirectoryPath, string filePrefix = null, int includeParentDirsInName = 0)
     {
+        if (filePrefix == null) filePrefix = "Imported_";
         bool automaticImageMode = imagePaths == null || imagePaths.Count == 0 ? true : false;
         var images = new List<string>();
 
@@ -111,15 +99,15 @@ public static class REverenceVSTPresetGenerator
         }
 
         // remove the Quad term from the file name
-        outputFileName.Replace("_Quad", "");
-        outputFileName.Replace("Quad", "");
+        outputFileName = outputFileName.Replace("_Quad", "");
+        outputFileName = outputFileName.Replace("Quad", "");
 
         reverence.WavFilePath1 = wavFilePath;
         reverence.WavFilePath2 = wavFilePath;
         reverence.WavFileName = outputFileName;
 
         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
-        string outputFilePath = Path.Combine(outputDirectoryPath, "REVerence", "Imported-" + outputFileName + ".vstpreset");
+        string outputFilePath = Path.Combine(outputDirectoryPath, "REVerence", filePrefix + outputFileName + ".vstpreset");
 
         reverence.Write(outputFilePath);
     }
