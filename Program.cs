@@ -230,7 +230,7 @@ namespace AbletonLiveConverter
                     reverence.Parameters["bypass"].NumberValue = vstPreset.Parameters["bypass"].NumberValue;
                     reverence.Parameters["allowFading"].NumberValue = vstPreset.Parameters["allowFading"].NumberValue;
 
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", "Convert_" + outputFileName);
+                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + outputFileName);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
 
                     reverence.Write(outputFilePathNew + ".vstpreset");

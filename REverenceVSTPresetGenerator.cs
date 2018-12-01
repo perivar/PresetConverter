@@ -57,7 +57,6 @@ public static class REverenceVSTPresetGenerator
                 {
                     images.Add(fi.FullName);
                     Console.Out.WriteLine("Altiverb Mode - Found image file to use: {0}", fi.Name);
-                    break;
                 }
             }
         }
