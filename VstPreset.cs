@@ -7,7 +7,7 @@ using System.Xml;
 using CommonUtils;
 using PresetConverter;
 
-namespace AbletonLiveConverter
+namespace PresetConverter
 {
     /// <summary>
     /// A Steinberg .vstpreset file
@@ -238,7 +238,7 @@ namespace AbletonLiveConverter
                 {
                     for (int i = 0; i < listElementValue; i++)
                     {
-                        // read COMP and 16 bytes
+                        // read Comp and 16 bytes
                         // parameter data start position
                         // byte length from parameter data start position up until xml data
 
@@ -337,7 +337,7 @@ namespace AbletonLiveConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    WriteListElements(bf, Console.Out);
+                    VerifyListElements(bf, Console.Out);
 
                     return;
                 }
@@ -381,7 +381,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        VerifyListElements(bf, Console.Out);
 
                         return;
                     }
@@ -401,7 +401,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        VerifyListElements(bf, Console.Out);
 
                         return;
                     }
@@ -424,7 +424,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        VerifyListElements(bf, Console.Out);
 
                         return;
                     }
@@ -508,7 +508,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        VerifyListElements(bf, Console.Out);
 
                         return;
                     }
@@ -533,7 +533,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        VerifyListElements(bf, Console.Out);
 
                         return;
                     }
@@ -583,7 +583,7 @@ namespace AbletonLiveConverter
                         var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                         this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                        WriteListElements(bf, Console.Out);
+                        VerifyListElements(bf, Console.Out);
 
                         return;
                     }
@@ -648,27 +648,36 @@ namespace AbletonLiveConverter
                 var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                 this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
 
-                WriteListElements(bf, Console.Out);
+                VerifyListElements(bf, Console.Out);
             }
         }
 
-        private void WriteListElements(BinaryFile bf, TextWriter writer)
+        private void VerifyListElements(BinaryFile bf, TextWriter writer)
         {
             // read LIST and 4 bytes
             string listElement = bf.ReadString(4);
             UInt32 listElementValue = bf.ReadUInt32();
-            writer.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
-
             if (listElement.Equals("List"))
             {
+                // writer.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
                 for (int i = 0; i < listElementValue; i++)
                 {
-                    // read COMP and 16 bytes
+                    // read Comp and 16 bytes
                     // read Cont and 16 bytes
                     // read Info and 16 bytes
                     var element = ReadListElement(bf);
-                    writer.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
+                    if (!element.ID.Equals("Comp")
+                    && !element.ID.Equals("Cont")
+                    && !element.ID.Equals("Info"))
+                    {
+                        writer.WriteLine("ERROR - expected 'Comp|Cont|Info' but got: {0} {1} {2}", element.ID, element.Offset, element.Size);
+                    }
+                    // writer.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                 }
+            }
+            else
+            {
+                writer.WriteLine("ERROR - expected 'List' but got: {0} {1}", listElement, listElementValue);
             }
         }
 

@@ -8,7 +8,7 @@ namespace SDIR2WavConverter
     /// <summary>
     /// Logic Space Designer Impulse files (SDIR).
     /// </summary>
-    public class SdirPreset
+    public class LogicSpaceDesignerImpulse
     {
         /*
         The "EA IFF 85 Standard for Interchange Format Files" defines an overall
@@ -99,7 +99,7 @@ namespace SDIR2WavConverter
             set { this.waveformData = value; }
         }
 
-        public SdirPreset()
+        public LogicSpaceDesignerImpulse()
         {
         }
 
@@ -213,9 +213,9 @@ namespace SDIR2WavConverter
             throw new NotImplementedException();
         }
 
-        public static SdirPreset ReadSdirPreset(string filePath)
+        public static LogicSpaceDesignerImpulse ReadSdirPreset(string filePath)
         {
-            SdirPreset sdir = new SdirPreset();
+            LogicSpaceDesignerImpulse sdir = new LogicSpaceDesignerImpulse();
             if (sdir.Read(filePath))
             {
                 return sdir;

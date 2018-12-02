@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace AbletonLiveConverter
+namespace PresetConverter
 {
     public class AbletonEq8
     {

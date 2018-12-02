@@ -1,7 +1,6 @@
 using System;
-using PresetConverter;
 
-namespace AbletonLiveConverter
+namespace PresetConverter
 {
     // see http://gigi.nullneuron.net/gigilabs/the-adapter-design-pattern-for-dtos-in-c/
     public static class AbletonToWavesAdapterExtensions

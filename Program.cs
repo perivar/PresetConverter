@@ -353,7 +353,7 @@ namespace AbletonLiveConverter
         private static void HandleSDIRFile(string file, string outputDirectoryPath)
         {
             // Convert Logic Space Designer Impulse files to .wav
-            SdirPreset sdir = SdirPreset.ReadSdirPreset(file);
+            LogicSpaceDesignerImpulse sdir = LogicSpaceDesignerImpulse.ReadSdirPreset(file);
             if (sdir != null)
             {
                 string outputFileName = Path.GetFileNameWithoutExtension(file);

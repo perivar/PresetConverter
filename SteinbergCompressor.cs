@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml;
 using CommonUtils;
 
-namespace AbletonLiveConverter
+namespace PresetConverter
 {
     /// <summary>
     /// A Steinberg Compressor Plugin .vstpreset file
