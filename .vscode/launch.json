@@ -159,6 +159,65 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
+            "name": ".NET Core Launch (DAW) TCE Wav",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "args": [
+                "-i",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
+                "-o",
+                "D:\\Development Projects\\Own Projects\\Temp",
+                "-e",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\TCE System 6000.jpg",
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (DAW) Lexicon 480 Wav",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "args": [
+                "-i",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\Lexicon 480",
+                "-o",
+                "D:\\Development Projects\\Own Projects\\Temp"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (DAW) Logic SDIR",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "args": [
+                "-i",
+                "G:\\SAMPLES\\IMPULSE RESPONSES\\Logic Space Designer",
+                "-o",
+                "D:\\Development Projects\\Own Projects\\Temp",
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",

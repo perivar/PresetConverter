@@ -5,8 +5,10 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using CommonUtils.Audio;
 using McMaster.Extensions.CommandLineUtils;
 using PresetConverter;
+using SDIR2WavConverter;
 
 namespace AbletonLiveConverter
 {
@@ -31,15 +33,15 @@ namespace AbletonLiveConverter
                     string outputDirectoryPath = optionOutputDirectory.Value();
                     string inputExtra = optionInputExtra.Value();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
-                    .Where(s => extensions.Contains(Path.GetExtension(s)));
+                    .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
 
                     foreach (var file in files)
                     {
                         Console.WriteLine("Processing {0} ...", file);
 
-                        string extension = new FileInfo(file).Extension;
+                        string extension = new FileInfo(file).Extension.ToLowerInvariant();
                         switch (extension)
                         {
                             case ".als":
@@ -56,6 +58,9 @@ namespace AbletonLiveConverter
                                 break;
                             case ".wav":
                                 HandleWaveFile(file, outputDirectoryPath, inputExtra);
+                                break;
+                            case ".sdir":
+                                HandleSDIRFile(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -312,11 +317,11 @@ namespace AbletonLiveConverter
 
         private static void HandleWaveFile(string file, string outputDirectoryPath, string inputExtra)
         {
+            var images = new List<string>();
+            if (inputExtra != null) images.Add(inputExtra);
+
             if (file.Contains("Quad.wav"))
             {
-                var images = new List<string>();
-                if (inputExtra != null) images.Add(inputExtra);
-
                 // Generate Steinberg REVerence vst preset
                 if (file.Contains("Altiverb"))
                 {
@@ -326,18 +331,34 @@ namespace AbletonLiveConverter
                 {
                     REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "Bricasti_");
                 }
-                else if (file.Contains("Lexicon"))
+                else if (file.Contains("TCE System"))
                 {
-                    REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "Lexicon_");
+                    REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "TCE_");
                 }
                 else
                 {
                     REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath);
                 }
             }
+            else if (file.Contains("Lexicon"))
+            {
+                REVerenceVSTPresetGenerator.CreatePreset(file, images, outputDirectoryPath, "", 2);
+            }
             else
             {
                 Console.WriteLine("Ignoring {0} ...", file);
+            }
+        }
+
+        private static void HandleSDIRFile(string file, string outputDirectoryPath)
+        {
+            // Convert Logic Space Designer Impulse files to .wav
+            SdirPreset sdir = SdirPreset.ReadSdirPreset(file);
+            if (sdir != null)
+            {
+                string outputFileName = Path.GetFileNameWithoutExtension(file);
+                string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".wav");
+                SoundIO.WriteWaveFile(outputFilePath, sdir.WaveformData, false, sdir.Channels, sdir.SampleRate, sdir.BitsPerSample);
             }
         }
 
