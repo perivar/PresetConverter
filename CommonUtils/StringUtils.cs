@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using System.IO;
@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace CommonUtils
 {
@@ -168,7 +169,7 @@ namespace CommonUtils
         /// <returns>formatted string</returns>
         public static string RemoveInvalidCharacters(string strIn)
         {
-            return Regex.Replace(strIn, @"[^\w\.@-]", "");
+            return Regex.Replace(strIn, @"[^\w\.@-]", string.Empty);
         }
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace CommonUtils
         {
             // Replace invalid characters with empty strings.
             // only letters, dots, the email 'at' and '-' are allowed
-            return Regex.Replace(strIn, @"[^\w\.\s@-]", "");
+            return Regex.Replace(strIn, @"[^\w\.\s@-]", string.Empty);
         }
 
         /// <summary>
@@ -191,6 +192,27 @@ namespace CommonUtils
         public static string RemoveNonAsciiCharacters(string strIn)
         {
             return Regex.Replace(strIn, @"[^\u0000-\u007F]", string.Empty);
+        }
+
+        /// <summary>
+        /// Faster version to remove non ascii characters from string
+        /// According to https://stackoverflow.com/questions/3210393/how-do-i-remove-all-non-alphanumeric-characters-from-a-string-except-dash
+        /// and
+        /// https://rosettacode.org/wiki/Strip_control_codes_and_extended_characters_from_a_string#C.23
+        /// </summary>
+        /// <param name="strIn">string</param>
+        /// <returns>formatted string</returns>
+        public static string RemoveNonAsciiCharactersFast(string strIn)
+        {
+            StringBuilder buffer = new StringBuilder(strIn.Length); //Max length
+            foreach (char ch in strIn)
+            {
+                UInt16 num = Convert.ToUInt16(ch); // In .NET, chars are UTF-16
+
+                // The basic characters have the same code points as ASCII, and the extended characters are bigger
+                if ((num >= 32u) && (num <= 126u)) buffer.Append(ch);
+            }
+            return buffer.ToString();
         }
 
         /// <summary>
@@ -216,6 +238,62 @@ namespace CommonUtils
             string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
             string invalidReStr = string.Format(@"[{0}]+", invalidChars);
             return Regex.Replace(name, invalidReStr, "_");
+        }
+
+        private static readonly string[] _headerEncodingTable = new string[] {
+            "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
+            "%08", "%09", "%0a", "%0b", "%0c", "%0d", "%0e", "%0f",
+            "%10", "%11", "%12", "%13", "%14", "%15", "%16", "%17",
+            "%18", "%19", "%1a", "%1b", "%1c", "%1d", "%1e", "%1f"
+        };
+
+        // Returns true if the string contains a control character (other than horizontal tab) or the DEL character.
+        private static bool HeaderValueNeedsEncoding(string value)
+        {
+            foreach (char c in value)
+            {
+                if ((c < 32 && c != 9) || (c == 127))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Encode the header if it contains a CRLF pair
+        // VSWhidbey 257154
+        public static string HeaderEncode(string value)
+        {
+            string sanitizedHeader = value;
+
+            if (HeaderValueNeedsEncoding(value))
+            {
+                // DevDiv Bugs 146028
+                // Denial Of Service scenarios involving 
+                // control characters are possible.
+                // We are encoding the following characters:
+                // - All CTL characters except HT (horizontal tab)
+                // - DEL character (\x7f)
+                StringBuilder sb = new StringBuilder();
+                foreach (char c in value)
+                {
+                    if (c < 32 && c != 9)
+                    {
+                        sb.Append(_headerEncodingTable[c]);
+                    }
+                    else if (c == 127)
+                    {
+                        sb.Append("%7f");
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+                }
+                sanitizedHeader = sb.ToString();
+            }
+
+            return sanitizedHeader;
         }
 
         /// <summary>
@@ -460,8 +538,11 @@ namespace CommonUtils
             return new string(chars);
         }
 
-
-        // Convert the string to Pascal case.
+        /// <summary>
+        /// Convert the string to Pascal case. 
+        /// </summary>
+        /// <param name="the_string">the string</param>
+        /// <returns>the case converter to pascal case</returns>
         public static string ToPascalCase(this string the_string)
         {
             // If there are 0 or 1 characters, just return the string.
@@ -485,7 +566,11 @@ namespace CommonUtils
             return result;
         }
 
-        // Convert the string to camel case.
+        /// <summary>
+        /// Convert the string to Camel case. 
+        /// </summary>
+        /// <param name="the_string">the string</param>
+        /// <returns>the case converter to camel case</returns>
         public static string ToCamelCase(this string the_string)
         {
             // If there are 0 or 1 characters, just return the string.
@@ -508,8 +593,12 @@ namespace CommonUtils
             return result;
         }
 
-        // Capitalize the first character and add a space before
-        // each capitalized letter (except the first character).
+        /// <summary>
+        /// Capitalize the first character and add a space before 
+        /// each capitalized letter (except the first character).
+        /// </summary>
+        /// <param name="the_string">the string</param>
+        /// <returns>the case converter to proper case</returns>
         public static string ToProperCase(this string the_string)
         {
             // If there are 0 or 1 characters, just return the string.
@@ -549,5 +638,81 @@ namespace CommonUtils
 
             return stringAfterSearchWord;
         }
+
+        /// <summary>
+        /// Checks if the string contains only ASCII printable characters.
+        /// 
+        /// code>null</code> will return <code>false</code>.
+        /// An empty String ("") will return <code>true</code>.
+        /// 
+        /// <pre>
+        /// StringUtils.IsAsciiPrintable(null)     = false
+        /// StringUtils.IsAsciiPrintable("")       = true
+        /// StringUtils.IsAsciiPrintable(" ")      = true
+        /// StringUtils.IsAsciiPrintable("Ceki")   = true
+        /// StringUtils.IsAsciiPrintable("ab2c")   = true
+        /// StringUtils.IsAsciiPrintable("!ab-c~") = true
+        /// StringUtils.IsAsciiPrintable("\u0020") = true
+        /// StringUtils.IsAsciiPrintable("\u0021") = true
+        /// StringUtils.IsAsciiPrintable("\u007e") = true
+        /// StringUtils.IsAsciiPrintable("\u007f") = false
+        /// StringUtils.IsAsciiPrintable("Ceki G\u00fclc\u00fc") = false
+        /// </pre>
+        /// </summary>
+        /// <param name="str">param str the string to check, may be null</param>
+        /// <returns>return <code>true</code> if every character is in the range 32 thru 126</returns>
+        public static bool IsAsciiPrintable(String str)
+        {
+            if (str == null)
+            {
+                return false;
+            }
+            int sz = str.Length;
+            for (int i = 0; i < sz; i++)
+            {
+                if (IsAsciiPrintable(str[i]) == false)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether the character is ASCII 7 bit printable.
+        /// <pre>
+        ///   StringUtils.IsAsciiPrintable('a')  = true
+        ///   StringUtils.IsAsciiPrintable('A')  = true
+        ///   StringUtils.IsAsciiPrintable('3')  = true
+        ///   StringUtils.IsAsciiPrintable('-')  = true
+        ///   StringUtils.IsAsciiPrintable('\n') = false
+        ///   StringUtils.IsAsciiPrintable('&copy;') = false
+        /// </pre>
+        /// </summary>
+        /// <param name="ch">the character to check</param>
+        /// <returns>true if between 32 and 126 inclusive</returns>
+        public static bool IsAsciiPrintable(char ch)
+        {
+            return ch >= 32 && ch < 127;
+        }
+
+        public static string CreateMD5(string input)
+        {
+            // byte array representation of that string
+            byte[] inputBytes = new UTF8Encoding().GetBytes(input);
+
+            // need MD5 to calculate the hash
+            byte[] hash = ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")).ComputeHash(inputBytes);
+
+            // string representation (similar to UNIX format)
+            string encoded = BitConverter.ToString(hash)
+               // without dashes
+               .Replace("-", string.Empty)
+               // make lowercase
+               .ToLower();
+
+            return encoded;
+        }
+
     }
 }

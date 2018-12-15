@@ -6,9 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using CommonUtils.Audio;
+using CSCore.Codecs.WAV;
 using McMaster.Extensions.CommandLineUtils;
 using PresetConverter;
 using SDIR2WavConverter;
+using Serilog;
 
 namespace AbletonLiveConverter
 {
@@ -16,6 +18,16 @@ namespace AbletonLiveConverter
     {
         static void Main(string[] args)
         {
+            // Setup Logger
+            var logConfig = new LoggerConfiguration()
+                // .WriteTo.File(logFilePath)
+                .WriteTo.Console()
+                // .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Fatal).WriteTo.File(errorLogFilePath))
+                ;
+            logConfig.MinimumLevel.Verbose();
+            Log.Logger = logConfig.CreateLogger();
+
+            // Setup command line parser
             var app = new CommandLineApplication();
             app.Name = "AbletonLiveConverter";
             app.Description = "Convert Ableton Live presets to readable formats";
@@ -33,7 +45,7 @@ namespace AbletonLiveConverter
                     string outputDirectoryPath = optionOutputDirectory.Value();
                     string inputExtra = optionInputExtra.Value();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
 
@@ -61,6 +73,9 @@ namespace AbletonLiveConverter
                                 break;
                             case ".sdir":
                                 HandleSDIRFile(file, outputDirectoryPath);
+                                break;
+                            case ".cpr":
+                                HandleCubaseProjectFile(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -142,6 +157,11 @@ namespace AbletonLiveConverter
                     Console.WriteLine("{0} not supported!", presetType);
                     break;
             }
+        }
+
+        private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
+        {
+            var riffReader = new RIFFFileReader(file);
         }
 
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)

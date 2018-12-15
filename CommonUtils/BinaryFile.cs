@@ -133,6 +133,44 @@ namespace CommonUtils
         }
         #endregion
 
+        public bool CanRead
+        {
+            get
+            {
+                if (null != fs)
+                {
+                    return fs.CanRead;
+                }
+                else if (null != memStream)
+                {
+                    return memStream.CanRead;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public Stream BaseStream
+        {
+            get
+            {
+                if (null != fs)
+                {
+                    return fs;
+                }
+                else if (null != memStream)
+                {
+                    return memStream;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         #region Read Methods
         public byte ReadByte()
         {
