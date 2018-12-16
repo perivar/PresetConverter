@@ -36,22 +36,15 @@ namespace CSCore.Codecs.WAV
             StartPosition = reader.BaseStream.Position;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WaveFileChunk" /> class.
+        /// </summary>
+        /// <param name="startPosition">Zero-based position inside of the stream at which the audio data starts</param> 
+        /// <param name="chunkDataSize">Gets the data size of the chunk.</param>
         public WaveFileChunk(long startPosition, long chunkDataSize)
         {
             StartPosition = startPosition;
             ChunkDataSize = chunkDataSize;
-        }
-
-        public WaveFileChunk(BinaryFile binaryFile)
-        {
-            if (binaryFile == null)
-                throw new ArgumentNullException("binaryFile");
-
-            ChunkID = binaryFile.ReadInt32(BinaryFile.ByteOrder.LittleEndian); // Steinberg CPR files have LittleEndian FourCCs
-            ChunkDataSize = binaryFile.ReadUInt32();
-            StartPosition = binaryFile.Position;
-
-            // Log.Verbose("Processing '{0}'. Start position: {1}, Data size: {2}, End position: {3}", StringUtils.IsAsciiPrintable(FourCC.FromFourCC(ChunkID)) ? FourCC.FromFourCC(ChunkID) : string.Format("int {0} is not FourCC", ChunkID), StartPosition, ChunkDataSize, EndPosition);
         }
 
         /// <summary>
@@ -63,71 +56,6 @@ namespace CSCore.Codecs.WAV
         /// Gets the data size of the chunk.
         /// </summary>
         public long ChunkDataSize { get; private set; }
-
-
-        public static WaveFileChunk FromBinaryFile(BinaryFile binaryFile)
-        {
-            if (binaryFile == null)
-                throw new ArgumentNullException("stream");
-            if (binaryFile.CanRead == false)
-                throw new ArgumentException("stream is not readable");
-
-            int id = binaryFile.ReadInt32(BinaryFile.ByteOrder.LittleEndian); // Steinberg CPR files have LittleEndian FourCCs
-            binaryFile.Position -= 4;
-
-            if (StringUtils.IsAsciiPrintable(FourCC.FromFourCC(id)))
-            {
-                Log.Verbose("Processing chunk: '{0}'", FourCC.FromFourCC(id));
-            }
-            else
-            {
-                if (id == 0)
-                {
-                    // likely corrupt wav file with alot of crap after the chunk
-                    // skip bytes until only 8 bytes are left
-                    // stream.Position = stream.Length - 8;
-                }
-                else
-                {
-                    // try to fix chunks that are not word-aligned but should have been?!
-                    Log.Verbose("Processing chunk: {0}", string.Format("{0} is not FourCC", id));
-                    long origPos = binaryFile.Position;
-
-                    // rewind one byte and try again
-                    binaryFile.Position -= 1;
-                    int id2ndTry = binaryFile.ReadInt32();
-                    binaryFile.Position -= 4;
-
-                    if (StringUtils.IsAsciiPrintable(FourCC.FromFourCC(id2ndTry)))
-                    {
-                        // we believe it worked
-                        Log.Verbose("Seem to have fixed non word-aligned chunk: {0}", FourCC.FromFourCC(id2ndTry));
-                    }
-                    else
-                    {
-                        // still didn't work
-                        // put position back to where it was.
-                        binaryFile.Position = origPos;
-                    }
-                }
-            }
-
-            // check https://github.com/michaelwu/libsndfile/blob/master/src/wav.c
-            // for all possible chunks ids
-            // if (id == FmtChunk.FmtChunkID)
-            //     return new FmtChunk(reader);
-            // if (id == DataChunk.DataChunkID)
-            //     return new DataChunk(reader);
-            // if (id == ListChunk.ListChunkID)
-            //     return new ListChunk(reader);
-
-            // TODO: add bext metadata tag support?
-            // The European Broadcast Union (EBU) has standardized on an extension to the WAVE format that they call Broadcast WAVE format (BWF).  
-            // It is aimed at carrying PCM or MPEG audio data. In its simplest form, it adds a <bext> chunk with additional metadata.  
-            // https://tech.ebu.ch/docs/tech/tech3285.pdf
-
-            return new WaveFileChunk(binaryFile);
-        }
 
         /// <summary>
         /// Parses the <paramref name="stream" /> and returns a <see cref="WaveFileChunk" />. Note that the position of the
@@ -204,10 +132,13 @@ namespace CSCore.Codecs.WAV
         }
 
         /// <summary>
-        /// Gets the zero-based position inside of the stream at which the audio data starts.
+        /// Gets the zero-based position inside of the stream at which the chunk data starts.
         /// </summary>
         public long StartPosition { get; private set; }
 
+        /// <summary>
+        /// Gets the zero-based position inside of the stream at which the chunk data ends.
+        /// </summary>
         public long EndPosition
         {
             get { return StartPosition + ChunkDataSize; }

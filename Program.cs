@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using CommonUtils.Audio;
-using CSCore.Codecs.WAV;
+using CSCore.Codecs.RIFF;
 using McMaster.Extensions.CommandLineUtils;
 using PresetConverter;
 using SDIR2WavConverter;
@@ -161,7 +161,7 @@ namespace AbletonLiveConverter
 
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
         {
-            var riffReader = new RIFFFileReader(file);
+            var riffReader = new RIFFFileReader(file, false);
         }
 
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
