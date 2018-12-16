@@ -177,42 +177,44 @@ namespace CommonUtils
             return binaryReader.ReadByte();
         }
 
-        public byte[] ReadBytes(int size)
+        public byte[] ReadBytes(int count)
         {
-            return ReadBytes(0, size);
+            return ReadBytes(0, count);
         }
 
-        public byte[] ReadBytes(int offset, int size)
+        public byte[] ReadBytes(int offset, int count)
         {
-            if (size <= 0) return new byte[0];
+            if (count <= 0) return new byte[0];
 
-            var bytes = new byte[size];
+            // remember that offset is the starting point in the buffer (bytes), not offset in string.
+            var bytes = new byte[count + offset];
             if (byteOrder == ByteOrder.LittleEndian)
             {
-                int numBytesRead = binaryReader.Read(bytes, offset, size);
+                int numBytesRead = binaryReader.Read(bytes, offset, count);
                 return bytes;
             }
             else
             {
-                int numBytesRead = binaryReader.Read(bytes, offset, size);
+                int numBytesRead = binaryReader.Read(bytes, offset, count);
                 Array.Reverse(bytes);
                 return bytes;
             }
         }
 
-        public byte[] ReadBytes(int offset, int size, ByteOrder byteOrder)
+        public byte[] ReadBytes(int offset, int count, ByteOrder byteOrder)
         {
-            if (size <= 0) return new byte[0];
+            if (count <= 0) return new byte[0];
 
-            var bytes = new byte[size];
+            // remember that offset is the starting point in the buffer (bytes), not offset in string.
+            var bytes = new byte[count + offset];
             if (byteOrder == ByteOrder.LittleEndian)
             {
-                int numBytesRead = binaryReader.Read(bytes, offset, size);
+                int numBytesRead = binaryReader.Read(bytes, offset, count);
                 return bytes;
             }
             else
             {
-                int numBytesRead = binaryReader.Read(bytes, offset, size);
+                int numBytesRead = binaryReader.Read(bytes, offset, count);
                 Array.Reverse(bytes);
                 return bytes;
             }
@@ -309,21 +311,21 @@ namespace CommonUtils
         }
 
         // Note! On .NET Core, the Default Encoding property always returns the UTF8Encoding. 
-        // This might give a different result in byte size than number of characters requested.
-        public char[] ReadChars(int size)
+        // This might give a different result in byte count than number of characters requested.
+        public char[] ReadChars(int count)
         {
-            return binaryReader.ReadChars(size);
+            return binaryReader.ReadChars(count);
         }
 
-        public string ReadString(int size)
+        public string ReadString(int count)
         {
-            var chars = binaryReader.ReadChars(size);
+            var chars = binaryReader.ReadChars(count);
             return new string(chars);
         }
 
-        public string ReadString(int size, Encoding encoding)
+        public string ReadString(int count, Encoding encoding)
         {
-            byte[] bytes = binaryReader.ReadBytes(size);
+            byte[] bytes = binaryReader.ReadBytes(count);
             return encoding.GetString(bytes);
         }
 
@@ -357,7 +359,7 @@ namespace CommonUtils
                 throw new ArgumentNullException("encoding");
 
             byte[] terminator = encoding.GetBytes("\0"); // Problem: The encoding may not have a NULL character
-            int charSize = terminator.Length; // Problem: The character size may be variable
+            int charSize = terminator.Length; // Problem: The character count may be variable
             List<byte> strBytes = new List<byte>();
             byte[] chr;
             while (!(chr = binaryReader.ReadBytes(charSize)).SequenceEqual(terminator))
@@ -608,16 +610,16 @@ namespace CommonUtils
 
         #region Public Static Read Methods
 
-        public static byte[] ReadBytes(BinaryReader reader, int fieldSize, ByteOrder byteOrder)
+        public static byte[] ReadBytes(BinaryReader reader, int count, ByteOrder byteOrder)
         {
-            var bytes = new byte[fieldSize];
+            var bytes = new byte[count];
             if (byteOrder == ByteOrder.LittleEndian)
             {
-                return reader.ReadBytes(fieldSize);
+                return reader.ReadBytes(count);
             }
             else
             {
-                for (int i = fieldSize - 1; i > -1; i--)
+                for (int i = count - 1; i > -1; i--)
                     bytes[i] = reader.ReadByte();
                 return bytes;
             }

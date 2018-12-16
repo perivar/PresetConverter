@@ -19,8 +19,8 @@ namespace CSCore.Codecs.RIFF
         private readonly List<RIFFFileChunk> _chunks;
         private readonly object _lockObj = new object();
         private bool _disposed;
-        private Stream _stream;
-        private readonly bool _closeStream;
+        private BinaryFile _binaryFile;
+        private readonly bool _closeBinaryFile;
         private readonly bool _useWordAlignment;
 
 
@@ -35,30 +35,31 @@ namespace CSCore.Codecs.RIFF
 
             _useWordAlignment = useWordAlignment;
 
-            var binaryFile = new BinaryFile(fileName, BinaryFile.ByteOrder.BigEndian);
-            _stream = binaryFile.BaseStream;
+            _binaryFile = new BinaryFile(fileName, BinaryFile.ByteOrder.BigEndian);
 
-            var firstChunkId = new String(binaryFile.ReadChars(4));
+            var firstChunkId = new String(_binaryFile.ReadChars(4));
             if (firstChunkId == "RIFF")
             {
                 // read RIFF data size
-                var chunkSize = binaryFile.ReadInt32();
+                var chunkSize = _binaryFile.ReadInt32();
 
                 // read form-type (WAVE etc)
-                var field = new string(binaryFile.ReadChars(4));
+                var field = new string(_binaryFile.ReadChars(4));
 
                 Log.Verbose("Processing RIFF. Data size: {0}, field: {1}", chunkSize, field);
 
-                _chunks = ReadChunks(binaryFile);
+                _chunks = ReadChunks(_binaryFile);
             }
             else
             {
-                // unrecognized wave file
+                // unrecognized file format, not a RIFF File
                 _chunks = new List<RIFFFileChunk>(2);
-                Log.Warning("Unknown wave format. First chunk Id: {0}", firstChunkId);
+                Log.Error("Unknown format (not RIFF). First chunk Id: {0}", firstChunkId);
             }
 
             Log.Verbose(GetRIFFFileChunkInformation(Chunks));
+
+            _binaryFile.Position = 0;
         }
 
         /// <summary>
@@ -128,10 +129,10 @@ namespace CSCore.Codecs.RIFF
             {
                 lock (_lockObj)
                 {
-                    if (_stream != null && _closeStream)
+                    if (_binaryFile != null && _closeBinaryFile)
                     {
-                        _stream.Dispose();
-                        _stream = null;
+                        _binaryFile.Dispose();
+                        _binaryFile = null;
                     }
                 }
             }

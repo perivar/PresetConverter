@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using CommonUtils;
 using CommonUtils.Audio;
 using CSCore.Codecs.RIFF;
 using McMaster.Extensions.CommandLineUtils;
@@ -162,8 +163,102 @@ namespace AbletonLiveConverter
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
         {
             var riffReader = new RIFFFileReader(file, false);
+
+            // get fourth chunk
+            var chunk = riffReader.Chunks[3];
+
+            // get byte array
+            var bytes = chunk.Read((int)chunk.StartPosition, (int)chunk.ChunkDataSize);
+
+            // search for 'Plugin UID'
+            var bytePattern = Encoding.ASCII.GetBytes("Plugin UID");
+            var indices = VstPreset.FindAll(bytes, bytePattern);
+            // var indices = bytes.Locate(bytePattern);
+
+            var binFile = new BinaryFile(bytes, BinaryFile.ByteOrder.BigEndian);
+            foreach (int i in indices)
+            {
+                // create a binary reader
+                binFile.Seek(i);
+
+                // 'Plugin UID' Field            
+                var pluginUIDField = binFile.ReadString(11, Encoding.ASCII).TrimEnd('\0');
+
+                var t1 = binFile.ReadInt16();
+                var t2 = binFile.ReadInt16();
+                var t3 = binFile.ReadInt32();
+
+                // GUID Field
+                var guidFieldLen = binFile.ReadInt32();
+                var guidField = binFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
+                var t4 = binFile.ReadInt16();
+
+                // GUID
+                var guidLen = binFile.ReadInt32();
+                var guid = binFile.ReadString(guidLen, Encoding.UTF8);
+                Console.WriteLine("GUID: {0}", guid);
+
+                // 'Plugin Name' Field
+                var pluginNameFieldLen = binFile.ReadInt32();
+                var pluginNameField = binFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
+                var t5 = binFile.ReadInt16();
+
+                // Plugin Name
+                var pluginNameLen = binFile.ReadInt32();
+                var pluginName = binFile.ReadString(pluginNameLen, Encoding.UTF8);
+                Console.WriteLine("Plugin Name: {0}", pluginName);
+
+                // Read Next Field
+                // 'Original Plugin Name' or 'Audio Input Count'
+                var len = binFile.ReadInt32();
+                var nextField = binFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
+
+                if (nextField.Equals("Original Plugin Name"))
+                {
+                    var t6 = binFile.ReadInt16();
+                    var origPluginNameLen = binFile.ReadInt32();
+                    var origPluginluginName = binFile.ReadString(origPluginNameLen, Encoding.UTF8);
+                    Console.WriteLine("Original Plugin Name: {0}", origPluginluginName);
+                }
+
+                // skip to 'audioComponent'
+                var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
+                int audioComponentIndex = IndexOf(binFile, audioComponentPattern, 0);
+
+                var t7 = binFile.ReadInt16();
+                var t8 = binFile.ReadInt16();
+                var presetByteLen = binFile.ReadInt32();
+                Console.WriteLine("Reading preset bytes: {0}", presetByteLen);
+                var presetBytes = binFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
+
+                var nextFieldLen2 = binFile.ReadInt32();
+                var nextField2 = binFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');
+                Console.WriteLine("Found {0}", nextField2);
+            }
         }
 
+        public static int IndexOf(BinaryFile binaryFile, byte[] pattern, int offset)
+        {
+            int success = 0;
+            for (int i = 0; i < binaryFile.Length - binaryFile.Position; i++)
+            {
+                var b = binaryFile.ReadByte();
+                if (b == pattern[success])
+                {
+                    success++;
+                }
+                else
+                {
+                    success = 0;
+                }
+
+                if (pattern.Length == success)
+                {
+                    return (int)(binaryFile.Position - pattern.Length + 1);
+                }
+            }
+            return -1;
+        }
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = new SteinbergVstPreset(file);

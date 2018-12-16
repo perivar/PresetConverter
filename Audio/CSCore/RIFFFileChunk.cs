@@ -12,6 +12,9 @@ namespace CSCore.Codecs.RIFF
     /// </summary>
     public class RIFFFileChunk
     {
+        private readonly object _lockObj = new object();
+        private BinaryFile _binaryFile;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RIFFFileChunk" /> class.
         /// </summary>
@@ -20,6 +23,8 @@ namespace CSCore.Codecs.RIFF
         {
             if (binaryFile == null)
                 throw new ArgumentNullException("binaryFile");
+
+            _binaryFile = binaryFile;
 
             ChunkID = binaryFile.ReadInt32(BinaryFile.ByteOrder.LittleEndian); // Steinberg CPR files have LittleEndian FourCCs
             ChunkDataSize = binaryFile.ReadUInt32();
@@ -109,5 +114,22 @@ namespace CSCore.Codecs.RIFF
         {
             get { return StartPosition + ChunkDataSize; }
         }
+
+        public byte[] Read(int offset, int count)
+        {
+            lock (_lockObj)
+            {
+                // remember that offset is the starting point in the buffer (bytes), not offset in string.
+                // so use seek instead
+                _binaryFile.Seek(offset, SeekOrigin.Begin);
+
+                count = (int)Math.Min(count, EndPosition - _binaryFile.Position);
+                if (count <= 0)
+                    return new byte[0];
+
+                return _binaryFile.ReadBytes(0, count, BinaryFile.ByteOrder.LittleEndian);
+            }
+        }
+
     }
 }

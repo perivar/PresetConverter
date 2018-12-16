@@ -3,8 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using CSCore.Codecs.WAV;
-/* using CSCore.SoundOut;
- */
+
 namespace CSCore
 {
     /// <summary>
@@ -91,7 +90,7 @@ namespace CSCore
             return TimeConverterFactory.Instance.GetTimeConverterForSource(source)
                 .ToTimeSpan(source.WaveFormat, elementCount);
         }
-      
+
         /// <summary>
         /// Converts a duration in raw elements to a duration in milliseconds. For more information about "raw elements" see remarks.
         /// </summary>
@@ -123,7 +122,7 @@ namespace CSCore
             if (elementCount < 0)
                 throw new ArgumentOutOfRangeException("elementCount");
 
-            return (long) GetTime(source, elementCount).TotalMilliseconds;
+            return (long)GetTime(source, elementCount).TotalMilliseconds;
         }
 
         /// <summary>
@@ -287,12 +286,12 @@ namespace CSCore
             if (waveSource == null)
                 throw new ArgumentNullException("waveSource");
             count -= (count % waveSource.WaveFormat.BlockAlign);
-            if(count <= 0)
+            if (count <= 0)
                 throw new ArgumentOutOfRangeException("count");
 
             byte[] buffer = new byte[count];
             int read = waveSource.Read(buffer, 0, buffer.Length);
-            if(read < count)
+            if (read < count)
                 Array.Resize(ref buffer, read);
             return buffer;
         }
@@ -315,12 +314,12 @@ namespace CSCore
 
         internal static int LowWord(this int number, int newValue)
         {
-            return (int) ((number & 0xFFFF0000) + (newValue & 0x0000FFFF));
+            return (int)((number & 0xFFFF0000) + (newValue & 0x0000FFFF));
         }
 
         internal static int HighWord(this int number)
         {
-            return (int) (number & 0xFFFF0000);
+            return (int)(number & 0xFFFF0000);
         }
 
         internal static int HighWord(this int number, int newValue)
@@ -335,7 +334,7 @@ namespace CSCore
 
         internal static uint LowWord(this uint number, int newValue)
         {
-            return (uint) ((number & 0xFFFF0000) + (newValue & 0x0000FFFF));
+            return (uint)((number & 0xFFFF0000) + (newValue & 0x0000FFFF));
         }
 
         internal static uint HighWord(this uint number)
@@ -345,7 +344,7 @@ namespace CSCore
 
         internal static uint HighWord(this uint number, int newValue)
         {
-            return (uint) ((number & 0x0000FFFF) + (newValue << 16));
+            return (uint)((number & 0x0000FFFF) + (newValue << 16));
         }
         //--
 
@@ -374,13 +373,13 @@ namespace CSCore
             return thread.Join(timeout);
         }
 
-// ReSharper disable once InconsistentNaming
+        // ReSharper disable once InconsistentNaming
         internal static bool IsPCM(this WaveFormat waveFormat)
         {
             if (waveFormat == null)
                 throw new ArgumentNullException("waveFormat");
             if (waveFormat is WaveFormatExtensible)
-                return ((WaveFormatExtensible) waveFormat).SubFormat == AudioSubTypes.Pcm;
+                return ((WaveFormatExtensible)waveFormat).SubFormat == AudioSubTypes.Pcm;
             return waveFormat.WaveFormatTag == AudioEncoding.Pcm;
         }
 
@@ -389,53 +388,53 @@ namespace CSCore
             if (waveFormat == null)
                 throw new ArgumentNullException("waveFormat");
             if (waveFormat is WaveFormatExtensible)
-                return ((WaveFormatExtensible) waveFormat).SubFormat == AudioSubTypes.IeeeFloat;
+                return ((WaveFormatExtensible)waveFormat).SubFormat == AudioSubTypes.IeeeFloat;
             return waveFormat.WaveFormatTag == AudioEncoding.IeeeFloat;
         }
 
         internal static AudioEncoding GetWaveFormatTag(this WaveFormat waveFormat)
         {
             if (waveFormat is WaveFormatExtensible)
-                return AudioSubTypes.EncodingFromSubType(((WaveFormatExtensible) waveFormat).SubFormat);
+                return AudioSubTypes.EncodingFromSubType(((WaveFormatExtensible)waveFormat).SubFormat);
 
             return waveFormat.WaveFormatTag;
         }
 
-/*         /// <summary>
-        ///     Blocks the current thread until the playback of the specified <paramref name="soundOut"/> instance stops or the specified timeout expires. 
-        /// </summary>
-        /// <param name="soundOut">The <see cref="ISoundOut"/> instance to wait for its playback to stop.</param>
-        /// <param name="millisecondsTimeout">The number of milliseconds to wait. Pass <see cref="Timeout.Infinite"/> to wait indefinitely.</param>
-        /// <returns><c>true</c> if the <paramref name="soundOut"/> got stopped; <c>false</c> if the specified <paramref name="millisecondsTimeout"/> expired.</returns>
-        public static bool WaitForStopped(this ISoundOut soundOut, int millisecondsTimeout)
-        {
-            if (soundOut == null)
-                throw new ArgumentNullException("soundOut");
-            if (millisecondsTimeout < -1)
-                throw new ArgumentOutOfRangeException("millisecondsTimeout");
+        /*         /// <summary>
+                ///     Blocks the current thread until the playback of the specified <paramref name="soundOut"/> instance stops or the specified timeout expires. 
+                /// </summary>
+                /// <param name="soundOut">The <see cref="ISoundOut"/> instance to wait for its playback to stop.</param>
+                /// <param name="millisecondsTimeout">The number of milliseconds to wait. Pass <see cref="Timeout.Infinite"/> to wait indefinitely.</param>
+                /// <returns><c>true</c> if the <paramref name="soundOut"/> got stopped; <c>false</c> if the specified <paramref name="millisecondsTimeout"/> expired.</returns>
+                public static bool WaitForStopped(this ISoundOut soundOut, int millisecondsTimeout)
+                {
+                    if (soundOut == null)
+                        throw new ArgumentNullException("soundOut");
+                    if (millisecondsTimeout < -1)
+                        throw new ArgumentOutOfRangeException("millisecondsTimeout");
 
-            if (soundOut.PlaybackState == PlaybackState.Stopped)
-                return true;
+                    if (soundOut.PlaybackState == PlaybackState.Stopped)
+                        return true;
 
-            using (var waitHandle = new AutoResetEvent(false))
-            {
-                EventHandler<PlaybackStoppedEventArgs> handler = (s, e) => waitHandle.Set();
-                soundOut.Stopped += handler;
-                bool result = waitHandle.WaitOne(millisecondsTimeout);
-                // need to unsubscrive because waitHandle will be disposed
-                soundOut.Stopped -= handler;
-                return result;
-            }
-        }
+                    using (var waitHandle = new AutoResetEvent(false))
+                    {
+                        EventHandler<PlaybackStoppedEventArgs> handler = (s, e) => waitHandle.Set();
+                        soundOut.Stopped += handler;
+                        bool result = waitHandle.WaitOne(millisecondsTimeout);
+                        // need to unsubscrive because waitHandle will be disposed
+                        soundOut.Stopped -= handler;
+                        return result;
+                    }
+                }
 
-        /// <summary>
-        ///     Blocks the current thread until the playback of the specified <paramref name="soundOut"/> instance stops. 
-        /// </summary>
-        /// <param name="soundOut">The <see cref="ISoundOut"/> instance to wait for its playback to stop.</param>
-        public static void WaitForStopped(this ISoundOut soundOut)
-        {
-            WaitForStopped(soundOut, Timeout.Infinite);
-        } */
+                /// <summary>
+                ///     Blocks the current thread until the playback of the specified <paramref name="soundOut"/> instance stops. 
+                /// </summary>
+                /// <param name="soundOut">The <see cref="ISoundOut"/> instance to wait for its playback to stop.</param>
+                public static void WaitForStopped(this ISoundOut soundOut)
+                {
+                    WaitForStopped(soundOut, Timeout.Infinite);
+                } */
 
         //copied from http://stackoverflow.com/questions/9927590/can-i-set-a-value-on-a-struct-through-reflection-without-boxing
         internal static void SetValueForValueType<T>(this FieldInfo field, ref T item, object value) where T : struct

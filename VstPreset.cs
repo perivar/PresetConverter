@@ -890,8 +890,8 @@ namespace PresetConverter
         /// <summary>
         /// Search with an array of bytes to find a specific pattern
         /// </summary>
-        /// <param name="array">byte array</param>
-        /// <param name="pattern">byte array pattern</param>
+        /// <param name="byteArray">byte array</param>
+        /// <param name="bytePattern">byte array pattern</param>
         /// <param name="startIndex">index to start searching at</param>
         /// <param name="count">how many elements to look through</param>
         /// <returns>position</returns>
@@ -910,34 +910,59 @@ namespace PresetConverter
         /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
         /// Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
         /// </example>
-        public int IndexOfBytes(byte[] array, byte[] pattern, int startIndex, int count)
+        public static int IndexOfBytes(byte[] byteArray, byte[] bytePattern, int startIndex, int count)
         {
-            if (array == null || array.Length == 0 || pattern == null || pattern.Length == 0 || count == 0)
+            if (byteArray == null || byteArray.Length == 0 || bytePattern == null || bytePattern.Length == 0 || count == 0)
             {
                 return -1;
             }
 
             int i = startIndex;
-            int endIndex = count > 0 ? Math.Min(startIndex + count, array.Length) : array.Length;
-            int fidx = 0;
-            int lastFidx = 0;
+            int endIndex = count > 0 ? Math.Min(startIndex + count, byteArray.Length) : byteArray.Length;
+            int foundIndex = 0;
+            int lastFoundIndex = 0;
 
             while (i < endIndex)
             {
-                lastFidx = fidx;
-                fidx = (array[i] == pattern[fidx]) ? ++fidx : 0;
-                if (fidx == pattern.Length)
+                lastFoundIndex = foundIndex;
+                foundIndex = (byteArray[i] == bytePattern[foundIndex]) ? ++foundIndex : 0;
+                if (foundIndex == bytePattern.Length)
                 {
-                    return i - fidx + 1;
+                    return i - foundIndex + 1;
                 }
-                if (lastFidx > 0 && fidx == 0)
+                if (lastFoundIndex > 0 && foundIndex == 0)
                 {
-                    i = i - lastFidx;
-                    lastFidx = 0;
+                    i = i - lastFoundIndex;
+                    lastFoundIndex = 0;
                 }
                 i++;
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Find all occurrences of byte pattern in byte array
+        /// </summary>
+        /// <param name="byteArray">byte array</param>
+        /// <param name="bytePattern">byte array pattern</param>
+        /// <returns>positions</returns>
+        /// <example>
+        /// foreach (int i in FindAll(byteArray, bytePattern))
+        /// {
+        ///    Console.WriteLine(i);
+        /// }
+        /// </example>
+        public static IEnumerable<int> FindAll(byte[] byteArray, byte[] bytePattern)
+        {
+            for (int startIndex = 0; startIndex < byteArray.Length - bytePattern.Length;)
+            {
+                int i = IndexOfBytes(byteArray, bytePattern, startIndex, byteArray.Length);
+
+                if (i < 0) break;
+                yield return i;
+
+                startIndex = i + 1;
+            }
         }
 
         public override string ToString()
