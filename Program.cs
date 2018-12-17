@@ -167,98 +167,94 @@ namespace AbletonLiveConverter
             // get fourth chunk
             var chunk = riffReader.Chunks[3];
 
-            // get byte array
-            var bytes = chunk.Read((int)chunk.StartPosition, (int)chunk.ChunkDataSize);
+            // get chunk byte array
+            var chunkBytes = chunk.Read((int)chunk.StartPosition, (int)chunk.ChunkDataSize);
 
-            // search for 'Plugin UID'
-            var bytePattern = Encoding.ASCII.GetBytes("Plugin UID");
-            var indices = VstPreset.FindAll(bytes, bytePattern);
-            // var indices = bytes.Locate(bytePattern);
+            // search for 'VstCtrlInternalEffect'
+            var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
+            var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern);
 
-            var binFile = new BinaryFile(bytes, BinaryFile.ByteOrder.BigEndian);
-            foreach (int i in indices)
+            var binaryFile = riffReader.BinaryFile;
+            foreach (int index in vstEffectIndices)
             {
-                // create a binary reader
-                binFile.Seek(i);
+                // seek to index
+                int vstEffectIndex = (int)chunk.StartPosition + index;
+                Console.WriteLine("vstEffectIndex: {0}", vstEffectIndex);
+                binaryFile.Seek(vstEffectIndex);
 
-                // 'Plugin UID' Field            
-                var pluginUIDField = binFile.ReadString(11, Encoding.ASCII).TrimEnd('\0');
+                // 'VstCtrlInternalEffect' Field            
+                var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
 
-                var t1 = binFile.ReadInt16();
-                var t2 = binFile.ReadInt16();
-                var t3 = binFile.ReadInt32();
+                var pluginFieldLen = binaryFile.ReadInt32();
+                var pluginFieldField = binaryFile.ReadString(pluginFieldLen, Encoding.ASCII).TrimEnd('\0');
+                var t1 = binaryFile.ReadInt16();
+                var t2 = binaryFile.ReadInt16();
+                var t3 = binaryFile.ReadInt32();
 
-                // GUID Field
-                var guidFieldLen = binFile.ReadInt32();
-                var guidField = binFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
-                var t4 = binFile.ReadInt16();
+                // 'Plugin UID' Field
+                var pluginUIDFieldLen = binaryFile.ReadInt32();
+                var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
+                var t4 = binaryFile.ReadInt16();
+                var t5 = binaryFile.ReadInt16();
+                var t6 = binaryFile.ReadInt32();
+
+                // 'GUID' Field
+                var guidFieldLen = binaryFile.ReadInt32();
+                var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
+                var t7 = binaryFile.ReadInt16();
 
                 // GUID
-                var guidLen = binFile.ReadInt32();
-                var guid = binFile.ReadString(guidLen, Encoding.UTF8);
+                var guidLen = binaryFile.ReadInt32();
+                var guid = binaryFile.ReadString(guidLen, Encoding.UTF8);
+                guid = guid.Replace("\0", "");
                 Console.WriteLine("GUID: {0}", guid);
 
                 // 'Plugin Name' Field
-                var pluginNameFieldLen = binFile.ReadInt32();
-                var pluginNameField = binFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
-                var t5 = binFile.ReadInt16();
+                var pluginNameFieldLen = binaryFile.ReadInt32();
+                var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
+                var t8 = binaryFile.ReadInt16();
 
                 // Plugin Name
-                var pluginNameLen = binFile.ReadInt32();
-                var pluginName = binFile.ReadString(pluginNameLen, Encoding.UTF8);
+                var pluginNameLen = binaryFile.ReadInt32();
+                var pluginName = binaryFile.ReadString(pluginNameLen, Encoding.UTF8);
+                pluginName = pluginName.Replace("\0", "");
                 Console.WriteLine("Plugin Name: {0}", pluginName);
 
-                // Read Next Field
                 // 'Original Plugin Name' or 'Audio Input Count'
-                var len = binFile.ReadInt32();
-                var nextField = binFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
+                var len = binaryFile.ReadInt32();
+                var nextField = binaryFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
 
                 if (nextField.Equals("Original Plugin Name"))
                 {
-                    var t6 = binFile.ReadInt16();
-                    var origPluginNameLen = binFile.ReadInt32();
-                    var origPluginluginName = binFile.ReadString(origPluginNameLen, Encoding.UTF8);
+                    var t9 = binaryFile.ReadInt16();
+                    var origPluginNameLen = binaryFile.ReadInt32();
+                    var origPluginluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
+                    origPluginluginName = origPluginluginName.Replace("\0", "");
                     Console.WriteLine("Original Plugin Name: {0}", origPluginluginName);
                 }
 
                 // skip to 'audioComponent'
                 var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
-                int audioComponentIndex = IndexOf(binFile, audioComponentPattern, 0);
+                int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0);
 
-                var t7 = binFile.ReadInt16();
-                var t8 = binFile.ReadInt16();
-                var presetByteLen = binFile.ReadInt32();
+                // 'audioComponent' Field            
+                var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
+
+                var t10 = binaryFile.ReadInt16();
+                var t11 = binaryFile.ReadInt16();
+                var presetByteLen = binaryFile.ReadInt32();
                 Console.WriteLine("Reading preset bytes: {0}", presetByteLen);
-                var presetBytes = binFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
+                var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
+                var vstPreset = new SteinbergVstPreset();
+                vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
+                var fxp = new FXP(vstPreset.ChunkData);
 
-                var nextFieldLen2 = binFile.ReadInt32();
-                var nextField2 = binFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');
-                Console.WriteLine("Found {0}", nextField2);
+                var nextFieldLen2 = binaryFile.ReadInt32();
+                var nextField2 = binaryFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');
+                Console.WriteLine("Found {0} at index {1}", nextField2, binaryFile.Position - nextFieldLen2);
             }
         }
 
-        public static int IndexOf(BinaryFile binaryFile, byte[] pattern, int offset)
-        {
-            int success = 0;
-            for (int i = 0; i < binaryFile.Length - binaryFile.Position; i++)
-            {
-                var b = binaryFile.ReadByte();
-                if (b == pattern[success])
-                {
-                    success++;
-                }
-                else
-                {
-                    success = 0;
-                }
-
-                if (pattern.Length == success)
-                {
-                    return (int)(binaryFile.Position - pattern.Length + 1);
-                }
-            }
-            return -1;
-        }
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = new SteinbergVstPreset(file);

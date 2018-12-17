@@ -270,66 +270,124 @@ namespace PresetConverter
                 bf.Seek(oldPos, SeekOrigin.Begin);
 
                 // This is where the data start.
-                // Some presets start with a chunkID here,
-                // Others start with the preset content
-                string dataChunkID = bf.ReadString(4);
-                Console.WriteLine("DEBUG: data chunk id: '{0}'", dataChunkID);
+                ReadData(bf, fileSize);
 
-                // Single preset?
-                bool singlePreset = false;
-                if (dataChunkID == "LPXF")
+                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
+
+                VerifyListElements(bf, Console.Out);
+            }
+        }
+        public void ReadData(BinaryFile bf, UInt32 fileSize, bool performFileSizeChecks = true)
+        {
+            // Some presets start with a chunkID here,
+            // Others start with the preset content
+            string dataChunkID = bf.ReadString(4);
+            Console.WriteLine("DEBUG: data chunk id: '{0}'", dataChunkID);
+
+            // Single preset?
+            bool singlePreset = false;
+            if (dataChunkID == "LPXF")
+            {
+                // Check file size:
+                if (fileSize != ((long)this.ListPos + (bf.Position - 4)))
+                    throw new Exception("Invalid file size: " + fileSize);
+
+                // This is most likely a single preset:
+                singlePreset = true;
+            }
+            else if (dataChunkID == "VstW")
+            {
+                // https://searchcode.com/codesearch/view/90021517/
+
+                // Read VstW chunk size
+                UInt32 vst2ChunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+
+                // Read VstW chunk version
+                UInt32 vst2Version = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+
+                // Read VstW bypass
+                UInt32 vst2Bypass = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+
+                // Check file size (The other check is needed because Cubase tends to forget the items of this header
+                if (performFileSizeChecks)
                 {
-                    // Check file size:
-                    if (fileSize != ((long)this.ListPos + (bf.Position - 4)))
-                        throw new Exception("Invalid file size: " + fileSize);
-
-                    // This is most likely a single preset:
-                    singlePreset = true;
-                }
-                else if (dataChunkID == "VstW")
-                {
-                    // https://searchcode.com/codesearch/view/90021517/
-
-                    // Read VstW chunk size
-                    UInt32 vst2ChunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-
-                    // Read VstW chunk version
-                    UInt32 vst2Version = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-
-                    // Read VstW bypass
-                    UInt32 vst2Bypass = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-
-                    // Check file size (The other check is needed because Cubase tends to forget the items of this header
                     if ((fileSize != ((long)this.ListPos + bf.Position + 4))
                     && (fileSize != ((long)this.ListPos + bf.Position - 16)))
                         throw new Exception("Invalid file size: " + fileSize);
-
-                    // This is most likely a preset bank:
-                    singlePreset = false;
                 }
-                else if (dataChunkID == "FabF")
+
+                // This is most likely a preset bank:
+                singlePreset = false;
+            }
+            else if (dataChunkID == "FabF")
+            {
+                // Read unknown value (most likely VstW chunk size):
+                UInt32 unknown2 = bf.ReadUInt32();
+
+                // Read unknown value (most likely VstW chunk version):
+                UInt32 nameLength = bf.ReadUInt32();
+
+                var name = bf.ReadString((int)nameLength);
+                UInt32 unknown3 = bf.ReadUInt32();
+                UInt32 unknown4 = bf.ReadUInt32();
+                UInt32 unknown5 = bf.ReadUInt32();
+
+                Console.WriteLine("DEBUG: '{0}' {1} {2} {3} {4}", name, unknown2, unknown3, unknown4, unknown5);
+
+                var counter = 0;
+                while (bf.Position != (long)this.MetaXmlStartPos)
                 {
-                    // Read unknown value (most likely VstW chunk size):
-                    UInt32 unknown2 = bf.ReadUInt32();
+                    counter++;
 
-                    // Read unknown value (most likely VstW chunk version):
-                    UInt32 nameLength = bf.ReadUInt32();
+                    var parameterName = string.Format("unknown{0}", counter); // don't have a name
+                    var parameterNumber = (UInt32)counter;
+                    var parameterNumberValue = bf.ReadSingle();
+                    AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                }
 
-                    var name = bf.ReadString((int)nameLength);
-                    UInt32 unknown3 = bf.ReadUInt32();
-                    UInt32 unknown4 = bf.ReadUInt32();
-                    UInt32 unknown5 = bf.ReadUInt32();
+                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    Console.WriteLine("DEBUG: '{0}' {1} {2} {3} {4}", name, unknown2, unknown3, unknown4, unknown5);
+                VerifyListElements(bf, Console.Out);
 
-                    var counter = 0;
+                return;
+            }
+
+            // Unknown file:
+            else
+            {
+                if (
+                    this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergEQ) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergExpander) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ))
+                {
+                    // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
+                    // (19180 + 52) = 19232 bytes
                     while (bf.Position != (long)this.MetaXmlStartPos)
                     {
-                        counter++;
+                        // read the null terminated string
+                        var parameterName = bf.ReadStringNull();
 
-                        var parameterName = string.Format("unknown{0}", counter); // don't have a name
-                        var parameterNumber = (UInt32)counter;
-                        var parameterNumberValue = bf.ReadSingle();
+                        // read until 128 bytes have been read
+                        var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
+
+                        var parameterNumber = bf.ReadUInt32();
+
+                        // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
+                        var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
+
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
                     }
 
@@ -341,315 +399,267 @@ namespace PresetConverter
 
                     return;
                 }
+                else if (
+                    this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
+                {
+                    // rewind 4 bytes
+                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
-                // Unknown file:
+                    // read until all bytes have been read
+                    // var xmlContent = br.ReadString((int)this.ParameterDataSize);
+                    var xmlContent = bf.ReadString((int)this.MetaXmlStartPos - 48);
+
+                    AddParameter("XmlContent", 1, xmlContent);
+
+                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                    this.MetaXml = Encoding.UTF8.GetString(bytes);
+
+                    VerifyListElements(bf, Console.Out);
+
+                    return;
+                }
+
+                else if (
+                    this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
+                    )
+                {
+                    // rewind 4 bytes
+                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+
+                    // read until all bytes have been read
+                    var byteContent = bf.ReadBytes((int)this.MetaXmlStartPos - 48);
+
+                    AddParameter("ByteContent", 1, byteContent);
+
+                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                    this.MetaXml = Encoding.UTF8.GetString(bytes);
+
+                    VerifyListElements(bf, Console.Out);
+
+                    return;
+                }
+
+                else if (
+                    this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
+                {
+                    // rewind 4 bytes
+                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+
+                    var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                    Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", wavFilePath1);
+                    AddParameter("wave-file-path-1", 0, wavFilePath1);
+
+                    var wavCount = bf.ReadUInt32();
+                    Console.Out.WriteLine("DEBUG: numWavFiles: {0}", wavCount);
+                    AddParameter("wav-count", 0, wavCount);
+
+                    var unknown = bf.ReadUInt32();
+                    Console.Out.WriteLine("DEBUG: unknown: {0}", unknown);
+
+                    int parameterCount = -1;
+                    if (wavCount > 0)
+                    {
+                        var wavFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                        AddParameter("wave-file-path-2", 0, wavFilePath2);
+                        Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", wavFilePath2);
+
+                        var wavFileName = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                        AddParameter("wave-file-name", 0, wavFileName);
+                        Console.Out.WriteLine("DEBUG: Wav filename: {0}", wavFileName);
+
+                        var imageCount = bf.ReadUInt32();
+                        AddParameter("image-count", 0, imageCount);
+                        Console.Out.WriteLine("DEBUG: Image count: {0}", imageCount);
+
+                        for (int i = 0; i < imageCount; i++)
+                        {
+                            // images
+                            var imagePath = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
+                            AddParameter("image-file-name-" + (i + 1), 0, imagePath);
+                            Console.Out.WriteLine("DEBUG: Image {0}: {1}", i + 1, imagePath);
+                        }
+
+                        parameterCount = bf.ReadInt32();
+                        AddParameter("parameter-count", 0, parameterCount);
+                        Console.Out.WriteLine("DEBUG: Parameter count: {0}", parameterCount);
+                    }
+
+                    int parameterCounter = 0;
+                    while (bf.Position < (long)this.DataSize)
+                    {
+                        parameterCounter++;
+
+                        if (parameterCount > 0 && parameterCounter > parameterCount) break;
+
+                        // read the null terminated string
+                        var parameterName = bf.ReadStringNull();
+                        // Console.Out.WriteLine("parameterName: [{0}] {1}", parameterCounter, parameterName);
+
+                        // read until 128 bytes have been read
+                        var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
+
+                        var parameterNumber = bf.ReadUInt32();
+                        // Console.Out.WriteLine("parameterNumber: {0}", parameterNumber);
+
+                        // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
+                        var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
+                        // Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
+
+                        AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                    }
+
+                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
+                    Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+
+                    // seek to start of meta xml
+                    bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
+
+                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                    this.MetaXml = Encoding.UTF8.GetString(bytes);
+
+                    VerifyListElements(bf, Console.Out);
+
+                    return;
+                }
+
+
+                else if (
+                   this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
+                {
+                    // rewind 4 bytes
+                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+
+                    // read floats
+                    AddParameter("Unknown1", 1, bf.ReadSingle());
+                    AddParameter("Unknown2", 2, bf.ReadSingle());
+
+                    // read ints
+                    AddParameter("Unknown3", 3, bf.ReadUInt32());
+                    AddParameter("Unknown4", 4, bf.ReadUInt32());
+                    AddParameter("Unknown5", 5, bf.ReadUInt32());
+
+                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                    this.MetaXml = Encoding.UTF8.GetString(bytes);
+
+                    VerifyListElements(bf, Console.Out);
+
+                    return;
+                }
+
+                else if (
+                   this.Vst3ID.Equals(VstIDs.WavesSSLComp) ||
+                   this.Vst3ID.Equals(VstIDs.WavesSSLChannel))
+                {
+                    // rewind 4 bytes
+                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+
+                    var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+                    var unknown3 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+                    var unknown4 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+
+                    var presetType = bf.ReadString(4);
+                    Console.WriteLine("DEBUG: PresetType: {0}", presetType);
+
+                    var setType = bf.ReadString(4);
+                    Console.WriteLine("DEBUG: SetType: {0}", setType);
+
+                    var xmlMainLength = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
+
+                    var xpsID = bf.ReadString(4);
+                    if (xpsID.Equals("XPst"))
+                    {
+                        Console.WriteLine("DEBUG: Found XPst content");
+                    }
+
+                    var xmlContent = bf.ReadString((int)xmlMainLength);
+                    var param1Name = "XmlContent";
+                    AddParameter(param1Name, 1, xmlContent);
+
+                    var postType = bf.ReadString(4);
+                    Console.WriteLine("DEBUG: PostType: {0}", postType);
+
+                    // there is some xml content after the PresetChunkXMLTree chunk
+                    // read in this also
+                    // total size - PresetChunkXMLTree size - 32
+                    // e.g. 844 - 777 - 32 = 35
+                    var xmlPostLength = this.DataSize - xmlMainLength - 32;
+                    var xmlPostContent = bf.ReadString((int)xmlPostLength);
+                    var param2Name = "XmlContentPost";
+                    AddParameter(param2Name, 2, xmlPostContent);
+
+                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
+                    this.MetaXml = Encoding.UTF8.GetString(bytes);
+
+                    VerifyListElements(bf, Console.Out);
+
+                    return;
+                }
                 else
                 {
-                    if (
-                        this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergEQ) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergExpander) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ))
-                    {
-                        // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
-                        // (19180 + 52) = 19232 bytes
-                        while (bf.Position != (long)this.MetaXmlStartPos)
-                        {
-                            // read the null terminated string
-                            var parameterName = bf.ReadStringNull();
-
-                            // read until 128 bytes have been read
-                            var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
-
-                            var parameterNumber = bf.ReadUInt32();
-
-                            // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
-                            var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
-
-                            AddParameter(parameterName, parameterNumber, parameterNumberValue);
-                        }
-
-                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                        this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                        VerifyListElements(bf, Console.Out);
-
-                        return;
-                    }
-                    else if (
-                        this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
-                    {
-                        // rewind 4 bytes
-                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
-
-                        // read until all bytes have been read
-                        // var xmlContent = br.ReadString((int)this.ParameterDataSize);
-                        var xmlContent = bf.ReadString((int)this.MetaXmlStartPos - 48);
-
-                        AddParameter("XmlContent", 1, xmlContent);
-
-                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                        this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                        VerifyListElements(bf, Console.Out);
-
-                        return;
-                    }
-
-                    else if (
-                        this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
-                        this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
-                        )
-                    {
-                        // rewind 4 bytes
-                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
-
-                        // read until all bytes have been read
-                        var byteContent = bf.ReadBytes((int)this.MetaXmlStartPos - 48);
-
-                        AddParameter("ByteContent", 1, byteContent);
-
-                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                        this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                        VerifyListElements(bf, Console.Out);
-
-                        return;
-                    }
-
-                    else if (
-                        this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
-                    {
-                        // rewind 4 bytes
-                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
-
-                        var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                        Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", wavFilePath1);
-                        AddParameter("wave-file-path-1", 0, wavFilePath1);
-
-                        var wavCount = bf.ReadUInt32();
-                        Console.Out.WriteLine("DEBUG: numWavFiles: {0}", wavCount);
-                        AddParameter("wav-count", 0, wavCount);
-
-                        var unknown = bf.ReadUInt32();
-                        Console.Out.WriteLine("DEBUG: unknown: {0}", unknown);
-
-                        int parameterCount = -1;
-                        if (wavCount > 0)
-                        {
-                            var wavFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                            AddParameter("wave-file-path-2", 0, wavFilePath2);
-                            Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", wavFilePath2);
-
-                            var wavFileName = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                            AddParameter("wave-file-name", 0, wavFileName);
-                            Console.Out.WriteLine("DEBUG: Wav filename: {0}", wavFileName);
-
-                            var imageCount = bf.ReadUInt32();
-                            AddParameter("image-count", 0, imageCount);
-                            Console.Out.WriteLine("DEBUG: Image count: {0}", imageCount);
-
-                            for (int i = 0; i < imageCount; i++)
-                            {
-                                // images
-                                var imagePath = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                                AddParameter("image-file-name-" + (i + 1), 0, imagePath);
-                                Console.Out.WriteLine("DEBUG: Image {0}: {1}", i + 1, imagePath);
-                            }
-
-                            parameterCount = bf.ReadInt32();
-                            AddParameter("parameter-count", 0, parameterCount);
-                            Console.Out.WriteLine("DEBUG: Parameter count: {0}", parameterCount);
-                        }
-
-                        int parameterCounter = 0;
-                        while (bf.Position < (long)this.DataSize)
-                        {
-                            parameterCounter++;
-
-                            if (parameterCount > 0 && parameterCounter > parameterCount) break;
-
-                            // read the null terminated string
-                            var parameterName = bf.ReadStringNull();
-                            // Console.Out.WriteLine("parameterName: [{0}] {1}", parameterCounter, parameterName);
-
-                            // read until 128 bytes have been read
-                            var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
-
-                            var parameterNumber = bf.ReadUInt32();
-                            // Console.Out.WriteLine("parameterNumber: {0}", parameterNumber);
-
-                            // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
-                            var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
-                            // Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
-
-                            AddParameter(parameterName, parameterNumber, parameterNumberValue);
-                        }
-
-                        long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                        Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
-
-                        // seek to start of meta xml
-                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
-
-                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                        this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                        VerifyListElements(bf, Console.Out);
-
-                        return;
-                    }
-
-
-                    else if (
-                       this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
-                    {
-                        // rewind 4 bytes
-                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
-
-                        // read floats
-                        AddParameter("Unknown1", 1, bf.ReadSingle());
-                        AddParameter("Unknown2", 2, bf.ReadSingle());
-
-                        // read ints
-                        AddParameter("Unknown3", 3, bf.ReadUInt32());
-                        AddParameter("Unknown4", 4, bf.ReadUInt32());
-                        AddParameter("Unknown5", 5, bf.ReadUInt32());
-
-                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                        this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                        VerifyListElements(bf, Console.Out);
-
-                        return;
-                    }
-
-                    else if (
-                       this.Vst3ID.Equals(VstIDs.WavesSSLComp) ||
-                       this.Vst3ID.Equals(VstIDs.WavesSSLChannel))
-                    {
-                        // rewind 4 bytes
-                        bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
-
-                        var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-                        var unknown3 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-                        var unknown4 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-
-                        var presetType = bf.ReadString(4);
-                        Console.WriteLine("DEBUG: PresetType: {0}", presetType);
-
-                        var setType = bf.ReadString(4);
-                        Console.WriteLine("DEBUG: SetType: {0}", setType);
-
-                        var xmlMainLength = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
-
-                        var xpsID = bf.ReadString(4);
-                        if (xpsID.Equals("XPst"))
-                        {
-                            Console.WriteLine("DEBUG: Found XPst content");
-                        }
-
-                        var xmlContent = bf.ReadString((int)xmlMainLength);
-                        var param1Name = "XmlContent";
-                        AddParameter(param1Name, 1, xmlContent);
-
-                        var postType = bf.ReadString(4);
-                        Console.WriteLine("DEBUG: PostType: {0}", postType);
-
-                        // there is some xml content after the PresetChunkXMLTree chunk
-                        // read in this also
-                        // total size - PresetChunkXMLTree size - 32
-                        // e.g. 844 - 777 - 32 = 35
-                        var xmlPostLength = this.DataSize - xmlMainLength - 32;
-                        var xmlPostContent = bf.ReadString((int)xmlPostLength);
-                        var param2Name = "XmlContentPost";
-                        AddParameter(param2Name, 2, xmlPostContent);
-
-                        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                        var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                        this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                        VerifyListElements(bf, Console.Out);
-
-                        return;
-                    }
-                    else
-                    {
-                        // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
-                        Console.WriteLine("This file does not contain any known formats or FXB or FXP data (1)");
-                        return;
-                    }
+                    // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
+                    Console.WriteLine("This file does not contain any known formats or FXB or FXP data (1)");
+                    return;
                 }
+            }
 
-                // OK, getting here we should have access to a fxp/fxb chunk:
-                long chunkStart = bf.Position;
-                string dataChunkStart = bf.ReadString(4);
-                if (dataChunkStart != "CcnK")
-                {
-                    throw new Exception("This file does not contain any FXB or FXP data (2)");
-                }
+            // OK, getting here we should have access to a fxp/fxb chunk:
+            long chunkStart = bf.Position;
+            string dataChunkStart = bf.ReadString(4);
+            if (dataChunkStart != "CcnK")
+            {
+                throw new Exception("This file does not contain any FXB or FXP data (2)");
+            }
 
-                // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
-                // add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
-                UInt32 chunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
+            // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
+            // add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
+            UInt32 chunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
+            if (performFileSizeChecks)
+            {
                 if ((bf.Position + chunkSize) >= fileSize)
                 {
                     throw new Exception("Invalid chunk size: " + chunkSize);
                 }
-
-                // Read magic value:
-                string magicChunkID = bf.ReadString(4);
-
-                // Is a single preset?
-                if (magicChunkID == "FxCk" || magicChunkID == "FPCh")
-                {
-                    // Check consistency with the header:
-                    if (singlePreset == false)
-                    {
-                        throw new Exception("Header indicates a bank file but data seems to be a preset file (" + fileChunkID + ").");
-                    }
-                }
-
-                // Is a bank?
-                else if (magicChunkID == "FxBk" || magicChunkID == "FBCh")
-                {
-                    // Check consistency with the header:
-                    if (singlePreset == true)
-                    {
-                        throw new Exception("Header indicates a preset file but data seems to be a bank file (" + fileChunkID + ").");
-                    }
-                }
-
-                // And now for something completely different:
-                else
-                {
-                    throw new Exception("This file does not contain any FXB or FXP data (3)");
-                }
-
-                // Read the source data:
-                bf.Position = chunkStart;
-                this.ChunkData = bf.ReadBytes((int)chunkSize);
-
-                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
-
-                VerifyListElements(bf, Console.Out);
             }
+
+            // Read magic value:
+            string magicChunkID = bf.ReadString(4);
+
+            // Is a single preset?
+            if (magicChunkID == "FxCk" || magicChunkID == "FPCh")
+            {
+                // Check consistency with the header:
+                if (singlePreset == false)
+                {
+                    throw new Exception("Header indicates a bank file but data seems to be a preset file (" + magicChunkID + ").");
+                }
+            }
+
+            // Is a bank?
+            else if (magicChunkID == "FxBk" || magicChunkID == "FBCh")
+            {
+                // Check consistency with the header:
+                if (singlePreset == true)
+                {
+                    throw new Exception("Header indicates a preset file but data seems to be a bank file (" + magicChunkID + ").");
+                }
+            }
+
+            // And now for something completely different:
+            else
+            {
+                throw new Exception("This file does not contain any FXB or FXP data (3)");
+            }
+
+            // Read the source data:
+            bf.Position = chunkStart;
+            this.ChunkData = bf.ReadBytes((int)chunkSize);
         }
 
         private void VerifyListElements(BinaryFile bf, TextWriter writer)
@@ -886,84 +896,6 @@ namespace PresetConverter
         protected abstract bool PreparedForWriting();
 
         #endregion
-
-        /// <summary>
-        /// Search with an array of bytes to find a specific pattern
-        /// </summary>
-        /// <param name="byteArray">byte array</param>
-        /// <param name="bytePattern">byte array pattern</param>
-        /// <param name="startIndex">index to start searching at</param>
-        /// <param name="count">how many elements to look through</param>
-        /// <returns>position</returns>
-        /// <example>
-        /// find the last 'List' entry	
-        /// reading all bytes at once is not very performant, but works for these relatively small files	
-        /// byte[] allBytes = File.ReadAllBytes(fileName);
-        /// reading from the end of the file by reversing the array	
-        /// byte[] reversed = allBytes.Reverse().ToArray();
-        /// find 'List' backwards	
-        /// int reverseIndex = IndexOfBytes(reversed, Encoding.UTF8.GetBytes("tsiL"), 0, reversed.Length);
-        /// if (reverseIndex < 0)
-        /// {
-        /// reverseIndex = 64;
-        /// }
-        /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
-        /// Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
-        /// </example>
-        public static int IndexOfBytes(byte[] byteArray, byte[] bytePattern, int startIndex, int count)
-        {
-            if (byteArray == null || byteArray.Length == 0 || bytePattern == null || bytePattern.Length == 0 || count == 0)
-            {
-                return -1;
-            }
-
-            int i = startIndex;
-            int endIndex = count > 0 ? Math.Min(startIndex + count, byteArray.Length) : byteArray.Length;
-            int foundIndex = 0;
-            int lastFoundIndex = 0;
-
-            while (i < endIndex)
-            {
-                lastFoundIndex = foundIndex;
-                foundIndex = (byteArray[i] == bytePattern[foundIndex]) ? ++foundIndex : 0;
-                if (foundIndex == bytePattern.Length)
-                {
-                    return i - foundIndex + 1;
-                }
-                if (lastFoundIndex > 0 && foundIndex == 0)
-                {
-                    i = i - lastFoundIndex;
-                    lastFoundIndex = 0;
-                }
-                i++;
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Find all occurrences of byte pattern in byte array
-        /// </summary>
-        /// <param name="byteArray">byte array</param>
-        /// <param name="bytePattern">byte array pattern</param>
-        /// <returns>positions</returns>
-        /// <example>
-        /// foreach (int i in FindAll(byteArray, bytePattern))
-        /// {
-        ///    Console.WriteLine(i);
-        /// }
-        /// </example>
-        public static IEnumerable<int> FindAll(byte[] byteArray, byte[] bytePattern)
-        {
-            for (int startIndex = 0; startIndex < byteArray.Length - bytePattern.Length;)
-            {
-                int i = IndexOfBytes(byteArray, bytePattern, startIndex, byteArray.Length);
-
-                if (i < 0) break;
-                yield return i;
-
-                startIndex = i + 1;
-            }
-        }
 
         public override string ToString()
         {

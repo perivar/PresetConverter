@@ -245,7 +245,7 @@ namespace PresetConverter
 
         public bool ReadFXP(FXP fxp, string filePath = "")
         {
-            if (fxp == null || fxp.ChunkDataByteArray == null) return false;
+            if (fxp == null || fxp.Content == null || fxp.ChunkDataByteArray == null) return false;
 
             var bFile = new BinaryFile(fxp.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
 
@@ -305,17 +305,30 @@ namespace PresetConverter
         private FXP GenerateFXP(bool isBank)
         {
             FXP fxp = new FXP();
-            fxp.ChunkMagic = "CcnK";
-            fxp.ByteSize = 0; // will be set correctly by FXP class
+            var fxpContent = new FXP.FxContent();
+            if (isBank)
+            {
+                // FBCh = FXB (bank)
+                fxpContent = new FXP.FxChunkSet();
+                fxpContent.NumPrograms = 1; // I.e. number of programs (number of presets in one file)
+                fxpContent.Future = new string('\0', 128); // 128 bytes long
+            }
+            else
+            {
+                // FPCh = FXP (preset)
+                fxpContent = new FXP.FxProgramSet();
+                fxpContent.NumPrograms = 1; // I.e. number of programs (number of presets in one file)
+                fxpContent.Name = PresetName;
+            }
+
+            fxpContent.ChunkMagic = "CcnK";
+            fxpContent.ByteSize = 0; // will be set correctly by FXP class
 
             // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
-            fxp.FxMagic = isBank ? "FBCh" : "FPCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
-            fxp.Version = 1; //isBank ? 2 : 1; // Format Version (should be 1)
-            fxp.FxID = "J9AU";
-            fxp.FxVersion = 1;
-            fxp.ProgramCount = 1; // I.e. number of programs (number of presets in one file)
-            fxp.Name = PresetName;
-            fxp.Future = new string('\0', 128); // 128 bytes long
+            fxpContent.FxMagic = isBank ? "FBCh" : "FPCh";
+            fxpContent.Version = 1; //isBank ? 2 : 1; // Format Version (should be 1)
+            fxpContent.FxID = "J9AU";
+            fxpContent.FxVersion = 1;
 
             byte[] chunkData = GetChunkData(fxp.FxMagic);
             fxp.ChunkSize = chunkData.Length;

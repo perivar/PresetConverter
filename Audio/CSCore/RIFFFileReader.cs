@@ -23,6 +23,10 @@ namespace CSCore.Codecs.RIFF
         private readonly bool _closeBinaryFile;
         private readonly bool _useWordAlignment;
 
+        public BinaryFile BinaryFile
+        {
+            get { return _binaryFile; }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RIFFFileReader" /> class.
