@@ -255,7 +255,7 @@ namespace AbletonLiveConverter
                 if (vstPreset.ChunkData != null)
                 {
                     var fxp = new FXP(vstPreset.ChunkData);
-                    string fileName = string.Format("{0} - {1} - {2}.{3}", outputFileName, origPluginName == null ? "" : origPluginName, pluginName, vstEffectIndex, "fxp");
+                    string fileName = string.Format("{0} - {1} - {2} - {3}.{4}", outputFileName, origPluginName == null ? "EMPTY" : origPluginName, pluginName, vstEffectIndex, "fxp");
                     fileName = StringUtils.MakeValidFileName(fileName);
                     string outputFilePath = Path.Combine(outputDirectoryPath, fileName);
                     fxp.Write(outputFilePath);
