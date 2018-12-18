@@ -206,7 +206,7 @@ namespace AbletonLiveConverter
                 // GUID
                 var guidLen = binaryFile.ReadInt32();
                 var guid = binaryFile.ReadString(guidLen, Encoding.UTF8);
-                guid = guid.Replace("\0", "");
+                guid = StringUtils.RemoveByteOrderMark(guid);
                 Console.WriteLine("GUID: {0}", guid);
 
                 // 'Plugin Name' Field
@@ -246,8 +246,13 @@ namespace AbletonLiveConverter
                 Console.WriteLine("Reading preset bytes: {0}", presetByteLen);
                 var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
                 var vstPreset = new SteinbergVstPreset();
+                vstPreset.Vst3ID = guid;
+                vstPreset.MetaXmlStartPos = (ulong)presetBytes.Length;
                 vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
-                var fxp = new FXP(vstPreset.ChunkData);
+                if (vstPreset.ChunkData != null)
+                {
+                    var fxp = new FXP(vstPreset.ChunkData);
+                }
 
                 var nextFieldLen2 = binaryFile.ReadInt32();
                 var nextField2 = binaryFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');

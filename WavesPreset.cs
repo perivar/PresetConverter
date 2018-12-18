@@ -32,8 +32,21 @@ namespace PresetConverter
         {
             var fxp = new FXP();
             fxp.ReadFile(filePath);
-            byte[] chunkDataByteArray = fxp.ChunkDataByteArray;
-            return ReadChunkData(chunkDataByteArray);
+
+            if (fxp.Content != null)
+            {
+                if (fxp.Content is FXP.FxProgramSet)
+                {
+                    byte[] chunkDataByteArray = ((FXP.FxProgramSet)fxp.Content).ChunkDataByteArray;
+                    return ReadChunkData(chunkDataByteArray);
+                }
+                else if (fxp.Content is FXP.FxChunkSet)
+                {
+                    byte[] chunkDataByteArray = ((FXP.FxChunkSet)fxp.Content).ChunkDataByteArray;
+                    return ReadChunkData(chunkDataByteArray);
+                }
+            }
+            return false;
         }
 
         public bool WriteTextSummary(string filePath)
@@ -173,21 +186,18 @@ namespace PresetConverter
 
         public bool ReadChunkData(byte[] chunkDataByteArray)
         {
-
             string xmlString = ParseChunkData(chunkDataByteArray);
             return ParseXml(xmlString, null);
         }
 
         public static string GetPluginName(byte[] chunkDataByteArray)
         {
-
             string xmlString = ParseChunkData(chunkDataByteArray);
             return GetPluginName(xmlString);
         }
 
         private static string GetPluginName(string xmlString)
         {
-
             var xml = new XmlDocument();
             try
             {
@@ -217,7 +227,6 @@ namespace PresetConverter
 
         private bool ParseXml(string xmlString, TextWriter tw)
         {
-
             var xml = new XmlDocument();
             try
             {

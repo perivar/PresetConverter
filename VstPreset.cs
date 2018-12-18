@@ -68,6 +68,7 @@ namespace PresetConverter
             public const string WavesSSLComp = "565354534C435373736C636F6D702073";
             public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
             public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
+            public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
         }
 
         private class ListElement
@@ -601,6 +602,32 @@ namespace PresetConverter
 
                     return;
                 }
+
+                else if (this.Vst3ID.Equals(VstIDs.NIKontakt5))
+                {
+                    // rewind 4 bytes
+                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+
+                    var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+
+                    while (bf.Position != (long)this.MetaXmlStartPos)
+                    {
+                        // read the null terminated string
+                        var parameterName = bf.ReadStringNull();
+
+                        // read until 128 bytes have been read
+                        var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
+
+                        var parameterNumber = bf.ReadUInt32();
+
+                        // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
+                        var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
+
+                        AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                    }
+                    return;
+
+                }
                 else
                 {
                     // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
@@ -664,6 +691,8 @@ namespace PresetConverter
 
         private void VerifyListElements(BinaryFile bf, TextWriter writer)
         {
+            if (bf.Position >= bf.Length - 8) return;
+
             // read LIST and 4 bytes
             string listElement = bf.ReadString(4);
             UInt32 listElementValue = bf.ReadUInt32();

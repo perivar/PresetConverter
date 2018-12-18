@@ -230,13 +230,15 @@ class Script2
                 */
 
                 FXP fxp = new FXP();
-                fxp.ChunkMagic = "CcnK";
-                fxp.FxMagic = "FPCh";
-                fxp.Version = 0;
-                fxp.FxID = "AVr5";
-                fxp.FxVersion = 1;
-                fxp.ProgramCount = 38;
-                fxp.Name = "";
+                FXP.FxProgramSet fxpContent = new FXP.FxProgramSet();
+                fxp.Content = fxpContent;
+                fxpContent.ChunkMagic = "CcnK";
+                fxpContent.FxMagic = "FPCh";
+                fxpContent.Version = 0;
+                fxpContent.FxID = "AVr5";
+                fxpContent.FxVersion = 1;
+                fxpContent.NumPrograms = 38;
+                fxpContent.Name = "";
                 fxp.XmlDocument = doc;
                 fxp.WriteFile(outputFileName);
 

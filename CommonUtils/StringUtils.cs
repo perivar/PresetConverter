@@ -16,6 +16,9 @@ namespace CommonUtils
     /// </summary>
     public static class StringUtils
     {
+        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+        private static string BOMMarkUTF8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+
         /// <summary>
         /// Pascal case
         /// The first letter in the identifier and the first letter of each subsequent concatenated word are capitalized. You can use Pascal case for identifiers of three or more characters. For example:
@@ -712,6 +715,15 @@ namespace CommonUtils
                .ToLower();
 
             return encoded;
+        }
+
+        public static string RemoveByteOrderMark(string value)
+        {
+            if (value.EndsWith(BOMMarkUTF8))
+                value = value.Remove(value.Length - BOMMarkUTF8.Length, BOMMarkUTF8.Length);
+
+            value = value.Replace("\0", "");
+            return value;
         }
 
     }

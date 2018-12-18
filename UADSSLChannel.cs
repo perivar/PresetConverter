@@ -245,9 +245,19 @@ namespace PresetConverter
 
         public bool ReadFXP(FXP fxp, string filePath = "")
         {
-            if (fxp == null || fxp.Content == null || fxp.ChunkDataByteArray == null) return false;
+            if (fxp == null || fxp.Content == null) return false;
 
-            var bFile = new BinaryFile(fxp.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
+            var byteArray = new byte[0];
+            if (fxp.Content is FXP.FxProgramSet)
+            {
+                byteArray = ((FXP.FxProgramSet)fxp.Content).ChunkDataByteArray;
+            }
+            else if (fxp.Content is FXP.FxChunkSet)
+            {
+                byteArray = ((FXP.FxChunkSet)fxp.Content).ChunkDataByteArray;
+            }
+
+            var bFile = new BinaryFile(byteArray, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
 
             // Read UAD Preset Header information
             PresetHeaderVar1 = bFile.ReadInt32();
@@ -304,23 +314,24 @@ namespace PresetConverter
 
         private FXP GenerateFXP(bool isBank)
         {
+            FXP.FxContent fxpContent;
             FXP fxp = new FXP();
-            var fxpContent = new FXP.FxContent();
             if (isBank)
             {
                 // FBCh = FXB (bank)
                 fxpContent = new FXP.FxChunkSet();
-                fxpContent.NumPrograms = 1; // I.e. number of programs (number of presets in one file)
-                fxpContent.Future = new string('\0', 128); // 128 bytes long
+                ((FXP.FxChunkSet)fxpContent).NumPrograms = 1; // I.e. number of programs (number of presets in one file)
+                ((FXP.FxChunkSet)fxpContent).Future = new string('\0', 128); // 128 bytes long
             }
             else
             {
                 // FPCh = FXP (preset)
                 fxpContent = new FXP.FxProgramSet();
-                fxpContent.NumPrograms = 1; // I.e. number of programs (number of presets in one file)
-                fxpContent.Name = PresetName;
+                ((FXP.FxProgramSet)fxpContent).NumPrograms = 1; // I.e. number of programs (number of presets in one file)
+                ((FXP.FxProgramSet)fxpContent).Name = PresetName;
             }
 
+            fxp.Content = fxpContent;
             fxpContent.ChunkMagic = "CcnK";
             fxpContent.ByteSize = 0; // will be set correctly by FXP class
 
@@ -330,9 +341,18 @@ namespace PresetConverter
             fxpContent.FxID = "J9AU";
             fxpContent.FxVersion = 1;
 
-            byte[] chunkData = GetChunkData(fxp.FxMagic);
-            fxp.ChunkSize = chunkData.Length;
-            fxp.ChunkDataByteArray = chunkData;
+            byte[] chunkData = GetChunkData(fxpContent.FxMagic);
+
+            if (fxp.Content is FXP.FxProgramSet)
+            {
+                ((FXP.FxProgramSet)fxp.Content).ChunkSize = chunkData.Length;
+                ((FXP.FxProgramSet)fxp.Content).ChunkDataByteArray = chunkData;
+            }
+            else if (fxp.Content is FXP.FxChunkSet)
+            {
+                ((FXP.FxChunkSet)fxp.Content).ChunkSize = chunkData.Length;
+                ((FXP.FxChunkSet)fxp.Content).ChunkDataByteArray = chunkData;
+            }
 
             return fxp;
         }
