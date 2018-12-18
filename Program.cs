@@ -259,6 +259,22 @@ namespace AbletonLiveConverter
                     fileName = StringUtils.MakeValidFileName(fileName);
                     string outputFilePath = Path.Combine(outputDirectoryPath, fileName);
                     fxp.Write(outputFilePath);
+
+                    // check if FabFilterProQ2 
+                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                    {
+                        if (fxp.Content is FXP.FxSet)
+                        {
+                            var set = (FXP.FxSet)fxp.Content;
+
+                            for (int i = 0; i < set.NumPrograms; i++)
+                            {
+                                var program = set.Programs[i];
+                                var parameters = program.Parameters;
+                                FabfilterProQ.Convert2FabfilterProQ(parameters);
+                            }
+                        }
+                    }
                 }
 
                 var nextFieldLen2 = binaryFile.ReadInt32();

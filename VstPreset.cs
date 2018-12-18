@@ -69,6 +69,7 @@ namespace PresetConverter
             public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
             public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
+            public const string FabFilterProQ2 = "5653544651327066616266696C746572";
         }
 
         private class ListElement
