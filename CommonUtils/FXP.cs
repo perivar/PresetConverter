@@ -130,19 +130,26 @@ namespace CommonUtils
         public FXP(byte[] values)
         {
             BinaryFile bf = new BinaryFile(values, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII);
-            Content = ReadFXP(bf);
+            var fxp = ReadFXP(bf);
+            Content = fxp.Content;
+            XmlDocument = fxp.XmlDocument;
         }
 
-        public void WriteFile(string filePath)
+        public void Write(string filePath)
         {
             BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian, true, Encoding.ASCII);
-            WriteFXP(bf);
+            Write(bf);
             bf.Close();
         }
 
-        public void WriteFXP(BinaryFile bf)
+        public void Write(BinaryFile bf)
         {
-            if (Content == null)
+            Write(bf, Content, XmlDocument);
+        }
+
+        private static void Write(BinaryFile bf, FxContent content, XmlDocument xmlDocument)
+        {
+            if (content == null)
             {
                 Console.Error.WriteLine("Error writing file. Missing preset content.");
                 return;
@@ -151,39 +158,39 @@ namespace CommonUtils
             // determine if the chunkdata is saved as XML
             bool writeXMLChunkData = false;
             string xmlChunkData = "";
-            if (XmlDocument != null)
+            if (xmlDocument != null)
             {
                 StringWriter stringWriter = new StringWriter();
                 XmlTextWriter xmlTextWriter = new XmlTextWriter(stringWriter);
-                XmlDocument.WriteTo(xmlTextWriter);
+                xmlDocument.WriteTo(xmlTextWriter);
                 xmlTextWriter.Flush();
                 xmlChunkData = stringWriter.ToString().Replace("'", "&apos;");
                 writeXMLChunkData = true;
 
-                if (Content is FxProgramSet)
+                if (content is FxProgramSet)
                 {
-                    ((FxProgramSet)Content).ChunkSize = xmlChunkData.Length;
+                    ((FxProgramSet)content).ChunkSize = xmlChunkData.Length;
                 }
-                else if (Content is FxChunkSet)
+                else if (content is FxChunkSet)
                 {
-                    ((FxChunkSet)Content).ChunkSize = xmlChunkData.Length;
+                    ((FxChunkSet)content).ChunkSize = xmlChunkData.Length;
                 }
             }
 
-            if (Content.ChunkMagic != "CcnK")
+            if (content.ChunkMagic != "CcnK")
             {
                 Console.Out.WriteLine("Cannot save the preset file. Missing preset header information.");
                 return;
             }
 
-            bf.Write(Content.ChunkMagic);                           // chunkMagic, 4
+            bf.Write(content.ChunkMagic);                           // chunkMagic, 4
 
             // check what preset type we are saving
-            if (Content.FxMagic == "FBCh")
+            if (content.FxMagic == "FBCh")
             {
-                var chunkSet = (FxChunkSet)Content;
+                // Bank (.fxb) with chunk (magic = 'FBCh')
+                var chunkSet = (FxChunkSet)content;
 
-                // Bank with Chunk Data
                 chunkSet.ByteSize = 152 + chunkSet.ChunkSize;
 
                 bf.Write(chunkSet.ByteSize);                         // byteSize = 4
@@ -205,11 +212,11 @@ namespace CommonUtils
                     bf.Write(chunkSet.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian);
                 }
             }
-            else if (Content.FxMagic == "FPCh")
+            else if (content.FxMagic == "FPCh")
             {
-                var programSet = (FxProgramSet)Content;
+                // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
+                var programSet = (FxProgramSet)content;
 
-                // Preset with Chunk Data
                 programSet.ByteSize = 52 + programSet.ChunkSize;
 
                 bf.Write(programSet.ByteSize);                         // byteSize = 4
@@ -231,11 +238,10 @@ namespace CommonUtils
                     bf.Write(programSet.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian);
                 }
             }
-            else if (Content.FxMagic == "FxCk")
+            else if (content.FxMagic == "FxCk")
             {
                 // For Preset (Program) (.fxp) without chunk (magic = 'FxCk')
-                // Bank with Chunk Data
-                var program = (FxProgram)Content;
+                var program = (FxProgram)content;
 
                 program.ByteSize = 48 + (4 * program.NumParameters);
 
@@ -253,28 +259,60 @@ namespace CommonUtils
                     bf.Write((float)program.Parameters[i]);
                 }
             }
+            else if (content.FxMagic == "FxBk")
+            {
+                // For bank (.fxb) without chunk (magic = 'FxBk')        
+                var set = (FxSet)content;
+
+                // variable no. of programs
+                var byteSize = 48;
+                for (int i = 0; i < set.NumPrograms; i++)
+                {
+                    var program = set.Programs[i];
+                    byteSize += (4 * program.NumParameters);
+                }
+                set.ByteSize = 156 + byteSize;
+
+                bf.Write(set.ByteSize);                         // byteSize = 4
+                bf.Write(set.FxMagic);                          // fxMagic, 4
+                bf.Write(set.Version);                          // version, 4
+                bf.Write(set.FxID);                             // fxID, 4
+                bf.Write(set.FxVersion);                        // fxVersion, 4
+                bf.Write(set.NumPrograms);                      // numPrograms, 4
+                bf.Write(set.Future, 128);                      // future, 128
+
+                // variable no. of programs
+                for (int i = 0; i < set.NumPrograms; i++)
+                {
+                    var program = set.Programs[i];
+                    Write(bf, program, null);
+                }
+            }
         }
 
         public void ReadFile(string filePath)
         {
             BinaryFile bf = new BinaryFile(filePath, BinaryFile.ByteOrder.BigEndian, false, Encoding.ASCII);
-            Content = ReadFXP(bf);
+            var fxp = ReadFXP(bf);
+            Content = fxp.Content;
+            XmlDocument = fxp.XmlDocument;
         }
 
-        public FxContent ReadFXP(BinaryFile bf)
+        private static FXP ReadFXP(BinaryFile bf)
         {
             string ChunkMagic = bf.ReadString(4);
             if (ChunkMagic != "CcnK")
             {
-                Console.Error.WriteLine("Error reading file. Missing preset header information.");
+                throw new FormatException(string.Format("Error reading file. Missing preset header information {0}", ChunkMagic));
             }
 
+            var fxp = new FXP();
             int ByteSize = bf.ReadInt32();
             string FxMagic = bf.ReadString(4);
 
             if (FxMagic == "FBCh")
             {
-                // Bank with Chunk Data
+                // Bank (.fxb) with chunk (magic = 'FBCh')
                 var chunkSet = new FxChunkSet();
                 chunkSet.ChunkMagic = ChunkMagic;
                 chunkSet.ByteSize = ByteSize;
@@ -293,21 +331,24 @@ namespace CommonUtils
                 chunkSet.ChunkData = BinaryFile.ByteArrayToString(chunkSet.ChunkDataByteArray);
 
                 // read the xml chunk into memory
-                XmlDocument = new XmlDocument();
                 try
                 {
-                    if (chunkSet.ChunkData != null) XmlDocument.LoadXml(chunkSet.ChunkData);
+                    if (chunkSet.ChunkData != null)
+                    {
+                        var xmlDocument = new XmlDocument();
+                        xmlDocument.LoadXml(chunkSet.ChunkData);
+                        fxp.XmlDocument = xmlDocument;
+                    }
                 }
                 catch (XmlException)
                 {
-                    //Console.Out.WriteLine("No XML found");
                 }
 
-                Content = chunkSet;
+                fxp.Content = chunkSet;
             }
             else if (FxMagic == "FPCh")
             {
-                // Preset with Chunk Data
+                // Preset (Program) (.fxp) with chunk (magic = 'FPCh')
                 var programSet = new FxProgramSet();
                 programSet.ChunkMagic = ChunkMagic;
                 programSet.ByteSize = ByteSize;
@@ -326,17 +367,20 @@ namespace CommonUtils
                 programSet.ChunkData = BinaryFile.ByteArrayToString(programSet.ChunkDataByteArray);
 
                 // read the xml chunk into memory
-                XmlDocument = new XmlDocument();
                 try
                 {
-                    if (programSet.ChunkData != null) XmlDocument.LoadXml(programSet.ChunkData);
+                    if (programSet.ChunkData != null)
+                    {
+                        var xmlDocument = new XmlDocument();
+                        xmlDocument.LoadXml(programSet.ChunkData);
+                        fxp.XmlDocument = xmlDocument;
+                    }
                 }
                 catch (XmlException)
                 {
-                    //Console.Out.WriteLine("No XML found");
                 }
 
-                Content = programSet;
+                fxp.Content = programSet;
             }
             else if (FxMagic == "FxCk")
             {
@@ -360,7 +404,7 @@ namespace CommonUtils
                     program.Parameters[i] = bf.ReadSingle();
                 }
 
-                Content = program;
+                fxp.Content = program;
             }
             else if (FxMagic == "FxBk")
             {
@@ -381,19 +425,19 @@ namespace CommonUtils
                 set.Programs = new FxProgram[set.NumPrograms];
                 for (int p = 0; p < set.NumPrograms; p++)
                 {
-                    var content = ReadFXP(bf);
+                    var content = ReadFXP(bf).Content;
                     if (content is FxProgram)
                     {
                         set.Programs[p] = (FxProgram)content;
                     }
                 }
 
-                Content = set;
+                fxp.Content = set;
             }
 
             bf.Close();
 
-            return Content;
+            return fxp;
         }
     }
 }

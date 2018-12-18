@@ -162,6 +162,8 @@ namespace AbletonLiveConverter
 
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
         {
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+
             var riffReader = new RIFFFileReader(file, false);
 
             // get fourth chunk
@@ -224,13 +226,14 @@ namespace AbletonLiveConverter
                 var len = binaryFile.ReadInt32();
                 var nextField = binaryFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
 
+                string origPluginName = null;
                 if (nextField.Equals("Original Plugin Name"))
                 {
                     var t9 = binaryFile.ReadInt16();
                     var origPluginNameLen = binaryFile.ReadInt32();
-                    var origPluginluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
-                    origPluginluginName = origPluginluginName.Replace("\0", "");
-                    Console.WriteLine("Original Plugin Name: {0}", origPluginluginName);
+                    origPluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
+                    origPluginName = origPluginName.Replace("\0", "");
+                    Console.WriteLine("Original Plugin Name: {0}", origPluginName);
                 }
 
                 // skip to 'audioComponent'
@@ -252,6 +255,10 @@ namespace AbletonLiveConverter
                 if (vstPreset.ChunkData != null)
                 {
                     var fxp = new FXP(vstPreset.ChunkData);
+                    string fileName = string.Format("{0} - {1} - {2}.{3}", outputFileName, origPluginName == null ? "" : origPluginName, pluginName, vstEffectIndex, "fxp");
+                    fileName = StringUtils.MakeValidFileName(fileName);
+                    string outputFilePath = Path.Combine(outputDirectoryPath, fileName);
+                    fxp.Write(outputFilePath);
                 }
 
                 var nextFieldLen2 = binaryFile.ReadInt32();

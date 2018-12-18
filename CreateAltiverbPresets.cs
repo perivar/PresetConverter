@@ -240,7 +240,7 @@ class Script2
                 fxpContent.NumPrograms = 38;
                 fxpContent.Name = "";
                 fxp.XmlDocument = doc;
-                fxp.WriteFile(outputFileName);
+                fxp.Write(outputFileName);
 
                 /*
                 // Create the Altiverb Directories

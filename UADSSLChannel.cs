@@ -222,7 +222,7 @@ namespace PresetConverter
                 UInt32 vst2Bypass = 0;
                 bf.Write(vst2Bypass);
 
-                fxp.WriteFXP(bf);
+                fxp.Write(bf);
             }
 
             this.ChunkData = memStream.ToArray();
@@ -308,7 +308,7 @@ namespace PresetConverter
         public bool WriteFXP(string filePath)
         {
             FXP fxp = GenerateFXP(false);
-            fxp.WriteFile(filePath);
+            fxp.Write(filePath);
             return true;
         }
 
