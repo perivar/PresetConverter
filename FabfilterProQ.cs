@@ -19,9 +19,9 @@ namespace PresetConverter
             {
                 var band = new ProQBand();
 
-                band.FilterFreq = parameters[index++]; // FreqConvert
+                band.FilterFreq = FreqConvertBack(parameters[index++]);
                 band.FilterGain = parameters[index++]; // actual gain in dB
-                band.FilterQ = parameters[index++]; // QConvert
+                band.FilterQ = QConvertBack(parameters[index++]);
 
                 // 0 - 5
                 switch (parameters[index++])
@@ -173,16 +173,32 @@ namespace PresetConverter
             return true;
         }
 
+        // log and inverse log
+        // a ^ x = b 
+        // x = log(b) / log(a)
+
         public static double FreqConvert(double value)
         {
             // =LOG(A1)/LOG(2) (default = 1000 Hz)
             return Math.Log10(value) / Math.Log10(2);
         }
 
+        public static double FreqConvertBack(double value)
+        {
+            // Pow(2, frequency);
+            return Math.Pow(2, value);
+        }
+
         public static double QConvert(double value)
         {
             // =LOG(F1)*0,312098175+0,5 (default = 1)
             return Math.Log10(value) * 0.312098175 + 0.5;
+        }
+
+        public static double QConvertBack(double value)
+        {
+            // Pow(10, ((q-0.5)/0.312098175));
+            return Math.Pow(10, (value - 0.5) / 0.312098175);
         }
 
     }
