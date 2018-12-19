@@ -446,7 +446,7 @@ namespace AbletonLiveConverter
         private static void HandleFabfilterPresetFile(string file, string outputDirectoryPath)
         {
             string outputFileName = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
+            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_fabfilter.txt");
             var fabfilterProQ2 = new FabfilterProQ2();
             fabfilterProQ2.Read(file);
 

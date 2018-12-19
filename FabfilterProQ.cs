@@ -19,9 +19,9 @@ namespace PresetConverter
             {
                 var band = new ProQBand();
 
-                band.FilterFreq = FreqConvertBack(parameters[index++]);
+                band.FilterFreq = FabfilterProQ2.FreqConvertBack(parameters[index++]);
                 band.FilterGain = parameters[index++]; // actual gain in dB
-                band.FilterQ = QConvertBack(parameters[index++]);
+                band.FilterQ = FabfilterProQ2.QConvertBack(parameters[index++]);
 
                 // 0 - 5
                 switch (parameters[index++])
@@ -137,9 +137,9 @@ namespace PresetConverter
             {
                 if (i < proQBands.Count)
                 {
-                    binFile.Write((float)FreqConvert(proQBands[i].FilterFreq));
+                    binFile.Write((float)FabfilterProQ2.FreqConvert(proQBands[i].FilterFreq));
                     binFile.Write((float)proQBands[i].FilterGain);
-                    binFile.Write((float)QConvert(proQBands[i].FilterQ));
+                    binFile.Write((float)FabfilterProQ2.QConvert(proQBands[i].FilterQ));
                     binFile.Write((float)proQBands[i].FilterType);
                     binFile.Write((float)proQBands[i].FilterLPHPSlope);
                     binFile.Write((float)proQBands[i].FilterStereoPlacement);
@@ -147,9 +147,9 @@ namespace PresetConverter
                 }
                 else
                 {
-                    binFile.Write((float)FreqConvert(1000));
+                    binFile.Write((float)FabfilterProQ2.FreqConvert(1000));
                     binFile.Write((float)0);
-                    binFile.Write((float)QConvert(1));
+                    binFile.Write((float)FabfilterProQ2.QConvert(1));
                     binFile.Write((float)ProQFilterType.Bell);
                     binFile.Write((float)ProQLPHPSlope.Slope24dB_oct);
                     binFile.Write((float)ProQStereoPlacement.Stereo);
@@ -171,76 +171,6 @@ namespace PresetConverter
             binFile.Close();
 
             return true;
-        }
-
-        // log and inverse log
-        // a ^ x = b 
-        // x = log(b) / log(a)
-
-        public static double FreqConvert(double value)
-        {
-            // =LOG(A1)/LOG(2) (default = 1000 Hz)
-            return Math.Log10(value) / Math.Log10(2);
-        }
-
-        public static double FreqConvertBack(double value)
-        {
-            // =POWER(2; frequency)
-            return Math.Pow(2, value);
-        }
-
-        public static double QConvert(double value)
-        {
-            // =LOG(F1)*0,312098175+0,5 (default = 1)
-            return Math.Log10(value) * 0.312098175 + 0.5;
-        }
-
-        public static double QConvertBack(double value)
-        {
-            // =POWER(10;((B3-0,5)/0,312098175))
-            return Math.Pow(10, (value - 0.5) / 0.312098175);
-        }
-
-    }
-
-    public enum ProQFilterType
-    {
-        Bell = 0, // (default)
-        LowShelf = 1,
-        LowCut = 2,
-        HighShelf = 3,
-        HighCut = 4,
-        Notch = 5,
-    }
-
-    public enum ProQLPHPSlope
-    {
-        Slope6dB_oct = 0,
-        Slope12dB_oct = 1,
-        Slope24dB_oct = 2, // (default)
-        Slope48dB_oct = 3,
-    }
-
-    public enum ProQStereoPlacement
-    {
-        Left = 0,
-        Right = 1,
-        Stereo = 2, // (default)
-    }
-
-    public class ProQBand
-    {
-        public ProQFilterType FilterType { get; set; }
-        public ProQLPHPSlope FilterLPHPSlope { get; set; }
-        public ProQStereoPlacement FilterStereoPlacement { get; set; }
-        public bool Enabled { get; set; }
-        public double FilterFreq { get; set; }      // value range 10.0 -> 30000.0 Hz
-        public double FilterGain { get; set; }      // + or - value in dB
-        public double FilterQ { get; set; }         // value range 0.025 -> 40.00
-
-        public override string ToString()
-        {
-            return String.Format("{0}: {1} Hz  {2} dB  Q: {3}", FilterType, FilterFreq, FilterGain, FilterQ);
         }
     }
 }
