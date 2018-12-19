@@ -185,7 +185,7 @@ namespace PresetConverter
 
         public static double FreqConvertBack(double value)
         {
-            // Pow(2, frequency);
+            // =POWER(2; frequency)
             return Math.Pow(2, value);
         }
 
@@ -197,7 +197,7 @@ namespace PresetConverter
 
         public static double QConvertBack(double value)
         {
-            // Pow(10, ((q-0.5)/0.312098175));
+            // =POWER(10;((B3-0,5)/0,312098175))
             return Math.Pow(10, (value - 0.5) / 0.312098175);
         }
 

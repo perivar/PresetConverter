@@ -46,7 +46,7 @@ namespace AbletonLiveConverter
                     string outputDirectoryPath = optionOutputDirectory.Value();
                     string inputExtra = optionInputExtra.Value();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
 
@@ -77,6 +77,9 @@ namespace AbletonLiveConverter
                                 break;
                             case ".cpr":
                                 HandleCubaseProjectFile(file, outputDirectoryPath);
+                                break;
+                            case ".ffp":
+                                HandleFabfilterPresetFile(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -261,7 +264,7 @@ namespace AbletonLiveConverter
                     fxp.Write(outputFilePath);
 
                     // check if FabFilterProQ2 
-                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                     {
                         if (fxp.Content is FXP.FxSet)
                         {
@@ -405,6 +408,56 @@ namespace AbletonLiveConverter
                     File.WriteAllText(outputFilePath, vstPreset.ToString());
                 }
             }
+            else
+            {
+                // no parameters
+                if (vstPreset.Parameters.Count == 0 && vstPreset.ChunkData != null)
+                {
+                    // check if FabFilterProQ2 
+                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                    {
+                        var fxp = new FXP(vstPreset.ChunkData);
+                        if (fxp.Content is FXP.FxSet)
+                        {
+                            var set = (FXP.FxSet)fxp.Content;
+
+                            for (int i = 0; i < set.NumPrograms; i++)
+                            {
+                                var program = set.Programs[i];
+                                var parameters = program.Parameters;
+
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, "FabFilterProQ2x64_" + outputFileName + "_" + i + ".txt");
+                                using (var tw = new StreamWriter(outputFilePathNew))
+                                {
+                                    foreach (var param in parameters)
+                                    {
+                                        tw.WriteLine(string.Format("{0}", param));
+                                    }
+                                }
+
+                                // FabfilterProQ.Convert2FabfilterProQ(parameters);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void HandleFabfilterPresetFile(string file, string outputDirectoryPath)
+        {
+            string outputFileName = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
+            var fabfilterProQ2 = new FabfilterProQ2();
+            fabfilterProQ2.Read(file);
+
+            using (var tw = new StreamWriter(outputFilePath))
+            {
+                foreach (var band in fabfilterProQ2.ProQBands)
+                {
+                    tw.WriteLine(band.ToString());
+                }
+            }
+
         }
 
         private static void HandleWavesXpsPreset(string file, string outputDirectoryPath)
