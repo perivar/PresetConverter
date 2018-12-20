@@ -130,30 +130,29 @@ namespace PresetConverter
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
             binFile.Write("FPQr");
             binFile.Write((int)2);
-            binFile.Write((int)180);
-            binFile.Write((float)proQBands.Count);
+            binFile.Write((int)proQBands.Count);
 
             for (int i = 0; i < 24; i++)
             {
                 if (i < proQBands.Count)
                 {
+                    binFile.Write((float)(proQBands[i].Enabled ? 1 : 2));
                     binFile.Write((float)FabfilterProQ2.FreqConvert(proQBands[i].FilterFreq));
                     binFile.Write((float)proQBands[i].FilterGain);
                     binFile.Write((float)FabfilterProQ2.QConvert(proQBands[i].FilterQ));
                     binFile.Write((float)proQBands[i].FilterType);
                     binFile.Write((float)proQBands[i].FilterLPHPSlope);
                     binFile.Write((float)proQBands[i].FilterStereoPlacement);
-                    binFile.Write((float)(proQBands[i].Enabled ? 1 : 0));
                 }
                 else
                 {
+                    binFile.Write((float)1);
                     binFile.Write((float)FabfilterProQ2.FreqConvert(1000));
                     binFile.Write((float)0);
                     binFile.Write((float)FabfilterProQ2.QConvert(1));
                     binFile.Write((float)ProQFilterType.Bell);
                     binFile.Write((float)ProQLPHPSlope.Slope24dB_oct);
                     binFile.Write((float)ProQStereoPlacement.Stereo);
-                    binFile.Write((float)1);
                 }
             }
 

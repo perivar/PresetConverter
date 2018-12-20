@@ -89,7 +89,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\FabFilter\\Pro-Q 2",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\FabFilter",
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp"
             ],

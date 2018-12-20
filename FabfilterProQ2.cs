@@ -11,6 +11,8 @@ namespace PresetConverter
     public class FabfilterProQ2 : Preset
     {
         public List<ProQBand> ProQBands { get; set; }
+        public int Version { get; set; }            // Normally 2
+        public int ParameterCount { get; set; }     // Normally 190
 
         public float OutputGain { get; set; }        // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
         public float OutputPan { get; set; }         // -1 to 1 (0 = middle)
@@ -29,19 +31,48 @@ namespace PresetConverter
 
         }
 
+        public static float[] ReadFloats(string filePath)
+        {
+            BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
+
+            string header = binFile.ReadString(4);
+            int version = binFile.ReadInt32();
+            int parameterCount = binFile.ReadInt32();
+
+            var floatArray = new float[parameterCount];
+            int i = 0;
+            try
+            {
+                for (i = 0; i < parameterCount; i++)
+                {
+                    floatArray[i] = binFile.ReadSingle();
+                }
+
+            }
+            catch (System.Exception e)
+            {
+                Console.Error.WriteLine("Failed reading floats: {0}", e);
+            }
+
+            binFile.Close();
+            return floatArray;
+        }
+
         public bool Read(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
 
             string header = binFile.ReadString(4);
-            int var1 = binFile.ReadInt32();
-            int var2 = binFile.ReadInt32();
-            float count = binFile.ReadSingle();
+            Version = binFile.ReadInt32();
+            ParameterCount = binFile.ReadInt32();
 
             ProQBands = new List<ProQBand>();
             for (int i = 0; i < 24; i++)
             {
                 var band = new ProQBand();
+
+                // 1 = Enabled, 2 = Disabled
+                band.Enabled = binFile.ReadSingle() == 1 ? true : false;
 
                 band.FilterFreq = FreqConvertBack(binFile.ReadSingle());
                 band.FilterGain = binFile.ReadSingle(); // actual gain in dB
@@ -107,9 +138,6 @@ namespace PresetConverter
                         break;
                 }
 
-                // 0 = Disabled
-                band.Enabled = binFile.ReadSingle() == 1 ? true : false;
-
                 ProQBands.Add(band);
             }
 
@@ -122,8 +150,8 @@ namespace PresetConverter
             ReceiveMidi = binFile.ReadSingle();     	// 0 = Enabled?
             Analyzer = binFile.ReadSingle();         	// 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
             AnalyzerResolution = binFile.ReadSingle();  // 0 - 3 : low - medium[x] - high - maximum
-            AnalyzerSpeed = binFile.ReadSingle();   	// 0 - 3 : very slow, slow, medium[x], fast
-            SoloBand = binFile.ReadSingle();        	// -1
+            if (binFile.Position < binFile.Length - 4) AnalyzerSpeed = binFile.ReadSingle();   	// 0 - 3 : very slow, slow, medium[x], fast
+            if (binFile.Position < binFile.Length - 4) SoloBand = binFile.ReadSingle();        	// -1
 
             binFile.Close();
 
@@ -134,31 +162,30 @@ namespace PresetConverter
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
             binFile.Write("FPQr");
-            binFile.Write((int)2);
-            binFile.Write((int)180);
-            binFile.Write((float)ProQBands.Count);
+            binFile.Write((int)Version);
+            binFile.Write((int)ProQBands.Count);
 
             for (int i = 0; i < 24; i++)
             {
                 if (i < ProQBands.Count)
                 {
+                    binFile.Write((float)(ProQBands[i].Enabled ? 1 : 2));
                     binFile.Write((float)FabfilterProQ2.FreqConvert(ProQBands[i].FilterFreq));
                     binFile.Write((float)ProQBands[i].FilterGain);
                     binFile.Write((float)FabfilterProQ2.QConvert(ProQBands[i].FilterQ));
                     binFile.Write((float)ProQBands[i].FilterType);
                     binFile.Write((float)ProQBands[i].FilterLPHPSlope);
                     binFile.Write((float)ProQBands[i].FilterStereoPlacement);
-                    binFile.Write((float)(ProQBands[i].Enabled ? 1 : 0));
                 }
                 else
                 {
+                    binFile.Write((float)2);
                     binFile.Write((float)FabfilterProQ2.FreqConvert(1000));
                     binFile.Write((float)0);
                     binFile.Write((float)FabfilterProQ2.QConvert(1));
                     binFile.Write((float)ProQFilterType.Bell);
                     binFile.Write((float)ProQLPHPSlope.Slope24dB_oct);
                     binFile.Write((float)ProQStereoPlacement.Stereo);
-                    binFile.Write((float)1);
                 }
             }
 
@@ -246,7 +273,7 @@ namespace PresetConverter
 
         public override string ToString()
         {
-            return String.Format("[{4}] {0}: {1} Hz, {2} dB, Q: {3}", FilterType, FilterFreq, FilterGain, FilterQ, Enabled == true ? "On " : "Off");
+            return String.Format("[{4}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", FilterType, FilterFreq, FilterGain, FilterQ, Enabled == true ? "On " : "Off", FilterLPHPSlope, FilterStereoPlacement);
         }
     }
 }

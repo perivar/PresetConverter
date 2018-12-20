@@ -328,20 +328,16 @@ namespace PresetConverter
             else if (dataChunkID == "FabF")
             {
                 // Read unknown value (most likely VstW chunk size):
-                UInt32 unknown2 = bf.ReadUInt32();
-
-                // Read unknown value (most likely VstW chunk version):
+                UInt32 version = bf.ReadUInt32();
                 UInt32 nameLength = bf.ReadUInt32();
-
                 var name = bf.ReadString((int)nameLength);
-                UInt32 unknown3 = bf.ReadUInt32();
-                UInt32 unknown4 = bf.ReadUInt32();
-                UInt32 unknown5 = bf.ReadUInt32();
+                UInt32 unknown = bf.ReadUInt32();
+                UInt32 parameterCount = bf.ReadUInt32();
 
-                Console.WriteLine("DEBUG: '{0}' {1} {2} {3} {4}", name, unknown2, unknown3, unknown4, unknown5);
+                Console.WriteLine("DEBUG: '{0}', version: {1}, unknown: {2}, param count: {3}", name, version, unknown, parameterCount);
 
                 var counter = 0;
-                while (bf.Position != (long)this.MetaXmlStartPos)
+                while (bf.Position != (long)(DataStartPos + DataSize))
                 {
                     counter++;
 
@@ -349,6 +345,15 @@ namespace PresetConverter
                     var parameterNumber = (UInt32)counter;
                     var parameterNumberValue = bf.ReadSingle();
                     AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                }
+
+                long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
+                if (skipBytes > 0)
+                {
+                    Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+
+                    // seek to start of meta xml
+                    bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
                 }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -379,7 +384,7 @@ namespace PresetConverter
                 {
                     // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                     // (19180 + 52) = 19232 bytes
-                    while (bf.Position != (long)this.MetaXmlStartPos)
+                    while (bf.Position != (long)(DataStartPos + DataSize))
                     {
                         // read the null terminated string
                         var parameterName = bf.ReadStringNull();
@@ -393,6 +398,15 @@ namespace PresetConverter
                         var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
 
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                    }
+
+                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
+                    if (skipBytes > 0)
+                    {
+                        Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+
+                        // seek to start of meta xml
+                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
                     }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -493,7 +507,7 @@ namespace PresetConverter
                     }
 
                     int parameterCounter = 0;
-                    while (bf.Position < (long)this.DataSize)
+                    while (bf.Position != (long)(DataStartPos + DataSize))
                     {
                         parameterCounter++;
 
@@ -517,10 +531,13 @@ namespace PresetConverter
                     }
 
                     long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                    Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+                    if (skipBytes > 0)
+                    {
+                        Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
 
-                    // seek to start of meta xml
-                    bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
+                        // seek to start of meta xml
+                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
+                    }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
@@ -613,7 +630,7 @@ namespace PresetConverter
 
                     var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
 
-                    while (bf.Position != (long)this.MetaXmlStartPos)
+                    while (bf.Position != (long)(DataStartPos + DataSize))
                     {
                         // read the null terminated string
                         var parameterName = bf.ReadStringNull();
@@ -827,18 +844,6 @@ namespace PresetConverter
         /// </summary>
         public void CalculateBytePositions()
         {
-            // Frequency:
-            // ListPos = 19664; // position of List chunk
-            // DataStartPos = 48; // parameter data start position
-            // DataSize = 19184; // byte length from parameter data start position up until xml data
-            // MetaXmlStartPos = 19232; // xml start position
-
-            // Compressor:
-            // ListPos = 2731; // position of List chunk
-            // DataStartPos = 48; // parameter data start position
-            // DataSize = 2244; // byte length from parameter data start position up until xml data
-            // MetaXmlStartPos = 2292; // xml start position
-
             DataStartPos = 48; // parameter data start position
             DataSize = (ulong)this.ChunkData.Length; // byte length from parameter data start position up until xml data
             MetaXmlStartPos = this.DataStartPos + this.DataSize; // xml start position

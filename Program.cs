@@ -426,7 +426,7 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
 
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, "FabFilterProQ2x64_" + outputFileName + "_" + i + ".txt");
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2x64_" + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
                                     foreach (var param in parameters)
@@ -447,17 +447,23 @@ namespace AbletonLiveConverter
         {
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_fabfilter.txt");
+
+            var floatArray = FabfilterProQ2.ReadFloats(file);
+
             var fabfilterProQ2 = new FabfilterProQ2();
             fabfilterProQ2.Read(file);
 
             using (var tw = new StreamWriter(outputFilePath))
             {
+                foreach (var f in floatArray)
+                {
+                    tw.WriteLine("{0:0.00}", f);
+                }
                 foreach (var band in fabfilterProQ2.ProQBands)
                 {
                     tw.WriteLine(band.ToString());
                 }
             }
-
         }
 
         private static void HandleWavesXpsPreset(string file, string outputDirectoryPath)
