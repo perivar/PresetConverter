@@ -429,13 +429,17 @@ namespace AbletonLiveConverter
                                 string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2x64_" + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
-                                    foreach (var param in parameters)
+                                    // foreach (var param in parameters)
+                                    // {
+                                    //     tw.WriteLine(string.Format("{0}", param));
+                                    // }
+
+                                    var list = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                    foreach (var param in list)
                                     {
-                                        tw.WriteLine(string.Format("{0}", param));
+                                        tw.WriteLine(string.Format("{0:0.00}", param));
                                     }
                                 }
-
-                                // FabfilterProQ.Convert2FabfilterProQ(parameters);
                             }
                         }
                     }

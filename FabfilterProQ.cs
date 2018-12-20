@@ -10,7 +10,25 @@ namespace PresetConverter
     /// </summary>
     public static class FabfilterProQ
     {
-        public static bool Convert2FabfilterProQ(float[] parameters)
+        public static List<float> Convert2FabfilterProQ(float[] parameters)
+        {
+            var floatList = new List<float>();
+            int counter = 0;
+            for (int i = 0; i < 24; i++)
+            {
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, 0, 2)); // 1 = Enabled, 2 = Disabled
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, 3, 15)); // value range 10.0 -> 30000.0 Hz
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, -30, 30)); // + or - value in dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, 0, 1)); // value range 0.025 -> 40.00
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, 0, 5)); // 0 - 5
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, 0, 8)); // 0 = 6 dB/oct, 1 = 12 dB/oct, 2 = 24 dB/oct, 3 = 48 dB/oct
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(parameters[counter++], 0, 1, 0, 2)); // 0 = Left, 1 = Right, 2 = Stereo
+            }
+
+            return floatList;
+        }
+
+        public static bool Convert2FabfilterProQOld(float[] parameters)
         {
             List<ProQBand> proQBands = new List<ProQBand>();
 

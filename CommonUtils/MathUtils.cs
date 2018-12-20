@@ -484,11 +484,11 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValueArray">original array</param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified array</returns>
-        public static float[] ConvertRangeAndMainainRatio(float[] oldValueArray, float oldMin, float oldMax, float newMin, float newMax)
+        public static float[] ConvertRangeAndMaintainRatio(float[] oldValueArray, float oldMin, float oldMax, float newMin, float newMax)
         {
             var newValueArray = new float[oldValueArray.Length];
             float oldRange = (oldMax - oldMin);
@@ -508,11 +508,11 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValueArray">original array</param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified array</returns>
-        public static float[] ConvertRangeAndMainainRatioLog(float[] oldValueArray, float oldMin, float oldMax, float newMin, float newMax)
+        public static float[] ConvertRangeAndMaintainRatioLog(float[] oldValueArray, float oldMin, float oldMax, float newMin, float newMax)
         {
             var newValueArray = new float[oldValueArray.Length];
 
@@ -539,11 +539,11 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValueArray">original array</param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified array</returns>
-        public static double[] ConvertRangeAndMainainRatio(double[] oldValueArray, double oldMin, double oldMax, double newMin, double newMax)
+        public static double[] ConvertRangeAndMaintainRatio(double[] oldValueArray, double oldMin, double oldMax, double newMin, double newMax)
         {
             var newValueArray = new double[oldValueArray.Length];
             double oldRange = (oldMax - oldMin);
@@ -565,9 +565,9 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValue"></param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified value</returns>
         public static double ConvertAndMainainRatio(double oldValue, double oldMin, double oldMax, double newMin, double newMax)
         {
@@ -582,11 +582,11 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValue"></param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified value</returns>
-        public static float ConvertAndMainainRatio(float oldValue, float oldMin, float oldMax, float newMin, float newMax)
+        public static float ConvertAndMaintainRatio(float oldValue, float oldMin, float oldMax, float newMin, float newMax)
         {
             float oldRange = (oldMax - oldMin);
             float newRange = (newMax - newMin);
@@ -600,11 +600,11 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValue"></param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified value</returns>
-        public static double ConvertAndMainainRatioLog(double oldValue, double oldMin, double oldMax, double newMin, double newMax)
+        public static double ConvertAndMaintainRatioLog(double oldValue, double oldMin, double oldMax, double newMin, double newMax)
         {
             // // TODO: Does not seem to work if oldMin is a minus value and oldValue also is minus
 
@@ -625,11 +625,11 @@ namespace CommonUtils
         /// </summary>
         /// <param name="oldValue"></param>
         /// <param name="oldMin">original minimum value</param>
-        /// <param name="oldMax">original maxiumum value</param>
+        /// <param name="oldMax">original maximum value</param>
         /// <param name="newMin">new minimum value</param>
-        /// <param name="newMax">new maxiumum value</param>
+        /// <param name="newMax">new maximum value</param>
         /// <returns>the modified value</returns>
-        public static float ConvertAndMainainRatioLog(float oldValue, float oldMin, float oldMax, float newMin, float newMax)
+        public static float ConvertAndMaintainRatioLog(float oldValue, float oldMin, float oldMax, float newMin, float newMax)
         {
             // Addition of Epsilon prevents log from returning minus infinity if value is zero
             float oldRange = (oldMax - oldMin);
@@ -644,7 +644,7 @@ namespace CommonUtils
         }
 
         /// <summary>
-        /// Scale data from one format to another (similar to ConvertRangeAndMainainRatio)
+        /// Scale data from one format to another (similar to ConvertRangeAndMaintainRatio)
         /// </summary>
         /// <example>
         /// double [-1,1] to int [0-255]
