@@ -275,7 +275,7 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
 
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileName + i + ".txt");
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileName + "_prg_" + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
                                     var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
