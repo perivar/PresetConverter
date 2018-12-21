@@ -103,6 +103,18 @@ namespace CommonUtils
         }
         #endregion
 
+        /// <summary>
+        /// Check if bit is set within byte
+        /// </summary>
+        /// <param name="value">value</param>
+        /// <param name="checkbit">bit</param>
+        /// <returns>true if bit is set</returns>
+        public static bool IsFlagSet(int value, byte checkbit)
+        {
+            // check if flags contain: (value & checkBit) == checkBit
+            return ((value & checkbit) == checkbit);
+        }
+
         #region Prime Number Methods
         /// <summary>
         /// This function is designed to look for the smallest integer that satisfies the

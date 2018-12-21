@@ -274,7 +274,7 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
-                                FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                FabfilterProQ2.Convert2FabfilterProQ(parameters);
                             }
                         }
                     }
@@ -429,15 +429,10 @@ namespace AbletonLiveConverter
                                 string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2x64_" + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
-                                    // foreach (var param in parameters)
-                                    // {
-                                    //     tw.WriteLine(string.Format("{0}", param));
-                                    // }
-
-                                    var list = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                    foreach (var param in list)
+                                    var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                                    foreach (var band in fabfilterPreset.ProQBands)
                                     {
-                                        tw.WriteLine(string.Format("{0:0.00}", param));
+                                        tw.WriteLine(string.Format("{0}", band));
                                     }
                                 }
                             }
@@ -459,9 +454,12 @@ namespace AbletonLiveConverter
 
             using (var tw = new StreamWriter(outputFilePath))
             {
+                int counter = 0;
                 foreach (var f in floatArray)
                 {
-                    tw.WriteLine("{0:0.00}", f);
+                    tw.WriteLine("{0:0.0000}", f);
+                    counter++;
+                    if (counter % 7 == 0) tw.WriteLine();
                 }
                 foreach (var band in fabfilterProQ2.ProQBands)
                 {

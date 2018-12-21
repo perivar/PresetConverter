@@ -58,6 +58,137 @@ namespace PresetConverter
             return floatArray;
         }
 
+        public static float[] Convert2FabfilterProQFloats(float[] ieeeFloatParameters)
+        {
+            var floatList = new List<float>();
+            int counter = 0;
+            for (int i = 0; i < 24; i++)
+            {
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // 1 = Enabled, 2 = Disabled
+                floatList.Add(IEEEFloatToFrequencyFloat(ieeeFloatParameters[counter++]));                     // value range 10.0 -> 30000.0 Hz
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -30, 30)); // + or - value in dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // value range 0.025 -> 40.00
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 5)); // 0 - 5
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 8)); // 0 = 6 dB/oct, 1 = 12 dB/oct, 2 = 24 dB/oct, 3 = 48 dB/oct
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // 0 = Left, 1 = Right, 2 = Stereo
+            }
+
+            for (int i = counter; i < ieeeFloatParameters.Length; i++)
+            {
+                floatList.Add(ieeeFloatParameters[i]);
+            }
+
+            return floatList.ToArray();
+        }
+
+        public static FabfilterProQ2 Convert2FabfilterProQ(float[] ieeeFloatParameters)
+        {
+            var fabfilterProQ2 = new FabfilterProQ2();
+            fabfilterProQ2.ProQBands = new List<ProQBand>();
+
+            // convert the ieeefloat parameters to fabfilter floats
+            var floatArray = Convert2FabfilterProQFloats(ieeeFloatParameters);
+
+            int index = 0;
+            for (int i = 0; i < 24; i++)
+            {
+                var band = new ProQBand();
+
+                // 1 = Enabled, 2 = Disabled
+                band.Enabled = floatArray[index++] == 1 ? true : false;
+
+                band.FilterFreq = FabfilterProQ2.FreqConvertBack(floatArray[index++]);
+                band.FilterGain = floatArray[index++]; // actual gain in dB
+                band.FilterQ = FabfilterProQ2.QConvertBack(floatArray[index++]);
+
+                // 0 - 5
+                switch (floatArray[index++])
+                {
+                    case (float)ProQFilterType.Bell:
+                        band.FilterType = ProQFilterType.Bell;
+                        break;
+                    case (float)ProQFilterType.HighCut:
+                        band.FilterType = ProQFilterType.HighCut;
+                        break;
+                    case (float)ProQFilterType.LowCut:
+                        band.FilterType = ProQFilterType.LowCut;
+                        break;
+                    case (float)ProQFilterType.LowShelf:
+                        band.FilterType = ProQFilterType.LowShelf;
+                        break;
+                    case (float)ProQFilterType.HighShelf:
+                        band.FilterType = ProQFilterType.HighShelf;
+                        break;
+                    default:
+                        band.FilterType = ProQFilterType.Bell;
+                        break;
+                }
+
+                // 0 = 6 dB/oct, 1 = 12 dB/oct, 2 = 24 dB/oct, 3 = 48 dB/oct
+                switch (floatArray[index++])
+                {
+                    case (float)ProQLPHPSlope.Slope6dB_oct:
+                        band.FilterLPHPSlope = ProQLPHPSlope.Slope6dB_oct;
+                        break;
+                    case (float)ProQLPHPSlope.Slope12dB_oct:
+                        band.FilterLPHPSlope = ProQLPHPSlope.Slope12dB_oct;
+                        break;
+                    case (float)ProQLPHPSlope.Slope24dB_oct:
+                        band.FilterLPHPSlope = ProQLPHPSlope.Slope24dB_oct;
+                        break;
+                    case (float)ProQLPHPSlope.Slope48dB_oct:
+                        band.FilterLPHPSlope = ProQLPHPSlope.Slope48dB_oct;
+                        break;
+                    default:
+                        band.FilterLPHPSlope = ProQLPHPSlope.Slope24dB_oct;
+                        break;
+                }
+
+                // 0 = Left, 1 = Right, 2 = Stereo
+                switch (floatArray[index++])
+                {
+                    case (float)ProQStereoPlacement.Left:
+                        band.FilterStereoPlacement = ProQStereoPlacement.Left;
+                        break;
+                    case (float)ProQStereoPlacement.Right:
+                        band.FilterStereoPlacement = ProQStereoPlacement.Right;
+                        break;
+                    case (float)ProQStereoPlacement.Stereo:
+                        band.FilterStereoPlacement = ProQStereoPlacement.Stereo;
+                        break;
+                    default:
+                        band.FilterStereoPlacement = ProQStereoPlacement.Stereo;
+                        break;
+                }
+
+                fabfilterProQ2.ProQBands.Add(band);
+            }
+
+            float outputGain = floatArray[index++];      	// -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+            float outputPan = floatArray[index++];       	// -1 to 1 (0 = middle)
+            float displayRange = floatArray[index++];    	// 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
+            float processMode = floatArray[index++];     	// 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
+            float channelMode = floatArray[index++];     	// 0 = Left/Right, 1 = Mid/Side
+            float bypass = floatArray[index++];           	// 0 = No bypass
+            float receiveMidi = floatArray[index++];     	// 0 = Enabled?
+            float analyzer = floatArray[index++];         	// 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
+            float analyzerResolution = floatArray[index++]; // 0 - 3 : low - medium[x] - high - maximum
+            float analyzerSpeed = floatArray[index++];   	// 0 - 3 : very slow, slow, medium[x], fast
+            float soloBand = floatArray[index++];        	// -1
+
+            return fabfilterProQ2;
+        }
+
+        /// <summary>
+        /// convert a float between 0 and 1 to the fabfilter float equivalent
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static float IEEEFloatToFrequencyFloat(float value)
+        {
+            return 11.5507311008828f * value + 3.32193432374016f;
+        }
+
         public bool Read(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
