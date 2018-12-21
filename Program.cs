@@ -253,7 +253,7 @@ namespace AbletonLiveConverter
                 var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
                 var vstPreset = new SteinbergVstPreset();
                 vstPreset.Vst3ID = guid;
-                vstPreset.MetaXmlStartPos = (ulong)presetBytes.Length;
+                vstPreset.DataSize = (ulong)presetBytes.Length;
                 vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
                 if (vstPreset.ChunkData != null)
                 {
@@ -274,7 +274,16 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
-                                FabfilterProQ2.Convert2FabfilterProQ(parameters);
+
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileName + i + ".txt");
+                                using (var tw = new StreamWriter(outputFilePathNew))
+                                {
+                                    var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                                    foreach (var band in fabfilterPreset.ProQBands)
+                                    {
+                                        tw.WriteLine(string.Format("{0}", band));
+                                    }
+                                }
                             }
                         }
                     }
