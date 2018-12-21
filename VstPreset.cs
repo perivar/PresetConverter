@@ -69,7 +69,7 @@ namespace PresetConverter
             public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
             public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
-            public const string FabFilterProQ = "5653544650517266616266696C746572";
+            public const string FabFilterProQx64 = "5653544650517266616266696C746572";
             public const string FabFilterProQ2 = "55FD08E6C00B44A697DA68F61C6FD576";
             public const string FabFilterProQ2x64 = "5653544651327066616266696C746572";
         }
@@ -336,11 +336,8 @@ namespace PresetConverter
 
                 Console.WriteLine("DEBUG: '{0}', version: {1}, unknown: {2}, param count: {3}", name, version, unknown, parameterCount);
 
-                var counter = 0;
-                while (bf.Position != (long)(DataStartPos + DataSize))
+                for (int counter = 0; counter < parameterCount; counter++)
                 {
-                    counter++;
-
                     var parameterName = string.Format("unknown{0}", counter); // don't have a name
                     var parameterNumber = (UInt32)counter;
                     var parameterNumberValue = bf.ReadSingle();

@@ -253,8 +253,28 @@ namespace AbletonLiveConverter
                 var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
                 var vstPreset = new SteinbergVstPreset();
                 vstPreset.Vst3ID = guid;
+                vstPreset.MetaXmlStartPos = (ulong)presetBytes.Length;
                 vstPreset.DataSize = (ulong)presetBytes.Length;
                 vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
+
+                // FabFilterProQ2 stores the parameters as floats not chunk
+                if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                {
+                    string fileName = string.Format("{0} - {1} - {2} - {3}.{4}", outputFileName, origPluginName == null ? "EMPTY" : origPluginName, pluginName, vstEffectIndex, "txt");
+                    fileName = StringUtils.MakeValidFileName(fileName);
+                    string outputFilePath = Path.Combine(outputDirectoryPath, fileName);
+
+                    var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                    using (var tw = new StreamWriter(outputFilePath))
+                    {
+                        var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                        foreach (var band in fabfilterPreset.Bands)
+                        {
+                            tw.WriteLine(string.Format("{0}", band));
+                        }
+                    }
+                }
+
                 if (vstPreset.ChunkData != null)
                 {
                     var fxp = new FXP(vstPreset.ChunkData);
@@ -287,7 +307,7 @@ namespace AbletonLiveConverter
                             }
                         }
                     }
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                     {
                         if (fxp.Content is FXP.FxSet)
                         {
@@ -470,7 +490,7 @@ namespace AbletonLiveConverter
                             }
                         }
                     }
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                     {
                         var fxp = new FXP(vstPreset.ChunkData);
                         if (fxp.Content is FXP.FxSet)

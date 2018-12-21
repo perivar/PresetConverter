@@ -89,13 +89,21 @@ namespace PresetConverter
             return floatList.ToArray();
         }
 
-        public static FabfilterProQ2 Convert2FabfilterProQ(float[] ieeeFloatParameters)
+        public static FabfilterProQ2 Convert2FabfilterProQ(float[] floatParameters, bool isIEEE = true)
         {
             var preset = new FabfilterProQ2();
             preset.Bands = new List<ProQ2Band>();
 
-            // convert the ieeefloat parameters to fabfilter floats
-            var floatArray = Convert2FabfilterProQ2Floats(ieeeFloatParameters);
+            float[] floatArray;
+            if (isIEEE)
+            {
+                // convert the ieee float parameters to fabfilter floats
+                floatArray = Convert2FabfilterProQ2Floats(floatParameters);
+            }
+            else
+            {
+                floatArray = floatParameters;
+            }
 
             int index = 0;
             for (int i = 0; i < 24; i++)
