@@ -287,6 +287,29 @@ namespace AbletonLiveConverter
                             }
                         }
                     }
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                    {
+                        if (fxp.Content is FXP.FxSet)
+                        {
+                            var set = (FXP.FxSet)fxp.Content;
+
+                            for (int i = 0; i < set.NumPrograms; i++)
+                            {
+                                var program = set.Programs[i];
+                                var parameters = program.Parameters;
+
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileName + "_prg_" + i + ".txt");
+                                using (var tw = new StreamWriter(outputFilePathNew))
+                                {
+                                    var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                    foreach (var band in fabfilterPreset.Bands)
+                                    {
+                                        tw.WriteLine(string.Format("{0}", band));
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 var nextFieldLen2 = binaryFile.ReadInt32();
