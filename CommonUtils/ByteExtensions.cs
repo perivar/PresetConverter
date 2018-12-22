@@ -91,7 +91,7 @@ namespace CommonUtils
         /// <param name="pattern">byte pattern to find</param>
         /// <param name="offset">offset to seek to (if > 0)</param>
         /// <returns>index where found (BinaryFile position will be at this index)</returns>
-        public static int IndexOf(this BinaryFile binaryFile, byte[] pattern, int offset)
+        public static int IndexOf(this BinaryFile binaryFile, byte[] pattern, int offset, int endIndex = -1)
         {
             // seek to offset
             if (offset > 0 && offset < binaryFile.Length)
@@ -100,7 +100,14 @@ namespace CommonUtils
             }
 
             int success = 0;
-            for (int i = 0; i < binaryFile.Length - binaryFile.Position; i++)
+            long remainingBytes = binaryFile.Length - binaryFile.Position;
+
+            if (endIndex > 0)
+            {
+                remainingBytes = Math.Min(endIndex, remainingBytes);
+            }
+
+            for (int i = 0; i < (int)remainingBytes; i++)
             {
                 var b = binaryFile.ReadByte();
                 if (b == pattern[success])

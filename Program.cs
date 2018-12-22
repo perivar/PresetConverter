@@ -175,22 +175,71 @@ namespace AbletonLiveConverter
             // get fourth chunk
             var chunk = riffReader.Chunks[3];
 
-            // get chunk byte array
+            // get chunk byte array            
             var chunkBytes = chunk.Read((int)chunk.StartPosition, (int)chunk.ChunkDataSize);
 
+            // search for 'VST Multitrack'
+            var vstMultitrackBytePattern = Encoding.ASCII.GetBytes("VST Multitrack\0");
+            var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
+
             // search for 'VstCtrlInternalEffect'
-            var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
-            var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern);
+            // var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
+            // var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern);
 
             var binaryFile = riffReader.BinaryFile;
-            foreach (int index in vstEffectIndices)
+            // foreach (int index in vstEffectIndices)
+            foreach (int index in vstMultitrackIndices)
             {
                 // seek to index
-                int vstEffectIndex = (int)chunk.StartPosition + index;
-                Log.Debug("vstEffectIndex: {0}", vstEffectIndex);
-                binaryFile.Seek(vstEffectIndex);
+                // int vstEffectIndex = (int)chunk.StartPosition + index;
+                // Log.Debug("vstEffectIndex: {0}", vstEffectIndex);
+                // binaryFile.Seek(vstEffectIndex);
 
-                // 'VstCtrlInternalEffect' Field            
+                int vstMultitrackIndex = (int)chunk.StartPosition + index;
+                Log.Debug("vstMultitrackIndex: {0}", vstMultitrackIndex);
+                binaryFile.Seek(vstMultitrackIndex);
+
+                // 'VST Multitrack' field
+                var vstMultitrackField = binaryFile.ReadString(vstMultitrackBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
+                var v1 = binaryFile.ReadInt32();
+                var v2 = binaryFile.ReadInt32();
+                var v3 = binaryFile.ReadInt32();
+
+                // 'Runtime ID' field
+                var runtimeIDLen = binaryFile.ReadInt32();
+                var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
+                var b1 = binaryFile.ReadBytes(10);
+
+                // 'Name' field
+                var nameLen = binaryFile.ReadInt32();
+                var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
+                var v4 = binaryFile.ReadInt16();
+                var v5 = binaryFile.ReadInt16();
+                var v6 = binaryFile.ReadInt32();
+
+                // 'String' field
+                var stringLen = binaryFile.ReadInt32();
+                var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
+                var v7 = binaryFile.ReadInt16();
+
+                // Track Name (for channels supporting audio insert plugins)
+                var trackNameLen = binaryFile.ReadInt32();
+                var trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
+                trackName = StringUtils.RemoveByteOrderMark(trackName);
+                Log.Debug("TrackName: {0}", trackName);
+
+                // 'Type'
+                var typeLen = binaryFile.ReadInt32();
+                var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
+
+                // skip to the 'VstCtrlInternalEffect' field            
+                var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
+                int vstEffectIndex = binaryFile.IndexOf(vstEffectBytePattern, 0, (int)(chunk.ChunkDataSize - chunk.StartPosition));
+                if (vstEffectIndex < 0)
+                {
+                    Log.Warning("Could not any insert effects ('VstCtrlInternalEffect')");
+                    continue;
+                }
                 var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
 
                 var pluginFieldLen = binaryFile.ReadInt32();
@@ -199,14 +248,14 @@ namespace AbletonLiveConverter
                 var t2 = binaryFile.ReadInt16();
                 var t3 = binaryFile.ReadInt32();
 
-                // 'Plugin UID' Field
+                // 'Plugin UID' field
                 var pluginUIDFieldLen = binaryFile.ReadInt32();
                 var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
                 var t4 = binaryFile.ReadInt16();
                 var t5 = binaryFile.ReadInt16();
                 var t6 = binaryFile.ReadInt32();
 
-                // 'GUID' Field
+                // 'GUID' field
                 var guidFieldLen = binaryFile.ReadInt32();
                 var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
                 var t7 = binaryFile.ReadInt16();
@@ -217,7 +266,7 @@ namespace AbletonLiveConverter
                 guid = StringUtils.RemoveByteOrderMark(guid);
                 Log.Debug("GUID: {0}", guid);
 
-                // 'Plugin Name' Field
+                // 'Plugin Name' field
                 var pluginNameFieldLen = binaryFile.ReadInt32();
                 var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
                 var t8 = binaryFile.ReadInt16();
@@ -246,7 +295,7 @@ namespace AbletonLiveConverter
                 var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
                 int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0);
 
-                // 'audioComponent' Field            
+                // 'audioComponent' field            
                 var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
 
                 var t10 = binaryFile.ReadInt16();
@@ -360,7 +409,10 @@ namespace AbletonLiveConverter
 
                 var nextFieldLen2 = binaryFile.ReadInt32();
                 var nextField2 = binaryFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');
-                Log.Debug("Found {0} at index {1}", nextField2, binaryFile.Position - nextFieldLen2);
+                if (nextField2 != "editController")
+                {
+                    Log.Warning("Could not find 'editController'. Found {0} at index {1}", nextField2, binaryFile.Position - nextFieldLen2);
+                }
             }
         }
 
