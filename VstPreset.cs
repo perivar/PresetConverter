@@ -329,7 +329,6 @@ namespace PresetConverter
             }
             else if (dataChunkID == "FabF")
             {
-                // Read unknown value (most likely VstW chunk size):
                 UInt32 version = bf.ReadUInt32();
                 UInt32 nameLength = bf.ReadUInt32();
                 var name = bf.ReadString((int)nameLength);
