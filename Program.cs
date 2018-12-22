@@ -181,7 +181,6 @@ namespace AbletonLiveConverter
             var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
 
             var binaryFile = riffReader.BinaryFile;
-            // foreach (int index in vstEffectIndices)
             foreach (int index in vstMultitrackIndices)
             {
                 int vstMultitrackIndex = (int)chunk.StartPosition + index;
@@ -194,14 +193,16 @@ namespace AbletonLiveConverter
                 var v2 = binaryFile.ReadInt32();
                 var v3 = binaryFile.ReadInt32();
 
-                // 'Runtime ID' field
+                // 'RuntimeID' field
                 var runtimeIDLen = binaryFile.ReadInt32();
                 var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("RuntimeID", runtimeIDField)) continue;
                 var b1 = binaryFile.ReadBytes(10);
 
                 // 'Name' field
                 var nameLen = binaryFile.ReadInt32();
                 var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("Name", nameField)) continue;
                 var v4 = binaryFile.ReadInt16();
                 var v5 = binaryFile.ReadInt16();
                 var v6 = binaryFile.ReadInt32();
@@ -209,6 +210,7 @@ namespace AbletonLiveConverter
                 // 'String' field
                 var stringLen = binaryFile.ReadInt32();
                 var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("String", stringField)) continue;
                 var v7 = binaryFile.ReadInt16();
 
                 // Track Name (for channels supporting audio insert plugins)
@@ -219,12 +221,13 @@ namespace AbletonLiveConverter
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
-                outputFileName = string.Format("{0}_{1}", outputFileName, trackName.Replace(" ", ""));
+                outputFileName = string.Format("{0}_{1}", outputFileName, trackName);
                 outputFileName = StringUtils.MakeValidFileName(outputFileName);
 
                 // 'Type'
                 var typeLen = binaryFile.ReadInt32();
                 var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("Type", typeField)) continue;
 
                 // skip to the 'VstCtrlInternalEffect' field            
                 var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
@@ -245,6 +248,7 @@ namespace AbletonLiveConverter
                 // 'Plugin UID' field
                 var pluginUIDFieldLen = binaryFile.ReadInt32();
                 var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("Plugin UID", pluginUIDField)) continue;
                 var t4 = binaryFile.ReadInt16();
                 var t5 = binaryFile.ReadInt16();
                 var t6 = binaryFile.ReadInt32();
@@ -252,6 +256,7 @@ namespace AbletonLiveConverter
                 // 'GUID' field
                 var guidFieldLen = binaryFile.ReadInt32();
                 var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("GUID", guidField)) continue;
                 var t7 = binaryFile.ReadInt16();
 
                 // GUID
@@ -263,6 +268,7 @@ namespace AbletonLiveConverter
                 // 'Plugin Name' field
                 var pluginNameFieldLen = binaryFile.ReadInt32();
                 var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("Plugin Name", pluginNameField)) continue;
                 var t8 = binaryFile.ReadInt16();
 
                 // Plugin Name
@@ -291,6 +297,7 @@ namespace AbletonLiveConverter
 
                 // 'audioComponent' field            
                 var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("audioComponent", audioComponentField)) continue;
 
                 var t10 = binaryFile.ReadInt16();
                 var t11 = binaryFile.ReadInt16();
@@ -459,15 +466,21 @@ namespace AbletonLiveConverter
                 }
 
                 // read next field, we expect editController
-                var nextFieldLen2 = binaryFile.ReadInt32();
-                var nextField2 = binaryFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');
-                if (nextField2 != "editController")
-                {
-                    Log.Warning("Could not find 'editController'. Found {0} at index {1}", nextField2, binaryFile.Position - nextFieldLen2);
-                }
+                var editControllerLen = binaryFile.ReadInt32();
+                var editControllerField = binaryFile.ReadString(editControllerLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField("editController", editControllerField)) continue;
             }
         }
 
+        private static bool IsWrongField(string expectedValue, string foundValue)
+        {
+            if (foundValue != expectedValue)
+            {
+                Log.Warning("Expected '{0}' but got {0}", expectedValue, foundValue);
+                return true;
+            }
+            return false;
+        }
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = new SteinbergVstPreset(file);
