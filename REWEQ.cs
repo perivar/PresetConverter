@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using Serilog;
 
 namespace PresetConverter
 {
@@ -63,7 +64,7 @@ namespace PresetConverter
                         }
                         else
                         {
-                            Console.Error.WriteLine("No known equaliser format!", line);
+                            Log.Error("No known equaliser format!", line);
                             return null;
                         }
                     }
@@ -111,7 +112,7 @@ namespace PresetConverter
                             }
                             catch (Exception e)
                             {
-                                Console.Error.WriteLine("Parse error", e.Message);
+                                Log.Error("Parse error", e.Message);
                                 return null;
                             }
                             filters.EqBands.Add(band);
@@ -120,7 +121,7 @@ namespace PresetConverter
                         {
                             // By some reason we failed parsing the Filter line which should have worked!
                             // probably a locale problem
-                            Console.Error.WriteLine("Could not parse line: {0}", line);
+                            Log.Error("Could not parse line: {0}", line);
                             return null;
                         }
                     }

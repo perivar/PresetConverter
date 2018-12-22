@@ -1,4 +1,5 @@
 using System;
+using Serilog;
 
 namespace PresetConverter
 {
@@ -75,7 +76,7 @@ namespace PresetConverter
                             break;
                     }
 
-                    Console.WriteLine(band);
+                    Log.Debug(band.ToString());
                 }
             }
 
@@ -97,7 +98,8 @@ namespace PresetConverter
             compressor.Parameters["softknee"].NumberValue = comp.Knee > 6.00 ? 1.00 : 0.00; // Knee value of 0.00 is hard knee, up to 18.00 dB (default 6.00 dB)
             compressor.Parameters["rms"].NumberValue = comp.Model == 1 ? 100.00 : 00.00; // 0.00 - 100.00 - Model: 0 = Peak, 1 = RMS, 2 = Expand
             compressor.Parameters["drymix"].NumberValue = (1 - comp.DryWet) * 100; // 0.00 - 100.00
-            Console.WriteLine(comp);
+            
+            Log.Debug(comp.ToString());
 
             return compressor;
         }

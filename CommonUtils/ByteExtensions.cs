@@ -27,7 +27,7 @@ namespace CommonUtils
         /// reverseIndex = 64;
         /// }
         /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
-        /// Console.WriteLine("DEBUG: File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
+        /// Log.Debug("File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
         /// </example>
         public static int IndexOf(this byte[] byteArray, byte[] bytePattern, int startIndex, int count)
         {

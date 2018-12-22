@@ -25,7 +25,7 @@ namespace AbletonLiveConverter
                 .WriteTo.Console()
                 // .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Fatal).WriteTo.File(errorLogFilePath))
                 ;
-            logConfig.MinimumLevel.Verbose();
+            logConfig.MinimumLevel.Debug();
             Log.Logger = logConfig.CreateLogger();
 
             // Setup command line parser
@@ -52,7 +52,7 @@ namespace AbletonLiveConverter
 
                     foreach (var file in files)
                     {
-                        Console.WriteLine("Processing {0} ...", file);
+                        Log.Information("Processing {0} ...", file);
 
                         string extension = new FileInfo(file).Extension.ToLowerInvariant();
                         switch (extension)
@@ -347,7 +347,7 @@ namespace AbletonLiveConverter
             var vstPreset = new SteinbergVstPreset(file);
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
-            Console.WriteLine(vstPreset);
+            // Log.Debug(vstPreset.ToString());
             if (vstPreset.Parameters.Count > 0)
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLComp))

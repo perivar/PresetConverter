@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Serilog;
 
 namespace CommonUtils
 {
@@ -1050,10 +1051,10 @@ namespace CommonUtils
             catch (Exception _Exception)
             {
                 // Error
-                Console.WriteLine("Exception caught in process: {0}", _Exception.ToString());
+                Log.Error("Exception caught in process: {0}", _Exception.ToString());
             }
 
-            // error occured, return false
+            // error occurred, return false
             return false;
         }
 

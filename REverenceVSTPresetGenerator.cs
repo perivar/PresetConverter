@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using AbletonLiveConverter;
+using Serilog;
 
 namespace PresetConverter
 {
@@ -31,7 +32,7 @@ namespace PresetConverter
                     foreach (FileInfo fi in imageFiles)
                     {
                         images.Add(fi.FullName);
-                        Console.Out.WriteLine("Found image file to use: {0}", fi.Name);
+                        Log.Debug("Found image file to use: {0}", fi.Name);
                     }
                 }
             }
@@ -42,11 +43,11 @@ namespace PresetConverter
 
             if (images.Count == 0)
             {
-                Console.WriteLine("Not using any images.");
+                Log.Debug("Not using any images.");
             }
             else
             {
-                Console.WriteLine("Using {0} images.", images.Count);
+                Log.Debug("Using {0} images.", images.Count);
             }
 
             // build preset
@@ -120,7 +121,7 @@ namespace PresetConverter
             {
                 Directory.CreateDirectory(filePath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // handle them here
             }

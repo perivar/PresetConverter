@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CommonUtils;
+using Serilog;
 
 namespace PresetConverter
 {
@@ -53,7 +54,7 @@ namespace PresetConverter
                 }
                 catch (System.Exception e)
                 {
-                    Console.Error.WriteLine("Failed reading floats: {0}", e);
+                    Log.Error("Failed reading floats: {0}", e);
                 }
 
                 binFile.Close();

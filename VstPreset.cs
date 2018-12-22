@@ -6,6 +6,7 @@ using System.Text;
 using System.Xml;
 using CommonUtils;
 using PresetConverter;
+using Serilog;
 
 namespace PresetConverter
 {
@@ -221,7 +222,7 @@ namespace PresetConverter
 
                 // Read position of 'List' section 
                 this.ListPos = bf.ReadUInt64();
-                Console.WriteLine("DEBUG listPos: {0}", ListPos);
+                Log.Verbose("listPos: {0}", ListPos);
 
                 // Store current position
                 long oldPos = bf.Position;
@@ -233,7 +234,7 @@ namespace PresetConverter
                 // read LIST and 4 bytes
                 string listElement = bf.ReadString(4);
                 UInt32 listElementValue = bf.ReadUInt32();
-                Console.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
+                Log.Verbose("{0} {1}", listElement, listElementValue);
 
                 // Comp = kComponentState
                 // Cont = kControllerState
@@ -255,7 +256,7 @@ namespace PresetConverter
                         // xml start position
                         // byte length of xml data
                         var element = ReadListElement(bf);
-                        Console.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
+                        Log.Verbose("{0} {1} {2}", element.ID, element.Offset, element.Size);
 
                         if (element.ID.Equals("Info"))
                         {
@@ -289,7 +290,7 @@ namespace PresetConverter
             // Some presets start with a chunkID here,
             // Others start with the preset content
             string dataChunkID = bf.ReadString(4);
-            Console.WriteLine("DEBUG: data chunk id: '{0}'", dataChunkID);
+            Log.Verbose("data chunk id: '{0}'", dataChunkID);
 
             // Single preset?
             bool singlePreset = false;
@@ -335,7 +336,7 @@ namespace PresetConverter
                 UInt32 unknown = bf.ReadUInt32();
                 UInt32 parameterCount = bf.ReadUInt32();
 
-                Console.WriteLine("DEBUG: '{0}', version: {1}, unknown: {2}, param count: {3}", name, version, unknown, parameterCount);
+                Log.Verbose("'{0}', version: {1}, unknown: {2}, param count: {3}", name, version, unknown, parameterCount);
 
                 for (int counter = 0; counter < parameterCount; counter++)
                 {
@@ -348,7 +349,7 @@ namespace PresetConverter
                 long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
                 if (skipBytes > 0)
                 {
-                    Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+                    Log.Verbose("Skipping bytes: {0}", skipBytes);
 
                     // seek to start of meta xml
                     bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
@@ -401,7 +402,7 @@ namespace PresetConverter
                     long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
                     if (skipBytes > 0)
                     {
-                        Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+                        Log.Verbose("Skipping bytes: {0}", skipBytes);
 
                         // seek to start of meta xml
                         bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
@@ -466,42 +467,42 @@ namespace PresetConverter
                     bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                     var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
-                    Console.Out.WriteLine("DEBUG: Wave Path 1: {0}", wavFilePath1);
+                    Log.Verbose("Wave Path 1: {0}", wavFilePath1);
                     AddParameter("wave-file-path-1", 0, wavFilePath1);
 
                     var wavCount = bf.ReadUInt32();
-                    Console.Out.WriteLine("DEBUG: numWavFiles: {0}", wavCount);
+                    Log.Verbose("numWavFiles: {0}", wavCount);
                     AddParameter("wav-count", 0, wavCount);
 
                     var unknown = bf.ReadUInt32();
-                    Console.Out.WriteLine("DEBUG: unknown: {0}", unknown);
+                    Log.Verbose("unknown: {0}", unknown);
 
                     int parameterCount = -1;
                     if (wavCount > 0)
                     {
                         var wavFilePath2 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                         AddParameter("wave-file-path-2", 0, wavFilePath2);
-                        Console.Out.WriteLine("DEBUG: Wave Path 2: {0}", wavFilePath2);
+                        Log.Verbose("Wave Path 2: {0}", wavFilePath2);
 
                         var wavFileName = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                         AddParameter("wave-file-name", 0, wavFileName);
-                        Console.Out.WriteLine("DEBUG: Wav filename: {0}", wavFileName);
+                        Log.Verbose("Wav filename: {0}", wavFileName);
 
                         var imageCount = bf.ReadUInt32();
                         AddParameter("image-count", 0, imageCount);
-                        Console.Out.WriteLine("DEBUG: Image count: {0}", imageCount);
+                        Log.Verbose("Image count: {0}", imageCount);
 
                         for (int i = 0; i < imageCount; i++)
                         {
                             // images
                             var imagePath = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                             AddParameter("image-file-name-" + (i + 1), 0, imagePath);
-                            Console.Out.WriteLine("DEBUG: Image {0}: {1}", i + 1, imagePath);
+                            Log.Verbose("Image {0}: {1}", i + 1, imagePath);
                         }
 
                         parameterCount = bf.ReadInt32();
                         AddParameter("parameter-count", 0, parameterCount);
-                        Console.Out.WriteLine("DEBUG: Parameter count: {0}", parameterCount);
+                        Log.Verbose("Parameter count: {0}", parameterCount);
                     }
 
                     int parameterCounter = 0;
@@ -513,17 +514,17 @@ namespace PresetConverter
 
                         // read the null terminated string
                         var parameterName = bf.ReadStringNull();
-                        // Console.Out.WriteLine("parameterName: [{0}] {1}", parameterCounter, parameterName);
+                        Log.Verbose("parameterName: [{0}] {1}", parameterCounter, parameterName);
 
                         // read until 128 bytes have been read
                         var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
                         var parameterNumber = bf.ReadUInt32();
-                        // Console.Out.WriteLine("parameterNumber: {0}", parameterNumber);
+                        Log.Verbose("parameterNumber: {0}", parameterNumber);
 
                         // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
                         var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
-                        // Console.Out.WriteLine("parameterNumberValue: {0}", parameterNumberValue);
+                        Log.Verbose("parameterNumberValue: {0}", parameterNumberValue);
 
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
                     }
@@ -531,7 +532,7 @@ namespace PresetConverter
                     long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
                     if (skipBytes > 0)
                     {
-                        Console.Out.WriteLine("DEBUG: Skipping bytes: {0}", skipBytes);
+                        Log.Verbose("Skipping bytes: {0}", skipBytes);
 
                         // seek to start of meta xml
                         bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
@@ -583,17 +584,17 @@ namespace PresetConverter
                     var unknown4 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
                     var presetType = bf.ReadString(4);
-                    Console.WriteLine("DEBUG: PresetType: {0}", presetType);
+                    Log.Verbose("PresetType: {0}", presetType);
 
                     var setType = bf.ReadString(4);
-                    Console.WriteLine("DEBUG: SetType: {0}", setType);
+                    Log.Verbose("SetType: {0}", setType);
 
                     var xmlMainLength = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
 
                     var xpsID = bf.ReadString(4);
                     if (xpsID.Equals("XPst"))
                     {
-                        Console.WriteLine("DEBUG: Found XPst content");
+                        Log.Verbose("Found XPst content");
                     }
 
                     var xmlContent = bf.ReadString((int)xmlMainLength);
@@ -601,7 +602,7 @@ namespace PresetConverter
                     AddParameter(param1Name, 1, xmlContent);
 
                     var postType = bf.ReadString(4);
-                    Console.WriteLine("DEBUG: PostType: {0}", postType);
+                    Log.Verbose("PostType: {0}", postType);
 
                     // there is some xml content after the PresetChunkXMLTree chunk
                     // read in this also
@@ -649,7 +650,7 @@ namespace PresetConverter
                 else
                 {
                     // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
-                    Console.WriteLine("This file does not contain any known formats or FXB or FXP data (1)");
+                    Log.Error("This file does not contain any known formats or FXB or FXP data (1)");
                     return;
                 }
             }

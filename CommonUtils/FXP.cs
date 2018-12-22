@@ -2,6 +2,7 @@ using System;
 using System.Xml;
 using System.IO;
 using System.Text;
+using Serilog;
 
 namespace CommonUtils
 {
@@ -151,7 +152,7 @@ namespace CommonUtils
         {
             if (content == null)
             {
-                Console.Error.WriteLine("Error writing file. Missing preset content.");
+                Log.Error("Error writing file. Missing preset content.");
                 return;
             }
 
@@ -179,7 +180,7 @@ namespace CommonUtils
 
             if (content.ChunkMagic != "CcnK")
             {
-                Console.Out.WriteLine("Cannot save the preset file. Missing preset header information.");
+                Log.Error("Cannot save the preset file. Missing preset header information.");
                 return;
             }
 
