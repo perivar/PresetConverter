@@ -367,6 +367,14 @@ namespace AbletonLiveConverter
                                 string outputFilePathNew = Path.Combine(outputDirectoryPath, fileNameNoExtension + "_prg_" + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
+                                    // int counter = 0;
+                                    // foreach (var f in parameters)
+                                    // {
+                                    //     tw.WriteLine("{0:0.0000}", f);
+                                    //     counter++;
+                                    //     if (counter % 7 == 0) tw.WriteLine();
+                                    // }
+
                                     var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
                                     foreach (var band in fabfilterPreset.Bands)
                                     {
@@ -390,6 +398,14 @@ namespace AbletonLiveConverter
                                 string outputFilePathNew = Path.Combine(outputDirectoryPath, fileNameNoExtension + "_prg_" + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
+                                    // int counter = 0;
+                                    // foreach (var f in parameters)
+                                    // {
+                                    //     tw.WriteLine("{0:0.0000}", f);
+                                    //     counter++;
+                                    //     if ((counter - 1) % 7 == 0) tw.WriteLine();
+                                    // }
+
                                     var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters);
                                     foreach (var band in fabfilterPreset.Bands)
                                     {

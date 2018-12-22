@@ -78,13 +78,13 @@ namespace PresetConverter
 
             for (int i = 0; i < 24; i++)
             {
-                floatList.Add(IEEEFloatToFrequencyFloat(ieeeFloatParameters[counter++]));                           // value range 10.0 -> 30000.0 Hz
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -30, 30));    // + or - value in dB
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));       // value range 0.025 -> 40.00
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 5));       // 0 - 5
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));       // 0 = 6 dB/oct, 1 = 12 dB/oct, 2 = 24 dB/oct, 3 = 48 dB/oct
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));       // 0 = Left, 1 = Right, 2 = Stereo
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));       // always 1.0?
+                floatList.Add(IEEEFloatToFrequencyFloat(ieeeFloatParameters[counter++]));                           // FilterFreq: value range 10.0 -> 30000.0 Hz
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -30, 30));    // FilterGain: + or - value in dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));       // FilterQ: value range 0.025 -> 40.00
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4));       // filter type: 0 - 5 (seems to be a bug that cuts off the notch filter, so only 0 - 4?!)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));       // filter slope: 0 - 3
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));       // stereo placement: 0 = Left, 1 = Right, 2 = Stereo
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));       // unknown: always 1.0?
             }
 
             for (int i = counter; i < ieeeFloatParameters.Length; i++)
@@ -124,7 +124,7 @@ namespace PresetConverter
                 band.FilterGain = floatArray[index++]; // actual gain in dB
                 band.FilterQ = FabfilterProQ.QConvertBack(floatArray[index++]);
 
-                // 0 - 5
+                // filter type: 0 - 5
                 var filterType = floatArray[index++];
                 switch (filterType)
                 {
@@ -148,11 +148,12 @@ namespace PresetConverter
                         break;
                     default:
                         // throw new ArgumentOutOfRangeException(string.Format("Filter type is outside range: {0}", filterType));
-                        band.FilterType = ProQFilterType.Bell;
+                        Log.Warning(string.Format("Filter type is outside range: {0}", filterType));
+                        band.FilterType = ProQFilterType.Notch;
                         break;
                 }
 
-                // 0 = 6 dB/oct, 1 = 12 dB/oct, 2 = 24 dB/oct, 3 = 48 dB/oct
+                // filterSlope: 0 - 3
                 var filterSlope = floatArray[index++];
                 switch (filterSlope)
                 {
@@ -172,7 +173,7 @@ namespace PresetConverter
                         throw new ArgumentOutOfRangeException(string.Format("Filter slope is outside range: {0}", filterSlope));
                 }
 
-                // 0 = Left, 1 = Right, 2 = Stereo
+                // stereo placement: 0 = Left, 1 = Right, 2 = Stereo
                 var filterStereoPlacement = floatArray[index++];
                 switch (filterStereoPlacement)
                 {
@@ -189,7 +190,7 @@ namespace PresetConverter
                         throw new ArgumentOutOfRangeException(string.Format("Filter stereo placement is outside range: {0}", filterStereoPlacement));
                 }
 
-                // always 1.0 ?
+                // unknown: always 1.0 ?
                 var unknown = floatArray[index++];
 
                 // check if band is enabled
