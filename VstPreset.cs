@@ -48,6 +48,7 @@ namespace PresetConverter
         // cannot use Enums with strings, struct works
         public struct VstIDs
         {
+            // Steinberg
             public const string SteinbergCompressor = "5B38F28281144FFE80285FF7CCF20483";
             public const string SteinbergDeEsser = "75FD13A528D24880982197D541BC582A";
             public const string SteinbergDistortion = "A990C1062CDE43839ECEF8FE91743DA5";
@@ -65,11 +66,46 @@ namespace PresetConverter
             public const string SteinbergStereoDelay = "001DCD3345D14A13B59DAECF75A37536";
             public const string SteinbergStereoEnhancer = "77BBA7CA90F14C9BB298BA9010D6DD78";
             public const string SteinbergStudioEQ = "946051208E29496E804F64A825C8A047";
+            public const string SteinbergTremolo = "E97A6873690F40E986F3EE1007B5C8FC";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
-            public const string WavesSSLComp = "565354534C435373736C636F6D702073";
-            public const string WavesSSLChannel = "5653545343485373736C6368616E6E65";
+
+            // Waves
+            public const string WavesAPI2500Mono = "5653544150434D6170692D3235303020";
+            public const string WavesC1CompStereo = "565354434D5053633120636F6D702073";
+            public const string WavesC4Stereo = "5653544445515363342073746572656F";
+            public const string WavesCLAGuitarsStereo = "56535443475453636C61206775697461";
+            public const string WavesDoubler2Stereo = "56535457443253646F75626C65723220";
+            public const string WavesDoubler4Stereo = "56535457443453646F75626C65723420";
+            public const string WavesHDelayStereo = "56535448424453682D64656C61792073";
+            public const string WavesKramerTapeStereo = "565354544150536B72616D6572207461";
+            public const string WavesL3LLMultiStereo = "565354523350536C332D6C6C206D756C";
+            public const string WavesMaseratiACGStereo = "565354544E41536D6173657261746920";
+            public const string WavesMaseratiVX1Stereo = "565354544E56536D6173657261746920";
+            public const string WavesMetaFlangerStereo = "565354464C4E536D657461666C616E67";
+            public const string WavesPuigChild670Stereo = "56535446434853707569676368696C64";
+            public const string WavesPuigTecEQP1AStereo = "56535450314153707569677465632065";
+            public const string WavesQ10Stereo = "56535445514153713130207374657265";
+            public const string WavesQ2Stereo = "5653544551325371322073746572656F";
+            public const string WavesRChannelStereo = "565354524E5453726368616E6E656C20";
+            public const string WavesRCompressorStereo = "5653545552435372636F6D7072657373";
+            public const string WavesREQ6Stereo = "56535452513653726571203620737465";
+            public const string WavesRVerbStereo = "56535452524653727665726220737465";
+            public const string WavesS1ImagerStereo = "5653544E534853733120696D61676572";
+            public const string WavesSSLChannelStereo = "5653545343485373736C6368616E6E65";
+            public const string WavesSSLCompStereo = "565354534C435373736C636F6D702073";
+            public const string WavesSSLEQMono = "565354534C514D73736C6571206D6F6E";
+            public const string WavesSSLEQStereo = "565354534C515373736C657120737465";
+            public const string WavesSuperTap2TapsMonoStereo = "5653544D543258737570657274617020";
+            public const string WavesSuperTap2TapsStereo = "5653544D543253737570657274617020";
+            public const string WavesTrueVerbStereo = "56535454563453747275657665726220";
+
+            // UAD
             public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
+
+            // Native Instruments
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
+
+            // Fabfilter
             public const string FabFilterProQ = "E45D59E8CB2540FAB0F346E115F8AFD4";
             public const string FabFilterProQx64 = "5653544650517266616266696C746572";
             public const string FabFilterProQ2 = "55FD08E6C00B44A697DA68F61C6FD576";
@@ -276,7 +312,14 @@ namespace PresetConverter
                 bf.Seek(oldPos, SeekOrigin.Begin);
 
                 // This is where the data start.
-                ReadData(bf, fileSize);
+                try
+                {
+                    ReadData(bf, fileSize);
+                }
+                catch (System.Exception e)
+                {
+                    Log.Error("Failed reading {0} with Vst3Id: '{1}'. Error: {2}", fileName, Vst3ID, e.Message);
+                }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                 var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
@@ -363,7 +406,7 @@ namespace PresetConverter
                 return;
             }
 
-            // Unknown file:
+            // Check for some known fileformats
             else
             {
                 if (
@@ -378,7 +421,9 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ))
+                    this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergTremolo)
+                    )
                 {
                     // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                     // (19180 + 52) = 19232 bytes
@@ -572,8 +617,34 @@ namespace PresetConverter
                 }
 
                 else if (
-                   this.Vst3ID.Equals(VstIDs.WavesSSLComp) ||
-                   this.Vst3ID.Equals(VstIDs.WavesSSLChannel))
+                    this.Vst3ID.Equals(VstIDs.WavesAPI2500Mono) ||
+                    this.Vst3ID.Equals(VstIDs.WavesC1CompStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesC4Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesCLAGuitarsStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesDoubler2Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesDoubler4Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesHDelayStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesKramerTapeStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesL3LLMultiStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesMetaFlangerStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesPuigChild670Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesPuigTecEQP1AStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesQ10Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesQ2Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesRChannelStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesRCompressorStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesREQ6Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesRVerbStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesS1ImagerStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesSSLChannelStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesSSLCompStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesSSLEQMono) ||
+                    this.Vst3ID.Equals(VstIDs.WavesSSLEQStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsMonoStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesTrueVerbStereo))
                 {
                     // rewind 4 bytes
                     bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
@@ -594,6 +665,10 @@ namespace PresetConverter
                     if (xpsID.Equals("XPst"))
                     {
                         Log.Verbose("Found XPst content");
+                    }
+                    else
+                    {
+                        Log.Warning("XPst content expected. Got '{0}' instead.", xpsID);
                     }
 
                     var xmlContent = bf.ReadString((int)xmlMainLength);
@@ -648,9 +723,7 @@ namespace PresetConverter
                 }
                 else
                 {
-                    // throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
-                    Log.Error("This file does not contain any known formats or FXB or FXP data (1)");
-                    return;
+                    throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
                 }
             }
 

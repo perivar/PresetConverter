@@ -12,6 +12,7 @@ using McMaster.Extensions.CommandLineUtils;
 using PresetConverter;
 using SDIR2WavConverter;
 using Serilog;
+using Serilog.Events;
 
 namespace AbletonLiveConverter
 {
@@ -19,15 +20,6 @@ namespace AbletonLiveConverter
     {
         static void Main(string[] args)
         {
-            // Setup Logger
-            var logConfig = new LoggerConfiguration()
-                // .WriteTo.File(logFilePath)
-                .WriteTo.Console()
-                // .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Fatal).WriteTo.File(errorLogFilePath))
-                ;
-            logConfig.MinimumLevel.Debug();
-            Log.Logger = logConfig.CreateLogger();
-
             // Setup command line parser
             var app = new CommandLineApplication();
             app.Name = "AbletonLiveConverter";
@@ -45,6 +37,16 @@ namespace AbletonLiveConverter
                     string inputDirectoryPath = optionInputDirectory.Value();
                     string outputDirectoryPath = optionOutputDirectory.Value();
                     string inputExtra = optionInputExtra.Value();
+
+                    // Setup Logger
+                    string errorLogFilePath = Path.Combine(outputDirectoryPath, "error.log");
+                    var logConfig = new LoggerConfiguration()
+                        // .WriteTo.File(logFilePath)
+                        .WriteTo.Console()
+                        .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Error).WriteTo.File(errorLogFilePath))
+                        ;
+                    logConfig.MinimumLevel.Debug();
+                    Log.Logger = logConfig.CreateLogger();
 
                     var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
@@ -98,7 +100,7 @@ namespace AbletonLiveConverter
             }
             catch (System.Exception e)
             {
-                Console.WriteLine("{0}", e.Message);
+                Log.Error("{0}", e.Message);
             }
         }
 
@@ -158,7 +160,7 @@ namespace AbletonLiveConverter
                 case "Saturator":
                 case "Tuner":
                 default:
-                    Console.WriteLine("{0} not supported!", presetType);
+                    Log.Information("{0} not supported!", presetType);
                     break;
             }
         }
@@ -362,7 +364,7 @@ namespace AbletonLiveConverter
             // Log.Debug(vstPreset.ToString());
             if (vstPreset.Parameters.Count > 0)
             {
-                if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLComp))
+                if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
                 {
                     using (var tw = new StreamWriter(outputFilePath))
                     {
@@ -373,7 +375,7 @@ namespace AbletonLiveConverter
                         }
                     }
                 }
-                else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannel))
+                else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannelStereo))
                 {
                     using (var tw = new StreamWriter(outputFilePath))
                     {
@@ -700,7 +702,7 @@ namespace AbletonLiveConverter
             }
             else
             {
-                Console.WriteLine("Ignoring {0} ...", file);
+                Log.Information("Ignoring {0} ...", file);
             }
         }
 

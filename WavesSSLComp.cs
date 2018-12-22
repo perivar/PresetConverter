@@ -63,7 +63,7 @@ namespace PresetConverter
 
         public WavesSSLComp()
         {
-            Vst3ID = VstPreset.VstIDs.WavesSSLComp;
+            Vst3ID = VstPreset.VstIDs.WavesSSLCompStereo;
             PlugInCategory = "Fx|Dynamics";
             PlugInName = "SSLComp Stereo";
             PlugInVendor = "Waves";
