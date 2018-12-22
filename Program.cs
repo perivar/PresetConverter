@@ -258,7 +258,14 @@ namespace AbletonLiveConverter
                 vstPreset.Vst3ID = guid;
                 vstPreset.MetaXmlStartPos = (ulong)presetBytes.Length;
                 vstPreset.DataSize = (ulong)presetBytes.Length;
-                vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
+                try
+                {
+                    vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
+                }
+                catch (System.Exception e)
+                {
+                    Log.Error("Failed reading {0} with Name: {1} ({2}), Vst3Id: '{3}'. Error: {4}", file, origPluginName == null ? "EMPTY" : origPluginName, pluginName, guid, e.Message);
+                }
 
                 // FabFilterProQ2 stores the parameters as floats not chunk
                 if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)

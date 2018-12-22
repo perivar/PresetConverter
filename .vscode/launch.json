@@ -321,7 +321,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "D:\\Cubase and Nuendo Projects\\Cubase10Test\\ConvertTest",
+                "D:\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
                 "-o",
                 "D:\\Development Projects\\Own Projects\\Temp",
             ],

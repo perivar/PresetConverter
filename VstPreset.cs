@@ -723,7 +723,7 @@ namespace PresetConverter
                 }
                 else
                 {
-                    throw new Exception("This file does not contain any known formats or FXB or FXP data (1)");
+                    throw new Exception("Data does not contain any known formats or FXB or FXP data (1)");
                 }
             }
 
@@ -732,7 +732,7 @@ namespace PresetConverter
             string dataChunkStart = bf.ReadString(4);
             if (dataChunkStart != "CcnK")
             {
-                throw new Exception("This file does not contain any FXB or FXP data (2)");
+                throw new Exception("Data does not contain any known formats or FXB or FXP data (2) (DataChunkStart: " + dataChunkStart + ")");
             }
 
             // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
@@ -755,7 +755,7 @@ namespace PresetConverter
                 // Check consistency with the header:
                 if (singlePreset == false)
                 {
-                    throw new Exception("Header indicates a bank file but data seems to be a preset file (" + magicChunkID + ").");
+                    throw new Exception("Header indicates a bank file but data seems to be a preset file (" + magicChunkID + ")");
                 }
             }
 
@@ -765,14 +765,14 @@ namespace PresetConverter
                 // Check consistency with the header:
                 if (singlePreset == true)
                 {
-                    throw new Exception("Header indicates a preset file but data seems to be a bank file (" + magicChunkID + ").");
+                    throw new Exception("Header indicates a preset file but data seems to be a bank file (" + magicChunkID + ")");
                 }
             }
 
             // And now for something completely different:
             else
             {
-                throw new Exception("This file does not contain any FXB or FXP data (3)");
+                throw new Exception("Data does not contain any known formats or FXB or FXP data (3)");
             }
 
             // Read the source data:
