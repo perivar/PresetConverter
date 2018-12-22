@@ -112,6 +112,7 @@ namespace AbletonLiveConverter
             var xelement = XElement.Parse(str);
 
             string outputFileName = Path.GetFileNameWithoutExtension(file);
+            throw new NotImplementedException("AbletonLiveProject als files not implemented.");
         }
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)

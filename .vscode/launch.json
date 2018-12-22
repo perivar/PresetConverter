@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (LAPTOP)",
+            "name": ".NET Core Launch (LAPTOP) Ableton",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -14,6 +14,25 @@
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Ableton",
+                "-o",
+                "C:\\Users\\perner\\My Projects\\Temp"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (LAPTOP) Ableton ALS",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "args": [
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\AbletonALS",
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp"
             ],
@@ -43,7 +62,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (LAPTOP) Xps",
+            "name": ".NET Core Launch (LAPTOP) Waves",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -51,7 +70,26 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Waves",
+                "-o",
+                "C:\\Users\\perner\\My Projects\\Temp"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (LAPTOP) Waves Xps",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "args": [
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\WavesXPS",
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp"
             ],
@@ -70,7 +108,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Cubase",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp"
             ],
@@ -81,7 +119,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (LAPTOP) Fabfilter ffp",
+            "name": ".NET Core Launch (LAPTOP) Fabfilter",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
