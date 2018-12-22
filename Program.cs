@@ -168,8 +168,6 @@ namespace AbletonLiveConverter
 
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
         {
-            string outputFileName = Path.GetFileNameWithoutExtension(file);
-
             var riffReader = new RIFFFileReader(file, false);
 
             // get fourth chunk
@@ -182,19 +180,10 @@ namespace AbletonLiveConverter
             var vstMultitrackBytePattern = Encoding.ASCII.GetBytes("VST Multitrack\0");
             var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
 
-            // search for 'VstCtrlInternalEffect'
-            // var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
-            // var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern);
-
             var binaryFile = riffReader.BinaryFile;
             // foreach (int index in vstEffectIndices)
             foreach (int index in vstMultitrackIndices)
             {
-                // seek to index
-                // int vstEffectIndex = (int)chunk.StartPosition + index;
-                // Log.Debug("vstEffectIndex: {0}", vstEffectIndex);
-                // binaryFile.Seek(vstEffectIndex);
-
                 int vstMultitrackIndex = (int)chunk.StartPosition + index;
                 Log.Debug("vstMultitrackIndex: {0}", vstMultitrackIndex);
                 binaryFile.Seek(vstMultitrackIndex);
@@ -228,6 +217,11 @@ namespace AbletonLiveConverter
                 trackName = StringUtils.RemoveByteOrderMark(trackName);
                 Log.Debug("TrackName: {0}", trackName);
 
+                // reset the output filename
+                string outputFileName = Path.GetFileNameWithoutExtension(file);
+                outputFileName = string.Format("{0}_{1}", outputFileName, trackName.Replace(" ", ""));
+                outputFileName = StringUtils.MakeValidFileName(outputFileName);
+
                 // 'Type'
                 var typeLen = binaryFile.ReadInt32();
                 var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
@@ -237,7 +231,7 @@ namespace AbletonLiveConverter
                 int vstEffectIndex = binaryFile.IndexOf(vstEffectBytePattern, 0, (int)(chunk.ChunkDataSize - chunk.StartPosition));
                 if (vstEffectIndex < 0)
                 {
-                    Log.Warning("Could not any insert effects ('VstCtrlInternalEffect')");
+                    Log.Warning("Could not find any insert effects ('VstCtrlInternalEffect')");
                     continue;
                 }
                 var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
@@ -406,7 +400,49 @@ namespace AbletonLiveConverter
                         }
                     }
                 }
+                else
+                {
+                    if (vstPreset.Parameters.Count > 0)
+                    {
+                        if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                        {
+                            var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                            string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.txt");
+                            using (var tw = new StreamWriter(outputFilePathNew))
+                            {
+                                var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
+                                foreach (var band in fabfilterPreset.Bands)
+                                {
+                                    tw.WriteLine(string.Format("{0}", band));
+                                }
+                            }
+                        }
+                        else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                        {
+                            var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                            string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.txt");
+                            using (var tw = new StreamWriter(outputFilePathNew))
+                            {
+                                var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                                foreach (var band in fabfilterPreset.Bands)
+                                {
+                                    tw.WriteLine(string.Format("{0}", band));
+                                }
+                            }
+                        }
 
+                        else
+                        {
+                            string fileNameNoExtension = string.Format("{0} - {1} - {2} - {3}", outputFileName, vstEffectIndex, origPluginName == null ? "EMPTY" : origPluginName, pluginName);
+                            fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
+                            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
+                            File.WriteAllText(outputFilePath, vstPreset.ToString());
+                        }
+
+                    }
+                }
+
+                // read next field, we expect editController
                 var nextFieldLen2 = binaryFile.ReadInt32();
                 var nextField2 = binaryFile.ReadString(nextFieldLen2, Encoding.ASCII).TrimEnd('\0');
                 if (nextField2 != "editController")
@@ -421,7 +457,7 @@ namespace AbletonLiveConverter
             var vstPreset = new SteinbergVstPreset(file);
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
-            // Log.Debug(vstPreset.ToString());
+
             if (vstPreset.Parameters.Count > 0)
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
