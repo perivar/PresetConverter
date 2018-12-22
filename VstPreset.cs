@@ -57,6 +57,7 @@ namespace PresetConverter
             public const string SteinbergFrequency = "01F6CCC94CAE4668B7C6EC85E681E419";
             public const string SteinbergGrooveAgentONE = "D3F57B09EC6B49998C534F50787A9F86";
             public const string SteinbergGrooveAgentSE = "91585860BA1748E581441ECD96B153ED";
+            public const string SteinbergHALionSonicSE = "5B6D6402C5F74C35B3BE88ADF7FC7D27";
             public const string SteinbergMonoDelay = "42A36F8AEE394B98BB2E8B63CB68E3E7";
             public const string SteinbergMultibandCompressor = "86DFC3F5415C40388D3AA69030C380B1";
             public const string SteinbergPingPongDelay = "37A3AA84E3A24D069C39030EC68768E1";
@@ -325,7 +326,7 @@ namespace PresetConverter
                 var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                 this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
 
-                VerifyListElements(bf, Console.Out);
+                VerifyListElements(bf);
             }
         }
         public void ReadData(BinaryFile bf, UInt32 fileSize, bool performFileSizeChecks = true)
@@ -401,7 +402,7 @@ namespace PresetConverter
                 var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                 this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                VerifyListElements(bf, Console.Out);
+                VerifyListElements(bf);
 
                 return;
             }
@@ -456,7 +457,7 @@ namespace PresetConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    VerifyListElements(bf, Console.Out);
+                    VerifyListElements(bf);
 
                     return;
                 }
@@ -467,16 +468,24 @@ namespace PresetConverter
                     bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    // var xmlContent = br.ReadString((int)this.ParameterDataSize);
-                    var xmlContent = bf.ReadString((int)this.MetaXmlStartPos - 48);
+                    var xmlContent = bf.ReadString((int)this.DataSize);
 
                     AddParameter("XmlContent", 1, xmlContent);
+
+                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
+                    if (skipBytes > 0)
+                    {
+                        Log.Verbose("Skipping bytes: {0}", skipBytes);
+
+                        // seek to start of meta xml
+                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
+                    }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    VerifyListElements(bf, Console.Out);
+                    VerifyListElements(bf);
 
                     return;
                 }
@@ -484,6 +493,7 @@ namespace PresetConverter
                 else if (
                     this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergHALionSonicSE) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                     )
                 {
@@ -491,15 +501,24 @@ namespace PresetConverter
                     bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    var byteContent = bf.ReadBytes((int)this.MetaXmlStartPos - 48);
+                    var byteContent = bf.ReadBytes((int)this.DataSize);
 
                     AddParameter("ByteContent", 1, byteContent);
+
+                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
+                    if (skipBytes > 0)
+                    {
+                        Log.Verbose("Skipping bytes: {0}", skipBytes);
+
+                        // seek to start of meta xml
+                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
+                    }
 
                     // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    VerifyListElements(bf, Console.Out);
+                    VerifyListElements(bf);
 
                     return;
                 }
@@ -586,7 +605,7 @@ namespace PresetConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    VerifyListElements(bf, Console.Out);
+                    VerifyListElements(bf);
 
                     return;
                 }
@@ -611,7 +630,7 @@ namespace PresetConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    VerifyListElements(bf, Console.Out);
+                    VerifyListElements(bf);
 
                     return;
                 }
@@ -691,7 +710,7 @@ namespace PresetConverter
                     var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
                     this.MetaXml = Encoding.UTF8.GetString(bytes);
 
-                    VerifyListElements(bf, Console.Out);
+                    VerifyListElements(bf);
 
                     return;
                 }
@@ -780,7 +799,7 @@ namespace PresetConverter
             this.ChunkData = bf.ReadBytes((int)chunkSize);
         }
 
-        private void VerifyListElements(BinaryFile bf, TextWriter writer)
+        private void VerifyListElements(BinaryFile bf)
         {
             if (bf.Position >= bf.Length - 8) return;
 
@@ -789,7 +808,6 @@ namespace PresetConverter
             UInt32 listElementValue = bf.ReadUInt32();
             if (listElement.Equals("List"))
             {
-                // writer.WriteLine("DEBUG: {0} {1}", listElement, listElementValue);
                 for (int i = 0; i < listElementValue; i++)
                 {
                     // read Comp and 16 bytes
@@ -800,14 +818,13 @@ namespace PresetConverter
                     && !element.ID.Equals("Cont")
                     && !element.ID.Equals("Info"))
                     {
-                        writer.WriteLine("ERROR - expected 'Comp|Cont|Info' but got: {0} {1} {2}", element.ID, element.Offset, element.Size);
+                        Log.Error("Expected 'Comp|Cont|Info' but got: {0} {1} {2}", element.ID, element.Offset, element.Size);
                     }
-                    // writer.WriteLine("DEBUG: {0} {1} {2}", element.ID, element.Offset, element.Size);
                 }
             }
             else
             {
-                writer.WriteLine("ERROR - expected 'List' but got: {0} {1}", listElement, listElementValue);
+                Log.Error("Expected 'List' but got: {0} {1}", listElement, listElementValue);
             }
         }
 
