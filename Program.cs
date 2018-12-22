@@ -274,6 +274,10 @@ namespace AbletonLiveConverter
                         }
                     }
                 }
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                {
+
+                }
 
                 if (vstPreset.ChunkData != null)
                 {
@@ -455,6 +459,33 @@ namespace AbletonLiveConverter
                         }
                     }
                 }
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                {
+                    var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.txt");
+                    using (var tw = new StreamWriter(outputFilePathNew))
+                    {
+                        var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
+                        foreach (var band in fabfilterPreset.Bands)
+                        {
+                            tw.WriteLine(string.Format("{0}", band));
+                        }
+                    }
+                }
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                {
+                    var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.txt");
+                    using (var tw = new StreamWriter(outputFilePathNew))
+                    {
+                        var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                        foreach (var band in fabfilterPreset.Bands)
+                        {
+                            tw.WriteLine(string.Format("{0}", band));
+                        }
+                    }
+                }
+
                 else
                 {
                     File.WriteAllText(outputFilePath, vstPreset.ToString());
@@ -465,8 +496,33 @@ namespace AbletonLiveConverter
                 // no parameters
                 if (vstPreset.Parameters.Count == 0 && vstPreset.ChunkData != null)
                 {
-                    // check if FabFilterProQ2 
-                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                    // check if FabFilterProQx64
+                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                    {
+                        var fxp = new FXP(vstPreset.ChunkData);
+                        if (fxp.Content is FXP.FxSet)
+                        {
+                            var set = (FXP.FxSet)fxp.Content;
+
+                            for (int i = 0; i < set.NumPrograms; i++)
+                            {
+                                var program = set.Programs[i];
+                                var parameters = program.Parameters;
+
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQx64_" + i + ".txt");
+                                using (var tw = new StreamWriter(outputFilePathNew))
+                                {
+                                    var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                    foreach (var band in fabfilterPreset.Bands)
+                                    {
+                                        tw.WriteLine(string.Format("{0}", band));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // check if FabFilterProQ2x64
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                     {
                         var fxp = new FXP(vstPreset.ChunkData);
                         if (fxp.Content is FXP.FxSet)
@@ -490,30 +546,6 @@ namespace AbletonLiveConverter
                             }
                         }
                     }
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
-                    {
-                        var fxp = new FXP(vstPreset.ChunkData);
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            for (int i = 0; i < set.NumPrograms; i++)
-                            {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
-
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ_" + i + ".txt");
-                                using (var tw = new StreamWriter(outputFilePathNew))
-                                {
-                                    var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                    foreach (var band in fabfilterPreset.Bands)
-                                    {
-                                        tw.WriteLine(string.Format("{0}", band));
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -521,7 +553,6 @@ namespace AbletonLiveConverter
         private static void HandleFabfilterPresetFile(string file, string outputDirectoryPath)
         {
             string outputFileName = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_fabfilter.txt");
 
             float[] floatArray = null;
             floatArray = FabfilterProQ.ReadFloats(file);
@@ -530,23 +561,24 @@ namespace AbletonLiveConverter
                 var preset = new FabfilterProQ();
                 if (preset.Read(file))
                 {
+                    string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.txt");
                     using (var tw = new StreamWriter(outputFilePath))
                     {
-                        int counter = 0;
-                        foreach (var f in floatArray)
-                        {
-                            tw.WriteLine("{0:0.0000}", f);
-                            counter++;
-                            if ((counter - 1) % 7 == 0) tw.WriteLine();
-                        }
+                        // int counter = 0;
+                        // foreach (var f in floatArray)
+                        // {
+                        //     tw.WriteLine("{0:0.0000}", f);
+                        //     counter++;
+                        //     if ((counter - 1) % 7 == 0) tw.WriteLine();
+                        // }
                         foreach (var band in preset.Bands)
                         {
                             tw.WriteLine(band.ToString());
                         }
                     }
 
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_fabfilter.ffp");
-                    preset.Write(outputFilePathNew);
+                    // string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.ffp");
+                    // preset.Write(outputFilePathNew);
                 }
             }
             else
@@ -556,23 +588,24 @@ namespace AbletonLiveConverter
                 var preset = new FabfilterProQ2();
                 if (preset.Read(file))
                 {
+                    string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.txt");
                     using (var tw = new StreamWriter(outputFilePath))
                     {
-                        int counter = 0;
-                        foreach (var f in floatArray)
-                        {
-                            tw.WriteLine("{0:0.0000}", f);
-                            counter++;
-                            if (counter % 7 == 0) tw.WriteLine();
-                        }
+                        // int counter = 0;
+                        // foreach (var f in floatArray)
+                        // {
+                        //     tw.WriteLine("{0:0.0000}", f);
+                        //     counter++;
+                        //     if (counter % 7 == 0) tw.WriteLine();
+                        // }
                         foreach (var band in preset.Bands)
                         {
                             tw.WriteLine(band.ToString());
                         }
                     }
 
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_fabfilter2.ffp");
-                    preset.Write(outputFilePathNew);
+                    // string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.ffp");
+                    // preset.Write(outputFilePathNew);
                 }
             }
         }
