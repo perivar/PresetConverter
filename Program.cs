@@ -181,6 +181,7 @@ namespace AbletonLiveConverter
             var vstMultitrackBytePattern = Encoding.ASCII.GetBytes("VST Multitrack\0");
             var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
 
+            int trackNumber = 1;
             var binaryFile = riffReader.BinaryFile;
             foreach (int index in vstMultitrackIndices)
             {
@@ -222,8 +223,9 @@ namespace AbletonLiveConverter
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
-                outputFileName = string.Format("{0} - {1}", outputFileName, trackName);
+                outputFileName = string.Format("{0} - {1} - {2}", outputFileName, trackNumber, trackName);
                 outputFileName = StringUtils.MakeValidFileName(outputFileName);
+                trackNumber++;
 
                 // 'Type'
                 var typeLen = binaryFile.ReadInt32();
@@ -232,7 +234,7 @@ namespace AbletonLiveConverter
 
                 // skip to the 'VstCtrlInternalEffect' field            
                 var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
-                int vstEffectIndex = binaryFile.IndexOf(vstEffectBytePattern, 0, (int)(chunk.ChunkDataSize - chunk.StartPosition));
+                int vstEffectIndex = binaryFile.IndexOf(vstEffectBytePattern, 0, (int)chunk.ChunkDataSize - vstMultitrackIndex);
                 if (vstEffectIndex < 0)
                 {
                     Log.Warning("Could not find any insert effects ('VstCtrlInternalEffect')");
@@ -294,7 +296,12 @@ namespace AbletonLiveConverter
 
                 // skip to 'audioComponent'
                 var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
-                int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0);
+                int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0, (int)chunk.ChunkDataSize - vstMultitrackIndex);
+                if (audioComponentIndex < 0)
+                {
+                    Log.Warning("Could not find the preset content ('audioComponent')");
+                    continue;
+                }
 
                 // 'audioComponent' field            
                 var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
