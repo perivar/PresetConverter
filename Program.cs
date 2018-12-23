@@ -452,7 +452,7 @@ namespace AbletonLiveConverter
         {
             if (foundValue != expectedValue)
             {
-                Log.Warning("Expected '{0}' but got {0}", expectedValue, foundValue);
+                Log.Warning("Expected '{0}' but got {1}", expectedValue, foundValue);
                 return true;
             }
             return false;
