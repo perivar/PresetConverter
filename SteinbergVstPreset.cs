@@ -51,7 +51,7 @@ namespace PresetConverter
 
         public void InitStartBytes(UInt32 value)
         {
-            // add the 4 bytes before the parameters start
+            // add the 4 unknown bytes before the parameters start
             this.Parameters.Add("StartBytes", new Parameter("StartBytes", 0, BitConverter.GetBytes(value)));
         }
 

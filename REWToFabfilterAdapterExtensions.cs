@@ -6,11 +6,11 @@ using CommonUtils;
 namespace PresetConverter
 {
     /// <summary>
-    /// FabfilterProQ Preset Class for converting a REW file to a Fabfilter ProQ Preset file (fft)
+    /// Class for converting a REW file to a Fabfilter ProQ Preset file
     /// </summary>
-    public static class FabfilterProQConverter
+    public static class REWToFabfilterAdapterExtensions
     {
-        public static FabfilterProQ Convert2FabfilterProQ(REWEQFilters filters, string filePath)
+        public static FabfilterProQ ToFabfilterProQ(this REWEQFilters filters)
         {
             var preset = new FabfilterProQ();
 
