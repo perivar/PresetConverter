@@ -11,12 +11,92 @@ namespace PresetConverter
         {
             var frequency = new SteinbergFrequency();
 
-            int index = 1;
-            foreach (var band in eq.Bands)
-            {
-                int bandNumber = index++;
+            // Frequency only support lowcut on the 1st band and highcut on the 8th band
+            bool hasLowCutBand = eq.Bands.Any(band => band.FilterType == ProQFilterType.LowCut);
+            bool hasHighCutBand = eq.Bands.Any(band => band.FilterType == ProQFilterType.HighCut);
 
-                if (bandNumber > 8) break;
+            // get remaining bands that are not lowcut or highcut and sort by frequency
+            var band2To7 = eq.Bands.Where(b => b.Enabled)
+                                   .Where(b => b.FilterType != ProQFilterType.LowCut)
+                                   .Where(b => b.FilterType != ProQFilterType.HighCut)
+                                   .OrderBy(s => s.FilterFreq);
+
+            int bandNumber = 1;
+            if (hasLowCutBand)
+            {
+                var lowCutBand = eq.Bands.Where(band => band.FilterType == ProQFilterType.LowCut)
+                                            .OrderBy(s => s.FilterFreq).ElementAt(0);
+
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = lowCutBand.Enabled ? 1.00 : 0.00;
+                frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].NumberValue = lowCutBand.FilterGain;
+                frequency.Parameters[String.Format("equalizerAfreq{0}", bandNumber)].NumberValue = lowCutBand.FilterFreq;
+                frequency.Parameters[String.Format("equalizerAq{0}", bandNumber)].NumberValue = lowCutBand.FilterQ;
+
+                switch (lowCutBand.FilterLPHPSlope)
+                {
+                    case ProQLPHPSlope.Slope6dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
+                        break;
+                    case ProQLPHPSlope.Slope12dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut12;
+                        break;
+                    case ProQLPHPSlope.Slope24dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut24;
+                        break;
+                    case ProQLPHPSlope.Slope48dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut48;
+                        break;
+                }
+
+                Log.Debug(lowCutBand.ToString());
+            }
+            else
+            {
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = 0.00;
+            }
+
+            bandNumber = 8;
+            if (hasHighCutBand)
+            {
+                var highCutBand = eq.Bands.Where(band => band.FilterType == ProQFilterType.HighCut)
+                                            .OrderByDescending(s => s.FilterFreq).ElementAt(0);
+
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = highCutBand.Enabled ? 1.00 : 0.00;
+                frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].NumberValue = highCutBand.FilterGain;
+                frequency.Parameters[String.Format("equalizerAfreq{0}", bandNumber)].NumberValue = highCutBand.FilterFreq;
+                frequency.Parameters[String.Format("equalizerAq{0}", bandNumber)].NumberValue = highCutBand.FilterQ;
+
+                switch (highCutBand.FilterLPHPSlope)
+                {
+                    case ProQLPHPSlope.Slope6dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
+                        break;
+                    case ProQLPHPSlope.Slope12dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut12;
+                        break;
+                    case ProQLPHPSlope.Slope24dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut24;
+                        break;
+                    case ProQLPHPSlope.Slope48dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut48;
+                        break;
+                }
+
+                Log.Debug(highCutBand.ToString());
+            }
+            else
+            {
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = 0.00;
+            }
+
+            // rest of the bands (2-7)
+            int startIndex = hasLowCutBand ? 2 : 1;
+            int endIndex = hasHighCutBand ? 7 : 8;
+            foreach (var band in band2To7)
+            {
+                bandNumber = startIndex++;
+
+                if (bandNumber > endIndex) break;
 
                 frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = band.Enabled ? 1.00 : 0.00;
                 frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].NumberValue = band.FilterGain;
@@ -111,27 +191,106 @@ namespace PresetConverter
         {
             var frequency = new SteinbergFrequency();
 
-            // sort so that the lowcut is at the first elements and the high cut are the last (within only 8 bands)
-            ProQ2FilterType[] customSortOrder = new[]
-                {
-                    ProQ2FilterType.LowCut,
-                    ProQ2FilterType.LowShelf,
-                    ProQ2FilterType.Bell,
-                    ProQ2FilterType.Notch,
-                    ProQ2FilterType.BandPass,
-                    ProQ2FilterType.TiltShelf,
-                    ProQ2FilterType.HighShelf,
-                    ProQ2FilterType.HighCut
-            };
+            // Frequency only support lowcut on the 1st band and highcut on the 8th band
+            bool hasLowCutBand = eq.Bands.Any(band => band.FilterType == ProQ2FilterType.LowCut);
+            bool hasHighCutBand = eq.Bands.Any(band => band.FilterType == ProQ2FilterType.HighCut);
 
-            var sortedBands = eq.Bands.Where(b => b.Enabled).OrderBy(a => Array.IndexOf(customSortOrder, a.FilterType)).Take(8);
+            // get remaining bands that are not lowcut or highcut and sort by frequency
+            var band2To7 = eq.Bands.Where(b => b.Enabled)
+                                   .Where(b => b.FilterType != ProQ2FilterType.LowCut)
+                                   .Where(b => b.FilterType != ProQ2FilterType.HighCut)
+                                   .OrderBy(s => s.FilterFreq);
 
-            int index = 1;
-            foreach (var band in sortedBands)
+            int bandNumber = 1;
+            if (hasLowCutBand)
             {
-                int bandNumber = index++;
+                var lowCutBand = eq.Bands.Where(band => band.FilterType == ProQ2FilterType.LowCut)
+                                            .OrderBy(s => s.FilterFreq).ElementAt(0);
 
-                if (bandNumber > 8) break;
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = lowCutBand.Enabled ? 1.00 : 0.00;
+                frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].NumberValue = lowCutBand.FilterGain;
+                frequency.Parameters[String.Format("equalizerAfreq{0}", bandNumber)].NumberValue = lowCutBand.FilterFreq;
+                frequency.Parameters[String.Format("equalizerAq{0}", bandNumber)].NumberValue = lowCutBand.FilterQ;
+
+                switch (lowCutBand.FilterLPHPSlope)
+                {
+                    case ProQ2LPHPSlope.Slope6dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
+                        break;
+                    case ProQ2LPHPSlope.Slope12dB_oct:
+                    case ProQ2LPHPSlope.Slope18dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut12;
+                        break;
+                    case ProQ2LPHPSlope.Slope24dB_oct:
+                    case ProQ2LPHPSlope.Slope30dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut24;
+                        break;
+                    case ProQ2LPHPSlope.Slope36dB_oct:
+                    case ProQ2LPHPSlope.Slope48dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut48;
+                        break;
+                    case ProQ2LPHPSlope.Slope72dB_oct:
+                    case ProQ2LPHPSlope.Slope96dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut96;
+                        break;
+                }
+
+                Log.Debug(lowCutBand.ToString());
+            }
+            else
+            {
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = 0.00;
+            }
+
+            bandNumber = 8;
+            if (hasHighCutBand)
+            {
+                var highCutBand = eq.Bands.Where(band => band.FilterType == ProQ2FilterType.HighCut)
+                                            .OrderByDescending(s => s.FilterFreq).ElementAt(0);
+
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = highCutBand.Enabled ? 1.00 : 0.00;
+                frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].NumberValue = highCutBand.FilterGain;
+                frequency.Parameters[String.Format("equalizerAfreq{0}", bandNumber)].NumberValue = highCutBand.FilterFreq;
+                frequency.Parameters[String.Format("equalizerAq{0}", bandNumber)].NumberValue = highCutBand.FilterQ;
+
+                switch (highCutBand.FilterLPHPSlope)
+                {
+                    case ProQ2LPHPSlope.Slope6dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
+                        break;
+                    case ProQ2LPHPSlope.Slope12dB_oct:
+                    case ProQ2LPHPSlope.Slope18dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut12;
+                        break;
+                    case ProQ2LPHPSlope.Slope24dB_oct:
+                    case ProQ2LPHPSlope.Slope30dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut24;
+                        break;
+                    case ProQ2LPHPSlope.Slope36dB_oct:
+                    case ProQ2LPHPSlope.Slope48dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut48;
+                        break;
+                    case ProQ2LPHPSlope.Slope72dB_oct:
+                    case ProQ2LPHPSlope.Slope96dB_oct:
+                        frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].NumberValue = SteinbergFrequency.BandMode1And8.Cut96;
+                        break;
+                }
+
+                Log.Debug(highCutBand.ToString());
+            }
+            else
+            {
+                frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = 0.00;
+            }
+
+            // rest of the bands (2-7)
+            int startIndex = hasLowCutBand ? 2 : 1;
+            int endIndex = hasHighCutBand ? 7 : 8;
+            foreach (var band in band2To7)
+            {
+                bandNumber = startIndex++;
+
+                if (bandNumber > endIndex) break;
 
                 frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue = band.Enabled ? 1.00 : 0.00;
                 frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].NumberValue = band.FilterGain;
