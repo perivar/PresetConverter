@@ -116,8 +116,8 @@ namespace PresetConverter
         private class ListElement
         {
             public string ID;
-            public UInt64 Offset;
-            public UInt64 Size;
+            public long Offset;
+            public long Size;
         }
 
         public class Parameter
@@ -189,11 +189,37 @@ namespace PresetConverter
         public byte[] ChunkData;
 
         // byte positions and sizes within a vstpreset (for writing)
-        public UInt64 ListPos; // position of List chunk
-        public UInt64 DataStartPos; // data start position
-        public UInt64 DataSize; // byte length from data start position up until xml data
-        public UInt64 MetaXmlStartPos; // VstPreset MetaInfo Xml section start position
-        public UInt64 MetaXmlChunkSize; // VstPreset MetaInfo Xml section length in bytes (including BOM)
+        public long ListPos; // position of List chunk
+        public long CompDataStartPos; // parameter data start position (Comp)
+        public long CompDataChunkSize; // byte length of parameter data (Comp)
+        public long ContDataStartPos; // parameter data start position (Cont)
+        public long ContDataChunkSize; // byte length of parameter data (Cont)
+        public long InfoXmlStartPos; // info xml section start position (Info)
+        public long InfoXmlChunkSize; // info xml section length in bytes including BOM (Info)
+
+        /// <summary>
+        /// Gets the zero-based position where the chunk data ends (Comp).
+        /// </summary>
+        public long CompDataEndPosition
+        {
+            get { return (CompDataStartPos + CompDataChunkSize); }
+        }
+
+        /// <summary>
+        /// Gets the zero-based position where the chunk data ends (Cont).
+        /// </summary>
+        public long ContDataEndPosition
+        {
+            get { return (ContDataStartPos + ContDataChunkSize); }
+        }
+
+        /// <summary>
+        /// Gets the zero-based position where the chunk data ends (Info).
+        /// </summary>
+        public long InfoXmlEndPosition
+        {
+            get { return (InfoXmlStartPos + InfoXmlChunkSize); }
+        }
 
         public VstPreset()
         {
@@ -229,11 +255,6 @@ namespace PresetConverter
             if (!File.Exists(fileName))
                 throw new Exception("File Not Found: " + fileName);
 
-            if (fileName.Equals(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\Standard Panner\Mono.vstpreset"))
-            {
-                // break
-            }
-
             // Read the file
             using (BinaryFile bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false, Encoding.ASCII))
             {
@@ -258,7 +279,7 @@ namespace PresetConverter
                 this.Vst3ID = bf.ReadString(32);
 
                 // Read position of 'List' section 
-                this.ListPos = bf.ReadUInt64();
+                this.ListPos = (long)bf.ReadUInt64();
                 Log.Verbose("listPos: {0}", ListPos);
 
                 // Store current position
@@ -266,7 +287,7 @@ namespace PresetConverter
 
                 // seek to the 'List' position
                 // List = kChunkList
-                bf.Seek((long)this.ListPos, SeekOrigin.Begin);
+                bf.Seek(this.ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
                 string listElement = bf.ReadString(4);
@@ -282,12 +303,12 @@ namespace PresetConverter
                     for (int i = 0; i < listElementValue; i++)
                     {
                         // read Comp and 16 bytes
-                        // parameter data start position
-                        // byte length from parameter data start position up until xml data
+                        // Comp parameter data start position
+                        // Comp parameter data byte length
 
                         // read Cont and 16 bytes
-                        // xml start position
-                        // 0 ?
+                        // Cont parameter data start position
+                        // Cont parameter data byte length
 
                         // read Info and 16 bytes
                         // xml start position
@@ -295,16 +316,22 @@ namespace PresetConverter
                         var element = ReadListElement(bf);
                         Log.Verbose("{0} {1} {2}", element.ID, element.Offset, element.Size);
 
-                        if (element.ID.Equals("Info"))
-                        {
-                            this.MetaXmlStartPos = element.Offset;
-                            this.MetaXmlChunkSize = element.Size;
-                        }
-
                         if (element.ID.Equals("Comp"))
                         {
-                            this.DataStartPos = element.Offset;
-                            this.DataSize = element.Size;
+                            this.CompDataStartPos = element.Offset;
+                            this.CompDataChunkSize = element.Size;
+                        }
+
+                        if (element.ID.Equals("Cont"))
+                        {
+                            this.ContDataStartPos = element.Offset;
+                            this.ContDataChunkSize = element.Size;
+                        }
+
+                        if (element.ID.Equals("Info"))
+                        {
+                            this.InfoXmlStartPos = element.Offset;
+                            this.InfoXmlChunkSize = element.Size;
                         }
                     }
                 }
@@ -321,10 +348,6 @@ namespace PresetConverter
                 {
                     Log.Error("Failed reading {0} with Vst3Id: '{1}'. Error: {2}", fileName, Vst3ID, e.Message);
                 }
-
-                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                var xmlBytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                this.MetaXml = Encoding.UTF8.GetString(xmlBytes);
 
                 VerifyListElements(bf);
             }
@@ -389,20 +412,8 @@ namespace PresetConverter
                     AddParameter(parameterName, parameterNumber, parameterNumberValue);
                 }
 
-                long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                if (skipBytes > 0)
-                {
-                    Log.Verbose("Skipping bytes: {0}", skipBytes);
-
-                    // seek to start of meta xml
-                    bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
-                }
-
-                // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                VerifyListElements(bf);
+                // try to read the info xml 
+                TryReadInfoXml(bf);
 
                 return;
             }
@@ -428,7 +439,7 @@ namespace PresetConverter
                 {
                     // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                     // (19180 + 52) = 19232 bytes
-                    while (bf.Position != (long)(DataStartPos + DataSize))
+                    while (bf.Position != CompDataEndPosition)
                     {
                         // read the null terminated string
                         var parameterName = bf.ReadStringNull();
@@ -444,48 +455,24 @@ namespace PresetConverter
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
                     }
 
-                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                    if (skipBytes > 0)
-                    {
-                        Log.Verbose("Skipping bytes: {0}", skipBytes);
-
-                        // seek to start of meta xml
-                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
-                    }
-
-                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                    this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                    VerifyListElements(bf);
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
 
                     return;
                 }
                 else if (
                     this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
                 {
-                    // rewind 4 bytes
-                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    var xmlContent = bf.ReadString((int)this.DataSize);
+                    var xmlContent = bf.ReadString((int)this.CompDataChunkSize);
 
                     AddParameter("XmlContent", 1, xmlContent);
 
-                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                    if (skipBytes > 0)
-                    {
-                        Log.Verbose("Skipping bytes: {0}", skipBytes);
-
-                        // seek to start of meta xml
-                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
-                    }
-
-                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                    this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                    VerifyListElements(bf);
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
 
                     return;
                 }
@@ -497,28 +484,16 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                     )
                 {
-                    // rewind 4 bytes
-                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    var byteContent = bf.ReadBytes((int)this.DataSize);
+                    var byteContent = bf.ReadBytes((int)this.CompDataChunkSize);
 
                     AddParameter("ByteContent", 1, byteContent);
 
-                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                    if (skipBytes > 0)
-                    {
-                        Log.Verbose("Skipping bytes: {0}", skipBytes);
-
-                        // seek to start of meta xml
-                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
-                    }
-
-                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                    this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                    VerifyListElements(bf);
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
 
                     return;
                 }
@@ -526,8 +501,8 @@ namespace PresetConverter
                 else if (
                     this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
                 {
-                    // rewind 4 bytes
-                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                     Log.Verbose("Wave Path 1: {0}", wavFilePath1);
@@ -569,7 +544,7 @@ namespace PresetConverter
                     }
 
                     int parameterCounter = 0;
-                    while (bf.Position != (long)(DataStartPos + DataSize))
+                    while (bf.Position != CompDataEndPosition)
                     {
                         parameterCounter++;
 
@@ -592,20 +567,8 @@ namespace PresetConverter
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
                     }
 
-                    long skipBytes = (long)this.MetaXmlStartPos - bf.Position;
-                    if (skipBytes > 0)
-                    {
-                        Log.Verbose("Skipping bytes: {0}", skipBytes);
-
-                        // seek to start of meta xml
-                        bf.Seek((long)this.MetaXmlStartPos, SeekOrigin.Begin);
-                    }
-
-                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                    this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                    VerifyListElements(bf);
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
 
                     return;
                 }
@@ -614,8 +577,8 @@ namespace PresetConverter
                 else if (
                    this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
                 {
-                    // rewind 4 bytes
-                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     // read floats
                     AddParameter("Unknown1", 1, bf.ReadSingle());
@@ -626,11 +589,8 @@ namespace PresetConverter
                     AddParameter("Unknown4", 4, bf.ReadUInt32());
                     AddParameter("Unknown5", 5, bf.ReadUInt32());
 
-                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                    this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                    VerifyListElements(bf);
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
 
                     return;
                 }
@@ -665,8 +625,8 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesTrueVerbStereo))
                 {
-                    // rewind 4 bytes
-                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
                     var unknown3 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
@@ -701,28 +661,25 @@ namespace PresetConverter
                     // read in this also
                     // total size - PresetChunkXMLTree size - 32
                     // e.g. 844 - 777 - 32 = 35
-                    var xmlPostLength = this.DataSize - xmlMainLength - 32;
+                    var xmlPostLength = this.CompDataChunkSize - xmlMainLength - 32;
                     var xmlPostContent = bf.ReadString((int)xmlPostLength);
                     var param2Name = "XmlContentPost";
                     AddParameter(param2Name, 2, xmlPostContent);
 
-                    // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                    var bytes = bf.ReadBytes((int)this.MetaXmlChunkSize);
-                    this.MetaXml = Encoding.UTF8.GetString(bytes);
-
-                    VerifyListElements(bf);
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
 
                     return;
                 }
 
                 else if (this.Vst3ID.Equals(VstIDs.NIKontakt5))
                 {
-                    // rewind 4 bytes
-                    bf.Seek((long)this.DataStartPos, SeekOrigin.Begin);
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
 
-                    while (bf.Position != (long)(DataStartPos + DataSize))
+                    while (bf.Position != CompDataEndPosition)
                     {
                         // read the null terminated string
                         var parameterName = bf.ReadStringNull();
@@ -737,6 +694,10 @@ namespace PresetConverter
 
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
                     }
+
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
+
                     return;
 
                 }
@@ -836,16 +797,34 @@ namespace PresetConverter
             //  | size of chunk data   |    8 Bytes (int64)
             //  +----------------------+ 
 
-            string id = bf.ReadString(4);
-            UInt64 offset = bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
-            UInt64 size = bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
-
             var elem = new ListElement();
-            elem.ID = id;
-            elem.Offset = offset;
-            elem.Size = size;
+            elem.ID = bf.ReadString(4);
+            elem.Offset = (long)bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
+            elem.Size = (long)bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
 
             return elem;
+        }
+
+        private void TryReadInfoXml(BinaryFile bf)
+        {
+            // seek to start of meta xml
+            SeekToInfoXmlPosition(bf);
+
+            // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
+            var bytes = bf.ReadBytes((int)this.InfoXmlChunkSize);
+            this.MetaXml = Encoding.UTF8.GetString(bytes);
+        }
+
+        private void SeekToInfoXmlPosition(BinaryFile bf)
+        {
+            long skipBytes = (this.InfoXmlStartPos - bf.Position);
+            if (skipBytes > 0)
+            {
+                Log.Verbose("Skipping bytes: {0}", skipBytes);
+
+                // seek to start of meta xml
+                bf.Seek(this.InfoXmlStartPos, SeekOrigin.Begin);
+            }
         }
 
         private string ReadStringNullAndSkip(BinaryFile bf, Encoding encoding, long totalBytes)
@@ -905,18 +884,18 @@ namespace PresetConverter
 
                 // write COMP and 16 bytes
                 bf.Write("Comp");
-                bf.Write(this.DataStartPos); // parameter data start position
-                bf.Write(this.DataSize); // byte length from parameter data start position up until xml data
+                bf.Write((UInt64)this.CompDataStartPos); // parameter data start position (Comp)
+                bf.Write((UInt64)this.CompDataChunkSize); // byte length of parameter data (Comp)
 
                 // write Cont and 16 bytes
                 bf.Write("Cont");
-                bf.Write(this.MetaXmlStartPos); // xml start position
-                bf.Write((UInt64)0);// ?
+                bf.Write((UInt64)this.ContDataStartPos); // parameter data start position (Cont)
+                bf.Write((UInt64)this.ContDataChunkSize); // byte length of parameter data (Cont)
 
                 // write Info and 16 bytes
                 bf.Write("Info");
-                bf.Write(this.MetaXmlStartPos); // xml start position
-                bf.Write((UInt64)MetaXmlBytesWithBOM.Length); // byte length of xml data
+                bf.Write((UInt64)this.InfoXmlStartPos); // info xml start position
+                bf.Write((UInt64)this.InfoXmlChunkSize); // byte length of info xml data
 
                 bf.Close();
                 return true;
@@ -932,10 +911,13 @@ namespace PresetConverter
         /// </summary>
         public void CalculateBytePositions()
         {
-            DataStartPos = 48; // parameter data start position
-            DataSize = (ulong)this.ChunkData.Length; // byte length from parameter data start position up until xml data
-            MetaXmlStartPos = this.DataStartPos + this.DataSize; // xml start position
-            ListPos = (uint)(this.MetaXmlStartPos + (ulong)this.MetaXmlBytesWithBOM.Length); // position of List chunk
+            this.CompDataStartPos = 48; // parameter data start position
+            this.CompDataChunkSize = this.ChunkData.Length; // byte length of parameter data 
+            this.ContDataStartPos = this.CompDataStartPos + this.CompDataChunkSize;
+            this.ContDataChunkSize = 0;
+            this.InfoXmlStartPos = this.CompDataStartPos + this.CompDataChunkSize; // xml start position
+            this.InfoXmlChunkSize = MetaXmlBytesWithBOM.Length;
+            this.ListPos = (this.InfoXmlStartPos + this.MetaXmlBytesWithBOM.Length); // position of List chunk
         }
 
         /// <summary>

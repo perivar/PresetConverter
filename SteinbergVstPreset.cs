@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using CommonUtils;
+using Serilog;
 
 namespace PresetConverter
 {
@@ -15,6 +16,25 @@ namespace PresetConverter
     {
         public SteinbergVstPreset() : base()
         {
+        }
+
+        public SteinbergVstPreset(string guid, byte[] presetBytes) : base()
+        {
+            this.Vst3ID = guid;
+            this.CompDataStartPos = 0;
+            this.CompDataChunkSize = presetBytes.Length;
+            this.ContDataStartPos = presetBytes.Length;
+            this.ContDataChunkSize = 0;
+            this.InfoXmlStartPos = presetBytes.Length;
+
+            try
+            {
+                this.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
+            }
+            catch (System.Exception e)
+            {
+                Log.Error("Failed initializing SteinbergVstPreset with guid: {0}. (Error: {1})", guid, e.Message);
+            }
         }
 
         public SteinbergVstPreset(string fileName) : base(fileName)

@@ -305,18 +305,7 @@ namespace AbletonLiveConverter
                 var presetByteLen = binaryFile.ReadInt32();
                 Log.Debug("Reading preset bytes: {0}", presetByteLen);
                 var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
-                var vstPreset = new SteinbergVstPreset();
-                vstPreset.Vst3ID = guid;
-                vstPreset.MetaXmlStartPos = (ulong)presetBytes.Length;
-                vstPreset.DataSize = (ulong)presetBytes.Length;
-                try
-                {
-                    vstPreset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
-                }
-                catch (System.Exception e)
-                {
-                    Log.Error("Failed reading {0} with Name: {1}{2}Vst3Id: '{3}'. Error: {4}", file, origPluginName == null ? " " : " - " + origPluginName + " - ", pluginName, guid, e.Message);
-                }
+                var vstPreset = new SteinbergVstPreset(guid, presetBytes);
 
                 if (vstPreset.ChunkData != null)
                 {
