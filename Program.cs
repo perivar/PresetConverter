@@ -110,10 +110,64 @@ namespace AbletonLiveConverter
             var bytes = File.ReadAllBytes(file);
             var decompressed = Decompress(bytes);
             var str = Encoding.UTF8.GetString(decompressed);
-            var xelement = XElement.Parse(str);
+            var docXelement = XElement.Parse(str);
 
-            string outputFileName = Path.GetFileNameWithoutExtension(file);
-            throw new NotImplementedException("AbletonLiveProject als files not implemented.");
+            // string outputFileName = Path.GetFileNameWithoutExtension(file);
+            // string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".xml");
+            // docXelement.Save(outputFilePath);
+
+            var tracks = docXelement.Descendants("Devices");
+            foreach (XElement xelement in tracks.Elements())
+            {
+                var pluginName = xelement.Name.ToString();
+
+                // find track name
+                var trackName = xelement.AncestorsAndSelf().Where(a => a.Name.LocalName.Contains("Track"))
+                .Elements("Name")
+                .Elements("EffectiveName").Attributes("Value").First().Value;
+
+                Log.Information("Track: {0} - Plugin: {1}", trackName, pluginName);
+
+                string outputFileName = string.Format("{0} - {1}", Path.GetFileNameWithoutExtension(file), trackName);
+                string outputFilePath = null;
+
+                // find preset type
+                switch (pluginName)
+                {
+                    case "Eq8":
+                        // Convert EQ8 to Steinberg Frequency
+                        var eq = new AbletonEq8(xelement);
+                        var steinbergFrequency = eq.ToSteinbergFrequency();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName + ".vstpreset");
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+                        steinbergFrequency.Write(outputFilePath);
+                        break;
+                    case "Compressor2":
+                        // Convert Compressor2 to Steinberg Compressor
+                        var compressor = new AbletonCompressor(xelement);
+                        var steinbergCompressor = compressor.ToSteinbergCompressor();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName + ".vstpreset");
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
+                        steinbergCompressor.Write(outputFilePath);
+                        break;
+                    case "GlueCompressor":
+                        // Convert Glue compressor to Waves SSL Compressor
+                        var glueCompressor = new AbletonGlueCompressor(xelement);
+                        var wavesSSLComp = glueCompressor.ToWavesSSLComp();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName + ".vstpreset");
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
+                        wavesSSLComp.Write(outputFilePath);
+                        break;
+                    case "MultibandDynamics":
+                    case "AutoFilter":
+                    case "Reverb":
+                    case "Saturator":
+                    case "Tuner":
+                    default:
+                        Log.Information("{0} not supported!", pluginName);
+                        break;
+                }
+            }
         }
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
@@ -155,8 +209,6 @@ namespace AbletonLiveConverter
                     wavesSSLComp.Write(outputFilePath);
                     break;
                 case "MultibandDynamics":
-                // var multibandCompressor = new AbletonMultibandCompressor(xelement);
-                // break;
                 case "AutoFilter":
                 case "Reverb":
                 case "Saturator":
