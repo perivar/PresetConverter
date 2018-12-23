@@ -197,13 +197,13 @@ namespace AbletonLiveConverter
                 // 'RuntimeID' field
                 var runtimeIDLen = binaryFile.ReadInt32();
                 var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("RuntimeID", runtimeIDField)) continue;
+                if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField)) continue;
                 var b1 = binaryFile.ReadBytes(10);
 
                 // 'Name' field
                 var nameLen = binaryFile.ReadInt32();
                 var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("Name", nameField)) continue;
+                if (IsWrongField(binaryFile, "Name", nameField)) continue;
                 var v4 = binaryFile.ReadInt16();
                 var v5 = binaryFile.ReadInt16();
                 var v6 = binaryFile.ReadInt32();
@@ -211,7 +211,7 @@ namespace AbletonLiveConverter
                 // 'String' field
                 var stringLen = binaryFile.ReadInt32();
                 var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("String", stringField)) continue;
+                if (IsWrongField(binaryFile, "String", stringField)) continue;
                 var v7 = binaryFile.ReadInt16();
 
                 // Track Name (for channels supporting audio insert plugins)
@@ -222,13 +222,13 @@ namespace AbletonLiveConverter
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
-                outputFileName = string.Format("{0}_{1}", outputFileName, trackName);
+                outputFileName = string.Format("{0} - {1}", outputFileName, trackName);
                 outputFileName = StringUtils.MakeValidFileName(outputFileName);
 
                 // 'Type'
                 var typeLen = binaryFile.ReadInt32();
                 var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("Type", typeField)) continue;
+                if (IsWrongField(binaryFile, "Type", typeField)) continue;
 
                 // skip to the 'VstCtrlInternalEffect' field            
                 var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
@@ -249,7 +249,7 @@ namespace AbletonLiveConverter
                 // 'Plugin UID' field
                 var pluginUIDFieldLen = binaryFile.ReadInt32();
                 var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("Plugin UID", pluginUIDField)) continue;
+                if (IsWrongField(binaryFile, "Plugin UID", pluginUIDField)) continue;
                 var t4 = binaryFile.ReadInt16();
                 var t5 = binaryFile.ReadInt16();
                 var t6 = binaryFile.ReadInt32();
@@ -257,7 +257,7 @@ namespace AbletonLiveConverter
                 // 'GUID' field
                 var guidFieldLen = binaryFile.ReadInt32();
                 var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("GUID", guidField)) continue;
+                if (IsWrongField(binaryFile, "GUID", guidField)) continue;
                 var t7 = binaryFile.ReadInt16();
 
                 // GUID
@@ -269,7 +269,7 @@ namespace AbletonLiveConverter
                 // 'Plugin Name' field
                 var pluginNameFieldLen = binaryFile.ReadInt32();
                 var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("Plugin Name", pluginNameField)) continue;
+                if (IsWrongField(binaryFile, "Plugin Name", pluginNameField)) continue;
                 var t8 = binaryFile.ReadInt16();
 
                 // Plugin Name
@@ -298,7 +298,7 @@ namespace AbletonLiveConverter
 
                 // 'audioComponent' field            
                 var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("audioComponent", audioComponentField)) continue;
+                if (IsWrongField(binaryFile, "audioComponent", audioComponentField)) continue;
 
                 var t10 = binaryFile.ReadInt16();
                 var t11 = binaryFile.ReadInt16();
@@ -315,13 +315,13 @@ namespace AbletonLiveConverter
                 }
                 catch (System.Exception e)
                 {
-                    Log.Error("Failed reading {0} with Name: {1} ({2}), Vst3Id: '{3}'. Error: {4}", file, origPluginName == null ? "EMPTY" : origPluginName, pluginName, guid, e.Message);
+                    Log.Error("Failed reading {0} with Name: {1}{2}Vst3Id: '{3}'. Error: {4}", file, origPluginName == null ? " " : " - " + origPluginName + " - ", pluginName, guid, e.Message);
                 }
 
                 if (vstPreset.ChunkData != null)
                 {
                     var fxp = new FXP(vstPreset.ChunkData);
-                    string fileNameNoExtension = string.Format("{0} - {1} - {2} - {3}", outputFileName, vstEffectIndex, origPluginName == null ? "EMPTY" : origPluginName, pluginName);
+                    string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
                     fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
                     string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
                     fxp.Write(outputFilePath);
@@ -338,7 +338,7 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
 
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileNameNoExtension + "_prg_" + i + ".txt");
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileNameNoExtension + " - " + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
                                     // int counter = 0;
@@ -369,7 +369,7 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
 
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileNameNoExtension + "_prg_" + i + ".txt");
+                                string outputFilePathNew = Path.Combine(outputDirectoryPath, fileNameNoExtension + " - " + i + ".txt");
                                 using (var tw = new StreamWriter(outputFilePathNew))
                                 {
                                     // int counter = 0;
@@ -397,7 +397,7 @@ namespace AbletonLiveConverter
                         // FabFilterProQ stores the parameters as floats not chunk
                         if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
                         {
-                            string fileName = string.Format("{0} - {1} - {2} - {3}.{4}", outputFileName, vstEffectIndex, origPluginName == null ? "EMPTY" : origPluginName, pluginName, "txt");
+                            string fileName = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName, "txt");
                             fileName = StringUtils.MakeValidFileName(fileName);
                             string outputFilePathNew = Path.Combine(outputDirectoryPath, fileName);
 
@@ -415,7 +415,7 @@ namespace AbletonLiveConverter
                         // FabFilterProQ2 stores the parameters as floats not chunk
                         else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                         {
-                            string fileName = string.Format("{0} - {1} - {2} - {3}.{4}", outputFileName, vstEffectIndex, origPluginName == null ? "EMPTY" : origPluginName, pluginName, "txt");
+                            string fileName = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName, "txt");
                             fileName = StringUtils.MakeValidFileName(fileName);
                             string outputFilePathNew = Path.Combine(outputDirectoryPath, fileName);
 
@@ -433,7 +433,7 @@ namespace AbletonLiveConverter
                         // Save the preset parameters
                         else
                         {
-                            string fileNameNoExtension = string.Format("{0} - {1} - {2} - {3}", outputFileName, vstEffectIndex, origPluginName == null ? "EMPTY" : origPluginName, pluginName);
+                            string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
                             fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
                             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
                             File.WriteAllText(outputFilePath, vstPreset.ToString());
@@ -444,15 +444,15 @@ namespace AbletonLiveConverter
                 // read next field, we expect editController
                 var editControllerLen = binaryFile.ReadInt32();
                 var editControllerField = binaryFile.ReadString(editControllerLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField("editController", editControllerField)) continue;
+                if (IsWrongField(binaryFile, "editController", editControllerField)) continue;
             }
         }
 
-        private static bool IsWrongField(string expectedValue, string foundValue)
+        private static bool IsWrongField(BinaryFile binaryFile, string expectedValue, string foundValue)
         {
             if (foundValue != expectedValue)
             {
-                Log.Warning("Expected '{0}' but got {1}", expectedValue, foundValue);
+                Log.Warning("Expected '{0}' but got '{1}' at pos: {2}", expectedValue, foundValue, binaryFile.Position);
                 return true;
             }
             return false;
