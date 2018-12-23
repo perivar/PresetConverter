@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Serilog;
 
 namespace PresetConverter
@@ -110,8 +111,23 @@ namespace PresetConverter
         {
             var frequency = new SteinbergFrequency();
 
+            // sort so that the lowcut is at the first elements and the high cut are the last (within only 8 bands)
+            ProQ2FilterType[] customSortOrder = new[]
+                {
+                    ProQ2FilterType.LowCut,
+                    ProQ2FilterType.LowShelf,
+                    ProQ2FilterType.Bell,
+                    ProQ2FilterType.Notch,
+                    ProQ2FilterType.BandPass,
+                    ProQ2FilterType.TiltShelf,
+                    ProQ2FilterType.HighShelf,
+                    ProQ2FilterType.HighCut
+            };
+
+            var sortedBands = eq.Bands.Where(b => b.Enabled).OrderBy(a => Array.IndexOf(customSortOrder, a.FilterType)).Take(8);
+
             int index = 1;
-            foreach (var band in eq.Bands)
+            foreach (var band in sortedBands)
             {
                 int bandNumber = index++;
 
