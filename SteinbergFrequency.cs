@@ -34,6 +34,15 @@ namespace PresetConverter
             public const double Notch = 3.00;
         }
 
+        public struct ChannelMode
+        {
+            public const double LeftRightModeLeft = 0.00;
+            public const double LeftRightModeRight = 1.00;
+            public const double StereoMode = 2.00;
+            public const double MidSideModeMid = 3.00;
+            public const double MidSideModeSide = 4.00;
+        }
+
         public SteinbergFrequency()
         {
             Vst3ID = VstPreset.VstIDs.SteinbergFrequency;
@@ -64,13 +73,15 @@ namespace PresetConverter
             InitNumberParameter(String.Format("equalizerAq{0}", bandNumber), 124 + increment, 1.00);
             InitNumberParameter(String.Format("equalizerAtype{0}", bandNumber), 132 + increment, bandNumber == 1 || bandNumber == 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak);
             InitNumberParameter(String.Format("invert{0}", bandNumber), 1022 + increment, 0.00);
+
             InitNumberParameter(String.Format("equalizerAon{0}Ch2", bandNumber), 260 + increment, 1.00);
             InitNumberParameter(String.Format("equalizerAgain{0}Ch2", bandNumber), 268 + increment, 0.00);
             InitNumberParameter(String.Format("equalizerAfreq{0}Ch2", bandNumber), 276 + increment, 25.00);
             InitNumberParameter(String.Format("equalizerAq{0}Ch2", bandNumber), 284 + increment, 1.00);
-            InitNumberParameter(String.Format("equalizerAtype{0}Ch2", bandNumber), 292 + increment, 6.00);
+            InitNumberParameter(String.Format("equalizerAtype{0}Ch2", bandNumber), 292 + increment, bandNumber == 1 || bandNumber == 8 ? BandMode1And8.Cut48 : BandMode2To7.Peak);
             InitNumberParameter(String.Format("invert{0}Ch2", bandNumber), 1030 + increment, 0.00);
-            InitNumberParameter(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, 2.00);
+
+            InitNumberParameter(String.Format("equalizerAeditchannel{0}", bandNumber), 50 + increment, ChannelMode.StereoMode);
             InitNumberParameter(String.Format("equalizerAbandon{0}", bandNumber), 58 + increment, 1.00);
             InitNumberParameter(String.Format("linearphase{0}", bandNumber), 66 + increment, 0.00);
         }

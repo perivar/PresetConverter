@@ -770,6 +770,13 @@ namespace AbletonLiveConverter
 
                     // string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.ffp");
                     // preset.Write(outputFilePathNew);
+
+                    // Convert to steinberg Frequency format
+                    var steinbergFrequency = preset.ToSteinbergFrequency();
+                    string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", outputFileName + " - FabfilterProQ.vstpreset");
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+                    steinbergFrequency.Write(frequencyOutputFilePath);
+                    File.WriteAllText(frequencyOutputFilePath + ".txt", steinbergFrequency.ToString());
                 }
             }
             else
@@ -797,6 +804,13 @@ namespace AbletonLiveConverter
 
                     // string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.ffp");
                     // preset.Write(outputFilePathNew);
+
+                    // Convert to steinberg Frequency format
+                    var steinbergFrequency = preset.ToSteinbergFrequency();
+                    string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", outputFileName + " - FabfilterProQ2.vstpreset");
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+                    steinbergFrequency.Write(frequencyOutputFilePath);
+                    File.WriteAllText(frequencyOutputFilePath + ".txt", steinbergFrequency.ToString());
                 }
             }
         }
