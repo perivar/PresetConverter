@@ -177,11 +177,11 @@ namespace PresetConverter
                 var filterStereoPlacement = floatArray[index++];
                 switch (filterStereoPlacement)
                 {
-                    case (float)ProQStereoPlacement.Left:
-                        band.FilterStereoPlacement = ProQStereoPlacement.Left;
+                    case (float)ProQStereoPlacement.LeftOrMid:
+                        band.FilterStereoPlacement = ProQStereoPlacement.LeftOrMid;
                         break;
-                    case (float)ProQStereoPlacement.Right:
-                        band.FilterStereoPlacement = ProQStereoPlacement.Right;
+                    case (float)ProQStereoPlacement.RightOrSide:
+                        band.FilterStereoPlacement = ProQStereoPlacement.RightOrSide;
                         break;
                     case (float)ProQStereoPlacement.Stereo:
                         band.FilterStereoPlacement = ProQStereoPlacement.Stereo;
@@ -207,9 +207,15 @@ namespace PresetConverter
             preset.Bypass = floatArray[index++];           	// 0 = No bypass
             preset.ReceiveMidi = floatArray[index++];     	// 0 = Enabled?
             preset.Analyzer = floatArray[index++];         	// 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-            if (index <= floatArray.Length - 4) preset.AnalyzerResolution = floatArray[index++]; // 0 - 3 : low - medium[x] - high - maximum
-            if (index <= floatArray.Length - 4) preset.AnalyzerSpeed = floatArray[index++];   	// 0 - 3 : very slow, slow, medium[x], fast
+            if (index <= floatArray.Length - 4) preset.AnalyzerResolution = floatArray[index++]; // 0 - 3 (low - medium[x] - high - maximum)
+            if (index <= floatArray.Length - 4) preset.AnalyzerSpeed = floatArray[index++];   	// 0 - 3 (very slow, slow, medium[x], fast)
             if (index <= floatArray.Length - 4) preset.SoloBand = floatArray[index++];        	// -1
+
+            // check if mid/side
+            if (preset.ChannelMode == 1)
+            {
+                preset.Bands.ForEach(b => b.ChannelMode = ProQChannelMode.MidSide);
+            }
 
             return preset;
         }
@@ -296,11 +302,11 @@ namespace PresetConverter
                 var filterStereoPlacement = binFile.ReadSingle();
                 switch (filterStereoPlacement)
                 {
-                    case (float)ProQStereoPlacement.Left:
-                        band.FilterStereoPlacement = ProQStereoPlacement.Left;
+                    case (float)ProQStereoPlacement.LeftOrMid:
+                        band.FilterStereoPlacement = ProQStereoPlacement.LeftOrMid;
                         break;
-                    case (float)ProQStereoPlacement.Right:
-                        band.FilterStereoPlacement = ProQStereoPlacement.Right;
+                    case (float)ProQStereoPlacement.RightOrSide:
+                        band.FilterStereoPlacement = ProQStereoPlacement.RightOrSide;
                         break;
                     case (float)ProQStereoPlacement.Stereo:
                         band.FilterStereoPlacement = ProQStereoPlacement.Stereo;
@@ -326,13 +332,46 @@ namespace PresetConverter
             Bypass = binFile.ReadSingle();           	// 0 = No bypass
             ReceiveMidi = binFile.ReadSingle();     	// 0 = Enabled?
             Analyzer = binFile.ReadSingle();         	// 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-            if (binFile.Position <= binFile.Length - 4) AnalyzerResolution = binFile.ReadSingle();  // 0 - 3 : low - medium[x] - high - maximum
-            if (binFile.Position <= binFile.Length - 4) AnalyzerSpeed = binFile.ReadSingle();   	// 0 - 3 : very slow, slow, medium[x], fast
-            if (binFile.Position <= binFile.Length - 4) SoloBand = binFile.ReadSingle();        	// -1
+            if (binFile.Position <= binFile.Length - 4) AnalyzerResolution = binFile.ReadSingle();  // 0 - 3 (low - medium[x] - high - maximum)
+            if (binFile.Position <= binFile.Length - 4) AnalyzerSpeed = binFile.ReadSingle();   	// 0 - 3 (very slow, slow, medium[x], fast)
+            if (binFile.Position <= binFile.Length - 4) SoloBand = binFile.ReadSingle();            // -1
+
+            // check if mid/side
+            if (ChannelMode == 1)
+            {
+                Bands.ForEach(b => b.ChannelMode = ProQChannelMode.MidSide);
+            }
 
             binFile.Close();
 
             return true;
+        }
+
+        public override string ToString()
+        {
+            var writer = new StringWriter();
+
+            writer.WriteLine("Bands:");
+            foreach (var band in this.Bands)
+            {
+                writer.WriteLine(band.ToString());
+            }
+
+            writer.WriteLine();
+            writer.WriteLine("PostPresetParameters:");
+            writer.WriteLine("OutputGain: {0} \t\t\t -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)", OutputGain);
+            writer.WriteLine("OutputPan: {0} \t\t\t -1 to 1 (0 = middle)", OutputPan);
+            writer.WriteLine("DisplayRange: {0} \t\t 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB", DisplayRange);
+            writer.WriteLine("ProcessMode: {0} \t\t\t 0 = zero latency, 1 = lin.phase.low - medium - high - maximum", ProcessMode);
+            writer.WriteLine("ChannelMode: {0} \t\t\t 0 = Left/Right, 1 = Mid/Side", ChannelMode);
+            writer.WriteLine("Bypass: {0} \t\t\t\t 0 = No bypass", Bypass);
+            writer.WriteLine("ReceiveMidi: {0} \t\t\t 0 = Enabled?", ReceiveMidi);
+            writer.WriteLine("Analyzer: {0} \t\t\t 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post", Analyzer);
+            writer.WriteLine("AnalyzerResolution: {0} \t 0 - 3 (low - medium[x] - high - maximum)", AnalyzerResolution);
+            writer.WriteLine("AnalyzerSpeed: {0} \t\t 0 - 3 (very slow, slow, medium[x], fast)", AnalyzerSpeed);
+            writer.WriteLine("SoloBand: {0} \t\t\t -1", SoloBand);
+
+            return writer.ToString();
         }
 
         public bool Write(string filePath)
@@ -437,13 +476,20 @@ namespace PresetConverter
 
     public enum ProQStereoPlacement
     {
-        Left = 0,
-        Right = 1,
+        LeftOrMid = 0,
+        RightOrSide = 1,
         Stereo = 2, // (default)
+    }
+
+    public enum ProQChannelMode
+    {
+        LeftRight = 0,
+        MidSide = 1
     }
 
     public class ProQBand
     {
+        public ProQChannelMode ChannelMode { get; set; }
         public ProQFilterType FilterType { get; set; }
         public ProQLPHPSlope FilterLPHPSlope { get; set; }
         public ProQStereoPlacement FilterStereoPlacement { get; set; }
@@ -454,7 +500,35 @@ namespace PresetConverter
 
         public override string ToString()
         {
-            return String.Format("[{4}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", FilterType, FilterFreq, FilterGain, FilterQ, Enabled == true ? "On " : "Off", FilterLPHPSlope, FilterStereoPlacement);
+            string stereoPlacement = "";
+            switch (FilterStereoPlacement)
+            {
+                case ProQStereoPlacement.LeftOrMid:
+                    if (ChannelMode == ProQChannelMode.LeftRight)
+                    {
+                        stereoPlacement = "Left";
+                    }
+                    else
+                    {
+                        stereoPlacement = "Mid";
+                    }
+                    break;
+                case ProQStereoPlacement.RightOrSide:
+                    if (ChannelMode == ProQChannelMode.LeftRight)
+                    {
+                        stereoPlacement = "Right";
+                    }
+                    else
+                    {
+                        stereoPlacement = "Side";
+                    }
+                    break;
+                case ProQStereoPlacement.Stereo:
+                    stereoPlacement = "Stereo";
+                    break;
+            }
+
+            return String.Format("[{4}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", FilterType, FilterFreq, FilterGain, FilterQ, Enabled == true ? "On " : "Off", FilterLPHPSlope, stereoPlacement);
         }
     }
 }

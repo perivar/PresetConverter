@@ -62,21 +62,36 @@ namespace PresetConverter
 
                 // due to the way fabfilter have only one stereo placement per band (frequency has two) we need to modify both channels in frequency
                 // we could have in theory instead updated both channels per band in frequency
-                // TODO: even if the fabfilter band is set to left or right, it could mean mid or side based on the preset setting
                 if (band.FilterStereoPlacement != ProQStereoPlacement.Stereo)
                 {
                     switch (band.FilterStereoPlacement)
                     {
-                        case ProQStereoPlacement.Left:
-                            frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeLeft;
+                        case ProQStereoPlacement.LeftOrMid:
                             frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].NumberValue = 1.0;
                             frequency.Parameters[String.Format("equalizerAon{0}Ch2", bandNumber)].NumberValue = 0.0;
+
+                            if (band.ChannelMode == ProQChannelMode.LeftRight)
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeLeft;
+                            }
+                            else
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.MidSideModeMid;
+                            }
                             break;
-                        case ProQStereoPlacement.Right:
-                            frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeRight;
+                        case ProQStereoPlacement.RightOrSide:
                             frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].NumberValue = 0.0;
                             frequency.Parameters[String.Format("equalizerAon{0}Ch2", bandNumber)].NumberValue = 1.0;
                             channel = "Ch2";
+
+                            if (band.ChannelMode == ProQChannelMode.LeftRight)
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeRight;
+                            }
+                            else
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.MidSideModeSide;
+                            }
                             break;
                         case ProQStereoPlacement.Stereo:
                             // don't change - this is the default
@@ -230,21 +245,36 @@ namespace PresetConverter
 
                 // due to the way fabfilter have only one stereo placement per band (frequency has two) we need to modify both channels in frequency
                 // we could have in theory instead updated both channels per band in frequency
-                // TODO: even if the fabfilter band is set to left or right, it could mean mid or side based on the preset setting
                 if (band.FilterStereoPlacement != ProQ2StereoPlacement.Stereo)
                 {
                     switch (band.FilterStereoPlacement)
                     {
-                        case ProQ2StereoPlacement.Left:
-                            frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeLeft;
+                        case ProQ2StereoPlacement.LeftOrMid:
                             frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].NumberValue = 1.0;
                             frequency.Parameters[String.Format("equalizerAon{0}Ch2", bandNumber)].NumberValue = 0.0;
+
+                            if (band.ChannelMode == ProQ2ChannelMode.LeftRight)
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeLeft;
+                            }
+                            else
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.MidSideModeMid;
+                            }
                             break;
-                        case ProQ2StereoPlacement.Right:
-                            frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeRight;
+                        case ProQ2StereoPlacement.RightOrSide:
                             frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].NumberValue = 0.0;
                             frequency.Parameters[String.Format("equalizerAon{0}Ch2", bandNumber)].NumberValue = 1.0;
                             channel = "Ch2";
+
+                            if (band.ChannelMode == ProQ2ChannelMode.LeftRight)
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.LeftRightModeRight;
+                            }
+                            else
+                            {
+                                frequency.Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue = SteinbergFrequency.ChannelMode.MidSideModeSide;
+                            }
                             break;
                         case ProQ2StereoPlacement.Stereo:
                             // don't change - this is the default

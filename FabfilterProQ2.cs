@@ -14,9 +14,7 @@ namespace PresetConverter
         public List<ProQ2Band> Bands { get; set; }
         public int Version { get; set; }            // Normally 2
         public int ParameterCount { get; set; }     // Normally 190
-
-        public float[] PostPresetParameters;
-
+        public float[] PostPresetParameters;        // parameters after the band parameters
         public float ChannelMode { get; set; }       // 0 = Left/Right, 1 = Mid/Side
 
         public FabfilterProQ2()
@@ -74,6 +72,7 @@ namespace PresetConverter
                 floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));       // stereo placement: 0 = Left, 1 = Right, 2 = Stereo
             }
 
+            // TODO: have to get the right list of parameters
             for (int i = counter; i < ieeeFloatParameters.Length; i++)
             {
                 floatList.Add(ieeeFloatParameters[i]);
@@ -181,11 +180,11 @@ namespace PresetConverter
                 var filterStereoPlacement = floatArray[index++];
                 switch (filterStereoPlacement)
                 {
-                    case (float)ProQ2StereoPlacement.Left:
-                        band.FilterStereoPlacement = ProQ2StereoPlacement.Left;
+                    case (float)ProQ2StereoPlacement.LeftOrMid:
+                        band.FilterStereoPlacement = ProQ2StereoPlacement.LeftOrMid;
                         break;
-                    case (float)ProQ2StereoPlacement.Right:
-                        band.FilterStereoPlacement = ProQ2StereoPlacement.Right;
+                    case (float)ProQ2StereoPlacement.RightOrSide:
+                        band.FilterStereoPlacement = ProQ2StereoPlacement.RightOrSide;
                         break;
                     case (float)ProQ2StereoPlacement.Stereo:
                         band.FilterStereoPlacement = ProQ2StereoPlacement.Stereo;
@@ -201,13 +200,20 @@ namespace PresetConverter
             preset.PostPresetParameters = new float[floatArray.Length - index];
             for (int i = 0, j = index; j < floatArray.Length; i++, j++)
             {
-                preset.PostPresetParameters[i] = floatArray[j];
+                float paramValue = floatArray[j];
+                preset.PostPresetParameters[i] = paramValue;
 
-                // the third last is the ChannelMode
-                // if (j == floatArray.Length - 3)
-                // {
-                //     preset.ChannelMode = floatArray[j];
-                // }
+                // parameter 3 is the ChannelMode
+                if (i == 3 - 1)
+                {
+                    preset.ChannelMode = paramValue;
+                }
+            }
+
+            // check if mid/side
+            if (preset.ChannelMode == 1)
+            {
+                preset.Bands.ForEach(b => b.ChannelMode = ProQ2ChannelMode.MidSide);
             }
 
             return preset;
@@ -316,11 +322,11 @@ namespace PresetConverter
                 var filterStereoPlacement = binFile.ReadSingle();
                 switch (filterStereoPlacement)
                 {
-                    case (float)ProQ2StereoPlacement.Left:
-                        band.FilterStereoPlacement = ProQ2StereoPlacement.Left;
+                    case (float)ProQ2StereoPlacement.LeftOrMid:
+                        band.FilterStereoPlacement = ProQ2StereoPlacement.LeftOrMid;
                         break;
-                    case (float)ProQ2StereoPlacement.Right:
-                        band.FilterStereoPlacement = ProQ2StereoPlacement.Right;
+                    case (float)ProQ2StereoPlacement.RightOrSide:
+                        band.FilterStereoPlacement = ProQ2StereoPlacement.RightOrSide;
                         break;
                     case (float)ProQ2StereoPlacement.Stereo:
                         band.FilterStereoPlacement = ProQ2StereoPlacement.Stereo;
@@ -337,13 +343,20 @@ namespace PresetConverter
             PostPresetParameters = new float[remainingParameterCount];
             for (int i = 0; i < remainingParameterCount; i++)
             {
-                PostPresetParameters[i] = binFile.ReadSingle();
+                float paramValue = binFile.ReadSingle();
+                PostPresetParameters[i] = paramValue;
 
-                // the third last is the ChannelMode
-                // if (j == floatArray.Length - 3)
-                // {
-                //     preset.ChannelMode = floatArray[j];
-                // }
+                // parameter 3 or 19 is the ChannelMode
+                if (i == 3 - 1)
+                {
+                    ChannelMode = paramValue;
+                }
+            }
+
+            // check if mid/side
+            if (ChannelMode == 1)
+            {
+                Bands.ForEach(b => b.ChannelMode = ProQ2ChannelMode.MidSide);
             }
 
             binFile.Close();
@@ -390,6 +403,30 @@ namespace PresetConverter
             binFile.Close();
 
             return true;
+        }
+
+        public override string ToString()
+        {
+            var writer = new StringWriter();
+
+            writer.WriteLine("Bands:");
+            foreach (var band in this.Bands)
+            {
+                writer.WriteLine(band.ToString());
+            }
+
+            writer.WriteLine();
+            writer.WriteLine("PostPresetParameters:");
+            writer.WriteLine("ChannelMode: {0} \t\t\t 0 = Left/Right, 1 = Mid/Side", ChannelMode);
+
+            writer.WriteLine();
+            writer.WriteLine("All PostPresetParameters:");
+            for (int i = 0; i < PostPresetParameters.Length; i++)
+            {
+                writer.WriteLine(PostPresetParameters[i]);
+            }
+
+            return writer.ToString();
         }
 
 
@@ -449,13 +486,20 @@ namespace PresetConverter
 
     public enum ProQ2StereoPlacement
     {
-        Left = 0,
-        Right = 1,
+        LeftOrMid = 0,
+        RightOrSide = 1,
         Stereo = 2, // (default)
+    }
+
+    public enum ProQ2ChannelMode
+    {
+        LeftRight = 0,
+        MidSide = 1
     }
 
     public class ProQ2Band
     {
+        public ProQ2ChannelMode ChannelMode { get; set; }
         public ProQ2FilterType FilterType { get; set; }
         public ProQ2LPHPSlope FilterLPHPSlope { get; set; }
         public ProQ2StereoPlacement FilterStereoPlacement { get; set; }
@@ -466,7 +510,35 @@ namespace PresetConverter
 
         public override string ToString()
         {
-            return String.Format("[{4}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", FilterType, FilterFreq, FilterGain, FilterQ, Enabled == true ? "On " : "Off", FilterLPHPSlope, FilterStereoPlacement);
+            string stereoPlacement = "";
+            switch (FilterStereoPlacement)
+            {
+                case ProQ2StereoPlacement.LeftOrMid:
+                    if (ChannelMode == ProQ2ChannelMode.LeftRight)
+                    {
+                        stereoPlacement = "Left";
+                    }
+                    else
+                    {
+                        stereoPlacement = "Mid";
+                    }
+                    break;
+                case ProQ2StereoPlacement.RightOrSide:
+                    if (ChannelMode == ProQ2ChannelMode.LeftRight)
+                    {
+                        stereoPlacement = "Right";
+                    }
+                    else
+                    {
+                        stereoPlacement = "Side";
+                    }
+                    break;
+                case ProQ2StereoPlacement.Stereo:
+                    stereoPlacement = "Stereo";
+                    break;
+            }
+
+            return String.Format("[{4}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", FilterType, FilterFreq, FilterGain, FilterQ, Enabled == true ? "On " : "Off", FilterLPHPSlope, stereoPlacement);
         }
     }
 }
