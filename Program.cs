@@ -653,28 +653,14 @@ namespace AbletonLiveConverter
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
                 {
                     var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.txt");
-                    using (var tw = new StreamWriter(outputFilePathNew))
-                    {
-                        var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
-                        foreach (var band in fabfilterPreset.Bands)
-                        {
-                            tw.WriteLine(string.Format("{0}", band));
-                        }
-                    }
+                    var preset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
+                    HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, outputFileName);
                 }
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                 {
                     var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.txt");
-                    using (var tw = new StreamWriter(outputFilePathNew))
-                    {
-                        var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
-                        foreach (var band in fabfilterPreset.Bands)
-                        {
-                            tw.WriteLine(string.Format("{0}", band));
-                        }
-                    }
+                    var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                    HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, outputFileName);
                 }
 
                 else
@@ -684,7 +670,7 @@ namespace AbletonLiveConverter
             }
             else
             {
-                // no parameters
+                // no parameters, but chunk data instead
                 if (vstPreset.Parameters.Count == 0 && vstPreset.ChunkData != null)
                 {
                     // check if FabFilterProQx64
@@ -699,16 +685,9 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
-
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQx64_" + i + ".txt");
-                                using (var tw = new StreamWriter(outputFilePathNew))
-                                {
-                                    var fabfilterPreset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                    foreach (var band in fabfilterPreset.Bands)
-                                    {
-                                        tw.WriteLine(string.Format("{0}", band));
-                                    }
-                                }
+                                var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
+                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, outputFileNameNew);
                             }
                         }
                     }
@@ -724,16 +703,9 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
-
-                                string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2x64_" + i + ".txt");
-                                using (var tw = new StreamWriter(outputFilePathNew))
-                                {
-                                    var fabfilterPreset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                    foreach (var band in fabfilterPreset.Bands)
-                                    {
-                                        tw.WriteLine(string.Format("{0}", band));
-                                    }
-                                }
+                                var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                                string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
+                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
                             }
                         }
                     }
@@ -749,66 +721,85 @@ namespace AbletonLiveConverter
             floatArray = FabfilterProQ.ReadFloats(file);
             if (floatArray != null)
             {
+                // using (var tw = new StreamWriter(outputFilePath))
+                // {
+                // int counter = 0;
+                // foreach (var f in floatArray)
+                // {
+                //     tw.WriteLine("{0:0.0000}", f);
+                //     counter++;
+                //     if ((counter - 1) % 7 == 0) tw.WriteLine();
+                // }
+                // }
+
                 var preset = new FabfilterProQ();
                 if (preset.Read(file))
                 {
-                    string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.txt");
-                    // using (var tw = new StreamWriter(outputFilePath))
-                    // {
-                    // int counter = 0;
-                    // foreach (var f in floatArray)
-                    // {
-                    //     tw.WriteLine("{0:0.0000}", f);
-                    //     counter++;
-                    //     if ((counter - 1) % 7 == 0) tw.WriteLine();
-                    // }
-                    // }
-                    File.WriteAllText(outputFilePath, preset.ToString());
-
-                    // write the preset file as well
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ.ffp");
-                    preset.Write(outputFilePathNew);
-
-                    // convert to steinberg Frequency format
-                    var steinbergFrequency = preset.ToSteinbergFrequency();
-                    string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", outputFileName + " - FabfilterProQ.vstpreset");
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
-                    steinbergFrequency.Write(frequencyOutputFilePath);
-                    File.WriteAllText(frequencyOutputFilePath + ".txt", steinbergFrequency.ToString());
+                    HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, outputFileName);
                 }
             }
             else
             {
                 floatArray = FabfilterProQ2.ReadFloats(file);
+                // using (var tw = new StreamWriter(outputFilePath))
+                // {
+                // int counter = 0;
+                // foreach (var f in floatArray)
+                // {
+                //     tw.WriteLine("{0:0.0000}", f);
+                //     counter++;
+                //     if (counter % 7 == 0) tw.WriteLine();
+                // }
+                // }
 
                 var preset = new FabfilterProQ2();
                 if (preset.Read(file))
                 {
-                    string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.txt");
-                    // using (var tw = new StreamWriter(outputFilePath))
-                    // {
-                    // int counter = 0;
-                    // foreach (var f in floatArray)
-                    // {
-                    //     tw.WriteLine("{0:0.0000}", f);
-                    //     counter++;
-                    //     if (counter % 7 == 0) tw.WriteLine();
-                    // }
-                    // }
-                    File.WriteAllText(outputFilePath, preset.ToString());
-
-                    // write the preset file as well
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, outputFileName + "_FabFilterProQ2.ffp");
-                    preset.Write(outputFilePathNew);
-
-                    // convert to steinberg Frequency format
-                    var steinbergFrequency = preset.ToSteinbergFrequency();
-                    string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", outputFileName + " - FabfilterProQ2.vstpreset");
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
-                    steinbergFrequency.Write(frequencyOutputFilePath);
-                    File.WriteAllText(frequencyOutputFilePath + ".txt", steinbergFrequency.ToString());
+                    HandleFabfilterPresetFile(preset, "FabfilterProQ2", outputDirectoryPath, outputFileName);
                 }
             }
+        }
+
+        private static void HandleFabfilterPresetFile(FabfilterProQ preset, string pluginName, string outputDirectoryPath, string outputFileName)
+        {
+            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
+            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
+            File.WriteAllText(outputFilePath, preset.ToString());
+
+            // write the preset file as well
+            string outputFilePathFFP = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".ffp");
+            preset.Write(outputFilePathFFP);
+
+            // convert to steinberg Frequency format
+            var steinbergFrequency = preset.ToSteinbergFrequency();
+            string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".vstpreset");
+            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+            steinbergFrequency.Write(frequencyOutputFilePath);
+
+            // and dump the steinberg frequency info as well
+            string frequencyOutputFilePathText = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".txt");
+            File.WriteAllText(frequencyOutputFilePathText, steinbergFrequency.ToString());
+        }
+
+        private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string outputFileName)
+        {
+            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
+            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
+            File.WriteAllText(outputFilePath, preset.ToString());
+
+            // write the preset file as well
+            string outputFilePathFFP = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".ffp");
+            preset.Write(outputFilePathFFP);
+
+            // convert to steinberg Frequency format
+            var steinbergFrequency = preset.ToSteinbergFrequency();
+            string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".vstpreset");
+            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+            steinbergFrequency.Write(frequencyOutputFilePath);
+
+            // and dump the steinberg frequency info as well
+            string frequencyOutputFilePathText = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".txt");
+            File.WriteAllText(frequencyOutputFilePathText, steinbergFrequency.ToString());
         }
 
         private static void HandleWavesXpsPreset(string file, string outputDirectoryPath)

@@ -758,6 +758,9 @@ namespace PresetConverter
             // Read the source data:
             bf.Position = chunkStart;
             this.ChunkData = bf.ReadBytes((int)chunkSize);
+
+            // try to read the info xml 
+            TryReadInfoXml(bf);
         }
 
         private void VerifyListElements(BinaryFile bf)
