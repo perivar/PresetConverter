@@ -94,50 +94,57 @@ namespace PresetConverter
                     case 0:
                         // OutputGain
                         // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, -1, 1));
                         break;
                     case 1:
                         // OutputPan
                         // -1 to 1 (0 = middle)
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, -1, 1));
                         break;
                     case 2:
                         // DisplayRange
                         // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, 0, 3));
                         break;
                     case 3:
                         // ProcessMode
                         // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, 0, 4));
                         break;
                     case 4:
                         // ChannelMode
                         // 0 = Left/Right, 1 = Mid/Side
+                        floatList.Add(ieeeFloatParameters[i]);
                         break;
                     case 5:
                         // Bypass
                         // 0 = No bypass
+                        floatList.Add(ieeeFloatParameters[i]);
                         break;
                     case 6:
                         // ReceiveMidi
                         // 0 = Enabled?
+                        floatList.Add(ieeeFloatParameters[i]);
                         break;
                     case 7:
                         // Analyzer
                         // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, 0, 3));
                         break;
                     case 8:
                         // AnalyzerResolution
                         // 0 - 3 (low - medium[x] - high - maximum)
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, 0, 3));
                         break;
                     case 9:
                         // AnalyzerSpeed
                         // 0 - 3 (very slow, slow, medium[x], fast)
+                        floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[i], 0, 1, 0, 3));
                         break;
                     case 10:
                         // SoloBand
                         // -1
+                        floatList.Add(ieeeFloatParameters[i]);
                         break;
                     default:
                         Log.Warning("Unexpected parameter number: {0}", j);
