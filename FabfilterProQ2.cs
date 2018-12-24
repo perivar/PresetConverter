@@ -15,17 +15,9 @@ namespace PresetConverter
         public int Version { get; set; }            // Normally 2
         public int ParameterCount { get; set; }     // Normally 190
 
-        public float OutputGain { get; set; }        // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-        public float OutputPan { get; set; }         // -1 to 1 (0 = middle)
-        public float DisplayRange { get; set; }      // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-        public float ProcessMode { get; set; }       // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
+        public float[] PostPresetParameters;
+
         public float ChannelMode { get; set; }       // 0 = Left/Right, 1 = Mid/Side
-        public float Bypass { get; set; }            // 0 = No bypass
-        public float ReceiveMidi { get; set; }       // 0 = Enabled?
-        public float Analyzer { get; set; }          // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-        public float AnalyzerResolution { get; set; } // 0 - 3 : low - medium[x] - high - maximum
-        public float AnalyzerSpeed { get; set; }     // 0 - 3 : very slow, slow, medium[x], fast
-        public float SoloBand { get; set; }        	// -1
 
         public FabfilterProQ2()
         {
@@ -205,17 +197,18 @@ namespace PresetConverter
                 preset.Bands.Add(band);
             }
 
-            preset.OutputGain = floatArray[index++];      	// -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-            preset.OutputPan = floatArray[index++];       	// -1 to 1 (0 = middle)
-            preset.DisplayRange = floatArray[index++];    	// 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-            preset.ProcessMode = floatArray[index++];     	// 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-            preset.ChannelMode = floatArray[index++];     	// 0 = Left/Right, 1 = Mid/Side
-            preset.Bypass = floatArray[index++];           	// 0 = No bypass
-            preset.ReceiveMidi = floatArray[index++];     	// 0 = Enabled?
-            preset.Analyzer = floatArray[index++];         	// 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-            preset.AnalyzerResolution = floatArray[index++]; // 0 - 3 : low - medium[x] - high - maximum
-            preset.AnalyzerSpeed = floatArray[index++];   	// 0 - 3 : very slow, slow, medium[x], fast
-            preset.SoloBand = floatArray[index++];        	// -1
+            // read the remaining floats
+            preset.PostPresetParameters = new float[floatArray.Length - index];
+            for (int i = 0, j = index; j < floatArray.Length; i++, j++)
+            {
+                preset.PostPresetParameters[i] = floatArray[j];
+
+                // the third last is the ChannelMode
+                // if (j == floatArray.Length - 3)
+                // {
+                //     preset.ChannelMode = floatArray[j];
+                // }
+            }
 
             return preset;
         }
@@ -339,17 +332,19 @@ namespace PresetConverter
                 Bands.Add(band);
             }
 
-            OutputGain = binFile.ReadSingle();      	// -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-            OutputPan = binFile.ReadSingle();       	// -1 to 1 (0 = middle)
-            DisplayRange = binFile.ReadSingle();    	// 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-            ProcessMode = binFile.ReadSingle();     	// 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-            ChannelMode = binFile.ReadSingle();     	// 0 = Left/Right, 1 = Mid/Side
-            Bypass = binFile.ReadSingle();           	// 0 = No bypass
-            ReceiveMidi = binFile.ReadSingle();     	// 0 = Enabled?
-            Analyzer = binFile.ReadSingle();         	// 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-            if (binFile.Position <= binFile.Length - 4) AnalyzerResolution = binFile.ReadSingle();  // 0 - 3 : low - medium[x] - high - maximum
-            if (binFile.Position <= binFile.Length - 4) AnalyzerSpeed = binFile.ReadSingle();   	// 0 - 3 : very slow, slow, medium[x], fast
-            if (binFile.Position <= binFile.Length - 4) SoloBand = binFile.ReadSingle();        	// -1
+            // read the remaining floats
+            int remainingParameterCount = ParameterCount - 7 * Bands.Count;
+            PostPresetParameters = new float[remainingParameterCount];
+            for (int i = 0; i < remainingParameterCount; i++)
+            {
+                PostPresetParameters[i] = binFile.ReadSingle();
+
+                // the third last is the ChannelMode
+                // if (j == floatArray.Length - 3)
+                // {
+                //     preset.ChannelMode = floatArray[j];
+                // }
+            }
 
             binFile.Close();
 
@@ -387,29 +382,10 @@ namespace PresetConverter
                 }
             }
 
-            binFile.Write((float)OutputGain);           // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-            binFile.Write((float)OutputPan);            // -1 to 1 (0 = middle)
-            binFile.Write((float)DisplayRange);         // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-            binFile.Write((float)ProcessMode);          // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-            binFile.Write((float)ChannelMode);          // 0 = Left/Right, 1 = Mid/Side
-            binFile.Write((float)Bypass);               // 0 = No bypass
-            binFile.Write((float)ReceiveMidi);          // 0 = Enabled?
-            binFile.Write((float)Analyzer);             // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-            binFile.Write((float)AnalyzerResolution);   // float ;  // 0 - 3 : low - medium[x] - high - maximum
-            binFile.Write((float)AnalyzerSpeed);        // 0 - 3 : very slow, slow, medium[x], fast
-            binFile.Write((float)SoloBand);             // -1
-
-            binFile.Write((float)0);                    // 0
-            binFile.Write((float)1);                    // 1
-            binFile.Write((float)1);                    // 1
-            binFile.Write((float)2);                    // 2
-            binFile.Write((float)3);                    // 3
-            binFile.Write((float)0);                    // 0
-            binFile.Write((float)1);                    // 1
-            binFile.Write((float)2);                    // 2
-            binFile.Write((float)0);                    // 0
-            binFile.Write((float)-1);                    // -1
-            binFile.Write((float)0);                    // 0
+            for (int i = 0; i < PostPresetParameters.Length; i++)
+            {
+                binFile.Write(PostPresetParameters[i]);
+            }
 
             binFile.Close();
 
