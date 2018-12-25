@@ -12,8 +12,8 @@ namespace PresetConverter
     public class FabfilterProQ2
     {
         public List<ProQ2Band> Bands { get; set; }
-        public int Version { get; set; }            // Normally 2
-        public int ParameterCount { get; set; }     // Normally 190
+        public int Version { get; set; }                        // Normally 2
+        public int ParameterCount { get; set; }                 // Normally 190
 
         // Post Band Parameters
         public float ProcessingMode { get; set; }               // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
@@ -45,7 +45,7 @@ namespace PresetConverter
 
         public FabfilterProQ2()
         {
-
+            Version = 2;
         }
 
         public static float[] ReadFloats(string filePath)

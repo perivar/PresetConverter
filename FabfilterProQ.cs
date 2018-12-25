@@ -13,8 +13,8 @@ namespace PresetConverter
     public class FabfilterProQ
     {
         public List<ProQBand> Bands { get; set; }
-        public int Version { get; set; }            // Normally 2
-        public int ParameterCount { get; set; }     // Normally 190
+        public int Version { get; set; }                // Normally 2
+        public int ParameterCount { get; set; }         // Normally 190
 
         // Post Band Parameters
         public float OutputGain { get; set; }           // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
@@ -57,7 +57,7 @@ namespace PresetConverter
 
         public FabfilterProQ()
         {
-
+            Version = 2;
         }
 
         public static float[] ReadFloats(string filePath)
