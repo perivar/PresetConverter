@@ -16,6 +16,7 @@ namespace PresetConverter
         public int Version { get; set; }            // Normally 2
         public int ParameterCount { get; set; }     // Normally 190
 
+        // Post Band Parameters
         public float OutputGain { get; set; }        // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
         public float OutputPan { get; set; }         // -1 to 1 (0 = middle)
         public float DisplayRange { get; set; }      // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
@@ -260,6 +261,7 @@ namespace PresetConverter
                 preset.Bands.Add(band);
             }
 
+            // read the remaining floats
             preset.OutputGain = floatArray[index++];      	// -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
             preset.OutputPan = floatArray[index++];       	// -1 to 1 (0 = middle)
             preset.DisplayRange = floatArray[index++];    	// 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
