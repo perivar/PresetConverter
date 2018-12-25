@@ -12,20 +12,20 @@ namespace PresetConverter
             var frequency = new SteinbergFrequency();
 
             // Frequency only support lowcut on the 1st band and highcut on the 8th band
-            bool hasLowCutBand = eq.Bands.Any(band => band.FilterType == ProQFilterType.LowCut);
-            bool hasHighCutBand = eq.Bands.Any(band => band.FilterType == ProQFilterType.HighCut);
+            bool hasLowCutBand = eq.Bands.Any(band => band.Shape == ProQShape.LowCut);
+            bool hasHighCutBand = eq.Bands.Any(band => band.Shape == ProQShape.HighCut);
 
             // get remaining bands that are not lowcut or highcut and sort by frequency
             var band2To7 = eq.Bands.Where(b => b.Enabled)
-                                   .Where(b => b.FilterType != ProQFilterType.LowCut)
-                                   .Where(b => b.FilterType != ProQFilterType.HighCut)
-                                   .OrderBy(s => s.FilterFreq);
+                                   .Where(b => b.Shape != ProQShape.LowCut)
+                                   .Where(b => b.Shape != ProQShape.HighCut)
+                                   .OrderBy(s => s.Frequency);
 
             if (hasLowCutBand)
             {
                 int bandNumber = 1;
-                var lowCutBand = eq.Bands.Where(band => band.FilterType == ProQFilterType.LowCut)
-                                            .OrderBy(s => s.FilterFreq).ElementAt(0);
+                var lowCutBand = eq.Bands.Where(band => band.Shape == ProQShape.LowCut)
+                                            .OrderBy(s => s.Frequency).ElementAt(0);
 
                 SetBand(lowCutBand, bandNumber, frequency);
             }
@@ -33,8 +33,8 @@ namespace PresetConverter
             if (hasHighCutBand)
             {
                 int bandNumber = 8;
-                var highCutBand = eq.Bands.Where(band => band.FilterType == ProQFilterType.HighCut)
-                                            .OrderByDescending(s => s.FilterFreq).ElementAt(0);
+                var highCutBand = eq.Bands.Where(band => band.Shape == ProQShape.HighCut)
+                                            .OrderByDescending(s => s.Frequency).ElementAt(0);
 
                 SetBand(highCutBand, bandNumber, frequency);
             }
@@ -62,9 +62,9 @@ namespace PresetConverter
 
                 // due to the way fabfilter have only one stereo placement per band (frequency has two) we need to modify both channels in frequency
                 // we could have in theory instead updated both channels per band in frequency
-                if (band.FilterStereoPlacement != ProQStereoPlacement.Stereo)
+                if (band.StereoPlacement != ProQStereoPlacement.Stereo)
                 {
-                    switch (band.FilterStereoPlacement)
+                    switch (band.StereoPlacement)
                     {
                         case ProQStereoPlacement.LeftOrMid:
                             frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].NumberValue = 1.0;
@@ -99,13 +99,13 @@ namespace PresetConverter
                     }
                 }
 
-                frequency.Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].NumberValue = band.FilterGain;
-                frequency.Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].NumberValue = band.FilterFreq;
-                frequency.Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].NumberValue = band.FilterQ;
+                frequency.Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].NumberValue = band.Gain;
+                frequency.Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].NumberValue = band.Frequency;
+                frequency.Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].NumberValue = band.Q;
 
-                switch (band.FilterType)
+                switch (band.Shape)
                 {
-                    case ProQFilterType.Bell:
+                    case ProQShape.Bell:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Peak;
@@ -115,7 +115,7 @@ namespace PresetConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode2To7.Peak;
                         }
                         break;
-                    case ProQFilterType.LowShelf:
+                    case ProQShape.LowShelf:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.LowShelf;
@@ -125,8 +125,8 @@ namespace PresetConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode2To7.LowShelf;
                         }
                         break;
-                    case ProQFilterType.LowCut:
-                        switch (band.FilterLPHPSlope)
+                    case ProQShape.LowCut:
+                        switch (band.LPHPSlope)
                         {
                             case ProQLPHPSlope.Slope6dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
@@ -142,7 +142,7 @@ namespace PresetConverter
                                 break;
                         }
                         break;
-                    case ProQFilterType.HighShelf:
+                    case ProQShape.HighShelf:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.HighShelf;
@@ -152,8 +152,8 @@ namespace PresetConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode2To7.HighShelf;
                         }
                         break;
-                    case ProQFilterType.HighCut:
-                        switch (band.FilterLPHPSlope)
+                    case ProQShape.HighCut:
+                        switch (band.LPHPSlope)
                         {
                             case ProQLPHPSlope.Slope6dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
@@ -169,7 +169,7 @@ namespace PresetConverter
                                 break;
                         }
                         break;
-                    case ProQFilterType.Notch:
+                    case ProQShape.Notch:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Notch;
@@ -195,20 +195,20 @@ namespace PresetConverter
             var frequency = new SteinbergFrequency();
 
             // Frequency only support lowcut on the 1st band and highcut on the 8th band
-            bool hasLowCutBand = eq.Bands.Any(band => band.FilterType == ProQ2FilterType.LowCut);
-            bool hasHighCutBand = eq.Bands.Any(band => band.FilterType == ProQ2FilterType.HighCut);
+            bool hasLowCutBand = eq.Bands.Any(band => band.Shape == ProQ2Shape.LowCut);
+            bool hasHighCutBand = eq.Bands.Any(band => band.Shape == ProQ2Shape.HighCut);
 
             // get remaining bands that are not lowcut or highcut and sort by frequency
             var band2To7 = eq.Bands.Where(b => b.Enabled)
-                                   .Where(b => b.FilterType != ProQ2FilterType.LowCut)
-                                   .Where(b => b.FilterType != ProQ2FilterType.HighCut)
-                                   .OrderBy(s => s.FilterFreq);
+                                   .Where(b => b.Shape != ProQ2Shape.LowCut)
+                                   .Where(b => b.Shape != ProQ2Shape.HighCut)
+                                   .OrderBy(s => s.Frequency);
 
             if (hasLowCutBand)
             {
                 int bandNumber = 1;
-                var lowCutBand = eq.Bands.Where(band => band.FilterType == ProQ2FilterType.LowCut)
-                                            .OrderBy(s => s.FilterFreq).ElementAt(0);
+                var lowCutBand = eq.Bands.Where(band => band.Shape == ProQ2Shape.LowCut)
+                                            .OrderBy(s => s.Frequency).ElementAt(0);
 
                 SetBand(lowCutBand, bandNumber, frequency);
             }
@@ -216,8 +216,8 @@ namespace PresetConverter
             if (hasHighCutBand)
             {
                 int bandNumber = 8;
-                var highCutBand = eq.Bands.Where(band => band.FilterType == ProQ2FilterType.HighCut)
-                                            .OrderByDescending(s => s.FilterFreq).ElementAt(0);
+                var highCutBand = eq.Bands.Where(band => band.Shape == ProQ2Shape.HighCut)
+                                            .OrderByDescending(s => s.Frequency).ElementAt(0);
 
                 SetBand(highCutBand, bandNumber, frequency);
             }
@@ -245,9 +245,9 @@ namespace PresetConverter
 
                 // due to the way fabfilter have only one stereo placement per band (frequency has two) we need to modify both channels in frequency
                 // we could have in theory instead updated both channels per band in frequency
-                if (band.FilterStereoPlacement != ProQ2StereoPlacement.Stereo)
+                if (band.StereoPlacement != ProQ2StereoPlacement.Stereo)
                 {
-                    switch (band.FilterStereoPlacement)
+                    switch (band.StereoPlacement)
                     {
                         case ProQ2StereoPlacement.LeftOrMid:
                             frequency.Parameters[String.Format("equalizerAon{0}", bandNumber)].NumberValue = 1.0;
@@ -282,15 +282,15 @@ namespace PresetConverter
                     }
                 }
 
-                frequency.Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].NumberValue = band.FilterGain;
-                frequency.Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].NumberValue = band.FilterFreq;
-                frequency.Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].NumberValue = band.FilterQ;
+                frequency.Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].NumberValue = band.Gain;
+                frequency.Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].NumberValue = band.Frequency;
+                frequency.Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].NumberValue = band.Q;
 
-                switch (band.FilterType)
+                switch (band.Shape)
                 {
-                    case ProQ2FilterType.BandPass:
-                    case ProQ2FilterType.TiltShelf:
-                    case ProQ2FilterType.Bell:
+                    case ProQ2Shape.BandPass:
+                    case ProQ2Shape.TiltShelf:
+                    case ProQ2Shape.Bell:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Peak;
@@ -300,7 +300,7 @@ namespace PresetConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode2To7.Peak;
                         }
                         break;
-                    case ProQ2FilterType.LowShelf:
+                    case ProQ2Shape.LowShelf:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.LowShelf;
@@ -310,31 +310,31 @@ namespace PresetConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode2To7.LowShelf;
                         }
                         break;
-                    case ProQ2FilterType.LowCut:
-                        switch (band.FilterLPHPSlope)
+                    case ProQ2Shape.LowCut:
+                        switch (band.Slope)
                         {
-                            case ProQ2LPHPSlope.Slope6dB_oct:
+                            case ProQSlope.Slope6dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
                                 break;
-                            case ProQ2LPHPSlope.Slope12dB_oct:
-                            case ProQ2LPHPSlope.Slope18dB_oct:
+                            case ProQSlope.Slope12dB_oct:
+                            case ProQSlope.Slope18dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut12;
                                 break;
-                            case ProQ2LPHPSlope.Slope24dB_oct:
-                            case ProQ2LPHPSlope.Slope30dB_oct:
+                            case ProQSlope.Slope24dB_oct:
+                            case ProQSlope.Slope30dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut24;
                                 break;
-                            case ProQ2LPHPSlope.Slope36dB_oct:
-                            case ProQ2LPHPSlope.Slope48dB_oct:
+                            case ProQSlope.Slope36dB_oct:
+                            case ProQSlope.Slope48dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut48;
                                 break;
-                            case ProQ2LPHPSlope.Slope72dB_oct:
-                            case ProQ2LPHPSlope.Slope96dB_oct:
+                            case ProQSlope.Slope72dB_oct:
+                            case ProQSlope.Slope96dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut96;
                                 break;
                         }
                         break;
-                    case ProQ2FilterType.HighShelf:
+                    case ProQ2Shape.HighShelf:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.HighShelf;
@@ -344,31 +344,31 @@ namespace PresetConverter
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode2To7.HighShelf;
                         }
                         break;
-                    case ProQ2FilterType.HighCut:
-                        switch (band.FilterLPHPSlope)
+                    case ProQ2Shape.HighCut:
+                        switch (band.Slope)
                         {
-                            case ProQ2LPHPSlope.Slope6dB_oct:
+                            case ProQSlope.Slope6dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut6;
                                 break;
-                            case ProQ2LPHPSlope.Slope12dB_oct:
-                            case ProQ2LPHPSlope.Slope18dB_oct:
+                            case ProQSlope.Slope12dB_oct:
+                            case ProQSlope.Slope18dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut12;
                                 break;
-                            case ProQ2LPHPSlope.Slope24dB_oct:
-                            case ProQ2LPHPSlope.Slope30dB_oct:
+                            case ProQSlope.Slope24dB_oct:
+                            case ProQSlope.Slope30dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut24;
                                 break;
-                            case ProQ2LPHPSlope.Slope36dB_oct:
-                            case ProQ2LPHPSlope.Slope48dB_oct:
+                            case ProQSlope.Slope36dB_oct:
+                            case ProQSlope.Slope48dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut48;
                                 break;
-                            case ProQ2LPHPSlope.Slope72dB_oct:
-                            case ProQ2LPHPSlope.Slope96dB_oct:
+                            case ProQSlope.Slope72dB_oct:
+                            case ProQSlope.Slope96dB_oct:
                                 frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Cut96;
                                 break;
                         }
                         break;
-                    case ProQ2FilterType.Notch:
+                    case ProQ2Shape.Notch:
                         if (bandNumber == 1 || bandNumber == 8)
                         {
                             frequency.Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue = SteinbergFrequency.BandMode1And8.Notch;

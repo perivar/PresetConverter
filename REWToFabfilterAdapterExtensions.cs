@@ -20,33 +20,33 @@ namespace PresetConverter
             foreach (REWEQBand filter in filters)
             {
                 var band = new ProQBand();
-                band.FilterFreq = filter.FilterFreq;
-                band.FilterGain = filter.FilterGain;
-                band.FilterQ = filter.FilterQ;
+                band.Frequency = filter.FilterFreq;
+                band.Gain = filter.FilterGain;
+                band.Q = filter.FilterQ;
                 band.Enabled = filter.Enabled;
                 switch (filter.FilterType)
                 {
                     case REWEQFilterType.PK:
-                        band.FilterType = ProQFilterType.Bell;
+                        band.Shape = ProQShape.Bell;
                         break;
                     case REWEQFilterType.LP:
-                        band.FilterType = ProQFilterType.HighCut;
+                        band.Shape = ProQShape.HighCut;
                         break;
                     case REWEQFilterType.HP:
-                        band.FilterType = ProQFilterType.LowCut;
+                        band.Shape = ProQShape.LowCut;
                         break;
                     case REWEQFilterType.LS:
-                        band.FilterType = ProQFilterType.LowShelf;
+                        band.Shape = ProQShape.LowShelf;
                         break;
                     case REWEQFilterType.HS:
-                        band.FilterType = ProQFilterType.HighShelf;
+                        band.Shape = ProQShape.HighShelf;
                         break;
                     default:
-                        band.FilterType = ProQFilterType.Bell;
+                        band.Shape = ProQShape.Bell;
                         break;
                 }
-                band.FilterLPHPSlope = ProQLPHPSlope.Slope24dB_oct;
-                band.FilterStereoPlacement = ProQStereoPlacement.Stereo;
+                band.LPHPSlope = ProQLPHPSlope.Slope24dB_oct;
+                band.StereoPlacement = ProQStereoPlacement.Stereo;
 
                 preset.Bands.Add(band);
             }
@@ -56,13 +56,13 @@ namespace PresetConverter
             {
                 var band = new ProQBand();
 
-                band.FilterFreq = FabfilterProQ.FreqConvert(1000);
-                band.FilterGain = 0;
-                band.FilterQ = FabfilterProQ.QConvert(1);
+                band.Frequency = FabfilterProQ.FreqConvert(1000);
+                band.Gain = 0;
+                band.Q = FabfilterProQ.QConvert(1);
                 band.Enabled = true;
-                band.FilterType = ProQFilterType.Bell;
-                band.FilterLPHPSlope = ProQLPHPSlope.Slope24dB_oct;
-                band.FilterStereoPlacement = ProQStereoPlacement.Stereo;
+                band.Shape = ProQShape.Bell;
+                band.LPHPSlope = ProQLPHPSlope.Slope24dB_oct;
+                band.StereoPlacement = ProQStereoPlacement.Stereo;
 
                 preset.Bands.Add(band);
             }
