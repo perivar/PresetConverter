@@ -115,72 +115,32 @@ namespace PresetConverter
             }
 
             // convert the remaining floats
-            for (int i = counter, j = 0; i < ieeeFloatParameters.Length; i++, j++)
+            try
             {
-                float floatParameter = ieeeFloatParameters[i];
-                switch (j)
-                {
-                    case 0:
-                        // OutputGain
-                        // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, -1, 1));
-                        break;
-                    case 1:
-                        // OutputPan
-                        // -1 to 1 (0 = middle)
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, -1, 1));
-                        break;
-                    case 2:
-                        // DisplayRange
-                        // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, 0, 3));
-                        break;
-                    case 3:
-                        // ProcessMode
-                        // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, 0, 4));
-                        break;
-                    case 4:
-                        // ChannelMode
-                        // 0 = Left/Right, 1 = Mid/Side
-                        floatList.Add(floatParameter);
-                        break;
-                    case 5:
-                        // Bypass
-                        // 0 = No bypass
-                        floatList.Add(floatParameter);
-                        break;
-                    case 6:
-                        // ReceiveMidi
-                        // 0 = Enabled?
-                        floatList.Add(floatParameter);
-                        break;
-                    case 7:
-                        // Analyzer
-                        // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, 0, 3));
-                        break;
-                    case 8:
-                        // AnalyzerResolution
-                        // 0 - 3 (low - medium[x] - high - maximum)
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, 0, 3));
-                        break;
-                    case 9:
-                        // AnalyzerSpeed
-                        // 0 - 3 (very slow, slow, medium[x], fast)
-                        floatList.Add(MathUtils.ConvertAndMaintainRatio(floatParameter, 0, 1, 0, 3));
-                        break;
-                    case 10:
-                        // SoloBand
-                        // -1
-                        floatList.Add(floatParameter);
-                        break;
-                    default:
-                        Log.Warning("Unexpected parameter number: {0}", j);
-                        floatList.Add(floatParameter);
-                        break;
-                }
+                // OutputGain: -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));
+                // OutputPan: -1 to 1 (0 = middle)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));
+                // DisplayRange: 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));
+                // ProcessMode: 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4));
+                // ChannelMode: 0 = Left/Right, 1 = Mid/Side
+                floatList.Add(ieeeFloatParameters[counter++]);
+                // Bypass: 0 = No bypass
+                floatList.Add(ieeeFloatParameters[counter++]);
+                // ReceiveMidi: 0 = Enabled?
+                floatList.Add(ieeeFloatParameters[counter++]);
+                // Analyzer: 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));
+                // AnalyzerResolution: 0 - 3 (low - medium[x] - high - maximum)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));
+                // AnalyzerSpeed: 0 - 3 (very slow, slow, medium[x], fast)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));
+                // SoloBand: -1
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));
             }
+            catch { }
 
             return floatList.ToArray();
         }
@@ -237,10 +197,7 @@ namespace PresetConverter
                         band.Shape = ProQShape.Notch;
                         break;
                     default:
-                        // throw new ArgumentOutOfRangeException(string.Format("Filter type is outside range: {0}", filterType));
-                        Log.Warning(string.Format("Filter type is outside range: {0}", filterType));
-                        band.Shape = ProQShape.Notch;
-                        break;
+                        throw new ArgumentOutOfRangeException(string.Format("Filter type is outside range: {0}", filterType));
                 }
 
                 // filterSlope: 0 - 3

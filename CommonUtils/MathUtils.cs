@@ -581,7 +581,7 @@ namespace CommonUtils
         /// <param name="newMin">new minimum value</param>
         /// <param name="newMax">new maximum value</param>
         /// <returns>the modified value</returns>
-        public static double ConvertAndMainainRatio(double oldValue, double oldMin, double oldMax, double newMin, double newMax)
+        public static double ConvertAndMaintainRatio(double oldValue, double oldMin, double oldMax, double newMin, double newMax)
         {
             double oldRange = (oldMax - oldMin);
             double newRange = (newMax - newMin);
@@ -618,7 +618,7 @@ namespace CommonUtils
         /// <returns>the modified value</returns>
         public static double ConvertAndMaintainRatioLog(double oldValue, double oldMin, double oldMax, double newMin, double newMax)
         {
-            // // TODO: Does not seem to work if oldMin is a minus value and oldValue also is minus
+            // TODO: Does not seem to work if oldMin is a minus value and oldValue also is minus
 
             // Addition of Epsilon prevents log from returning minus infinity if value is zero
             double oldRange = (oldMax - oldMin);

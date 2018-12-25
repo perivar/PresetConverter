@@ -95,11 +95,34 @@ namespace PresetConverter
                 floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));       // stereo placement: 0 = Left, 1 = Right, 2 = Stereo
             }
 
-            // TODO: have to get the right list of parameters
-            for (int i = counter; i < ieeeFloatParameters.Length; i++)
+            // convert the remaining floats
+            try
             {
-                floatList.Add(ieeeFloatParameters[i]);
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // ProcessingMode: Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)); // ProcessingResolution: Medium
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ChannelMode: 0 = Left/Right, 1 = Mid/Side
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // GainScale: 100%
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // OutputLevel: 0.0 dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // OutputPan: Left 0 dB, Right: 0 dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ByPass: Not Bypassed
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // OutputInvertPhase: Normal
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AutoGain: Off
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerShowPreProcessing: Disabled - 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerShowPostProcessing: Disabled - 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerShowSidechain: Disabled - 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // AnalyzerRange: Analyzer Range in dB. 0.0: 60dB, 0.5: 90dB, 1.0: 120dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3)); // AnalyzerResolution: Analyzer Resolution. 0.0: Low, 0.333: Medium, 0,666: High, 1.00 Maximum  
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)); // AnalyzerSpeed: Analyzer Speed. 0.0: Very Slow, 0.25: Slow, 0.5: Medium, 0.75: Fast, 1.0: Very Fast
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)); // AnalyzerTilt: Analyzer Tilt in dB/oct. 0.0: 0.0, 0.25: 1.5, 0.5: 3.0, 0.75: 4.5, 1.0: 6.0  
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerFreeze: 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // SpectrumGrab: Enabled
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3)); // DisplayRange: 12dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ReceiveMidi: Enabled
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // SoloBand: -1
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // SoloGain: 0.00
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ExAutoGain: (Other)
             }
+            catch { }
 
             return floatList.ToArray();
 
@@ -378,9 +401,9 @@ namespace PresetConverter
             }
 
             // read the remaining floats
+            // int remainingParameterCount = ParameterCount - 7 * Bands.Count;
             try
             {
-                int remainingParameterCount = ParameterCount - 7 * Bands.Count;
                 ProcessingMode = binFile.ReadSingle();               // Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
                 ProcessingResolution = binFile.ReadSingle();         // Medium
                 ChannelMode = binFile.ReadSingle();                  // 0 = Left/Right, 1 = Mid/Side
@@ -472,7 +495,7 @@ namespace PresetConverter
             binFile.Write((float)ReceiveMidi);                  // Enabled
             binFile.Write((float)SoloBand);                     // -1
             binFile.Write((float)SoloGain);                     // 0.00
-            binFile.Write((float)ExAutoGain);                   // (Other)
+            // binFile.Write((float)ExAutoGain);                   // (Other)
 
             binFile.Close();
 
