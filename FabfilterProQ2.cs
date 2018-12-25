@@ -16,29 +16,32 @@ namespace PresetConverter
         public int ParameterCount { get; set; }     // Normally 190
 
         // Post Band Parameters
-        public float ProcessingMode { get; set; }               // Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
+        public float ProcessingMode { get; set; }               // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
         public float ProcessingResolution { get; set; }         // Medium
         public float ChannelMode { get; set; }                  // 0 = Left/Right, 1 = Mid/Side
         public float GainScale { get; set; }                    // 100%
-        public float OutputLevel { get; set; }                  // 0.0 dB
-        public float OutputPan { get; set; }                    // Left 0 dB, Right: 0 dB
+        public float OutputLevel { get; set; }                  // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+        public float OutputPan { get; set; }                    // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
         public float ByPass { get; set; }                       // Not Bypassed
         public float OutputInvertPhase { get; set; }            // Normal
         public float AutoGain { get; set; }                     // Off
         public float AnalyzerShowPreProcessing { get; set; }    // Disabled - 0: Off, 1: On
         public float AnalyzerShowPostProcessing { get; set; }   // Disabled - 0: Off, 1: On
         public float AnalyzerShowSidechain { get; set; }        // Disabled - 0: Off, 1: On
-        public float AnalyzerRange { get; set; }                // Analyzer Range in dB. 0.0: 60dB, 0.5: 90dB, 1.0: 120dB
-        public float AnalyzerResolution { get; set; }           // Analyzer Resolution. 0.0: Low, 0.333: Medium, 0,666: High, 1.00 Maximum  
-        public float AnalyzerSpeed { get; set; }                // Analyzer Speed. 0.0: Very Slow, 0.25: Slow, 0.5: Medium, 0.75: Fast, 1.0: Very Fast
-        public float AnalyzerTilt { get; set; }                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 0.25: 1.5, 0.5: 3.0, 0.75: 4.5, 1.0: 6.0  
+        public float AnalyzerRange { get; set; }                // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+        public float AnalyzerResolution { get; set; }           // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  
+        public float AnalyzerSpeed { get; set; }                // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+        public float AnalyzerTilt { get; set; }                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  
         public float AnalyzerFreeze { get; set; }               // 0: Off, 1: On
         public float SpectrumGrab { get; set; }                 // Enabled
         public float DisplayRange { get; set; }                 // 12dB
         public float ReceiveMidi { get; set; }                  // Enabled
         public float SoloBand { get; set; }                     // -1
         public float SoloGain { get; set; }                     // 0.00
-        public float ExAutoGain { get; set; }                   // (Other)
+
+        // Ignore the Ex fields
+        // public float ExAutoGain { get; set; }                   // (Other): 0.00
+
 
         public FabfilterProQ2()
         {
@@ -98,29 +101,28 @@ namespace PresetConverter
             // convert the remaining floats
             try
             {
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // ProcessingMode: Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)); // ProcessingResolution: Medium
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ChannelMode: 0 = Left/Right, 1 = Mid/Side
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // GainScale: 100%
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // OutputLevel: 0.0 dB
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // OutputPan: Left 0 dB, Right: 0 dB
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ByPass: Not Bypassed
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // OutputInvertPhase: Normal
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AutoGain: Off
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerShowPreProcessing: Disabled - 0: Off, 1: On
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerShowPostProcessing: Disabled - 0: Off, 1: On
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerShowSidechain: Disabled - 0: Off, 1: On
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2)); // AnalyzerRange: Analyzer Range in dB. 0.0: 60dB, 0.5: 90dB, 1.0: 120dB
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3)); // AnalyzerResolution: Analyzer Resolution. 0.0: Low, 0.333: Medium, 0,666: High, 1.00 Maximum  
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)); // AnalyzerSpeed: Analyzer Speed. 0.0: Very Slow, 0.25: Slow, 0.5: Medium, 0.75: Fast, 1.0: Very Fast
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4)); // AnalyzerTilt: Analyzer Tilt in dB/oct. 0.0: 0.0, 0.25: 1.5, 0.5: 3.0, 0.75: 4.5, 1.0: 6.0  
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // AnalyzerFreeze: 0: Off, 1: On
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // SpectrumGrab: Enabled
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3)); // DisplayRange: 12dB
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ReceiveMidi: Enabled
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // SoloBand: -1
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1)); // SoloGain: 0.00
-                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1)); // ExAutoGain: (Other)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));   // ProcessingMode: Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4));   // ProcessingResolution: 0 - 4, Medium
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // ChannelMode: 0 = Left/Right, 1 = Mid/Side
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));   // GainScale: 100%
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));  // OutputLevel: 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));  // OutputPan: Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // ByPass: Not Bypassed
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // OutputInvertPhase: Normal
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // AutoGain: Off
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // AnalyzerShowPreProcessing: Disabled - 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // AnalyzerShowPostProcessing: Disabled - 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // AnalyzerShowSidechain: Disabled - 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 2));   // AnalyzerRange: Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));   // AnalyzerResolution: Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4));   // AnalyzerSpeed: Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 4));   // AnalyzerTilt: Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // AnalyzerFreeze: 0: Off, 1: On
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // SpectrumGrab: Enabled
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 3));   // DisplayRange: 12dB
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, 0, 1));   // ReceiveMidi: Enabled
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));  // SoloBand: -1, -1 to 1 
+                floatList.Add(MathUtils.ConvertAndMaintainRatio(ieeeFloatParameters[counter++], 0, 1, -1, 1));  // SoloGain: 0.00, -1 to 1 
             }
             catch { }
 
@@ -246,29 +248,28 @@ namespace PresetConverter
             // read the remaining floats
             try
             {
-                preset.ProcessingMode = floatArray[index++];               // Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
-                preset.ProcessingResolution = floatArray[index++];         // Medium
+                preset.ProcessingMode = floatArray[index++];               // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
+                preset.ProcessingResolution = floatArray[index++];         // 0 - 4, Medium
                 preset.ChannelMode = floatArray[index++];                  // 0 = Left/Right, 1 = Mid/Side
                 preset.GainScale = floatArray[index++];                    // 100%
-                preset.OutputLevel = floatArray[index++];                  // 0.0 dB
-                preset.OutputPan = floatArray[index++];                    // Left 0 dB, Right: 0 dB
+                preset.OutputLevel = floatArray[index++];                  // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+                preset.OutputPan = floatArray[index++];                    // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
                 preset.ByPass = floatArray[index++];                       // Not Bypassed
                 preset.OutputInvertPhase = floatArray[index++];            // Normal
                 preset.AutoGain = floatArray[index++];                     // Off
                 preset.AnalyzerShowPreProcessing = floatArray[index++];    // Disabled - 0: Off, 1: On
                 preset.AnalyzerShowPostProcessing = floatArray[index++];   // Disabled - 0: Off, 1: On
                 preset.AnalyzerShowSidechain = floatArray[index++];        // Disabled - 0: Off, 1: On
-                preset.AnalyzerRange = floatArray[index++];                // Analyzer Range in dB. 0.0: 60dB, 0.5: 90dB, 1.0: 120dB
-                preset.AnalyzerResolution = floatArray[index++];           // Analyzer Resolution. 0.0: Low, 0.333: Medium, 0,666: High, 1.00 Maximum  
-                preset.AnalyzerSpeed = floatArray[index++];                // Analyzer Speed. 0.0: Very Slow, 0.25: Slow, 0.5: Medium, 0.75: Fast, 1.0: Very Fast
-                preset.AnalyzerTilt = floatArray[index++];                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 0.25: 1.5, 0.5: 3.0, 0.75: 4.5, 1.0: 6.0  
+                preset.AnalyzerRange = floatArray[index++];                // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+                preset.AnalyzerResolution = floatArray[index++];           // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  
+                preset.AnalyzerSpeed = floatArray[index++];                // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+                preset.AnalyzerTilt = floatArray[index++];                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  
                 preset.AnalyzerFreeze = floatArray[index++];               // 0: Off, 1: On
                 preset.SpectrumGrab = floatArray[index++];                 // Enabled
                 preset.DisplayRange = floatArray[index++];                 // 12dB
                 preset.ReceiveMidi = floatArray[index++];                  // Enabled
-                preset.SoloBand = floatArray[index++];                     // -1
-                preset.SoloGain = floatArray[index++];                     // 0.00
-                preset.ExAutoGain = floatArray[index++];                   // (Other)
+                preset.SoloBand = floatArray[index++];                     // -1, -1 to 1 
+                preset.SoloGain = floatArray[index++];                     // 0.00, -1 to 1 
             }
             catch { }
 
@@ -404,29 +405,28 @@ namespace PresetConverter
             // int remainingParameterCount = ParameterCount - 7 * Bands.Count;
             try
             {
-                ProcessingMode = binFile.ReadSingle();               // Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
-                ProcessingResolution = binFile.ReadSingle();         // Medium
+                ProcessingMode = binFile.ReadSingle();               // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
+                ProcessingResolution = binFile.ReadSingle();         // 0 - 4, Medium
                 ChannelMode = binFile.ReadSingle();                  // 0 = Left/Right, 1 = Mid/Side
                 GainScale = binFile.ReadSingle();                    // 100%
-                OutputLevel = binFile.ReadSingle();                  // 0.0 dB
-                OutputPan = binFile.ReadSingle();                    // Left 0 dB, Right: 0 dB
+                OutputLevel = binFile.ReadSingle();                  // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+                OutputPan = binFile.ReadSingle();                    // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
                 ByPass = binFile.ReadSingle();                       // Not Bypassed
                 OutputInvertPhase = binFile.ReadSingle();            // Normal
                 AutoGain = binFile.ReadSingle();                     // Off
                 AnalyzerShowPreProcessing = binFile.ReadSingle();    // Disabled - 0: Off, 1: On
                 AnalyzerShowPostProcessing = binFile.ReadSingle();   // Disabled - 0: Off, 1: On
                 AnalyzerShowSidechain = binFile.ReadSingle();        // Disabled - 0: Off, 1: On
-                AnalyzerRange = binFile.ReadSingle();                // Analyzer Range in dB. 0.0: 60dB, 0.5: 90dB, 1.0: 120dB
-                AnalyzerResolution = binFile.ReadSingle();           // Analyzer Resolution. 0.0: Low, 0.333: Medium, 0,666: High, 1.00 Maximum  
-                AnalyzerSpeed = binFile.ReadSingle();                // Analyzer Speed. 0.0: Very Slow, 0.25: Slow, 0.5: Medium, 0.75: Fast, 1.0: Very Fast
-                AnalyzerTilt = binFile.ReadSingle();                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 0.25: 1.5, 0.5: 3.0, 0.75: 4.5, 1.0: 6.0  
+                AnalyzerRange = binFile.ReadSingle();                // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+                AnalyzerResolution = binFile.ReadSingle();           // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  
+                AnalyzerSpeed = binFile.ReadSingle();                // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+                AnalyzerTilt = binFile.ReadSingle();                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  
                 AnalyzerFreeze = binFile.ReadSingle();               // 0: Off, 1: On
                 SpectrumGrab = binFile.ReadSingle();                 // Enabled
                 DisplayRange = binFile.ReadSingle();                 // 12dB
                 ReceiveMidi = binFile.ReadSingle();                  // Enabled
                 SoloBand = binFile.ReadSingle();                     // -1
                 SoloGain = binFile.ReadSingle();                     // 0.00
-                ExAutoGain = binFile.ReadSingle();                   // (Other)
             }
             catch { }
 
@@ -446,7 +446,7 @@ namespace PresetConverter
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
             binFile.Write("FQ2p");
             binFile.Write((int)Version);
-            binFile.Write((int)Bands.Count * 7 + 22);
+            binFile.Write((int)Bands.Count * 7 + 22);  // Don't include the ex fields, meaning there are only 22 elements to be included
 
             for (int i = 0; i < 24; i++)
             {
@@ -473,28 +473,30 @@ namespace PresetConverter
             }
 
             // write the remaining floats
-            binFile.Write((float)ProcessingMode);               // Zero Latency: 0.0, Natural Phase: 0.5, Linear Phase: 1.0
-            binFile.Write((float)ProcessingResolution);         // Medium
+            binFile.Write((float)ProcessingMode);               // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
+            binFile.Write((float)ProcessingResolution);         // 0 - 4, Medium
             binFile.Write((float)ChannelMode);                  // 0 = Left/Right, 1 = Mid/Side
             binFile.Write((float)GainScale);                    // 100%
-            binFile.Write((float)OutputLevel);                  // 0.0 dB
-            binFile.Write((float)OutputPan);                    // Left 0 dB, Right: 0 dB
+            binFile.Write((float)OutputLevel);                  // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+            binFile.Write((float)OutputPan);                    // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
             binFile.Write((float)ByPass);                       // Not Bypassed
             binFile.Write((float)OutputInvertPhase);            // Normal
             binFile.Write((float)AutoGain);                     // Off
             binFile.Write((float)AnalyzerShowPreProcessing);    // Disabled - 0: Off, 1: On
             binFile.Write((float)AnalyzerShowPostProcessing);   // Disabled - 0: Off, 1: On
             binFile.Write((float)AnalyzerShowSidechain);        // Disabled - 0: Off, 1: On
-            binFile.Write((float)AnalyzerRange);                // Analyzer Range in dB. 0.0: 60dB, 0.5: 90dB, 1.0: 120dB
-            binFile.Write((float)AnalyzerResolution);           // Analyzer Resolution. 0.0: Low, 0.333: Medium, 0,666: High, 1.00 Maximum  
-            binFile.Write((float)AnalyzerSpeed);                // Analyzer Speed. 0.0: Very Slow, 0.25: Slow, 0.5: Medium, 0.75: Fast, 1.0: Very Fast
-            binFile.Write((float)AnalyzerTilt);                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 0.25: 1.5, 0.5: 3.0, 0.75: 4.5, 1.0: 6.0  
+            binFile.Write((float)AnalyzerRange);                // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
+            binFile.Write((float)AnalyzerResolution);           // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  
+            binFile.Write((float)AnalyzerSpeed);                // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
+            binFile.Write((float)AnalyzerTilt);                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  
             binFile.Write((float)AnalyzerFreeze);               // 0: Off, 1: On
             binFile.Write((float)SpectrumGrab);                 // Enabled
             binFile.Write((float)DisplayRange);                 // 12dB
             binFile.Write((float)ReceiveMidi);                  // Enabled
             binFile.Write((float)SoloBand);                     // -1
             binFile.Write((float)SoloGain);                     // 0.00
+
+            // Don't write the ex fields
             // binFile.Write((float)ExAutoGain);                   // (Other)
 
             binFile.Close();
@@ -514,29 +516,28 @@ namespace PresetConverter
 
             writer.WriteLine();
             writer.WriteLine("PostPresetParameters:");
-            writer.WriteLine("ProcessingMode: {0}", ProcessingMode);
-            writer.WriteLine("ProcessingResolution: {0}", ProcessingResolution);
-            writer.WriteLine("ChannelMode: {0}", ChannelMode);
-            writer.WriteLine("GainScale: {0}", GainScale);
-            writer.WriteLine("OutputLevel: {0}", OutputLevel);
-            writer.WriteLine("OutputPan: {0}", OutputPan);
-            writer.WriteLine("ByPass: {0}", ByPass);
-            writer.WriteLine("OutputInvertPhase: {0}", OutputInvertPhase);
-            writer.WriteLine("AutoGain: {0}", AutoGain);
-            writer.WriteLine("AnalyzerShowPreProcessing: {0}", AnalyzerShowPreProcessing);
-            writer.WriteLine("AnalyzerShowPostProcessing: {0}", AnalyzerShowPostProcessing);
-            writer.WriteLine("AnalyzerShowSidechain: {0}", AnalyzerShowSidechain);
-            writer.WriteLine("AnalyzerRange: {0}", AnalyzerRange);
-            writer.WriteLine("AnalyzerResolution: {0}", AnalyzerResolution);
-            writer.WriteLine("AnalyzerSpeed: {0}", AnalyzerSpeed);
-            writer.WriteLine("AnalyzerTilt: {0}", AnalyzerTilt);
-            writer.WriteLine("AnalyzerFreeze: {0}", AnalyzerFreeze);
-            writer.WriteLine("SpectrumGrab: {0}", SpectrumGrab);
-            writer.WriteLine("DisplayRange: {0}", DisplayRange);
-            writer.WriteLine("ReceiveMidi: {0}", ReceiveMidi);
-            writer.WriteLine("SoloBand: {0}", SoloBand);
-            writer.WriteLine("SoloGain: {0}", SoloGain);
-            writer.WriteLine("ExAutoGain: {0}", ExAutoGain);
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingMode", ProcessingMode, "Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingResolution", ProcessingResolution, "0 - 4, Medium"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ChannelMode", ChannelMode, "0 = Left/Right, 1 = Mid/Side"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "GainScale", GainScale, "100%"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputLevel", OutputLevel, "0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputPan", OutputPan, "Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ByPass", ByPass, "Not Bypassed"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputInvertPhase", OutputInvertPhase, "Normal"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AutoGain", AutoGain, "Off"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPreProcessing", AnalyzerShowPreProcessing, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPostProcessing", AnalyzerShowPostProcessing, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowSidechain", AnalyzerShowSidechain, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerRange", AnalyzerRange, "Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerResolution", AnalyzerResolution, "Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  "));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerSpeed", AnalyzerSpeed, "Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerTilt", AnalyzerTilt, "Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  "));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerFreeze", AnalyzerFreeze, "0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SpectrumGrab", SpectrumGrab, "Enabled"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "DisplayRange", DisplayRange, "12dB"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ReceiveMidi", ReceiveMidi, "Enabled"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloBand", SoloBand, "-1"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloGain", SoloGain, "0.00"));
 
             return writer.ToString();
         }

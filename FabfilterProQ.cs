@@ -468,17 +468,17 @@ namespace PresetConverter
 
             writer.WriteLine();
             writer.WriteLine("PostPresetParameters:");
-            writer.WriteLine("OutputGain: {0} \t\t\t -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)", OutputGain);
-            writer.WriteLine("OutputPan: {0} \t\t\t -1 to 1 (0 = middle)", OutputPan);
-            writer.WriteLine("DisplayRange: {0} \t\t 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB", DisplayRange);
-            writer.WriteLine("ProcessMode: {0} \t\t\t 0 = zero latency, 1 = lin.phase.low - medium - high - maximum", ProcessMode);
-            writer.WriteLine("ChannelMode: {0} \t\t\t 0 = Left/Right, 1 = Mid/Side", ChannelMode);
-            writer.WriteLine("Bypass: {0} \t\t\t\t 0 = No bypass", Bypass);
-            writer.WriteLine("ReceiveMidi: {0} \t\t\t 0 = Enabled?", ReceiveMidi);
-            writer.WriteLine("Analyzer: {0} \t\t\t 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post", Analyzer);
-            writer.WriteLine("AnalyzerResolution: {0} \t 0 - 3 (low - medium[x] - high - maximum)", AnalyzerResolution);
-            writer.WriteLine("AnalyzerSpeed: {0} \t\t 0 - 3 (very slow, slow, medium[x], fast)", AnalyzerSpeed);
-            writer.WriteLine("SoloBand: {0} \t\t\t -1", SoloBand);
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputGain", OutputGain, "-1 to 1 (- Infinity to +36 dB , 0 = 0 dB)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputPan", OutputPan, "-1 to 1 (0 = middle)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "DisplayRange", DisplayRange, "0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessMode", ProcessMode, "0 = zero latency, 1 = lin.phase.low - medium - high - maximum"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ChannelMode", ChannelMode, "0 = Left/Right, 1 = Mid/Side"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "Bypass", Bypass, "0 = No bypass"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ReceiveMidi", ReceiveMidi, "0 = Enabled?"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "Analyzer", Analyzer, "0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerResolution", AnalyzerResolution, "0 - 3 (low - medium[x] - high - maximum)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerSpeed", AnalyzerSpeed, "0 - 3 (very slow, slow, medium[x], fast)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloBand", SoloBand, "-1"));
 
             return writer.ToString();
         }
