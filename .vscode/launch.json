@@ -340,7 +340,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
             "args": [
                 "-i",
-                "D:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Polar Express",
+                "E:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\polar express (free pack)",
                 "-o",
                 "D:\\Development Projects\\Own Projects\\Temp",
             ],

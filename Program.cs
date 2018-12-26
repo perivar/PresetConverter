@@ -275,7 +275,7 @@ namespace AbletonLiveConverter
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
-                outputFileName = string.Format("{0} - {1} - {2}", outputFileName, trackNumber, trackName);
+                outputFileName = string.Format("{0} - {1:D4} - {2}", outputFileName, trackNumber, trackName);
                 outputFileName = StringUtils.MakeValidFileName(outputFileName);
                 trackNumber++;
 
