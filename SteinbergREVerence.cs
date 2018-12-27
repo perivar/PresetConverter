@@ -145,7 +145,7 @@ namespace PresetConverter
                 }
             }
 
-            this.ChunkData = memStream.ToArray();
+            this.SetChunkData(memStream.ToArray());
         }
 
         private void WritePaddedUnicodeString(BinaryFile bf, string text, int totalCount)

@@ -304,7 +304,7 @@ namespace PresetConverter
                 bf.Write(xmlPostContent);
             }
 
-            this.ChunkData = memStream.ToArray();
+            this.SetChunkData(memStream.ToArray());
         }
 
     }

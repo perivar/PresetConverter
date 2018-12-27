@@ -132,36 +132,80 @@ namespace CommonUtils
         /// <summary>
         /// Convert byte array to hex and ascii string (like hex editor)
         /// </summary>
-        /// <param name="b">byte array</param>
+        /// <param name="byteData">byte array</param>
         /// <param name="invert">whether to invert the byte array</param>
         /// <returns>string</returns>
-        public static string ToHexAndAsciiString(byte[] b, bool invert)
+        public static string ToHexEditorString(byte[] byteData, bool invert = false, int maxNumberOfLines = 20)
         {
-            var strb = new StringBuilder();
-            var text = new StringBuilder();
-            if (b != null)
+            // output like a hex editor
+            int splitLength = 16;
+
+            if (byteData != null)
             {
-                var bClone = (byte[])b.Clone();
+                var sb = new StringBuilder();
+                if (maxNumberOfLines * splitLength < byteData.Length)
+                {
+                    sb.AppendFormat("Byte Data (showing first {0} lines):\n", maxNumberOfLines);
+                }
+                else
+                {
+                    sb.AppendLine("Byte Data:");
+                }
+
+                foreach (var bytes in byteData.Take(splitLength * maxNumberOfLines).ToArray()
+                                            .Split(splitLength))
+                {
+                    sb.AppendLine(ToHexAndAsciiString(bytes.ToArray(), false));
+                }
+                return sb.ToString();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert byte array to hex and ascii string (like hex editor)
+        /// </summary>
+        /// <param name="bytes">byte array</param>
+        /// <param name="invert">whether to invert the byte array</param>
+        /// <returns>string</returns>
+        public static string ToHexAndAsciiString(byte[] bytes, bool invert = false)
+        {
+            var hex = new StringBuilder();
+            var text = new StringBuilder();
+
+            if (bytes != null)
+            {
+                var bytesCloned = (byte[])bytes.Clone();
                 if (invert)
                 {
-                    Array.Reverse(bClone);
+                    Array.Reverse(bytesCloned);
                 }
+
                 var ch = new char[1];
-                for (int x = 0; x < bClone.Length; x++)
+                for (int x = 0; x < bytesCloned.Length; x++)
                 {
-                    ch[0] = (char)bClone[x];
-                    strb.AppendFormat("{0,0:X2} ", (int)ch[0]);
+                    ch[0] = (char)bytesCloned[x];
+                    hex.AppendFormat("{0,0:X2} ", (int)ch[0]);
 
                     if (((int)ch[0] < 32) || ((int)ch[0] > 127))
+                    {
                         ch[0] = '.';
+                    }
                     text.Append(ch);
                 }
 
                 // append the text chunk after the hex chunk
-                strb.Append("    ");
-                strb.Append(text.ToString());
+                // the -48 is based on using the traditional size of 16 bytes per line
+                // and each byte takes up 2 characters plus a space = 16*3 = 48
+                return string.Format("{0,-48} {1}", hex, text);
             }
-            return strb.ToString();
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>

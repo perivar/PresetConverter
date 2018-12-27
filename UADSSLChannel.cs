@@ -225,7 +225,7 @@ namespace PresetConverter
                 fxp.Write(bf);
             }
 
-            this.ChunkData = memStream.ToArray();
+            this.SetChunkData(memStream.ToArray());
         }
 
         public bool ReadFXP(string filePath)

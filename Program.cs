@@ -366,9 +366,9 @@ namespace AbletonLiveConverter
                 var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
                 var vstPreset = new SteinbergVstPreset(guid, presetBytes);
 
-                if (vstPreset.ChunkData != null)
+                if (vstPreset.HasChunkData())
                 {
-                    var fxp = new FXP(vstPreset.ChunkData);
+                    var fxp = new FXP(vstPreset.GetChunkData());
                     string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
                     fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
                     string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
@@ -485,7 +485,7 @@ namespace AbletonLiveConverter
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
 
-            if (vstPreset.Parameters.Count > 0)
+            if (vstPreset.Parameters.Count > 0 && !vstPreset.HasChunkData())
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
                 {
@@ -619,12 +619,12 @@ namespace AbletonLiveConverter
             else
             {
                 // no parameters, but chunk data instead
-                if (vstPreset.Parameters.Count == 0 && vstPreset.ChunkData != null)
+                if (vstPreset.HasChunkData())
                 {
                     // check if FabFilterProQx64
                     if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                     {
-                        var fxp = new FXP(vstPreset.ChunkData);
+                        var fxp = new FXP(vstPreset.GetChunkData());
                         if (fxp.Content is FXP.FxSet)
                         {
                             var set = (FXP.FxSet)fxp.Content;
@@ -642,7 +642,7 @@ namespace AbletonLiveConverter
                     // check if FabFilterProQ2x64
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                     {
-                        var fxp = new FXP(vstPreset.ChunkData);
+                        var fxp = new FXP(vstPreset.GetChunkData());
                         if (fxp.Content is FXP.FxSet)
                         {
                             var set = (FXP.FxSet)fxp.Content;
@@ -656,6 +656,11 @@ namespace AbletonLiveConverter
                                 HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
                             }
                         }
+                    }
+
+                    else
+                    {
+                        File.WriteAllText(outputFilePath, vstPreset.ToString());
                     }
                 }
             }

@@ -168,10 +168,11 @@ namespace PresetConverter
                     case ParameterType.Number:
                         return string.Format("[{1}] {0} = {2:0.00}", Name, Number, NumberValue);
                     case ParameterType.String:
-                        shortenedString = string.Join(string.Empty, StringValue.Take(100));
+                        shortenedString = GetShortenedString(StringValue);
                         return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
                     case ParameterType.Bytes:
-                        shortenedString = Encoding.ASCII.GetString(ByteValue.Take(100).ToArray()).Replace('\0', ' ');
+                        // shortenedString = GetShortenedString(ByteValue);
+                        shortenedString = StringUtils.ToHexEditorString(ByteValue);
                         return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
                     default:
                         return string.Format("[{1}] {0} = 'No Values Set']", Name, Number);
@@ -186,7 +187,6 @@ namespace PresetConverter
         public string PlugInVendor;
         public string MetaXml; // VstPreset MetaInfo Xml section as string
         public byte[] MetaXmlBytesWithBOM; // VstPreset MetaInfo Xml section as bytes, including the BOM
-        public byte[] ChunkData;
 
         // byte positions and sizes within a vstpreset (for writing)
         public long ListPos; // position of List chunk
@@ -231,12 +231,89 @@ namespace PresetConverter
             Read(fileName);
         }
 
+        #region Parameter methods
+        public void AddParameter(string name, int number, double value)
+        {
+            Parameters.Add(name, new Parameter(name, (UInt32)number, value));
+        }
+
+        public void AddParameter(string name, int number, string value)
+        {
+            Parameters.Add(name, new Parameter(name, (UInt32)number, value));
+        }
+
+        public void AddParameter(string name, int number, byte[] value)
+        {
+            Parameters.Add(name, new Parameter(name, (UInt32)number, value));
+        }
+
+        public double GetNumberParameter(string key)
+        {
+            if (Parameters.ContainsKey(key)
+            && Parameters[key].NumberValue != null)
+            {
+                return Parameters[key].NumberValue;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        public string GetStringParameter(string key)
+        {
+            if (Parameters.ContainsKey(key)
+            && Parameters[key].StringValue != null)
+            {
+                return Parameters[key].StringValue;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public byte[] GetByteParameter(string key)
+        {
+            if (Parameters.ContainsKey(key)
+            && Parameters[key].ByteValue != null)
+            {
+                return Parameters[key].ByteValue;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public bool HasChunkData()
+        {
+            string key = "ChunkData";
+            if (Parameters.ContainsKey(key)
+            && Parameters[key].ByteValue != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public void SetChunkData(byte[] chunkData)
+        {
+            AddParameter("ChunkData", 0, chunkData);
+        }
+
+        public byte[] GetChunkData()
+        {
+            return GetByteParameter("ChunkData");
+        }
+        #endregion
+
         public bool Read(string filePath)
         {
             ReadVstPreset(filePath);
 
             // check that it worked
-            if (Parameters.Count == 0 && this.ChunkData == null)
+            if (Parameters.Count == 0)
             {
                 return false;
             }
@@ -407,7 +484,7 @@ namespace PresetConverter
                 for (int counter = 0; counter < parameterCount; counter++)
                 {
                     var parameterName = string.Format("unknown{0}", counter); // don't have a name
-                    var parameterNumber = (UInt32)counter;
+                    var parameterNumber = counter;
                     var parameterNumberValue = bf.ReadSingle();
                     AddParameter(parameterName, parameterNumber, parameterNumberValue);
                 }
@@ -447,7 +524,7 @@ namespace PresetConverter
                         // read until 128 bytes have been read
                         var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
-                        var parameterNumber = bf.ReadUInt32();
+                        var parameterNumber = (int)bf.ReadUInt32();
 
                         // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
                         var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
@@ -488,9 +565,7 @@ namespace PresetConverter
                     bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    var byteContent = bf.ReadBytes((int)this.CompDataChunkSize);
-
-                    AddParameter("ByteContent", 1, byteContent);
+                    SetChunkData(bf.ReadBytes((int)this.CompDataChunkSize));
 
                     // try to read the info xml 
                     TryReadInfoXml(bf);
@@ -557,7 +632,7 @@ namespace PresetConverter
                         // read until 128 bytes have been read
                         var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
-                        var parameterNumber = bf.ReadUInt32();
+                        var parameterNumber = (int)bf.ReadUInt32();
                         Log.Verbose("parameterNumber: {0}", parameterNumber);
 
                         // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
@@ -687,7 +762,7 @@ namespace PresetConverter
                         // read until 128 bytes have been read
                         var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
 
-                        var parameterNumber = bf.ReadUInt32();
+                        var parameterNumber = (int)bf.ReadUInt32();
 
                         // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
                         var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
@@ -757,7 +832,9 @@ namespace PresetConverter
 
             // Read the source data:
             bf.Position = chunkStart;
-            this.ChunkData = bf.ReadBytes((int)chunkSize);
+
+            // read until all bytes have been read
+            SetChunkData(bf.ReadBytes((int)chunkSize));
 
             // try to read the info xml 
             TryReadInfoXml(bf);
@@ -840,20 +917,6 @@ namespace PresetConverter
             return text;
         }
 
-        private void AddParameter(string name, UInt32 number, double value)
-        {
-            Parameters.Add(name, new Parameter(name, number, value));
-        }
-
-        private void AddParameter(string name, UInt32 number, string value)
-        {
-            Parameters.Add(name, new Parameter(name, number, value));
-        }
-
-        private void AddParameter(string name, UInt32 number, byte[] value)
-        {
-            Parameters.Add(name, new Parameter(name, number, value));
-        }
         #endregion
 
         #region WritePreset Functions    
@@ -872,11 +935,14 @@ namespace PresetConverter
                 // Write VST3 ID
                 bf.Write(this.Vst3ID);
 
-                // Write listPos
+                // Write listPoss
                 bf.Write(this.ListPos);
 
                 // Write binary content
-                bf.Write(this.ChunkData);
+                if (HasChunkData())
+                {
+                    bf.Write(GetChunkData());
+                }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
                 bf.Write(this.MetaXmlBytesWithBOM);
@@ -915,7 +981,11 @@ namespace PresetConverter
         public void CalculateBytePositions()
         {
             this.CompDataStartPos = 48; // parameter data start position
-            this.CompDataChunkSize = this.ChunkData.Length; // byte length of parameter data 
+            this.CompDataChunkSize = 0;
+            if (HasChunkData())
+            {
+                this.CompDataChunkSize = GetChunkData().Length; // byte length of parameter data 
+            }
             this.ContDataStartPos = this.CompDataStartPos + this.CompDataChunkSize;
             this.ContDataChunkSize = 0;
             this.InfoXmlStartPos = this.CompDataStartPos + this.CompDataChunkSize; // xml start position
@@ -997,6 +1067,16 @@ namespace PresetConverter
             return sb.ToString();
         }
 
+        private static string GetShortenedString(string stringValue)
+        {
+            return string.Format("'{0}' ...", string.Join(string.Empty, stringValue.Take(100)));
+        }
+
+        private static string GetShortenedString(byte[] byteValue)
+        {
+            return string.Format("'{0}' ...", Encoding.ASCII.GetString(byteValue.Take(100).ToArray()).Replace('\0', ' '));
+        }
+
         /// <summary>
         /// Ensure all variables are ready and populated before writing the preset
         /// I.e. the binary content (ChunkData, MetaXmlBytesWithBOM etc.) 
@@ -1011,9 +1091,14 @@ namespace PresetConverter
         {
             var sb = new StringBuilder();
             sb.AppendFormat("Vst3ID: {0}\n", Vst3ID);
-            foreach (var parameter in Parameters.Values)
+
+            if (Parameters.Count > 0)
             {
-                sb.AppendLine(parameter.ToString());
+                // output parameters
+                foreach (var parameter in Parameters.Values)
+                {
+                    sb.AppendLine(parameter.ToString());
+                }
             }
 
             if (null != MetaXml) sb.AppendLine(MetaXml);
