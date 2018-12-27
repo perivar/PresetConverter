@@ -506,6 +506,15 @@ namespace AbletonLiveConverter
                         foreach (var wavesSSLChannel in channelPresetList)
                         {
                             tw.WriteLine(wavesSSLChannel);
+
+                            // convert to UAD SSL Channel
+                            var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
+                            string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".vstpreset");
+                            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
+                            uadSSLChannel.Write(outputPresetFilePath);
+
+                            string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
+                            uadSSLChannel.WriteFXP(outputFXPFilePath);
                         }
                     }
                 }
