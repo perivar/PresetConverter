@@ -37,12 +37,12 @@ namespace PresetConverter
             {
                 if (fxp.Content is FXP.FxProgramSet)
                 {
-                    byte[] chunkDataByteArray = ((FXP.FxProgramSet)fxp.Content).ChunkDataByteArray;
+                    byte[] chunkDataByteArray = ((FXP.FxProgramSet)fxp.Content).ChunkData;
                     return ReadChunkData(chunkDataByteArray);
                 }
                 else if (fxp.Content is FXP.FxChunkSet)
                 {
-                    byte[] chunkDataByteArray = ((FXP.FxChunkSet)fxp.Content).ChunkDataByteArray;
+                    byte[] chunkDataByteArray = ((FXP.FxChunkSet)fxp.Content).ChunkData;
                     return ReadChunkData(chunkDataByteArray);
                 }
             }

@@ -82,7 +82,7 @@ namespace PresetConverter
                 memStream.Flush();
                 byte[] chunkData = memStream.GetBuffer();
                 fxpContent.ChunkSize = chunkData.Length;
-                fxpContent.ChunkDataByteArray = chunkData;
+                fxpContent.ChunkData = chunkData;
             }
 
             fxp.Write(filePath);

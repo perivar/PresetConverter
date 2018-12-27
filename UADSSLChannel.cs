@@ -250,11 +250,11 @@ namespace PresetConverter
             var byteArray = new byte[0];
             if (fxp.Content is FXP.FxProgramSet)
             {
-                byteArray = ((FXP.FxProgramSet)fxp.Content).ChunkDataByteArray;
+                byteArray = ((FXP.FxProgramSet)fxp.Content).ChunkData;
             }
             else if (fxp.Content is FXP.FxChunkSet)
             {
-                byteArray = ((FXP.FxChunkSet)fxp.Content).ChunkDataByteArray;
+                byteArray = ((FXP.FxChunkSet)fxp.Content).ChunkData;
             }
 
             var bFile = new BinaryFile(byteArray, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
@@ -346,12 +346,12 @@ namespace PresetConverter
             if (fxp.Content is FXP.FxProgramSet)
             {
                 ((FXP.FxProgramSet)fxp.Content).ChunkSize = chunkData.Length;
-                ((FXP.FxProgramSet)fxp.Content).ChunkDataByteArray = chunkData;
+                ((FXP.FxProgramSet)fxp.Content).ChunkData = chunkData;
             }
             else if (fxp.Content is FXP.FxChunkSet)
             {
                 ((FXP.FxChunkSet)fxp.Content).ChunkSize = chunkData.Length;
-                ((FXP.FxChunkSet)fxp.Content).ChunkDataByteArray = chunkData;
+                ((FXP.FxChunkSet)fxp.Content).ChunkData = chunkData;
             }
 
             return fxp;

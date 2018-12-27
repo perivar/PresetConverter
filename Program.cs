@@ -485,6 +485,7 @@ namespace AbletonLiveConverter
             string outputFileName = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
 
+            // if not using chunk-data but parameters instead
             if (vstPreset.Parameters.Count > 0 && !vstPreset.HasChunkData())
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
@@ -620,6 +621,7 @@ namespace AbletonLiveConverter
                     HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, outputFileName);
                 }
 
+                // always output the information
                 else
                 {
                     File.WriteAllText(outputFilePath, vstPreset.ToString());
@@ -627,7 +629,7 @@ namespace AbletonLiveConverter
             }
             else
             {
-                // no parameters, but chunk data instead
+                // use chunk data
                 if (vstPreset.HasChunkData())
                 {
                     // check if FabFilterProQx64
@@ -667,6 +669,14 @@ namespace AbletonLiveConverter
                         }
                     }
 
+                    // check if NI Kontakt 5
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
+                    {
+                        var fxp = new FXP(vstPreset.GetChunkData());
+
+                    }
+
+                    // always output the information
                     else
                     {
                         File.WriteAllText(outputFilePath, vstPreset.ToString());

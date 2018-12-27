@@ -31,27 +31,25 @@ namespace CommonUtils
         public class FxProgramSet : FxContent
         {
             public int NumPrograms { get; set; }
-            public string Name { get; set; }            // 28 chars
+            public string Name { get; set; }        // length: 28 chars
             public int ChunkSize { get; set; }
-            public string ChunkData { get; set; }       // chunkSize
-            public byte[] ChunkDataByteArray { get; set; } // chunkSize
+            public byte[] ChunkData { get; set; }   // length: chunkSize
         }
 
         // Bank (.fxb) with chunk (magic = 'FBCh')
         public class FxChunkSet : FxContent
         {
             public int NumPrograms { get; set; }
-            public string Future { get; set; }         // 128
+            public string Future { get; set; }      // length: 128
             public int ChunkSize { get; set; }
-            public string ChunkData { get; set; }      // chunkSize
-            public byte[] ChunkDataByteArray { get; set; } // chunkSize
+            public byte[] ChunkData { get; set; }   // length: chunkSize
         }
 
         // For Preset (Program) (.fxp) without chunk (magic = 'FxCk')
         public class FxProgram : FxContent
         {
             public int NumParameters { get; set; }     // FxCk = numParams
-            public string ProgramName { get; set; }    // 28
+            public string ProgramName { get; set; }    // length: 28
             public float[] Parameters { get; set; }    // FxCk = float[numParameters]
         };
 
@@ -59,7 +57,7 @@ namespace CommonUtils
         public class FxSet : FxContent
         {
             public int NumPrograms { get; set; }
-            public string Future { get; set; }         // 128
+            public string Future { get; set; }         // length: 128
             public FxProgram[] Programs { get; set; }
         }
 
@@ -210,7 +208,7 @@ namespace CommonUtils
                 else
                 {
                     // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-                    bf.Write(chunkSet.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian);
+                    bf.Write(chunkSet.ChunkData, BinaryFile.ByteOrder.LittleEndian);
                 }
             }
             else if (content.FxMagic == "FPCh")
@@ -236,7 +234,7 @@ namespace CommonUtils
                 else
                 {
                     // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-                    bf.Write(programSet.ChunkDataByteArray, BinaryFile.ByteOrder.LittleEndian);
+                    bf.Write(programSet.ChunkData, BinaryFile.ByteOrder.LittleEndian);
                 }
             }
             else if (content.FxMagic == "FxCk")
@@ -328,8 +326,7 @@ namespace CommonUtils
                 chunkSet.ChunkSize = bf.ReadInt32();
 
                 // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-                chunkSet.ChunkDataByteArray = bf.ReadBytes(0, chunkSet.ChunkSize, BinaryFile.ByteOrder.LittleEndian);
-                chunkSet.ChunkData = BinaryFile.ByteArrayToString(chunkSet.ChunkDataByteArray);
+                chunkSet.ChunkData = bf.ReadBytes(0, chunkSet.ChunkSize, BinaryFile.ByteOrder.LittleEndian);
 
                 // read the xml chunk into memory
                 try
@@ -337,7 +334,8 @@ namespace CommonUtils
                     if (chunkSet.ChunkData != null)
                     {
                         var xmlDocument = new XmlDocument();
-                        xmlDocument.LoadXml(chunkSet.ChunkData);
+                        var chunkAsString = Encoding.UTF8.GetString(chunkSet.ChunkData);
+                        xmlDocument.LoadXml(chunkAsString);
                         fxp.XmlDocument = xmlDocument;
                     }
                 }
@@ -364,8 +362,7 @@ namespace CommonUtils
                 programSet.ChunkSize = bf.ReadInt32();
 
                 // Even though the main FXP is BigEndian format the preset chunk is saved in LittleEndian format
-                programSet.ChunkDataByteArray = bf.ReadBytes(0, programSet.ChunkSize, BinaryFile.ByteOrder.LittleEndian);
-                programSet.ChunkData = BinaryFile.ByteArrayToString(programSet.ChunkDataByteArray);
+                programSet.ChunkData = bf.ReadBytes(0, programSet.ChunkSize, BinaryFile.ByteOrder.LittleEndian);
 
                 // read the xml chunk into memory
                 try
@@ -373,7 +370,8 @@ namespace CommonUtils
                     if (programSet.ChunkData != null)
                     {
                         var xmlDocument = new XmlDocument();
-                        xmlDocument.LoadXml(programSet.ChunkData);
+                        var chunkAsString = Encoding.UTF8.GetString(programSet.ChunkData);
+                        xmlDocument.LoadXml(chunkAsString);
                         fxp.XmlDocument = xmlDocument;
                     }
                 }
