@@ -20,7 +20,7 @@ namespace PresetConverter
 
         public SteinbergREVerence()
         {
-            Vst3ID = VstPreset.VstIDs.SteinbergREVerence;
+            Vst3ID = VstIDs.SteinbergREVerence;
             PlugInCategory = "Fx|Reverb";
             PlugInName = "REVerence";
             PlugInVendor = "Steinberg Media Technologies";

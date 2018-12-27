@@ -297,9 +297,54 @@ namespace PresetConverter
             return false;
         }
 
+        /// <summary>
+        /// Store the chunk data
+        /// </summary>
+        /// <param name="chunkData"></param>
         public void SetChunkData(byte[] chunkData)
         {
-            AddParameter("ChunkData", 0, chunkData);
+            if (!HasChunkData())
+            {
+                AddParameter("ChunkData", 0, chunkData);
+            }
+            else
+            {
+                // parameter already exist
+                // warn and overwrite
+                Log.Warning(string.Format("{0} bytes of chunk data already exist! Overwriting with new content of {1} bytes ...", GetChunkData().Length, chunkData.Length));
+                Parameters["ChunkData"].ByteValue = chunkData;
+            }
+        }
+
+        /// <summary>
+        /// Store the chunk data and wrap in a VstW container   
+        /// </summary>
+        /// <param name="fxp">fxp content</param>
+        public void SetChunkData(FXP fxp)
+        {
+            if (fxp != null)
+            {
+                var memStream = new MemoryStream();
+                using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
+                {
+                    bf.Write("VstW");
+
+                    // Write VstW chunk size
+                    UInt32 vst2ChunkSize = 8;
+                    bf.Write(vst2ChunkSize);
+
+                    // Write VstW chunk version
+                    UInt32 vst2Version = 1;
+                    bf.Write(vst2Version);
+
+                    // Write VstW bypass
+                    UInt32 vst2Bypass = 0;
+                    bf.Write(vst2Bypass);
+
+                    fxp.Write(bf);
+                }
+                this.SetChunkData(memStream.ToArray());
+            }
         }
 
         public byte[] GetChunkData()
@@ -891,8 +936,8 @@ namespace PresetConverter
             SeekToInfoXmlPosition(bf);
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var bytes = bf.ReadBytes((int)this.InfoXmlChunkSize);
-            this.MetaXml = Encoding.UTF8.GetString(bytes);
+            this.MetaXmlBytesWithBOM = bf.ReadBytes((int)this.InfoXmlChunkSize);
+            this.MetaXml = Encoding.UTF8.GetString(this.MetaXmlBytesWithBOM);
         }
 
         private void SeekToInfoXmlPosition(BinaryFile bf)

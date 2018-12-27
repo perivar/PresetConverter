@@ -271,7 +271,7 @@ namespace AbletonLiveConverter
                 var trackNameLen = binaryFile.ReadInt32();
                 var trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
                 trackName = StringUtils.RemoveByteOrderMark(trackName);
-                Log.Debug("TrackName: {0}", trackName);
+                Log.Information("Provessing track name: {0}", trackName);
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
@@ -368,68 +368,90 @@ namespace AbletonLiveConverter
 
                 if (vstPreset.HasChunkData())
                 {
-                    var fxp = new FXP(vstPreset.GetChunkData());
-                    string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
-                    fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
-                    string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
-                    fxp.Write(outputFilePath);
-
-                    // check if FabFilterProQ2 
-                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                    try
                     {
-                        if (fxp.Content is FXP.FxSet)
+                        // see if if the chunk data is FXP
+                        var fxp = new FXP(vstPreset.GetChunkData());
+                        string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
+                        fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
+                        string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
+                        fxp.Write(outputFilePath);
+
+                        // check if FabFilterProQ2 
+                        if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                         {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            for (int i = 0; i < set.NumPrograms; i++)
+                            if (fxp.Content is FXP.FxSet)
                             {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
+                                var set = (FXP.FxSet)fxp.Content;
 
-                                // using (var tw = new StreamWriter(outputFilePathNew))
-                                // {
-                                // int counter = 0;
-                                // foreach (var f in parameters)
-                                // {
-                                //     tw.WriteLine("{0:0.0000}", f);
-                                //     counter++;
-                                //     if (counter % 7 == 0) tw.WriteLine();
-                                // }
-                                // }
+                                for (int i = 0; i < set.NumPrograms; i++)
+                                {
+                                    var program = set.Programs[i];
+                                    var parameters = program.Parameters;
 
-                                var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
-                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
+                                    // using (var tw = new StreamWriter(outputFilePathNew))
+                                    // {
+                                    // int counter = 0;
+                                    // foreach (var f in parameters)
+                                    // {
+                                    //     tw.WriteLine("{0:0.0000}", f);
+                                    //     counter++;
+                                    //     if (counter % 7 == 0) tw.WriteLine();
+                                    // }
+                                    // }
+
+                                    var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                                    string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
+                                    HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
+                                }
                             }
+                        }
+                        else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                        {
+                            if (fxp.Content is FXP.FxSet)
+                            {
+                                var set = (FXP.FxSet)fxp.Content;
+
+                                for (int i = 0; i < set.NumPrograms; i++)
+                                {
+                                    var program = set.Programs[i];
+                                    var parameters = program.Parameters;
+
+                                    // using (var tw = new StreamWriter(outputFilePathNew))
+                                    // {
+                                    // int counter = 0;
+                                    // foreach (var f in parameters)
+                                    // {
+                                    //     tw.WriteLine("{0:0.0000}", f);
+                                    //     counter++;
+                                    //     if ((counter - 1) % 7 == 0) tw.WriteLine();
+                                    // }
+                                    // }
+
+                                    var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                    string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
+                                    HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, outputFileNameNew);
+                                }
+                            }
+                        }
+
+                        // check if NI Kontakt 5
+                        else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
+                        {
+                            var kontaktPreset = new NIKontakt5(fxp);
+
+                            string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
+                            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
+                            kontaktPreset.Write(kontaktOutputFilePath);
+
+                            // and dump the tex info as well
+                            string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
+                            File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
                         }
                     }
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                    catch (System.Exception)
                     {
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            for (int i = 0; i < set.NumPrograms; i++)
-                            {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
-
-                                // using (var tw = new StreamWriter(outputFilePathNew))
-                                // {
-                                // int counter = 0;
-                                // foreach (var f in parameters)
-                                // {
-                                //     tw.WriteLine("{0:0.0000}", f);
-                                //     counter++;
-                                //     if ((counter - 1) % 7 == 0) tw.WriteLine();
-                                // }
-                                // }
-
-                                var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
-                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, outputFileNameNew);
-                            }
-                        }
+                        Log.Warning("No FXP content found.");
                     }
                 }
                 else
@@ -482,8 +504,8 @@ namespace AbletonLiveConverter
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = new SteinbergVstPreset(file);
-            string outputFileName = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".txt");
+            string fileNameNoExtension = Path.GetFileNameWithoutExtension(file);
+            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
 
             // if not using chunk-data but parameters instead
             if (vstPreset.Parameters.Count > 0 && !vstPreset.HasChunkData())
@@ -581,7 +603,7 @@ namespace AbletonLiveConverter
                     reverence.Parameters["bypass"].NumberValue = vstPreset.Parameters["bypass"].NumberValue;
                     reverence.Parameters["allowFading"].NumberValue = vstPreset.Parameters["allowFading"].NumberValue;
 
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + outputFileName);
+                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + fileNameNoExtension);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
 
                     reverence.Write(outputFilePathNew + ".vstpreset");
@@ -611,14 +633,14 @@ namespace AbletonLiveConverter
                 {
                     var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
                     var preset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
-                    HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, outputFileName);
+                    HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, fileNameNoExtension);
                 }
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                 {
                     var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
                     var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
-                    HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, outputFileName);
+                    HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
                 }
 
                 // always output the information
@@ -645,7 +667,7 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
                                 var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
+                                string outputFileNameNew = string.Format("{0}_{1}", fileNameNoExtension, i);
                                 HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, outputFileNameNew);
                             }
                         }
@@ -663,7 +685,7 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
                                 var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
+                                string outputFileNameNew = string.Format("{0}_{1}", fileNameNoExtension, i);
                                 HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
                             }
                         }
@@ -672,8 +694,18 @@ namespace AbletonLiveConverter
                     // check if NI Kontakt 5
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                     {
+                        // test saving a kontakt preset using the fxp
+                        // and compare that they are equal to the originals
                         var fxp = new FXP(vstPreset.GetChunkData());
+                        var kontaktPreset = new NIKontakt5(fxp);
 
+                        string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
+                        kontaktPreset.Write(kontaktOutputFilePath);
+
+                        // and dump the tex info as well
+                        string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
+                        File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
                     }
 
                     // always output the information

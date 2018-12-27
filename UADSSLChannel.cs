@@ -69,7 +69,7 @@ namespace PresetConverter
         public UADSSLChannel()
         {
             InitializeMappingTables("UADSSLChannelParametersMap.xml");
-            Vst3ID = VstPreset.VstIDs.UADSSLEChannel;
+            Vst3ID = VstIDs.UADSSLEChannel;
             PlugInCategory = "Fx|Channel Strip";
             PlugInName = "UAD SSL E Channel Strip";
             PlugInVendor = "Universal Audio, Inc.";
@@ -204,28 +204,7 @@ namespace PresetConverter
         private void InitChunkData()
         {
             FXP fxp = GenerateFXP(true);
-
-            var memStream = new MemoryStream();
-            using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
-            {
-                bf.Write("VstW");
-
-                // Write VstW chunk size
-                UInt32 vst2ChunkSize = 8;
-                bf.Write(vst2ChunkSize);
-
-                // Write VstW chunk version
-                UInt32 vst2Version = 1;
-                bf.Write(vst2Version);
-
-                // Write VstW bypass
-                UInt32 vst2Bypass = 0;
-                bf.Write(vst2Bypass);
-
-                fxp.Write(bf);
-            }
-
-            this.SetChunkData(memStream.ToArray());
+            SetChunkData(fxp);
         }
 
         public bool ReadFXP(string filePath)

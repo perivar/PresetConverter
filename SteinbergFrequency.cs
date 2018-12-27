@@ -45,7 +45,7 @@ namespace PresetConverter
 
         public SteinbergFrequency()
         {
-            Vst3ID = VstPreset.VstIDs.SteinbergFrequency;
+            Vst3ID = VstIDs.SteinbergFrequency;
             PlugInCategory = "Fx|EQ";
             PlugInName = "Frequency";
             PlugInVendor = "Steinberg Media Technologies";
