@@ -18,25 +18,6 @@ namespace PresetConverter
         {
         }
 
-        public SteinbergVstPreset(string guid, byte[] presetBytes) : base()
-        {
-            this.Vst3ID = guid;
-            this.CompDataStartPos = 0;
-            this.CompDataChunkSize = presetBytes.Length;
-            this.ContDataStartPos = presetBytes.Length;
-            this.ContDataChunkSize = 0;
-            this.InfoXmlStartPos = presetBytes.Length;
-
-            try
-            {
-                this.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
-            }
-            catch (System.Exception e)
-            {
-                Log.Error("Failed initializing SteinbergVstPreset with guid: {0}. (Hex dump: {1}) {2}", guid, StringUtils.ToHexEditorString(presetBytes), e.Message);
-            }
-        }
-
         public SteinbergVstPreset(string fileName) : base(fileName)
         {
         }

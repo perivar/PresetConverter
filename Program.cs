@@ -412,7 +412,7 @@ namespace AbletonLiveConverter
             var presetByteLen = binaryFile.ReadInt32();
             Log.Debug("Reading preset bytes: {0}", presetByteLen);
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
-            var vstPreset = new SteinbergVstPreset(guid, presetBytes);
+            var vstPreset = VstPresetFactory.GetVstPreset(guid, presetBytes);
 
             string fileNameNoExtensionPart = string.Format("{0} - {1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ");
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
