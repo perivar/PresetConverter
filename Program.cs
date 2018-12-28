@@ -258,13 +258,21 @@ namespace AbletonLiveConverter
                     // 'RuntimeID' field
                     var runtimeIDLen = binaryFile.ReadInt32();
                     var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField)) continue;
+                    if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField))
+                    {
+                        prevIndex = curIndex;
+                        continue;
+                    }
                     var b1 = binaryFile.ReadBytes(10);
 
                     // 'Name' field
                     var nameLen = binaryFile.ReadInt32();
                     var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Name", nameField)) continue;
+                    if (IsWrongField(binaryFile, "Name", nameField))
+                    {
+                        prevIndex = curIndex;
+                        continue;
+                    }
                     var v4 = binaryFile.ReadInt16();
                     var v5 = binaryFile.ReadInt16();
                     var v6 = binaryFile.ReadInt32();
@@ -272,7 +280,11 @@ namespace AbletonLiveConverter
                     // 'String' field
                     var stringLen = binaryFile.ReadInt32();
                     var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "String", stringField)) continue;
+                    if (IsWrongField(binaryFile, "String", stringField))
+                    {
+                        prevIndex = curIndex;
+                        continue;
+                    }
                     var v7 = binaryFile.ReadInt16();
 
                     // Track Name (for channels supporting audio insert plugins)
@@ -290,7 +302,11 @@ namespace AbletonLiveConverter
                     // 'Type'
                     var typeLen = binaryFile.ReadInt32();
                     var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Type", typeField)) continue;
+                    if (IsWrongField(binaryFile, "Type", typeField))
+                    {
+                        prevIndex = curIndex;
+                        continue;
+                    }
 
                     // skip to the next 'VstCtrlInternalEffect' field            
                     var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
@@ -310,11 +326,12 @@ namespace AbletonLiveConverter
                     if (vstEffectIndex < 0)
                     {
                         Log.Warning("Could not find any insert effects ('VstCtrlInternalEffect')");
-                        continue;
                     }
                 }
                 prevIndex = curIndex;
             }
+
+            // handle last index
         }
 
         private static bool HandleCubaseVstInsertEffect(
