@@ -71,11 +71,13 @@ namespace CommonUtils
         ///    Console.WriteLine(i);
         /// }
         /// </example>
-        public static IEnumerable<int> FindAll(this byte[] byteArray, byte[] bytePattern)
+        public static IEnumerable<int> FindAll(this byte[] byteArray, byte[] bytePattern, int maxEndIndex = -1)
         {
-            for (int startIndex = 0; startIndex < byteArray.Length - bytePattern.Length;)
+            if (maxEndIndex < 0) maxEndIndex = byteArray.Length;
+
+            for (int startIndex = 0; startIndex < maxEndIndex - bytePattern.Length;)
             {
-                int i = IndexOf(byteArray, bytePattern, startIndex, byteArray.Length);
+                int i = IndexOf(byteArray, bytePattern, startIndex, maxEndIndex);
 
                 if (i < 0) break;
                 yield return i;
