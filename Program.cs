@@ -233,6 +233,11 @@ namespace AbletonLiveConverter
             var vstMultitrackBytePattern = Encoding.ASCII.GetBytes("VST Multitrack\0");
             var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
 
+            // since we are processing each entry based on the previous
+            // we will not process the last index without adding an element
+            // to the list
+            if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices.ToArray().Append(vstMultitrackIndices.Last());
+
             int trackNumber = 1;
             bool first = true;
             int prevIndex = 0;
@@ -291,7 +296,7 @@ namespace AbletonLiveConverter
                     var trackNameLen = binaryFile.ReadInt32();
                     var trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
                     trackName = StringUtils.RemoveByteOrderMark(trackName);
-                    Log.Information("Provessing track name: {0}", trackName);
+                    Log.Information("Processing track name: {0}", trackName);
 
                     // reset the output filename
                     string outputFileName = Path.GetFileNameWithoutExtension(file);
@@ -330,8 +335,6 @@ namespace AbletonLiveConverter
                 }
                 prevIndex = curIndex;
             }
-
-            // handle last index
         }
 
         private static bool HandleCubaseVstInsertEffect(
