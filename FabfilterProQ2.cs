@@ -651,7 +651,7 @@ namespace PresetConverter
                     break;
             }
 
-            return String.Format("[{4}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", Shape, Frequency, Gain, Q, Enabled == true ? "On " : "Off", Slope, stereoPlacement);
+            return String.Format("[{4,-3}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", Shape, Frequency, Gain, Q, Enabled == true ? "On" : "Off", Slope, stereoPlacement);
         }
     }
 }

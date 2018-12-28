@@ -33,7 +33,7 @@ namespace PresetConverter
             }
             catch (System.Exception e)
             {
-                Log.Error("Failed initializing SteinbergVstPreset with guid: {0}. (Error: {1})", guid, e.Message);
+                Log.Error("Failed initializing SteinbergVstPreset with guid: {0}. (Hex dump: {1}) {2}", guid, StringUtils.ToHexEditorString(presetBytes), e.Message);
             }
         }
 

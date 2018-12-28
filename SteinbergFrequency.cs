@@ -106,5 +106,145 @@ namespace PresetConverter
             InitNumberParameter("autoGainOutputValue", 1021, 0.00);
             InitNumberParameter("", 3, 0.00);
         }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Bands:");
+
+            for (int bandNumber = 1; bandNumber <= 8; bandNumber++)
+            {
+                double stereoPlacementType = Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue;
+                bool isBandEnabled = Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue == 1.0;
+                bool isLinearPhase = Parameters[String.Format("linearphase{0}", bandNumber)].NumberValue == 1.0;
+
+                string channel = ""; // empty for main channel (channel 1). 'Ch2' for secondary channel 
+                string bandInfo = GetBandInfo(bandNumber, channel);
+                if (!bandInfo.Equals("")) sb.AppendFormat("[{0,-3}] {1}\n", isBandEnabled == true ? "On" : "Off", bandInfo, isLinearPhase ? ", Linear phase" : "");
+
+                channel = "Ch2"; // empty for main channel (channel 1). 'Ch2' for secondary channel 
+                bandInfo = GetBandInfo(bandNumber, channel);
+                if (!bandInfo.Equals("")) sb.AppendFormat("[{0,-3}] {1}\n", isBandEnabled == true ? "On" : "Off", bandInfo, isLinearPhase ? ", Linear phase" : "");
+            }
+
+            sb.AppendLine();
+            sb.AppendFormat("{0}\n", Parameters["equalizerAbypass"]);
+            sb.AppendFormat("{0}\n", Parameters["autoListen"]);
+            sb.AppendFormat("{0}\n", Parameters["bypass"]);
+            sb.AppendFormat("{0}\n", Parameters["reset"]);
+            sb.AppendFormat("{0}\n", Parameters["spectrumonoff"]);
+            sb.AppendFormat("{0}\n", Parameters["spectrum2ChMode"]);
+            sb.AppendFormat("{0}\n", Parameters["spectrumintegrate"]);
+            sb.AppendFormat("{0}\n", Parameters["spectrumPHonoff"]);
+            sb.AppendFormat("{0}\n", Parameters["spectrumslope"]);
+            sb.AppendFormat("{0}\n", Parameters["draweq"]);
+            sb.AppendFormat("{0}\n", Parameters["draweqfilled"]);
+            sb.AppendFormat("{0}\n", Parameters["spectrumbargraph"]);
+            sb.AppendFormat("{0}\n", Parameters["showPianoRoll"]);
+            sb.AppendFormat("{0}\n", Parameters["transparency"]);
+            sb.AppendFormat("{0}\n", Parameters["autoGainOutputValue"]);
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Get Band information
+        /// </summary>
+        /// <param name="bandNumber">band number from 1 to 8</param>
+        /// <param name="channel">empty for main channel (channel 1). 'Ch2' for secondary channel</param>
+        private string GetBandInfo(int bandNumber, string channel)
+        {
+            var sb = new StringBuilder();
+
+            bool isChannelOn = Parameters[String.Format("equalizerAon{0}{1}", bandNumber, channel)].NumberValue == 1.0;
+            double gain = Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].NumberValue;
+            double frequency = Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].NumberValue;
+            double q = Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].NumberValue;
+            bool isInverted = Parameters[String.Format("invert{0}{1}", bandNumber, channel)].NumberValue == 1.0;
+
+            string shape = "";
+            if (bandNumber == 1 || bandNumber == 8)
+            {
+                switch (Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue)
+                {
+                    case SteinbergFrequency.BandMode1And8.Cut6:
+                        shape = "Cut6";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.Cut12:
+                        shape = "Cut12";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.Cut24:
+                        shape = "Cut24";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.Cut48:
+                        shape = "Cut48";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.Cut96:
+                        shape = "Cut96";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.LowShelf:
+                        shape = "LowShelf";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.Peak:
+                        shape = "Peak";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.HighShelf:
+                        shape = "HighShelf";
+                        break;
+                    case SteinbergFrequency.BandMode1And8.Notch:
+                        shape = "Notch";
+                        break;
+                }
+            }
+            else
+            {
+                switch (Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue)
+                {
+                    case SteinbergFrequency.BandMode2To7.LowShelf:
+                        shape = "LowShelf";
+                        break;
+                    case SteinbergFrequency.BandMode2To7.Peak:
+                        shape = "Peak";
+                        break;
+                    case SteinbergFrequency.BandMode2To7.HighShelf:
+                        shape = "HighShelf";
+                        break;
+                    case SteinbergFrequency.BandMode2To7.Notch:
+                        shape = "Notch";
+                        break;
+                }
+            }
+
+            // stereo placement
+            string stereoPlacement = "";
+            switch (Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue)
+            {
+                case SteinbergFrequency.ChannelMode.LeftRightModeLeft:
+                    stereoPlacement = "LR: Left";
+                    break;
+                case SteinbergFrequency.ChannelMode.LeftRightModeRight:
+                    stereoPlacement = "LR: Right";
+                    break;
+                case SteinbergFrequency.ChannelMode.StereoMode:
+                    stereoPlacement = "Stereo";
+                    break;
+                case SteinbergFrequency.ChannelMode.MidSideModeMid:
+                    stereoPlacement = "MS: Mid";
+                    break;
+                case SteinbergFrequency.ChannelMode.MidSideModeSide:
+                    stereoPlacement = "MS: Side";
+                    break;
+            }
+
+            if (stereoPlacement == "Stereo" && channel != "")
+            {
+                // ignore isChannelOn
+                isChannelOn = false;
+            }
+
+            if (isChannelOn) sb.Append(String.Format("{7} {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {4}, {5}{6}", shape, frequency, gain, q, isChannelOn ? "Ch: On" : "Ch: Off", isInverted ? "Inverted " : "", stereoPlacement, bandNumber));
+
+            return sb.ToString();
+        }
     }
 }

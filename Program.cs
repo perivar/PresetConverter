@@ -246,7 +246,7 @@ namespace AbletonLiveConverter
                 else
                 {
                     int vstMultitrackIndex = (int)chunk.StartPosition + prevIndex;
-                    Log.Debug("vstMultitrackIndex: {0}", vstMultitrackIndex);
+                    Log.Information("Found VST Multitrack at index: {0}", vstMultitrackIndex);
                     binaryFile.Seek(vstMultitrackIndex);
 
                     // 'VST Multitrack' field
@@ -283,7 +283,7 @@ namespace AbletonLiveConverter
 
                     // reset the output filename
                     string outputFileName = Path.GetFileNameWithoutExtension(file);
-                    outputFileName = string.Format("{0} - {1:D4} - {2}", outputFileName, trackNumber, trackName);
+                    outputFileName = string.Format("{0} - {1:D3} - {2}", outputFileName, trackNumber, trackName);
                     outputFileName = StringUtils.MakeValidFileName(outputFileName);
                     trackNumber++;
 
@@ -292,218 +292,254 @@ namespace AbletonLiveConverter
                     var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
                     if (IsWrongField(binaryFile, "Type", typeField)) continue;
 
-                    // skip to the 'VstCtrlInternalEffect' field            
-                    // TODO: can have more than one insert effect
+                    // skip to the next 'VstCtrlInternalEffect' field            
                     var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
-                    var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern, (int)chunk.StartPosition + curIndex - 1);
+                    var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern, prevIndex, curIndex);
+                    int vstEffectIndex = -1;
+                    foreach (var vstEffectIndexTmp in vstEffectIndices)
+                    {
+                        vstEffectIndex = (int)chunk.StartPosition + vstEffectIndexTmp;
+                        Log.Information("Found VST Insert Effect at index: {0}", vstEffectIndex);
+                        binaryFile.Seek(vstEffectIndex);
 
-                    int vstEffectIndex = binaryFile.IndexOf(vstEffectBytePattern, 0, (int)chunk.ChunkDataSize - vstMultitrackIndex);
+                        if (!HandleCubaseVstInsertEffect(binaryFile, vstEffectBytePattern, vstEffectIndex,
+                            (int)chunk.StartPosition + prevIndex, (int)chunk.StartPosition + curIndex,
+                            outputDirectoryPath, outputFileName
+                        )) continue;
+                    }
                     if (vstEffectIndex < 0)
                     {
                         Log.Warning("Could not find any insert effects ('VstCtrlInternalEffect')");
                         continue;
                     }
-                    var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
-
-                    var pluginFieldLen = binaryFile.ReadInt32();
-                    var pluginFieldField = binaryFile.ReadString(pluginFieldLen, Encoding.ASCII).TrimEnd('\0');
-                    var t1 = binaryFile.ReadInt16();
-                    var t2 = binaryFile.ReadInt16();
-                    var t3 = binaryFile.ReadInt32();
-
-                    // 'Plugin UID' field
-                    var pluginUIDFieldLen = binaryFile.ReadInt32();
-                    var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Plugin UID", pluginUIDField)) continue;
-                    var t4 = binaryFile.ReadInt16();
-                    var t5 = binaryFile.ReadInt16();
-                    var t6 = binaryFile.ReadInt32();
-
-                    // 'GUID' field
-                    var guidFieldLen = binaryFile.ReadInt32();
-                    var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "GUID", guidField)) continue;
-                    var t7 = binaryFile.ReadInt16();
-
-                    // GUID
-                    var guidLen = binaryFile.ReadInt32();
-                    var guid = binaryFile.ReadString(guidLen, Encoding.UTF8);
-                    guid = StringUtils.RemoveByteOrderMark(guid);
-                    Log.Debug("GUID: {0}", guid);
-
-                    // 'Plugin Name' field
-                    var pluginNameFieldLen = binaryFile.ReadInt32();
-                    var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Plugin Name", pluginNameField)) continue;
-                    var t8 = binaryFile.ReadInt16();
-
-                    // Plugin Name
-                    var pluginNameLen = binaryFile.ReadInt32();
-                    var pluginName = binaryFile.ReadString(pluginNameLen, Encoding.UTF8);
-                    pluginName = pluginName.Replace("\0", "");
-                    Log.Debug("Plugin Name: {0}", pluginName);
-
-                    // 'Original Plugin Name' or 'Audio Input Count'
-                    var len = binaryFile.ReadInt32();
-                    var nextField = binaryFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
-
-                    string origPluginName = null;
-                    if (nextField.Equals("Original Plugin Name"))
-                    {
-                        var t9 = binaryFile.ReadInt16();
-                        var origPluginNameLen = binaryFile.ReadInt32();
-                        origPluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
-                        origPluginName = origPluginName.Replace("\0", "");
-                        Log.Debug("Original Plugin Name: {0}", origPluginName);
-                    }
-
-                    // skip to 'audioComponent'
-                    var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
-                    int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0, (int)chunk.ChunkDataSize - vstMultitrackIndex);
-                    if (audioComponentIndex < 0)
-                    {
-                        Log.Warning("Could not find the preset content ('audioComponent')");
-                        continue;
-                    }
-
-                    // 'audioComponent' field            
-                    var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "audioComponent", audioComponentField)) continue;
-
-                    var t10 = binaryFile.ReadInt16();
-                    var t11 = binaryFile.ReadInt16();
-                    var presetByteLen = binaryFile.ReadInt32();
-                    Log.Debug("Reading preset bytes: {0}", presetByteLen);
-                    var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
-                    var vstPreset = new SteinbergVstPreset(guid, presetBytes);
-
-                    if (vstPreset.HasChunkData())
-                    {
-                        try
-                        {
-                            // see if if the chunk data is FXP
-                            var fxp = new FXP(vstPreset.GetChunkData());
-                            string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
-                            fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
-                            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
-                            fxp.Write(outputFilePath);
-
-                            // check if FabFilterProQ2 
-                            if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
-                            {
-                                if (fxp.Content is FXP.FxSet)
-                                {
-                                    var set = (FXP.FxSet)fxp.Content;
-
-                                    for (int i = 0; i < set.NumPrograms; i++)
-                                    {
-                                        var program = set.Programs[i];
-                                        var parameters = program.Parameters;
-
-                                        // using (var tw = new StreamWriter(outputFilePathNew))
-                                        // {
-                                        // int counter = 0;
-                                        // foreach (var f in parameters)
-                                        // {
-                                        //     tw.WriteLine("{0:0.0000}", f);
-                                        //     counter++;
-                                        //     if (counter % 7 == 0) tw.WriteLine();
-                                        // }
-                                        // }
-
-                                        var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                        string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
-                                        HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
-                                    }
-                                }
-                            }
-                            else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
-                            {
-                                if (fxp.Content is FXP.FxSet)
-                                {
-                                    var set = (FXP.FxSet)fxp.Content;
-
-                                    for (int i = 0; i < set.NumPrograms; i++)
-                                    {
-                                        var program = set.Programs[i];
-                                        var parameters = program.Parameters;
-
-                                        // using (var tw = new StreamWriter(outputFilePathNew))
-                                        // {
-                                        // int counter = 0;
-                                        // foreach (var f in parameters)
-                                        // {
-                                        //     tw.WriteLine("{0:0.0000}", f);
-                                        //     counter++;
-                                        //     if ((counter - 1) % 7 == 0) tw.WriteLine();
-                                        // }
-                                        // }
-
-                                        var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                        string outputFileNameNew = string.Format("{0}_{1}", outputFileName, i);
-                                        HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, outputFileNameNew);
-                                    }
-                                }
-                            }
-
-                            // check if NI Kontakt 5
-                            else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
-                            {
-                                var kontaktPreset = new NIKontakt5(fxp);
-
-                                string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
-                                CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
-                                kontaktPreset.Write(kontaktOutputFilePath);
-
-                                // and dump the tex info as well
-                                string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
-                                File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                            Log.Warning("No FXP content found.");
-                        }
-                    }
-                    else
-                    {
-                        if (vstPreset.Parameters.Count > 0)
-                        {
-                            // FabFilterProQ stores the parameters as floats not chunk
-                            if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
-                            {
-                                var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                                var preset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
-                                HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, outputFileName);
-                            }
-
-                            // FabFilterProQ2 stores the parameters as floats not chunk
-                            else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
-                            {
-                                var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                                var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
-                                HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, outputFileName);
-                            }
-
-                            // Save the preset parameters
-                            else
-                            {
-                                string fileNameNoExtension = string.Format("{0} - {1}{2}{3}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ", pluginName);
-                                fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
-                                string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
-                                File.WriteAllText(outputFilePath, vstPreset.ToString());
-                            }
-                        }
-                    }
-
-                    // read next field, we expect editController
-                    var editControllerLen = binaryFile.ReadInt32();
-                    var editControllerField = binaryFile.ReadString(editControllerLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "editController", editControllerField)) continue;
-
                 }
                 prevIndex = curIndex;
             }
+        }
+
+        private static bool HandleCubaseVstInsertEffect(
+            BinaryFile binaryFile,
+            byte[] vstEffectBytePattern, int vstEffectIndex,
+            int prevVstMultitrackIndex, int curVstMultitrackIndex,
+            string outputDirectoryPath, string outputFileName
+            )
+        {
+            var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
+
+            var pluginFieldLen = binaryFile.ReadInt32();
+            var pluginFieldField = binaryFile.ReadString(pluginFieldLen, Encoding.ASCII).TrimEnd('\0');
+            var t1 = binaryFile.ReadInt16();
+            var t2 = binaryFile.ReadInt16();
+            var t3 = binaryFile.ReadInt32();
+
+            // 'Plugin UID' field
+            var pluginUIDFieldLen = binaryFile.ReadInt32();
+            var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "Plugin UID", pluginUIDField)) return false;
+            var t4 = binaryFile.ReadInt16();
+            var t5 = binaryFile.ReadInt16();
+            var t6 = binaryFile.ReadInt32();
+
+            // 'GUID' field
+            var guidFieldLen = binaryFile.ReadInt32();
+            var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "GUID", guidField)) return false;
+            var t7 = binaryFile.ReadInt16();
+
+            // GUID
+            var guidLen = binaryFile.ReadInt32();
+            var guid = binaryFile.ReadString(guidLen, Encoding.UTF8);
+            guid = StringUtils.RemoveByteOrderMark(guid);
+            Log.Debug("GUID: {0}", guid);
+
+            // 'Plugin Name' field
+            var pluginNameFieldLen = binaryFile.ReadInt32();
+            var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "Plugin Name", pluginNameField)) return false;
+            var t8 = binaryFile.ReadInt16();
+
+            // Plugin Name
+            var pluginNameLen = binaryFile.ReadInt32();
+            var pluginName = binaryFile.ReadString(pluginNameLen, Encoding.UTF8);
+            pluginName = pluginName.Replace("\0", "");
+            Log.Information("Plugin Name: {0}", pluginName);
+
+            // 'Original Plugin Name' or 'Audio Input Count'
+            var len = binaryFile.ReadInt32();
+            var nextField = binaryFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
+
+            string origPluginName = null;
+            if (nextField.Equals("Original Plugin Name"))
+            {
+                var t9 = binaryFile.ReadInt16();
+                var origPluginNameLen = binaryFile.ReadInt32();
+                origPluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
+                origPluginName = origPluginName.Replace("\0", "");
+                Log.Information("Original Plugin Name: {0}", origPluginName);
+            }
+
+            // skip to 'audioComponent'
+            var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
+            int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0, curVstMultitrackIndex);
+            if (audioComponentIndex < 0)
+            {
+                Log.Warning("Could not find the preset content ('audioComponent')");
+                return false;
+            }
+
+            return HandleCubaseAudioComponent(binaryFile,
+            audioComponentPattern,
+            guid,
+            vstEffectIndex,
+            pluginName, origPluginName,
+            outputDirectoryPath, outputFileName);
+        }
+
+        private static bool HandleCubaseAudioComponent(BinaryFile binaryFile,
+            byte[] audioComponentPattern,
+            string guid,
+            int vstEffectIndex,
+            string pluginName, string origPluginName,
+            string outputDirectoryPath, string outputFileName
+        )
+        {
+            // 'audioComponent' field            
+            var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "audioComponent", audioComponentField)) return false;
+
+            var t10 = binaryFile.ReadInt16();
+            var t11 = binaryFile.ReadInt16();
+            var presetByteLen = binaryFile.ReadInt32();
+            Log.Debug("Reading preset bytes: {0}", presetByteLen);
+            var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
+            var vstPreset = new SteinbergVstPreset(guid, presetBytes);
+
+            string fileNameNoExtensionPart = string.Format("{0} - {1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ");
+            fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
+            string fileNameNoExtension = string.Format("{0}{1}", fileNameNoExtensionPart, pluginName);
+
+            if (vstPreset.HasChunkData())
+            {
+                try
+                {
+                    // see if if the chunk data is FXP
+                    var fxp = new FXP(vstPreset.GetChunkData());
+
+                    string fxpOutputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
+                    fxp.Write(fxpOutputFilePath);
+
+                    // check if FabFilterProQ2 
+                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                    {
+                        if (fxp.Content is FXP.FxSet)
+                        {
+                            var set = (FXP.FxSet)fxp.Content;
+
+                            for (int i = 0; i < set.NumPrograms; i++)
+                            {
+                                var program = set.Programs[i];
+                                var parameters = program.Parameters;
+
+                                // using (var tw = new StreamWriter(outputFilePathNew))
+                                // {
+                                // int counter = 0;
+                                // foreach (var f in parameters)
+                                // {
+                                //     tw.WriteLine("{0:0.0000}", f);
+                                //     counter++;
+                                //     if (counter % 7 == 0) tw.WriteLine();
+                                // }
+                                // }
+
+                                var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1} - ", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
+                            }
+                        }
+                    }
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                    {
+                        if (fxp.Content is FXP.FxSet)
+                        {
+                            var set = (FXP.FxSet)fxp.Content;
+
+                            for (int i = 0; i < set.NumPrograms; i++)
+                            {
+                                var program = set.Programs[i];
+                                var parameters = program.Parameters;
+
+                                // using (var tw = new StreamWriter(outputFilePathNew))
+                                // {
+                                // int counter = 0;
+                                // foreach (var f in parameters)
+                                // {
+                                //     tw.WriteLine("{0:0.0000}", f);
+                                //     counter++;
+                                //     if ((counter - 1) % 7 == 0) tw.WriteLine();
+                                // }
+                                // }
+
+                                var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1} - ", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
+                            }
+                        }
+                    }
+
+                    // check if NI Kontakt 5
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
+                    {
+                        var kontaktPreset = new NIKontakt5(fxp);
+
+                        string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
+                        kontaktPreset.Write(kontaktOutputFilePath);
+
+                        // and dump the tex info as well
+                        string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
+                        File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
+                    }
+                }
+                catch (System.Exception)
+                {
+                    Log.Warning("No FXP content found.");
+                }
+            }
+            else
+            {
+                if (vstPreset.Parameters.Count > 0)
+                {
+                    // FabFilterProQ stores the parameters as floats not chunk
+                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                    {
+                        var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                        var preset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
+                        HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, fileNameNoExtensionPart);
+                    }
+
+                    // FabFilterProQ2 stores the parameters as floats not chunk
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                    {
+                        var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
+                        var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                        HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtensionPart);
+                    }
+
+                    // Save the preset parameters
+                    else
+                    {
+                        string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
+                        File.WriteAllText(outputFilePath, vstPreset.ToString());
+                    }
+                }
+            }
+
+            // read next field, we expect editController
+            var editControllerLen = binaryFile.ReadInt32();
+            var editControllerField = binaryFile.ReadString(editControllerLen, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "editController", editControllerField)) return false;
+
+            return true;
         }
 
         private static bool IsWrongField(BinaryFile binaryFile, string expectedValue, string foundValue)
@@ -780,7 +816,7 @@ namespace AbletonLiveConverter
 
         private static void HandleFabfilterPresetFile(FabfilterProQ preset, string pluginName, string outputDirectoryPath, string outputFileName)
         {
-            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
+            string fileNameNoExtension = string.Format("{0}{1}", outputFileName, pluginName);
             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
             File.WriteAllText(outputFilePath, preset.ToString());
 
@@ -801,7 +837,7 @@ namespace AbletonLiveConverter
 
         private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string outputFileName)
         {
-            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
+            string fileNameNoExtension = string.Format("{0}{1}", outputFileName, pluginName);
             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
             File.WriteAllText(outputFilePath, preset.ToString());
 

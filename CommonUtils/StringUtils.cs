@@ -134,7 +134,8 @@ namespace CommonUtils
         /// </summary>
         /// <param name="byteData">byte array</param>
         /// <param name="invert">whether to invert the byte array</param>
-        /// <returns>string</returns>
+        /// <param name="maxNumberOfLines">max number of lines to output (defaults to 20)</param>
+        /// <returns>a hex editor string</returns>
         public static string ToHexEditorString(byte[] byteData, bool invert = false, int maxNumberOfLines = 20)
         {
             // output like a hex editor

@@ -29,14 +29,14 @@ namespace CommonUtils
         /// int index = allBytes.Length - reverseIndex - 4; // length of List is 4	
         /// Log.Debug("File length: {0}, 'List' found at index: {1}", allBytes.Length, index);
         /// </example>
-        public static int IndexOf(this byte[] byteArray, byte[] bytePattern, int startIndex, int count)
+        public static int IndexOf(this byte[] byteArray, byte[] bytePattern, int startIndex = -1, int count = -1)
         {
             if (byteArray == null || byteArray.Length == 0 || bytePattern == null || bytePattern.Length == 0 || count == 0)
             {
                 return -1;
             }
 
-            int i = startIndex;
+            int i = startIndex > 0 ? startIndex : 0;
             int endIndex = count > 0 ? Math.Min(startIndex + count, byteArray.Length) : byteArray.Length;
             int foundIndex = 0;
             int lastFoundIndex = 0;
@@ -64,6 +64,8 @@ namespace CommonUtils
         /// </summary>
         /// <param name="byteArray">byte array</param>
         /// <param name="bytePattern">byte array pattern</param>
+        /// <param name="startIndex">optional start index within the byte array</param>
+        /// <param name="maxEndIndex">optional end index within the byte array</param>
         /// <returns>positions</returns>
         /// <example>
         /// foreach (int i in FindAll(byteArray, bytePattern))
@@ -71,18 +73,20 @@ namespace CommonUtils
         ///    Console.WriteLine(i);
         /// }
         /// </example>
-        public static IEnumerable<int> FindAll(this byte[] byteArray, byte[] bytePattern, int maxEndIndex = -1)
+        public static IEnumerable<int> FindAll(this byte[] byteArray, byte[] bytePattern, int startIndex = -1, int maxEndIndex = -1)
         {
-            if (maxEndIndex < 0) maxEndIndex = byteArray.Length;
+            startIndex = startIndex > 0 ? startIndex : 0;
+            maxEndIndex = maxEndIndex > 0 ? maxEndIndex : byteArray.Length;
 
-            for (int startIndex = 0; startIndex < maxEndIndex - bytePattern.Length;)
+            for (int startSearchIndex = startIndex; startSearchIndex < maxEndIndex - bytePattern.Length;)
             {
-                int i = IndexOf(byteArray, bytePattern, startIndex, maxEndIndex);
+                int count = maxEndIndex - startSearchIndex;
+                int i = IndexOf(byteArray, bytePattern, startSearchIndex, count);
 
                 if (i < 0) break;
                 yield return i;
 
-                startIndex = i + 1;
+                startSearchIndex = i + 1;
             }
         }
 
@@ -92,6 +96,7 @@ namespace CommonUtils
         /// <param name="binaryFile">binaryFile</param>
         /// <param name="pattern">byte pattern to find</param>
         /// <param name="offset">offset to seek to (if > 0)</param>
+        /// <param name="maxEndIndex">optional end index within the BinaryFile</param>
         /// <returns>index where found (BinaryFile position will be at this index)</returns>
         public static int IndexOf(this BinaryFile binaryFile, byte[] pattern, int offset, int maxEndIndex = -1)
         {
