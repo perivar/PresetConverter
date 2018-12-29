@@ -516,7 +516,7 @@ namespace AbletonLiveConverter
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
                         kontaktPreset.Write(kontaktOutputFilePath);
 
-                        // and dump the tex info as well
+                        // and dump the text info as well
                         string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
                         File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
                     }
