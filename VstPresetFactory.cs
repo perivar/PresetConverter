@@ -14,7 +14,14 @@ namespace PresetConverter
     /// </summary>
     public class VstPresetFactory
     {
-        public static VstPreset GetVstPreset(string guid, byte[] presetBytes)
+        /// <summary>
+        /// Initialize a VstPreset using a byte array and guid
+        /// </summary>
+        /// <param name="presetBytes">preset bytes</param>
+        /// <param name="guid">plugin guid</param>
+        /// <param name="pluginName">optional plugin name (only used for error messages)</param>
+        /// <returns>a VstPreset object</returns>
+        public static VstPreset GetVstPreset(byte[] presetBytes, string guid, string pluginName = null)
         {
             VstPreset preset = null;
             switch (guid)
@@ -47,7 +54,7 @@ namespace PresetConverter
             }
             catch (System.Exception e)
             {
-                Log.Error("Failed initializing VstPreset with guid: {0}. (Hex dump: {1}) {2}", guid, StringUtils.ToHexEditorString(presetBytes), e.Message);
+                Log.Error("Failed initializing VstPreset using guid: {0}{1}. (Hex dump: {2}) {3}", guid, pluginName != null ? " and name " + pluginName : "", StringUtils.ToHexEditorString(presetBytes), e.Message);
             }
 
             return preset;

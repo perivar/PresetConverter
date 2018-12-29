@@ -231,116 +231,102 @@ namespace AbletonLiveConverter
 
             // search for 'VST Multitrack'
             var vstMultitrackBytePattern = Encoding.ASCII.GetBytes("VST Multitrack\0");
-            var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
+            var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern).ToList();
 
             // since we are processing each entry based on the previous
             // we will not process the last index without adding an extra element
-            // to the list, namely the index of the very last byte
-            if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices = vstMultitrackIndices.ToArray().Append(chunkBytes.Length - 1);
+            // to the list, namely the index of the very last byte in the chunk byte array
+            if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices.Add(chunkBytes.Length - 1);
 
-            int trackNumber = 1;
-            bool first = true;
-            int prevIndex = 0;
             var binaryFile = riffReader.BinaryFile;
-            foreach (int curIndex in vstMultitrackIndices)
+            for (int i = 0, trackNumber = 1; i < vstMultitrackIndices.Count() - 1; i++, trackNumber++)
             {
-                if (first)
+                // the current and next index as within the chunk byte array
+                int curChunkCopyIndex = vstMultitrackIndices.ElementAt(i);
+                int nextChunkCopyIndex = vstMultitrackIndices.ElementAt(i + 1);
+
+                // fix the index when using binaryFile which is the actual byte position
+                // and not the positions within the byte array chunk copy
+                // by adding the chunk start position
+                int vstMultitrackCurrentIndex = (int)chunk.StartPosition + curChunkCopyIndex;
+                int vstMultitrackNextIndex = (int)chunk.StartPosition + nextChunkCopyIndex;
+                Log.Information("Found VST Multitrack at index: {0}", vstMultitrackCurrentIndex);
+                binaryFile.Seek(vstMultitrackCurrentIndex);
+
+                // 'VST Multitrack' field
+                var vstMultitrackField = binaryFile.ReadString(vstMultitrackBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
+                var v1 = binaryFile.ReadInt32();
+                var v2 = binaryFile.ReadInt32();
+                var v3 = binaryFile.ReadInt32();
+
+                // 'RuntimeID' field
+                var runtimeIDLen = binaryFile.ReadInt32();
+                var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField)) continue;
+                var b1 = binaryFile.ReadBytes(10);
+
+                // 'Name' field
+                var nameLen = binaryFile.ReadInt32();
+                var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField(binaryFile, "Name", nameField)) continue;
+                var v4 = binaryFile.ReadInt16();
+                var v5 = binaryFile.ReadInt16();
+                var v6 = binaryFile.ReadInt32();
+
+                // 'String' field
+                var stringLen = binaryFile.ReadInt32();
+                var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField(binaryFile, "String", stringField)) continue;
+                var v7 = binaryFile.ReadInt16();
+
+                // Track Name (for channels supporting audio insert plugins)
+                var trackNameLen = binaryFile.ReadInt32();
+                var trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
+                trackName = StringUtils.RemoveByteOrderMark(trackName);
+                Log.Information("Processing track name: {0}", trackName);
+
+                // reset the output filename
+                string outputFileName = Path.GetFileNameWithoutExtension(file);
+                outputFileName = string.Format("{0}_{1:D3}_{2}", outputFileName, trackNumber, trackName);
+                outputFileName = StringUtils.MakeValidFileName(outputFileName);
+
+                // 'Type'
+                var typeLen = binaryFile.ReadInt32();
+                var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
+                if (IsWrongField(binaryFile, "Type", typeField)) continue;
+
+                // skip to the next 'VstCtrlInternalEffect' field            
+                var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
+
+                // since we are using the chunk byte pattern we can use the 
+                // current and next index as is (without the start position) in the find method
+                var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern, curChunkCopyIndex, nextChunkCopyIndex);
+                int vstEffectIndex = -1;
+                foreach (var vstEffectChunkCopyIndex in vstEffectIndices)
                 {
-                    first = false;
+                    // fix the index when using binaryFile which is the actual byte position
+                    // and not the positions within the byte array chunk copy
+                    // by adding the chunk start position
+                    vstEffectIndex = (int)chunk.StartPosition + vstEffectChunkCopyIndex;
+                    Log.Information("Found VST Insert Effect at index: {0}", vstEffectIndex);
+                    binaryFile.Seek(vstEffectIndex);
+
+                    if (!HandleCubaseVstInsertEffect(binaryFile, vstEffectBytePattern, vstEffectIndex,
+                        vstMultitrackCurrentIndex, vstMultitrackNextIndex,
+                        outputDirectoryPath, outputFileName
+                    )) continue;
                 }
-                else
+                if (vstEffectIndex < 0)
                 {
-                    int vstMultitrackIndex = (int)chunk.StartPosition + prevIndex;
-                    Log.Information("Found VST Multitrack at index: {0}", vstMultitrackIndex);
-                    binaryFile.Seek(vstMultitrackIndex);
-
-                    // 'VST Multitrack' field
-                    var vstMultitrackField = binaryFile.ReadString(vstMultitrackBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
-                    var v1 = binaryFile.ReadInt32();
-                    var v2 = binaryFile.ReadInt32();
-                    var v3 = binaryFile.ReadInt32();
-
-                    // 'RuntimeID' field
-                    var runtimeIDLen = binaryFile.ReadInt32();
-                    var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField))
-                    {
-                        prevIndex = curIndex;
-                        continue;
-                    }
-                    var b1 = binaryFile.ReadBytes(10);
-
-                    // 'Name' field
-                    var nameLen = binaryFile.ReadInt32();
-                    var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Name", nameField))
-                    {
-                        prevIndex = curIndex;
-                        continue;
-                    }
-                    var v4 = binaryFile.ReadInt16();
-                    var v5 = binaryFile.ReadInt16();
-                    var v6 = binaryFile.ReadInt32();
-
-                    // 'String' field
-                    var stringLen = binaryFile.ReadInt32();
-                    var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "String", stringField))
-                    {
-                        prevIndex = curIndex;
-                        continue;
-                    }
-                    var v7 = binaryFile.ReadInt16();
-
-                    // Track Name (for channels supporting audio insert plugins)
-                    var trackNameLen = binaryFile.ReadInt32();
-                    var trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
-                    trackName = StringUtils.RemoveByteOrderMark(trackName);
-                    Log.Information("Processing track name: {0}", trackName);
-
-                    // reset the output filename
-                    string outputFileName = Path.GetFileNameWithoutExtension(file);
-                    outputFileName = string.Format("{0} - {1:D3} - {2}", outputFileName, trackNumber, trackName);
-                    outputFileName = StringUtils.MakeValidFileName(outputFileName);
-                    trackNumber++;
-
-                    // 'Type'
-                    var typeLen = binaryFile.ReadInt32();
-                    var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Type", typeField))
-                    {
-                        prevIndex = curIndex;
-                        continue;
-                    }
-
-                    // skip to the next 'VstCtrlInternalEffect' field            
-                    var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
-                    var vstEffectIndices = chunkBytes.FindAll(vstEffectBytePattern, prevIndex, curIndex);
-                    int vstEffectIndex = -1;
-                    foreach (var vstEffectIndexTmp in vstEffectIndices)
-                    {
-                        vstEffectIndex = (int)chunk.StartPosition + vstEffectIndexTmp;
-                        Log.Information("Found VST Insert Effect at index: {0}", vstEffectIndex);
-                        binaryFile.Seek(vstEffectIndex);
-
-                        if (!HandleCubaseVstInsertEffect(binaryFile, vstEffectBytePattern, vstEffectIndex,
-                            (int)chunk.StartPosition + prevIndex, (int)chunk.StartPosition + curIndex,
-                            outputDirectoryPath, outputFileName
-                        )) continue;
-                    }
-                    if (vstEffectIndex < 0)
-                    {
-                        Log.Warning("Could not find any insert effects ('VstCtrlInternalEffect')");
-                    }
+                    Log.Warning("Could not find any insert effects ('VstCtrlInternalEffect')");
                 }
-                prevIndex = curIndex;
             }
         }
 
         private static bool HandleCubaseVstInsertEffect(
             BinaryFile binaryFile,
             byte[] vstEffectBytePattern, int vstEffectIndex,
-            int prevVstMultitrackIndex, int curVstMultitrackIndex,
+            int vstMultitrackCurrentIndex, int vstMultitrackNextIndex,
             string outputDirectoryPath, string outputFileName
             )
         {
@@ -348,6 +334,7 @@ namespace AbletonLiveConverter
 
             var pluginFieldLen = binaryFile.ReadInt32();
             var pluginFieldField = binaryFile.ReadString(pluginFieldLen, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "Plugin", pluginFieldField)) return false;
             var t1 = binaryFile.ReadInt16();
             var t2 = binaryFile.ReadInt16();
             var t3 = binaryFile.ReadInt32();
@@ -370,7 +357,7 @@ namespace AbletonLiveConverter
             var guidLen = binaryFile.ReadInt32();
             var guid = binaryFile.ReadString(guidLen, Encoding.UTF8);
             guid = StringUtils.RemoveByteOrderMark(guid);
-            Log.Debug("GUID: {0}", guid);
+            Log.Information("GUID: {0}", guid);
 
             // 'Plugin Name' field
             var pluginNameFieldLen = binaryFile.ReadInt32();
@@ -400,7 +387,7 @@ namespace AbletonLiveConverter
 
             // skip to 'audioComponent'
             var audioComponentPattern = Encoding.ASCII.GetBytes("audioComponent\0");
-            int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0, curVstMultitrackIndex);
+            int audioComponentIndex = binaryFile.IndexOf(audioComponentPattern, 0, vstMultitrackNextIndex);
             if (audioComponentIndex < 0)
             {
                 Log.Warning("Could not find the preset content ('audioComponent')");
@@ -432,9 +419,9 @@ namespace AbletonLiveConverter
             var presetByteLen = binaryFile.ReadInt32();
             Log.Debug("Reading preset bytes: {0}", presetByteLen);
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
-            var vstPreset = VstPresetFactory.GetVstPreset(guid, presetBytes);
+            var vstPreset = VstPresetFactory.GetVstPreset(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
 
-            string fileNameNoExtensionPart = string.Format("{0} - {1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ");
+            string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "_" : "_" + origPluginName + "_");
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
             string fileNameNoExtension = string.Format("{0}{1}", fileNameNoExtensionPart, pluginName);
             fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
@@ -473,7 +460,7 @@ namespace AbletonLiveConverter
                                 // }
 
                                 var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1} - ", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                             }
                         }
@@ -501,7 +488,7 @@ namespace AbletonLiveConverter
                                 // }
 
                                 var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1} - ", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
                             }
                         }
