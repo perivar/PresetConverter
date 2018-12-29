@@ -375,7 +375,7 @@ namespace PresetConverter
         {
             // Check file for existence
             if (!File.Exists(fileName))
-                throw new Exception("File Not Found: " + fileName);
+                throw new FileNotFoundException("File Not Found: " + fileName);
 
             // Read the file
             using (BinaryFile bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false, Encoding.ASCII))
@@ -384,14 +384,14 @@ namespace PresetConverter
                 UInt32 fileSize = (UInt32)bf.Length;
                 if (fileSize < 64)
                 {
-                    throw new Exception("Invalid file size: " + fileSize.ToString());
+                    throw new FormatException("Invalid file size: " + fileSize.ToString());
                 }
 
                 // Read file header
                 string fileChunkID = bf.ReadString(4);
                 if (fileChunkID != "VST3")
                 {
-                    throw new Exception("Invalid file type: " + fileChunkID);
+                    throw new FormatException("Invalid file type: " + fileChunkID);
                 }
 
                 // Read version
@@ -487,7 +487,7 @@ namespace PresetConverter
             {
                 // Check file size:
                 if (fileSize != ((long)this.ListPos + (bf.Position - 4)))
-                    throw new Exception("Invalid file size: " + fileSize);
+                    throw new FormatException("Invalid file size: " + fileSize);
 
                 // This is most likely a single preset:
                 singlePreset = true;
@@ -510,7 +510,7 @@ namespace PresetConverter
                 {
                     if ((fileSize != ((long)this.ListPos + bf.Position + 4))
                     && (fileSize != ((long)this.ListPos + bf.Position - 16)))
-                        throw new Exception("Invalid file size: " + fileSize);
+                        throw new FormatException("Invalid file size: " + fileSize);
                 }
 
                 // This is most likely a preset bank:
@@ -823,7 +823,7 @@ namespace PresetConverter
                 }
                 else
                 {
-                    throw new Exception("Data does not contain any known formats or FXB or FXP data (1)");
+                    throw new FormatException("Data does not contain any known formats or FXB or FXP data (1)");
                 }
             }
 
@@ -832,7 +832,7 @@ namespace PresetConverter
             string dataChunkStart = bf.ReadString(4);
             if (dataChunkStart != "CcnK")
             {
-                throw new Exception("Data does not contain any known formats or FXB or FXP data (2) (DataChunkStart: " + dataChunkStart + ")");
+                throw new FormatException("Data does not contain any known formats or FXB or FXP data (2) (DataChunkStart: " + dataChunkStart + ")");
             }
 
             // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
@@ -842,7 +842,7 @@ namespace PresetConverter
             {
                 if ((bf.Position + chunkSize) >= fileSize)
                 {
-                    throw new Exception("Invalid chunk size: " + chunkSize);
+                    throw new FormatException("Invalid chunk size: " + chunkSize);
                 }
             }
 
@@ -855,7 +855,7 @@ namespace PresetConverter
                 // Check consistency with the header:
                 if (singlePreset == false)
                 {
-                    throw new Exception("Header indicates a bank file but data seems to be a preset file (" + magicChunkID + ")");
+                    throw new FormatException("Header indicates a bank file but data seems to be a preset file (" + magicChunkID + ")");
                 }
             }
 
@@ -865,14 +865,14 @@ namespace PresetConverter
                 // Check consistency with the header:
                 if (singlePreset == true)
                 {
-                    throw new Exception("Header indicates a preset file but data seems to be a bank file (" + magicChunkID + ")");
+                    throw new FormatException("Header indicates a preset file but data seems to be a bank file (" + magicChunkID + ")");
                 }
             }
 
             // And now for something completely different:
             else
             {
-                throw new Exception("Data does not contain any known formats or FXB or FXP data (3)");
+                throw new FormatException("Data does not contain any known formats or FXB or FXP data (3)");
             }
 
             // Read the source data:

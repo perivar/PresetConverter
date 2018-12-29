@@ -234,9 +234,9 @@ namespace AbletonLiveConverter
             var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern);
 
             // since we are processing each entry based on the previous
-            // we will not process the last index without adding an element
-            // to the list
-            if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices.ToArray().Append(vstMultitrackIndices.Last());
+            // we will not process the last index without adding an extra element
+            // to the list, namely the index of the very last byte
+            if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices = vstMultitrackIndices.ToArray().Append(chunkBytes.Length - 1);
 
             int trackNumber = 1;
             bool first = true;
@@ -520,9 +520,9 @@ namespace AbletonLiveConverter
                         File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
                     }
                 }
-                catch (System.Exception)
+                catch (System.Exception e)
                 {
-                    Log.Warning("No FXP content found.");
+                    Log.Warning("No FXP content found.", e);
                 }
             }
             else
