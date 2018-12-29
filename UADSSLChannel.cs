@@ -203,8 +203,8 @@ namespace PresetConverter
 
         private void InitChunkData()
         {
-            FXP fxp = GenerateFXP(true);
-            SetChunkData(fxp);
+            this.FXP = GenerateFXP(true);
+            SetChunkData(this.FXP);
         }
 
         public bool ReadFXP(string filePath)

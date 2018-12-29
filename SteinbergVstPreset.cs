@@ -70,7 +70,7 @@ namespace PresetConverter
                 }
             }
 
-            this.SetChunkData(memStream.ToArray());
+            this.ChunkData = memStream.ToArray();
         }
     }
 }

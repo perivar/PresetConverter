@@ -171,7 +171,6 @@ namespace PresetConverter
                         shortenedString = GetShortenedString(StringValue);
                         return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
                     case ParameterType.Bytes:
-                        // shortenedString = GetShortenedString(ByteValue);
                         shortenedString = StringUtils.ToHexEditorString(ByteValue);
                         return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
                     default:
@@ -196,6 +195,8 @@ namespace PresetConverter
         public long ContDataChunkSize; // byte length of parameter data (Cont)
         public long InfoXmlStartPos; // info xml section start position (Info)
         public long InfoXmlChunkSize; // info xml section length in bytes including BOM (Info)
+
+        private FXP fxp;
 
         /// <summary>
         /// Gets the zero-based position where the chunk data ends (Comp).
@@ -231,6 +232,12 @@ namespace PresetConverter
             Read(fileName);
         }
 
+        public VstPreset(FXP fxp)
+        {
+            this.FXP = fxp;
+            SetChunkData(this.FXP);
+        }
+
         #region Parameter methods
         public void AddParameter(string name, int number, double value)
         {
@@ -249,8 +256,7 @@ namespace PresetConverter
 
         public double GetNumberParameter(string key)
         {
-            if (Parameters.ContainsKey(key)
-            && Parameters[key].NumberValue != null)
+            if (Parameters.ContainsKey(key))
             {
                 return Parameters[key].NumberValue;
             }
@@ -286,38 +292,34 @@ namespace PresetConverter
             }
         }
 
-        public bool HasChunkData()
-        {
-            string key = "ChunkData";
-            if (Parameters.ContainsKey(key)
-            && Parameters[key].ByteValue != null)
-            {
-                return true;
-            }
-            return false;
-        }
-
         /// <summary>
-        /// Store the chunk data
+        /// Get or Set the Chunk Data byte array
         /// </summary>
-        /// <param name="chunkData"></param>
-        public void SetChunkData(byte[] chunkData)
+        /// <value>byte array</value>
+        public byte[] ChunkData
         {
-            if (!HasChunkData())
+            get
             {
-                AddParameter("ChunkData", 0, chunkData);
+                return GetByteParameter("ChunkData");
             }
-            else
+            set
             {
-                // parameter already exist
-                // warn and overwrite
-                Log.Warning(string.Format("{0} bytes of chunk data already exist! Overwriting with new content of {1} bytes ...", GetChunkData().Length, chunkData.Length));
-                Parameters["ChunkData"].ByteValue = chunkData;
+                if (!HasChunkData)
+                {
+                    AddParameter("ChunkData", 0, value);
+                }
+                else
+                {
+                    // parameter already exist
+                    // warn and overwrite
+                    Log.Warning(string.Format("{0} bytes of chunk data already exist! Overwriting with new content of {1} bytes ...", ChunkData.Length, value.Length));
+                    Parameters["ChunkData"].ByteValue = value;
+                }
             }
         }
 
         /// <summary>
-        /// Store the chunk data and wrap in a VstW container   
+        /// Additional way of setting chunk data using an FXP and wrap the data in a VstW container   
         /// </summary>
         /// <param name="fxp">fxp content</param>
         public void SetChunkData(FXP fxp)
@@ -343,14 +345,43 @@ namespace PresetConverter
 
                     fxp.Write(bf);
                 }
-                this.SetChunkData(memStream.ToArray());
+                this.ChunkData = memStream.ToArray();
             }
         }
 
-        public byte[] GetChunkData()
+        public bool HasChunkData
         {
-            return GetByteParameter("ChunkData");
+            get
+            {
+                string key = "ChunkData";
+                if (Parameters.ContainsKey(key)
+                && Parameters[key].ByteValue != null)
+                {
+                    return true;
+                }
+                return false;
+            }
         }
+
+        public bool HasFXP
+        {
+            get
+            {
+                return this.fxp != null;
+            }
+        }
+
+        public FXP FXP
+        {
+            get { return this.fxp; }
+            set { this.fxp = value; }
+        }
+
+        public void SetFXP(byte[] presetBytes)
+        {
+            FXP = new FXP(presetBytes);
+        }
+
         #endregion
 
         public bool Read(string filePath)
@@ -610,7 +641,7 @@ namespace PresetConverter
                     bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    SetChunkData(bf.ReadBytes((int)this.CompDataChunkSize));
+                    this.ChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
 
                     // try to read the info xml 
                     TryReadInfoXml(bf);
@@ -879,7 +910,10 @@ namespace PresetConverter
             bf.Position = chunkStart;
 
             // read until all bytes have been read
-            SetChunkData(bf.ReadBytes((int)chunkSize));
+            this.ChunkData = bf.ReadBytes((int)chunkSize);
+
+            // see if if the chunk data is FXP
+            this.FXP = new FXP(ChunkData);
 
             // try to read the info xml 
             TryReadInfoXml(bf);
@@ -984,9 +1018,9 @@ namespace PresetConverter
                 bf.Write(this.ListPos);
 
                 // Write binary content
-                if (HasChunkData())
+                if (HasChunkData)
                 {
-                    bf.Write(GetChunkData());
+                    bf.Write(ChunkData);
                 }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -1027,9 +1061,9 @@ namespace PresetConverter
         {
             this.CompDataStartPos = 48; // parameter data start position
             this.CompDataChunkSize = 0;
-            if (HasChunkData())
+            if (HasChunkData)
             {
-                this.CompDataChunkSize = GetChunkData().Length; // byte length of parameter data 
+                this.CompDataChunkSize = ChunkData.Length; // byte length of parameter data 
             }
             this.ContDataStartPos = this.CompDataStartPos + this.CompDataChunkSize;
             this.ContDataChunkSize = 0;
@@ -1114,12 +1148,13 @@ namespace PresetConverter
 
         private static string GetShortenedString(string stringValue)
         {
-            return string.Format("'{0}' ...", string.Join(string.Empty, stringValue.Take(100)));
+            // return string.Format("'{0}' ...", string.Join(string.Empty, stringValue.Take(200)));
+            return stringValue.Truncate(200, " ...");
         }
 
         private static string GetShortenedString(byte[] byteValue)
         {
-            return string.Format("'{0}' ...", Encoding.ASCII.GetString(byteValue.Take(100).ToArray()).Replace('\0', ' '));
+            return string.Format("'{0}' ...", Encoding.ASCII.GetString(byteValue.Take(200).ToArray()).Replace('\0', ' '));
         }
 
         /// <summary>

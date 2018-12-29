@@ -22,7 +22,7 @@ namespace PresetConverter
             InitStartBytes(2304);
             InitParameters();
         }
-
+        
         private void InitParameters()
         {
             InitNumberParameter("threshold", 0, -20.00);

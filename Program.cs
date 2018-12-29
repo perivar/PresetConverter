@@ -426,91 +426,83 @@ namespace AbletonLiveConverter
             string fileNameNoExtension = string.Format("{0}{1}", fileNameNoExtensionPart, pluginName);
             fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
 
-            if (vstPreset.HasChunkData())
+            if (vstPreset.HasFXP)
             {
-                try
+                var fxp = vstPreset.FXP;
+
+                // write fxp content to file
+                string fxpOutputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
+                fxp.Write(fxpOutputFilePath);
+
+                // check if FabFilterProQ2 
+                if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                 {
-                    // see if if the chunk data is FXP
-                    var fxp = new FXP(vstPreset.GetChunkData());
-
-                    string fxpOutputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
-                    fxp.Write(fxpOutputFilePath);
-
-                    // check if FabFilterProQ2 
-                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                    if (fxp.Content is FXP.FxSet)
                     {
-                        if (fxp.Content is FXP.FxSet)
+                        var set = (FXP.FxSet)fxp.Content;
+
+                        for (int i = 0; i < set.NumPrograms; i++)
                         {
-                            var set = (FXP.FxSet)fxp.Content;
+                            var program = set.Programs[i];
+                            var parameters = program.Parameters;
 
-                            for (int i = 0; i < set.NumPrograms; i++)
-                            {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
+                            // using (var tw = new StreamWriter(outputFilePathNew))
+                            // {
+                            // int counter = 0;
+                            // foreach (var f in parameters)
+                            // {
+                            //     tw.WriteLine("{0:0.0000}", f);
+                            //     counter++;
+                            //     if (counter % 7 == 0) tw.WriteLine();
+                            // }
+                            // }
 
-                                // using (var tw = new StreamWriter(outputFilePathNew))
-                                // {
-                                // int counter = 0;
-                                // foreach (var f in parameters)
-                                // {
-                                //     tw.WriteLine("{0:0.0000}", f);
-                                //     counter++;
-                                //     if (counter % 7 == 0) tw.WriteLine();
-                                // }
-                                // }
-
-                                var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
-                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
-                            }
+                            var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                            HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                         }
-                    }
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
-                    {
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            for (int i = 0; i < set.NumPrograms; i++)
-                            {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
-
-                                // using (var tw = new StreamWriter(outputFilePathNew))
-                                // {
-                                // int counter = 0;
-                                // foreach (var f in parameters)
-                                // {
-                                //     tw.WriteLine("{0:0.0000}", f);
-                                //     counter++;
-                                //     if ((counter - 1) % 7 == 0) tw.WriteLine();
-                                // }
-                                // }
-
-                                var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
-                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
-                            }
-                        }
-                    }
-
-                    // check if NI Kontakt 5
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
-                    {
-                        var kontaktPreset = new NIKontakt5(fxp);
-
-                        string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
-                        kontaktPreset.Write(kontaktOutputFilePath);
-
-                        // and dump the text info as well
-                        string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
-                        File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
                     }
                 }
-                catch (System.Exception e)
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                 {
-                    Log.Warning("No FXP content found.", e);
+                    if (fxp.Content is FXP.FxSet)
+                    {
+                        var set = (FXP.FxSet)fxp.Content;
+
+                        for (int i = 0; i < set.NumPrograms; i++)
+                        {
+                            var program = set.Programs[i];
+                            var parameters = program.Parameters;
+
+                            // using (var tw = new StreamWriter(outputFilePathNew))
+                            // {
+                            // int counter = 0;
+                            // foreach (var f in parameters)
+                            // {
+                            //     tw.WriteLine("{0:0.0000}", f);
+                            //     counter++;
+                            //     if ((counter - 1) % 7 == 0) tw.WriteLine();
+                            // }
+                            // }
+
+                            var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                            HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
+                        }
+                    }
+                }
+
+                // check if NI Kontakt 5
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
+                {
+                    // save the kontakt presets as .vstpreset files
+                    string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
+                    vstPreset.Write(kontaktOutputFilePath);
+
+                    // and dump the text info as well
+                    string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
+                    File.WriteAllText(kontaktOutputFilePathText, vstPreset.ToString());
                 }
             }
             else
@@ -561,12 +553,12 @@ namespace AbletonLiveConverter
         }
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
-            var vstPreset = new SteinbergVstPreset(file);
+            var vstPreset = VstPresetFactory.GetVstPreset(file);
             string fileNameNoExtension = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
 
             // if not using chunk-data but parameters instead
-            if (vstPreset.Parameters.Count > 0 && !vstPreset.HasChunkData())
+            if (vstPreset.Parameters.Count > 0 && !vstPreset.HasFXP)
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
                 {
@@ -601,90 +593,15 @@ namespace AbletonLiveConverter
                 }
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.SteinbergREVerence))
                 {
-                    var reverence = new SteinbergREVerence();
+                    // just save the vstpreset to compare with the original
+                    var reverence = vstPreset as SteinbergREVerence;
 
-                    // copy parameters to the new preset
-                    if (vstPreset.Parameters.ContainsKey("wave-file-path-1")) reverence.WavFilePath1 = vstPreset.Parameters["wave-file-path-1"].StringValue;
-                    if (vstPreset.Parameters.ContainsKey("wave-file-path-2")) reverence.WavFilePath2 = vstPreset.Parameters["wave-file-path-2"].StringValue;
-                    if (vstPreset.Parameters.ContainsKey("wave-file-name")) reverence.WavFileName = vstPreset.Parameters["wave-file-name"].StringValue;
-
-                    // and copy the images
-                    for (int i = 0; i < 10; i++)
-                    {
-                        string key = string.Format("image-file-name-{0}", (i + 1));
-                        if (vstPreset.Parameters.ContainsKey(key))
-                        {
-                            reverence.Images.Add(vstPreset.Parameters[key].StringValue);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    // set parameters
-                    reverence.Parameters["mix"].NumberValue = vstPreset.Parameters["mix"].NumberValue;
-                    reverence.Parameters["predelay"].NumberValue = vstPreset.Parameters["predelay"].NumberValue;
-                    reverence.Parameters["time"].NumberValue = vstPreset.Parameters["time"].NumberValue;
-                    reverence.Parameters["size"].NumberValue = vstPreset.Parameters["size"].NumberValue;
-                    reverence.Parameters["level"].NumberValue = vstPreset.Parameters["level"].NumberValue;
-                    reverence.Parameters["ertailsplit"].NumberValue = vstPreset.Parameters["ertailsplit"].NumberValue;
-                    reverence.Parameters["ertailmix"].NumberValue = vstPreset.Parameters["ertailmix"].NumberValue;
-                    reverence.Parameters["reverse"].NumberValue = vstPreset.Parameters["reverse"].NumberValue;
-                    reverence.Parameters["trim"].NumberValue = vstPreset.Parameters["trim"].NumberValue;
-                    reverence.Parameters["autolevel"].NumberValue = vstPreset.Parameters["autolevel"].NumberValue;
-                    reverence.Parameters["trimstart"].NumberValue = vstPreset.Parameters["trimstart"].NumberValue;
-                    reverence.Parameters["trimend"].NumberValue = vstPreset.Parameters["trimend"].NumberValue;
-                    reverence.Parameters["eqon"].NumberValue = vstPreset.Parameters["eqon"].NumberValue;
-                    reverence.Parameters["lowfilterfreq"].NumberValue = vstPreset.Parameters["lowfilterfreq"].NumberValue;
-                    reverence.Parameters["lowfiltergain"].NumberValue = vstPreset.Parameters["lowfiltergain"].NumberValue;
-                    reverence.Parameters["peakfreq"].NumberValue = vstPreset.Parameters["peakfreq"].NumberValue;
-                    reverence.Parameters["peakgain"].NumberValue = vstPreset.Parameters["peakgain"].NumberValue;
-                    reverence.Parameters["highfilterfreq"].NumberValue = vstPreset.Parameters["highfilterfreq"].NumberValue;
-                    reverence.Parameters["highfiltergain"].NumberValue = vstPreset.Parameters["highfiltergain"].NumberValue;
-                    reverence.Parameters["lowfilteron"].NumberValue = vstPreset.Parameters["lowfilteron"].NumberValue;
-                    reverence.Parameters["peakon"].NumberValue = vstPreset.Parameters["peakon"].NumberValue;
-                    reverence.Parameters["highfilteron"].NumberValue = vstPreset.Parameters["highfilteron"].NumberValue;
-                    reverence.Parameters["output"].NumberValue = vstPreset.Parameters["output"].NumberValue;
-                    reverence.Parameters["predelayoffset"].NumberValue = vstPreset.Parameters["predelayoffset"].NumberValue;
-                    reverence.Parameters["timeoffset"].NumberValue = vstPreset.Parameters["timeoffset"].NumberValue;
-                    reverence.Parameters["sizeoffset"].NumberValue = vstPreset.Parameters["sizeoffset"].NumberValue;
-                    reverence.Parameters["leveloffset"].NumberValue = vstPreset.Parameters["leveloffset"].NumberValue;
-                    reverence.Parameters["ertailsplitoffset"].NumberValue = vstPreset.Parameters["ertailsplitoffset"].NumberValue;
-                    reverence.Parameters["ertailmixoffset"].NumberValue = vstPreset.Parameters["ertailmixoffset"].NumberValue;
-                    reverence.Parameters["store"].NumberValue = vstPreset.Parameters["store"].NumberValue;
-                    reverence.Parameters["erase"].NumberValue = vstPreset.Parameters["erase"].NumberValue;
-                    reverence.Parameters["autopresetnr"].NumberValue = vstPreset.Parameters["autopresetnr"].NumberValue;
-                    reverence.Parameters["channelselect"].NumberValue = vstPreset.Parameters["channelselect"].NumberValue;
-                    reverence.Parameters["transProgress"].NumberValue = vstPreset.Parameters["transProgress"].NumberValue;
-                    reverence.Parameters["impulseTrigger"].NumberValue = vstPreset.Parameters["impulseTrigger"].NumberValue;
-                    reverence.Parameters["bypass"].NumberValue = vstPreset.Parameters["bypass"].NumberValue;
-                    reverence.Parameters["allowFading"].NumberValue = vstPreset.Parameters["allowFading"].NumberValue;
-
-                    string outputFilePathNew = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + fileNameNoExtension);
+                    string reverenceOutputFilePath = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + fileNameNoExtension);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
+                    reverence.Write(reverenceOutputFilePath + ".vstpreset");
 
-                    reverence.Write(outputFilePathNew + ".vstpreset");
-
-                    using (var tw = new StreamWriter(outputFilePathNew + ".txt"))
-                    {
-                        foreach (var param in vstPreset.Parameters)
-                        {
-                            switch (param.Value.Type)
-                            {
-                                case VstPreset.Parameter.ParameterType.Number:
-                                    tw.WriteLine(string.Format("[{1}] {0} = {2:0.00}", param.Value.Name, param.Value.Number, param.Value.NumberValue));
-                                    break;
-                                case VstPreset.Parameter.ParameterType.String:
-                                    tw.WriteLine(string.Format("[{0}] = {1}", param.Value.Name, param.Value.StringValue));
-                                    break;
-                                case VstPreset.Parameter.ParameterType.Bytes:
-                                    var shortenedString = Encoding.ASCII.GetString(param.Value.ByteValue.Take(100).ToArray()).Replace('\0', ' ');
-                                    tw.WriteLine(string.Format("[{1}] {0} = {2}", param.Value.Name, param.Value.Number, shortenedString));
-                                    break;
-                            }
-                        }
-                    }
+                    // and dump the text info as well
+                    File.WriteAllText(reverenceOutputFilePath + ".txt", reverence.ToString());
                 }
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
@@ -710,12 +627,13 @@ namespace AbletonLiveConverter
             else
             {
                 // use chunk data
-                if (vstPreset.HasChunkData())
+                if (vstPreset.HasFXP)
                 {
+                    var fxp = vstPreset.FXP;
+
                     // check if FabFilterProQx64
                     if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                     {
-                        var fxp = new FXP(vstPreset.GetChunkData());
                         if (fxp.Content is FXP.FxSet)
                         {
                             var set = (FXP.FxSet)fxp.Content;
@@ -733,7 +651,6 @@ namespace AbletonLiveConverter
                     // check if FabFilterProQ2x64
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                     {
-                        var fxp = new FXP(vstPreset.GetChunkData());
                         if (fxp.Content is FXP.FxSet)
                         {
                             var set = (FXP.FxSet)fxp.Content;
@@ -752,18 +669,14 @@ namespace AbletonLiveConverter
                     // check if NI Kontakt 5
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                     {
-                        // test saving a kontakt preset using the fxp
-                        // and compare that they are equal to the originals
-                        var fxp = new FXP(vstPreset.GetChunkData());
-                        var kontaktPreset = new NIKontakt5(fxp);
-
+                        // save the kontakt presets as .vstpreset files
                         string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
-                        kontaktPreset.Write(kontaktOutputFilePath);
+                        vstPreset.Write(kontaktOutputFilePath);
 
                         // and dump the tex info as well
                         string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
-                        File.WriteAllText(kontaktOutputFilePathText, kontaktPreset.ToString());
+                        File.WriteAllText(kontaktOutputFilePathText, vstPreset.ToString());
                     }
 
                     // always output the information
@@ -771,6 +684,12 @@ namespace AbletonLiveConverter
                     {
                         File.WriteAllText(outputFilePath, vstPreset.ToString());
                     }
+                }
+
+                // always output the information
+                else
+                {
+                    File.WriteAllText(outputFilePath, vstPreset.ToString());
                 }
             }
         }

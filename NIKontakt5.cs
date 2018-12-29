@@ -17,8 +17,6 @@ namespace PresetConverter
     /// </summary>
     public class NIKontakt5 : VstPreset
     {
-        FXP FXP { get; set; }
-
         public NIKontakt5()
         {
             Vst3ID = VstIDs.NIKontakt5;
@@ -27,25 +25,12 @@ namespace PresetConverter
             PlugInVendor = "Native Instruments GmbH";
         }
 
-        public NIKontakt5(FXP fxp) : this()
-        {
-            FXP = fxp;
-        }
-
-        #region Read and Write Methods
         protected override bool PreparedForWriting()
         {
-            InitChunkData();
+            SetChunkData(this.FXP);
             InitMetaInfoXml();
             CalculateBytePositions();
             return true;
         }
-
-        private void InitChunkData()
-        {
-            SetChunkData(this.FXP);
-        }
-
-        #endregion
     }
 }

@@ -360,7 +360,7 @@ namespace PresetConverter
                 bf.Write(xmlPostContent);
             }
 
-            this.SetChunkData(memStream.ToArray());
+            this.ChunkData = memStream.ToArray();
         }
     }
 }

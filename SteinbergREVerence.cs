@@ -69,6 +69,27 @@ namespace PresetConverter
             InitNumberParameter("allowFading", 87, 0.00);
         }
 
+        public void InitPathsAndImagesFromParameters()
+        {
+            if (Parameters.ContainsKey("wave-file-path-1")) WavFilePath1 = Parameters["wave-file-path-1"].StringValue;
+            if (Parameters.ContainsKey("wave-file-path-2")) WavFilePath2 = Parameters["wave-file-path-2"].StringValue;
+            if (Parameters.ContainsKey("wave-file-name")) WavFileName = Parameters["wave-file-name"].StringValue;
+
+            // and copy the images
+            for (int i = 0; i < 10; i++)
+            {
+                string key = string.Format("image-file-name-{0}", (i + 1));
+                if (Parameters.ContainsKey(key))
+                {
+                    Images.Add(Parameters[key].StringValue);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
         public override void InitChunkData()
         {
             int wavCount = (WavFilePath1 != null && !"".Equals(WavFilePath1) ? 1 : 0);
@@ -145,7 +166,7 @@ namespace PresetConverter
                 }
             }
 
-            this.SetChunkData(memStream.ToArray());
+            this.ChunkData = memStream.ToArray();
         }
 
         private void WritePaddedUnicodeString(BinaryFile bf, string text, int totalCount)

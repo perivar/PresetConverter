@@ -744,6 +744,11 @@ namespace CommonUtils
             return ch >= 32 && ch < 127;
         }
 
+        /// <summary>
+        /// Create a MD5 string of the input string
+        /// </summary>
+        /// <param name="input">input string</param>
+        /// <returns>MD5 string</returns>
         public static string CreateMD5(string input)
         {
             // byte array representation of that string
@@ -762,6 +767,12 @@ namespace CommonUtils
             return encoded;
         }
 
+        /// <summary>
+        /// Remove the byte order mark from the passed string
+        /// The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF
+        /// </summary>
+        /// <param name="value">string that ends with a BOM</param>
+        /// <returns>the string without the BOM</returns>
         public static string RemoveByteOrderMark(string value)
         {
             if (value.EndsWith(BOMMarkUTF8))
@@ -771,5 +782,20 @@ namespace CommonUtils
             return value;
         }
 
+        /// <summary>
+        /// Get a substring of the first N characters.
+        /// </summary>
+        /// <param name="source">string</param>
+        /// <param name="length">number of characters to truncate at</param>
+        /// <param name="post">optional post string if truncating, i.e. " ..."</param>
+        /// <returns>a substring of the first N characters.</returns>
+        public static string Truncate(this string source, int length, string post = null)
+        {
+            if (source.Length > length)
+            {
+                source = string.Format("{0}{1}", source.Substring(0, length), post != null ? post : "");
+            }
+            return source;
+        }
     }
 }
