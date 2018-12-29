@@ -593,15 +593,12 @@ namespace AbletonLiveConverter
                 }
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.SteinbergREVerence))
                 {
-                    // just save the vstpreset to compare with the original
-                    var reverence = vstPreset as SteinbergREVerence;
-
                     string reverenceOutputFilePath = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + fileNameNoExtension);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
-                    reverence.Write(reverenceOutputFilePath + ".vstpreset");
+                    vstPreset.Write(reverenceOutputFilePath + ".vstpreset");
 
                     // and dump the text info as well
-                    File.WriteAllText(reverenceOutputFilePath + ".txt", reverence.ToString());
+                    File.WriteAllText(reverenceOutputFilePath + ".txt", vstPreset.ToString());
                 }
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)

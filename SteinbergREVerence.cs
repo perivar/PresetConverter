@@ -71,9 +71,33 @@ namespace PresetConverter
 
         public void InitPathsAndImagesFromParameters()
         {
-            if (Parameters.ContainsKey("wave-file-path-1")) WavFilePath1 = Parameters["wave-file-path-1"].StringValue;
-            if (Parameters.ContainsKey("wave-file-path-2")) WavFilePath2 = Parameters["wave-file-path-2"].StringValue;
-            if (Parameters.ContainsKey("wave-file-name")) WavFileName = Parameters["wave-file-name"].StringValue;
+            if (Parameters.ContainsKey("wave-file-path-1"))
+            {
+                WavFilePath1 = Parameters["wave-file-path-1"].StringValue;
+                Parameters.Remove("wave-file-path-1");
+            }
+            if (Parameters.ContainsKey("wave-file-path-2"))
+            {
+                WavFilePath2 = Parameters["wave-file-path-2"].StringValue;
+                Parameters.Remove("wave-file-path-2");
+            }
+            if (Parameters.ContainsKey("wave-file-name"))
+            {
+                WavFileName = Parameters["wave-file-name"].StringValue;
+                Parameters.Remove("wave-file-name");
+            }
+            if (Parameters.ContainsKey("wav-count"))
+            {
+                Parameters.Remove("wav-count");
+            }
+            if (Parameters.ContainsKey("image-count"))
+            {
+                Parameters.Remove("image-count");
+            }
+            if (Parameters.ContainsKey("parameter-count"))
+            {
+                Parameters.Remove("parameter-count");
+            }
 
             // and copy the images
             for (int i = 0; i < 10; i++)
@@ -82,6 +106,7 @@ namespace PresetConverter
                 if (Parameters.ContainsKey(key))
                 {
                     Images.Add(Parameters[key].StringValue);
+                    Parameters.Remove(key);
                 }
                 else
                 {
