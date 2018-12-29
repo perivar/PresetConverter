@@ -437,6 +437,7 @@ namespace AbletonLiveConverter
             string fileNameNoExtensionPart = string.Format("{0} - {1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? " - " : " - " + origPluginName + " - ");
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
             string fileNameNoExtension = string.Format("{0}{1}", fileNameNoExtensionPart, pluginName);
+            fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
 
             if (vstPreset.HasChunkData())
             {
