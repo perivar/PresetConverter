@@ -421,9 +421,9 @@ namespace AbletonLiveConverter
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
             var vstPreset = VstPresetFactory.GetVstPreset(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
 
-            string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "_" : "_" + origPluginName + "_");
+            string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "" : "_" + origPluginName);
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
-            string fileNameNoExtension = string.Format("{0}{1}", fileNameNoExtensionPart, pluginName);
+            string fileNameNoExtension = string.Format("{0}_{1}", fileNameNoExtensionPart, pluginName);
             fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
 
             if (vstPreset.HasFXP)
@@ -745,12 +745,11 @@ namespace AbletonLiveConverter
         private static void HandleFabfilterPresetFile(FabfilterProQ preset, string pluginName, string outputDirectoryPath, string outputFileName)
         {
             string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
-            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
-            File.WriteAllText(outputFilePath, preset.ToString());
+            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension);
+            File.WriteAllText(outputFilePath + ".txt", preset.ToString());
 
             // write the preset file as well
-            string outputFilePathFFP = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".ffp");
-            preset.Write(outputFilePathFFP);
+            preset.Write(outputFilePath + ".ffp");
 
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();
@@ -766,12 +765,11 @@ namespace AbletonLiveConverter
         private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string outputFileName)
         {
             string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
-            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
-            File.WriteAllText(outputFilePath, preset.ToString());
+            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension);
+            File.WriteAllText(outputFilePath + ".txt", preset.ToString());
 
             // write the preset file as well
-            string outputFilePathFFP = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".ffp");
-            preset.Write(outputFilePathFFP);
+            preset.Write(outputFilePath + ".ffp");
 
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();
