@@ -419,7 +419,7 @@ namespace AbletonLiveConverter
             var presetByteLen = binaryFile.ReadInt32();
             Log.Debug("Reading preset bytes: {0}", presetByteLen);
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
-            var vstPreset = VstPresetFactory.GetVstPreset(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
+            var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
 
             string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "" : "_" + origPluginName);
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
@@ -553,7 +553,7 @@ namespace AbletonLiveConverter
         }
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
-            var vstPreset = VstPresetFactory.GetVstPreset(file);
+            var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(file);
             string fileNameNoExtension = Path.GetFileNameWithoutExtension(file);
             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
 

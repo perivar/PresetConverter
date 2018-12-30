@@ -21,7 +21,7 @@ namespace PresetConverter
         /// <param name="guid">plugin guid</param>
         /// <param name="pluginName">optional plugin name (only used for error messages)</param>
         /// <returns>a VstPreset object</returns>
-        public static VstPreset GetVstPreset(byte[] presetBytes, string guid, string pluginName = null)
+        public static T GetVstPreset<T>(byte[] presetBytes, string guid, string pluginName = null) where T : VstPreset
         {
             VstPreset preset = null;
             switch (guid)
@@ -67,7 +67,7 @@ namespace PresetConverter
                 Log.Error("Failed initializing VstPreset using guid: {0}{1}. (Hex dump: {2}) {3}", guid, pluginName != null ? " and name " + pluginName : "", StringUtils.ToHexEditorString(presetBytes), e.Message);
             }
 
-            return preset;
+            return preset as T;
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace PresetConverter
         /// </summary>
         /// <param name="file">filename</param>
         /// <returns>a VstPreset object</returns>
-        public static VstPreset GetVstPreset(string file)
+        public static T GetVstPreset<T>(string file) where T : VstPreset
         {
             VstPreset vstPreset = new SteinbergVstPreset(file);
 
@@ -112,7 +112,7 @@ namespace PresetConverter
                     break;
             }
 
-            return preset;
+            return preset as T;
         }
     }
 }
