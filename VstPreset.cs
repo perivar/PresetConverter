@@ -660,8 +660,8 @@ namespace PresetConverter
                     AddParameter("wave-file-path-1", 0, wavFilePath1);
 
                     var wavCount = bf.ReadUInt32();
-                    Log.Verbose("numWavFiles: {0}", wavCount);
-                    AddParameter("wav-count", 0, wavCount);
+                    Log.Verbose("Wave count: {0}", wavCount);
+                    AddParameter("wave-count", 0, wavCount);
 
                     var unknown = bf.ReadUInt32();
                     Log.Verbose("unknown: {0}", unknown);

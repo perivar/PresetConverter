@@ -458,7 +458,7 @@ namespace AbletonLiveConverter
                             // }
 
                             var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
                             HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                         }
                     }
@@ -486,7 +486,7 @@ namespace AbletonLiveConverter
                             // }
 
                             var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}_", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
+                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
                             HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
                         }
                     }
@@ -582,12 +582,16 @@ namespace AbletonLiveConverter
 
                             // convert to UAD SSL Channel
                             var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
-                            string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".vstpreset");
+                            string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
                             CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
-                            uadSSLChannel.Write(outputPresetFilePath);
+                            uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
 
-                            string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
-                            uadSSLChannel.WriteFXP(outputFXPFilePath);
+                            // and dump the UAD SSL Channel info as well
+                            File.WriteAllText(outputPresetFilePath + ".txt", uadSSLChannel.ToString());
+
+                            // and store FXP as well
+                            // string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
+                            // uadSSLChannel.WriteFXP(outputFXPFilePath);
                         }
                     }
                 }
@@ -640,8 +644,8 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
                                 var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-                                string outputFileNameNew = string.Format("{0}_{1}", fileNameNoExtension, i);
-                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, outputFileNameNew);
+                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
+                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
                             }
                         }
                     }
@@ -657,8 +661,8 @@ namespace AbletonLiveConverter
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
                                 var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
-                                string outputFileNameNew = string.Format("{0}_{1}", fileNameNoExtension, i);
-                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, outputFileNameNew);
+                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
+                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                             }
                         }
                     }
@@ -740,7 +744,7 @@ namespace AbletonLiveConverter
 
         private static void HandleFabfilterPresetFile(FabfilterProQ preset, string pluginName, string outputDirectoryPath, string outputFileName)
         {
-            string fileNameNoExtension = string.Format("{0}{1}", outputFileName, pluginName);
+            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
             File.WriteAllText(outputFilePath, preset.ToString());
 
@@ -761,7 +765,7 @@ namespace AbletonLiveConverter
 
         private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string outputFileName)
         {
-            string fileNameNoExtension = string.Format("{0}{1}", outputFileName, pluginName);
+            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
             string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
             File.WriteAllText(outputFilePath, preset.ToString());
 
@@ -791,12 +795,16 @@ namespace AbletonLiveConverter
             {
                 // convert to UAD SSL Channel
                 var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
-                string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".vstpreset");
+                string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
                 CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
-                uadSSLChannel.Write(outputPresetFilePath);
+                uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
 
-                string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
-                uadSSLChannel.WriteFXP(outputFXPFilePath);
+                // and dump the UAD SSL Channel info as well
+                File.WriteAllText(outputPresetFilePath + ".txt", uadSSLChannel.ToString());
+
+                // and store FXP as well
+                // string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
+                // uadSSLChannel.WriteFXP(outputFXPFilePath);
 
                 // // dump original Wave SSL Channel preset
                 // string outputPresetFilePathOrig = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesorig.vstpreset");

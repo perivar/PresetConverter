@@ -69,12 +69,20 @@ namespace PresetConverter
             InitNumberParameter("allowFading", 87, 0.00);
         }
 
+        /// <summary>
+        /// Initialize the REVerence specific variables using the stored Parameters list
+        /// and make sure to delete the parameters afterwards
+        /// </summary>
         public void InitPathsAndImagesFromParameters()
         {
             if (Parameters.ContainsKey("wave-file-path-1"))
             {
                 WavFilePath1 = Parameters["wave-file-path-1"].StringValue;
                 Parameters.Remove("wave-file-path-1");
+            }
+            if (Parameters.ContainsKey("wave-count"))
+            {
+                Parameters.Remove("wave-count");
             }
             if (Parameters.ContainsKey("wave-file-path-2"))
             {
@@ -85,10 +93,6 @@ namespace PresetConverter
             {
                 WavFileName = Parameters["wave-file-name"].StringValue;
                 Parameters.Remove("wave-file-name");
-            }
-            if (Parameters.ContainsKey("wav-count"))
-            {
-                Parameters.Remove("wav-count");
             }
             if (Parameters.ContainsKey("image-count"))
             {
