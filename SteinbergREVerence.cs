@@ -119,7 +119,7 @@ namespace PresetConverter
             }
         }
 
-        public override void InitChunkData()
+        public override void InitCompChunkData()
         {
             int wavCount = (WavFilePath1 != null && !"".Equals(WavFilePath1) ? 1 : 0);
             int imageCount = Images.Count;
@@ -195,7 +195,7 @@ namespace PresetConverter
                 }
             }
 
-            this.ChunkData = memStream.ToArray();
+            this.CompChunkData = memStream.ToArray();
         }
 
         private void WritePaddedUnicodeString(BinaryFile bf, string text, int totalCount)

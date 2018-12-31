@@ -24,7 +24,7 @@ namespace PresetConverter
 
         protected override bool PreparedForWriting()
         {
-            InitChunkData();
+            InitCompChunkData();
             InitMetaInfoXml();
             CalculateBytePositions();
             return true;
@@ -42,7 +42,7 @@ namespace PresetConverter
             this.Parameters.Add(name, parameter);
         }
 
-        public virtual void InitChunkData()
+        public virtual void InitCompChunkData()
         {
             var memStream = new MemoryStream();
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
@@ -70,7 +70,7 @@ namespace PresetConverter
                 }
             }
 
-            this.ChunkData = memStream.ToArray();
+            this.CompChunkData = memStream.ToArray();
         }
     }
 }

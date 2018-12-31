@@ -235,7 +235,7 @@ namespace PresetConverter
         public VstPreset(FXP fxp)
         {
             this.FXP = fxp;
-            SetChunkData(this.FXP);
+            SetCompChunkData(this.FXP);
         }
 
         #region Parameter methods
@@ -293,28 +293,90 @@ namespace PresetConverter
         }
 
         /// <summary>
-        /// Get or Set the Chunk Data byte array
+        /// Get or Set the Comp Chunk Data byte array
         /// </summary>
         /// <value>byte array</value>
-        public byte[] ChunkData
+        public byte[] CompChunkData
         {
             get
             {
-                return GetByteParameter("ChunkData");
+                return GetByteParameter("CompChunkData");
             }
             set
             {
-                if (!HasChunkData)
+                if (!HasCompChunkData)
                 {
-                    AddParameter("ChunkData", 0, value);
+                    AddParameter("CompChunkData", 0, value);
                 }
                 else
                 {
                     // parameter already exist
                     // warn and overwrite
-                    Log.Warning(string.Format("{0} bytes of chunk data already exist! Overwriting with new content of {1} bytes ...", ChunkData.Length, value.Length));
-                    Parameters["ChunkData"].ByteValue = value;
+                    Log.Warning(string.Format("{0} bytes of Comp Chunk data already exist! Overwriting with new content of {1} bytes ...", CompChunkData.Length, value.Length));
+                    Parameters["CompChunkData"].ByteValue = value;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Check if the file contains a Comp Chunk
+        /// </summary>
+        /// <value></value>
+        public bool HasCompChunkData
+        {
+            get
+            {
+                string key = "CompChunkData";
+                if (Parameters.ContainsKey(key)
+                && Parameters[key].ByteValue != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get or Set the Cont Chunk Data byte array
+        /// </summary>
+        /// <value>byte array</value>
+        public byte[] ContChunkData
+        {
+            get
+            {
+                return GetByteParameter("ContChunkData");
+            }
+            set
+            {
+                if (!HasContChunkData)
+                {
+                    AddParameter("ContChunkData", 0, value);
+                }
+                else
+                {
+                    // parameter already exist
+                    // warn and overwrite
+                    Log.Warning(string.Format("{0} bytes of Cont Chunk data already exist! Overwriting with new content of {1} bytes ...", ContChunkData.Length, value.Length));
+                    Parameters["ContChunkData"].ByteValue = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check if the file contains a Cont Chunk
+        /// </summary>
+        /// <value></value>
+        public bool HasContChunkData
+        {
+            get
+            {
+                string key = "ContChunkData";
+                if (Parameters.ContainsKey(key)
+                && Parameters[key].ByteValue != null)
+                {
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -322,7 +384,7 @@ namespace PresetConverter
         /// Additional way of setting chunk data using an FXP and wrap the data in a VstW container   
         /// </summary>
         /// <param name="fxp">fxp content</param>
-        public void SetChunkData(FXP fxp)
+        public void SetCompChunkData(FXP fxp)
         {
             if (fxp != null)
             {
@@ -345,21 +407,8 @@ namespace PresetConverter
 
                     fxp.Write(bf);
                 }
-                this.ChunkData = memStream.ToArray();
-            }
-        }
 
-        public bool HasChunkData
-        {
-            get
-            {
-                string key = "ChunkData";
-                if (Parameters.ContainsKey(key)
-                && Parameters[key].ByteValue != null)
-                {
-                    return true;
-                }
-                return false;
+                this.CompChunkData = memStream.ToArray();
             }
         }
 
@@ -553,7 +602,7 @@ namespace PresetConverter
                 UInt32 nameLength = bf.ReadUInt32();
 
                 var name = bf.ReadString((int)nameLength);
-                AddParameter("name", 0, name);
+                AddParameter("PresetName", 0, name);
 
                 UInt32 unknown = bf.ReadUInt32();
                 UInt32 parameterCount = bf.ReadUInt32();
@@ -566,6 +615,15 @@ namespace PresetConverter
                     var parameterNumber = counter;
                     var parameterNumberValue = bf.ReadSingle();
                     AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                }
+
+                if (this.ContDataChunkSize > 0)
+                {
+                    // seek to start of cont
+                    bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+
+                    // read until all bytes have been read
+                    this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
                 }
 
                 // try to read the info xml 
@@ -640,11 +698,20 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                     )
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    this.ChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+
+                    // seek to cont start pos
+                    if (this.ContDataChunkSize > 0)
+                    {
+                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+
+                        // read until all bytes have been read
+                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                    }
 
                     // try to read the info xml 
                     TryReadInfoXml(bf);
@@ -862,44 +929,44 @@ namespace PresetConverter
             }
 
             // OK, getting here we should have access to a fxp/fxb chunk:
-            long chunkStart = bf.Position;
-            string dataChunkStart = bf.ReadString(4);
-            if (dataChunkStart != "CcnK")
+            long fxpChunkStart = bf.Position;
+            string fxpDataChunkStart = bf.ReadString(4);
+            if (fxpDataChunkStart != "CcnK")
             {
-                throw new FormatException("Data does not contain any known formats or FXB or FXP data (2) (DataChunkStart: " + dataChunkStart + ")");
+                throw new FormatException("Data does not contain any known formats or FXB or FXP data (2) (DataChunkStart: " + fxpDataChunkStart + ")");
             }
 
             // OK, seems to be a valid fxb or fxp chunk. Get chunk size:
             // add 8 bytes to include all bytes from 'CcnK' and the 4 chunk-size bytes
-            UInt32 chunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
+            UInt32 fxpChunkSize = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian) + 8;
             if (performFileSizeChecks)
             {
-                if ((bf.Position + chunkSize) >= fileSize)
+                if ((bf.Position + fxpChunkSize) >= fileSize)
                 {
-                    throw new FormatException("Invalid chunk size: " + chunkSize);
+                    throw new FormatException("Invalid FXP chunk size: " + fxpChunkSize);
                 }
             }
 
             // Read magic value:
-            string magicChunkID = bf.ReadString(4);
+            string fxpMagicChunkID = bf.ReadString(4);
 
             // Is a single preset?
-            if (magicChunkID == "FxCk" || magicChunkID == "FPCh")
+            if (fxpMagicChunkID == "FxCk" || fxpMagicChunkID == "FPCh")
             {
                 // Check consistency with the header:
                 if (singlePreset == false)
                 {
-                    throw new FormatException("Header indicates a bank file but data seems to be a preset file (" + magicChunkID + ")");
+                    throw new FormatException("Header indicates a bank file but data seems to be a preset file (" + fxpMagicChunkID + ")");
                 }
             }
 
             // Is a bank?
-            else if (magicChunkID == "FxBk" || magicChunkID == "FBCh")
+            else if (fxpMagicChunkID == "FxBk" || fxpMagicChunkID == "FBCh")
             {
                 // Check consistency with the header:
                 if (singlePreset == true)
                 {
-                    throw new FormatException("Header indicates a preset file but data seems to be a bank file (" + magicChunkID + ")");
+                    throw new FormatException("Header indicates a preset file but data seems to be a bank file (" + fxpMagicChunkID + ")");
                 }
             }
 
@@ -910,13 +977,13 @@ namespace PresetConverter
             }
 
             // Read the source data:
-            bf.Position = chunkStart;
+            bf.Position = fxpChunkStart;
 
             // read until all bytes have been read
-            this.ChunkData = bf.ReadBytes((int)chunkSize);
+            var fxpChunkData = bf.ReadBytes((int)fxpChunkSize);
 
             // see if if the chunk data is FXP
-            this.FXP = new FXP(ChunkData);
+            this.FXP = new FXP(fxpChunkData);
 
             // try to read the info xml 
             TryReadInfoXml(bf);
@@ -982,7 +1049,7 @@ namespace PresetConverter
             long skipBytes = (this.InfoXmlStartPos - bf.Position);
             if (skipBytes > 0)
             {
-                Log.Verbose("Skipping bytes: {0}", skipBytes);
+                Log.Information("Skipping bytes: {0}", skipBytes);
 
                 // seek to start of meta xml
                 bf.Seek(this.InfoXmlStartPos, SeekOrigin.Begin);
@@ -1021,9 +1088,13 @@ namespace PresetConverter
                 bf.Write(this.ListPos);
 
                 // Write binary content
-                if (HasChunkData)
+                if (HasCompChunkData)
                 {
-                    bf.Write(ChunkData);
+                    bf.Write(CompChunkData);
+                }
+                if (HasContChunkData)
+                {
+                    bf.Write(ContChunkData);
                 }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
@@ -1064,13 +1135,19 @@ namespace PresetConverter
         {
             this.CompDataStartPos = 48; // parameter data start position
             this.CompDataChunkSize = 0;
-            if (HasChunkData)
+            if (HasCompChunkData)
             {
-                this.CompDataChunkSize = ChunkData.Length; // byte length of parameter data 
+                this.CompDataChunkSize = CompChunkData.Length; // byte length of Comp parameter data 
             }
+
             this.ContDataStartPos = this.CompDataStartPos + this.CompDataChunkSize;
             this.ContDataChunkSize = 0;
-            this.InfoXmlStartPos = this.CompDataStartPos + this.CompDataChunkSize; // xml start position
+            if (HasContChunkData)
+            {
+                this.ContDataChunkSize = ContChunkData.Length; // byte length of Cont parameter data 
+            }
+
+            this.InfoXmlStartPos = this.ContDataStartPos + this.ContDataChunkSize;
             this.InfoXmlChunkSize = MetaXmlBytesWithBOM.Length;
             this.ListPos = (this.InfoXmlStartPos + this.MetaXmlBytesWithBOM.Length); // position of List chunk
         }

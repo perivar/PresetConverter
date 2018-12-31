@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using CommonUtils;
 using Serilog;
 
 namespace PresetConverter
 {
     /// <summary>
-    /// FabfilterProQ Preset Class for saving a Fabfilter Pro Q Preset file (fft)
+    /// Preset Class for reading and writing a Fabfilter Pro Q Preset file
     /// </summary>
-    public class FabfilterProQ : VstPreset
+    public class FabfilterProQ : FabfilterProQBase
     {
         public List<ProQBand> Bands { get; set; }
         public int Version { get; set; }                // Normally 2
@@ -37,41 +38,6 @@ namespace PresetConverter
             PlugInCategory = "Fx|EQ";
             PlugInName = "FabFilter Pro-Q";
             PlugInVendor = "FabFilter";
-        }
-
-        public static float[] ReadFloats(string filePath)
-        {
-            BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
-
-            string header = binFile.ReadString(4);
-            if (header == "FPQr")
-            {
-                int version = binFile.ReadInt32();
-                int parameterCount = binFile.ReadInt32();
-
-                var floatArray = new float[parameterCount];
-                int i = 0;
-                try
-                {
-                    for (i = 0; i < parameterCount; i++)
-                    {
-                        floatArray[i] = binFile.ReadSingle();
-                    }
-
-                }
-                catch (System.Exception e)
-                {
-                    Log.Error("Failed reading floats: {0}", e);
-                }
-
-                binFile.Close();
-                return floatArray;
-            }
-            else
-            {
-                binFile.Close();
-                return null;
-            }
         }
 
         public static string ToString(float[] parameters)
@@ -146,15 +112,6 @@ namespace PresetConverter
             return preset;
         }
 
-        /// <summary>
-        /// convert a float between 0 and 1 to the fabfilter float equivalent
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private static float IEEEFloatToFrequencyFloat(float value)
-        {
-            return 11.5507311008828f * value + 3.32193432374016f;
-        }
 
         public bool ReadFFP(string filePath)
         {
@@ -305,90 +262,102 @@ namespace PresetConverter
             return writer.ToString();
         }
 
-        public bool WriteFFP(string filePath)
+        public override bool WriteFFP(string filePath)
         {
-            BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
-            binFile.Write("FPQr");
-            binFile.Write((int)Version);
-            binFile.Write((int)Bands.Count * 7 + 12);
-
-            // How many bands are enabled?
-            var enabledBandCount = Bands.Count(b => b.Enabled);
-            binFile.Write((float)enabledBandCount);
-
-            for (int i = 0; i < 24; i++)
+            using (BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true))
             {
-                if (i < Bands.Count)
-                {
-                    binFile.Write((float)FabfilterProQ.FreqConvert(Bands[i].Frequency));
-                    binFile.Write((float)Bands[i].Gain);
-                    binFile.Write((float)FabfilterProQ.QConvert(Bands[i].Q));
-                    binFile.Write((float)Bands[i].Shape);
-                    binFile.Write((float)Bands[i].LPHPSlope);
-                    binFile.Write((float)Bands[i].StereoPlacement);
-                    binFile.Write((float)1);
-                }
-                else
-                {
-                    binFile.Write((float)FabfilterProQ.FreqConvert(1000));
-                    binFile.Write((float)0);
-                    binFile.Write((float)FabfilterProQ.QConvert(1));
-                    binFile.Write((float)ProQShape.Bell);
-                    binFile.Write((float)ProQLPHPSlope.Slope24dB_oct);
-                    binFile.Write((float)ProQStereoPlacement.Stereo);
-                    binFile.Write((float)1);
-                }
+                binFile.Write("FPQr");
+                binFile.Write((int)Version);
+                binFile.Write(GetBandsContent());
             }
-
-            binFile.Write((float)OutputGain);           // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-            binFile.Write((float)OutputPan);            // -1 to 1 (0 = middle)
-            binFile.Write((float)DisplayRange);         // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-            binFile.Write((float)ProcessMode);          // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-            binFile.Write((float)ChannelMode);          // 0 = Left/Right, 1 = Mid/Side
-            binFile.Write((float)Bypass);               // 0 = No bypass
-            binFile.Write((float)ReceiveMidi);          // 0 = Enabled?
-            binFile.Write((float)Analyzer);             // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-            binFile.Write((float)AnalyzerResolution);   // float ;  // 0 - 3 : low - medium[x] - high - maximum
-            binFile.Write((float)AnalyzerSpeed);        // 0 - 3 : very slow, slow, medium[x], fast
-            binFile.Write((float)SoloBand);             // -1
-
-            binFile.Close();
 
             return true;
         }
 
-
-        // log and inverse log
-        // a ^ x = b 
-        // x = log(b) / log(a)
-
-        public static double FreqConvert(double value)
+        private byte[] GetBandsContent()
         {
-            // =LOG(A1)/LOG(2) (default = 1000 Hz)
-            return Math.Log10(value) / Math.Log10(2);
-        }
+            var memStream = new MemoryStream();
+            using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+            {
+                binFile.Write((int)Bands.Count * 7 + 12);
 
-        public static double FreqConvertBack(double value)
-        {
-            // =POWER(2; frequency)
-            return Math.Pow(2, value);
-        }
+                // How many bands are enabled?
+                var enabledBandCount = Bands.Count(b => b.Enabled);
+                binFile.Write((float)enabledBandCount);
 
-        public static double QConvert(double value)
-        {
-            // =LOG(F1)*0,312098175+0,5 (default = 1)
-            return Math.Log10(value) * 0.312098175 + 0.5;
-        }
+                for (int i = 0; i < 24; i++)
+                {
+                    if (i < Bands.Count)
+                    {
+                        binFile.Write((float)FabfilterProQ.FreqConvert(Bands[i].Frequency));
+                        binFile.Write((float)Bands[i].Gain);
+                        binFile.Write((float)FabfilterProQ.QConvert(Bands[i].Q));
+                        binFile.Write((float)Bands[i].Shape);
+                        binFile.Write((float)Bands[i].LPHPSlope);
+                        binFile.Write((float)Bands[i].StereoPlacement);
+                        binFile.Write((float)1);
+                    }
+                    else
+                    {
+                        binFile.Write((float)FabfilterProQ.FreqConvert(1000));
+                        binFile.Write((float)0);
+                        binFile.Write((float)FabfilterProQ.QConvert(1));
+                        binFile.Write((float)ProQShape.Bell);
+                        binFile.Write((float)ProQLPHPSlope.Slope24dB_oct);
+                        binFile.Write((float)ProQStereoPlacement.Stereo);
+                        binFile.Write((float)1);
+                    }
+                }
 
-        public static double QConvertBack(double value)
-        {
-            // =POWER(10;((B3-0,5)/0,312098175))
-            return Math.Pow(10, (value - 0.5) / 0.312098175);
+                binFile.Write((float)OutputGain);           // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+                binFile.Write((float)OutputPan);            // -1 to 1 (0 = middle)
+                binFile.Write((float)DisplayRange);         // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
+                binFile.Write((float)ProcessMode);          // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
+                binFile.Write((float)ChannelMode);          // 0 = Left/Right, 1 = Mid/Side
+                binFile.Write((float)Bypass);               // 0 = No bypass
+                binFile.Write((float)ReceiveMidi);          // 0 = Enabled?
+                binFile.Write((float)Analyzer);             // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
+                binFile.Write((float)AnalyzerResolution);   // float ;  // 0 - 3 : low - medium[x] - high - maximum
+                binFile.Write((float)AnalyzerSpeed);        // 0 - 3 : very slow, slow, medium[x], fast
+                binFile.Write((float)SoloBand);             // -1                   
+            }
+
+            return memStream.ToArray();
         }
 
         protected override bool PreparedForWriting()
         {
-            throw new NotImplementedException();
+            InitCompChunkData();
+            InitMetaInfoXml();
+            CalculateBytePositions();
+            return true;
+        }
+
+        public void InitCompChunkData()
+        {
+            if (HasFXP)
+            {
+                SetCompChunkData(this.FXP);
+            }
+            else
+            {
+                var memStream = new MemoryStream();
+                using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+                {
+                    binFile.Write("FabF");
+                    binFile.Write((UInt32)Version);
+
+                    var presetName = GetStringParameter("PresetName");
+                    binFile.Write((UInt32)(presetName != null ? presetName.Length : 0));
+                    binFile.Write(presetName);
+
+                    binFile.Write((UInt32)0); // unknown
+
+                    binFile.Write(GetBandsContent());
+                }
+
+                this.CompChunkData = memStream.ToArray();
+            }
         }
 
         /// <summary>

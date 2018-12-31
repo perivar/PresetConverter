@@ -333,7 +333,7 @@ namespace PresetConverter
             return BeautifyXml(doc);
         }
 
-        protected override void InitChunkData()
+        protected override void InitCompChunkData()
         {
             var xmlContent = GeneratePresetXML();
             var xmlPostContent = "<Bypass Version=\"1.0\" Bypass=\"0\"/>\n";
@@ -361,7 +361,7 @@ namespace PresetConverter
                 bf.Write(xmlPostContent);
             }
 
-            this.ChunkData = memStream.ToArray();
+            this.CompChunkData = memStream.ToArray();
         }
     }
 }

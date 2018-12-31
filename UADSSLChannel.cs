@@ -195,16 +195,16 @@ namespace PresetConverter
         #region Read and Write Methods
         protected override bool PreparedForWriting()
         {
-            InitChunkData();
+            InitCompChunkData();
             InitMetaInfoXml();
             CalculateBytePositions();
             return true;
         }
 
-        private void InitChunkData()
+        private void InitCompChunkData()
         {
             this.FXP = GenerateFXP(true);
-            SetChunkData(this.FXP);
+            SetCompChunkData(this.FXP);
         }
 
         public bool ReadFXP(string filePath)

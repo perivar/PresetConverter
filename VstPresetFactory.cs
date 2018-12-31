@@ -109,8 +109,9 @@ namespace PresetConverter
                     // init preset parameters
                     // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
                     var fabFilterProQFloats = preset.Parameters
-                                                .Where(p => p.Value.StringValue == null)
-                                                .Select(a => (float)a.Value.NumberValue).ToArray();
+                                                .Where(v => v.Value.StringValue == null)
+                                                .Where(v => v.Value.ByteValue == null)
+                                                .Select(v => (float)v.Value.NumberValue).ToArray();
                     var fabFilterProQ = preset as FabfilterProQ;
                     fabFilterProQ.InitFromParameters(fabFilterProQFloats, false);
                     break;
@@ -122,8 +123,9 @@ namespace PresetConverter
                     // init preset parameters
                     // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
                     var fabFilterProQ2Floats = preset.Parameters
-                                                .Where(p => p.Value.StringValue == null)
-                                                .Select(a => (float)a.Value.NumberValue).ToArray();
+                                                .Where(v => v.Value.StringValue == null)
+                                                .Where(v => v.Value.ByteValue == null)
+                                                .Select(v => (float)v.Value.NumberValue).ToArray();
                     var fabFilterProQ2 = preset as FabfilterProQ2;
                     fabFilterProQ2.InitFromParameters(fabFilterProQ2Floats, false);
                     break;

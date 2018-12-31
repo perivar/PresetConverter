@@ -594,11 +594,6 @@ namespace AbletonLiveConverter
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                 {
-                    // output the vstpreset
-                    string fabFilterProQ2OutputFilePath = Path.Combine(outputDirectoryPath, "FabfilterProQ2", fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "FabfilterProQ2"));
-                    vstPreset.Write(fabFilterProQ2OutputFilePath + ".vstpreset");
-
                     var fabFilterProQ2 = vstPreset as FabfilterProQ2;
                     HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
                 }
@@ -627,8 +622,19 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
+
                                 // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
                                 var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
+
+                                // to save as a vstpreset we need to store the fxp chunk
+                                preset.FXP = fxp;
+
+                                // and set the correct params
+                                preset.Vst3ID = VstPreset.VstIDs.FabFilterProQx64;
+                                preset.PlugInCategory = "Fx";
+                                preset.PlugInName = "FabFilter Pro-Q x64";
+                                preset.PlugInVendor = "FabFilter";
+
                                 string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
                             }
@@ -645,8 +651,19 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
+
                                 // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
                                 var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters);
+
+                                // to save as a vstpreset we need to store the fxp chunk
+                                preset.FXP = fxp;
+
+                                // and set the correct params
+                                preset.Vst3ID = VstPreset.VstIDs.FabFilterProQ2x64;
+                                preset.PlugInCategory = "Fx";
+                                preset.PlugInName = "FabFilter Pro-Q 2 x64";
+                                preset.PlugInVendor = "FabFilter";
+
                                 string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                             }
@@ -661,7 +678,7 @@ namespace AbletonLiveConverter
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
                         vstPreset.Write(kontaktOutputFilePath);
 
-                        // and dump the tex info as well
+                        // and dump the text info as well
                         string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
                         File.WriteAllText(kontaktOutputFilePathText, vstPreset.ToString());
                     }
@@ -686,7 +703,7 @@ namespace AbletonLiveConverter
             string outputFileName = Path.GetFileNameWithoutExtension(file);
 
             float[] floatArray = null;
-            floatArray = FabfilterProQ.ReadFloats(file);
+            floatArray = FabfilterProQBase.ReadFloats(file, "FPQr");
             if (floatArray != null)
             {
                 var preset = new FabfilterProQ();
@@ -697,7 +714,7 @@ namespace AbletonLiveConverter
             }
             else
             {
-                floatArray = FabfilterProQ2.ReadFloats(file);
+                floatArray = FabfilterProQBase.ReadFloats(file, "FQ2p");
                 var preset = new FabfilterProQ2();
                 if (preset.ReadFFP(file))
                 {
@@ -706,14 +723,18 @@ namespace AbletonLiveConverter
             }
         }
 
-        private static void HandleFabfilterPresetFile(FabfilterProQ preset, string pluginName, string outputDirectoryPath, string outputFileName)
+        private static void HandleFabfilterPresetFile(FabfilterProQ preset, string pluginName, string outputDirectoryPath, string fileNameNoExtension)
         {
-            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
-            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension);
-            File.WriteAllText(outputFilePath + ".txt", preset.ToString());
+            // output the vstpreset
+            string fabFilterOutputFilePath = Path.Combine(outputDirectoryPath, pluginName, fileNameNoExtension);
+            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
+            preset.Write(fabFilterOutputFilePath + ".vstpreset");
+
+            // and dump the text info as well
+            File.WriteAllText(fabFilterOutputFilePath + ".txt", preset.ToString());
 
             // write the preset file as well
-            preset.WriteFFP(outputFilePath + ".ffp");
+            preset.WriteFFP(fabFilterOutputFilePath + ".ffp");
 
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();
@@ -726,14 +747,18 @@ namespace AbletonLiveConverter
             File.WriteAllText(frequencyOutputFilePathText, steinbergFrequency.ToString());
         }
 
-        private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string outputFileName)
+        private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string fileNameNoExtension)
         {
-            string fileNameNoExtension = string.Format("{0}_{1}", outputFileName, pluginName);
-            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension);
-            File.WriteAllText(outputFilePath + ".txt", preset.ToString());
+            // output the vstpreset
+            string fabFilterOutputFilePath = Path.Combine(outputDirectoryPath, pluginName, fileNameNoExtension);
+            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
+            preset.Write(fabFilterOutputFilePath + ".vstpreset");
+
+            // and dump the text info as well
+            File.WriteAllText(fabFilterOutputFilePath + ".txt", preset.ToString());
 
             // write the preset file as well
-            preset.WriteFFP(outputFilePath + ".ffp");
+            preset.WriteFFP(fabFilterOutputFilePath + ".ffp");
 
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();

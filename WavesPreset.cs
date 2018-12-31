@@ -69,13 +69,13 @@ namespace PresetConverter
 
         protected override bool PreparedForWriting()
         {
-            InitChunkData();
+            InitCompChunkData();
             InitMetaInfoXml();
             CalculateBytePositions();
             return true;
         }
 
-        protected abstract void InitChunkData();
+        protected abstract void InitCompChunkData();
 
         /// <summary>
         /// Read Waves XPst files

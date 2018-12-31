@@ -8,9 +8,9 @@ using Serilog;
 namespace PresetConverter
 {
     /// <summary>
-    /// FabfilterProQ Preset Class for saving a Fabfilter Pro Q 2 Preset file (fft)
+    /// Preset Class for reading and writing a Fabfilter Pro Q 2 Preset file
     /// </summary>
-    public class FabfilterProQ2 : VstPreset
+    public class FabfilterProQ2 : FabfilterProQBase
     {
         public List<ProQ2Band> Bands { get; set; }
         public int Version { get; set; }                        // Normally 2
@@ -51,41 +51,6 @@ namespace PresetConverter
             PlugInCategory = "Fx|EQ";
             PlugInName = "FabFilter Pro-Q 2";
             PlugInVendor = "FabFilter";
-        }
-
-        public static float[] ReadFloats(string filePath)
-        {
-            BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
-
-            string header = binFile.ReadString(4);
-            if (header == "FQ2p")
-            {
-                int version = binFile.ReadInt32();
-                int parameterCount = binFile.ReadInt32();
-
-                var floatArray = new float[parameterCount];
-                int i = 0;
-                try
-                {
-                    for (i = 0; i < parameterCount; i++)
-                    {
-                        floatArray[i] = binFile.ReadSingle();
-                    }
-
-                }
-                catch (System.Exception e)
-                {
-                    Log.Error("Failed reading floats: {0}", e);
-                }
-
-                binFile.Close();
-                return floatArray;
-            }
-            else
-            {
-                binFile.Close();
-                return null;
-            }
         }
 
         public static string ToString(float[] parameters)
@@ -155,16 +120,6 @@ namespace PresetConverter
             var preset = new FabfilterProQ2();
             preset.InitFromParameters(floatParameters, isIEEE);
             return preset;
-        }
-
-        /// <summary>
-        /// convert a float between 0 and 1 to the fabfilter float equivalent
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private static float IEEEFloatToFrequencyFloat(float value)
-        {
-            return 11.5507311008828f * value + 3.32193432374016f;
         }
 
         public bool ReadFFP(string filePath)
@@ -316,157 +271,23 @@ namespace PresetConverter
             return true;
         }
 
-        public bool WriteFFP(string filePath)
+        public override bool WriteFFP(string filePath)
         {
-            BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
-            binFile.Write("FQ2p");
-            binFile.Write((int)Version);
-            binFile.Write((int)Bands.Count * 7 + 22);  // Don't include the ex fields, meaning there are only 22 elements to be included
-
-            for (int i = 0; i < 24; i++)
+            using (BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true))
             {
-                if (i < Bands.Count)
-                {
-                    binFile.Write((float)(Bands[i].Enabled ? 1 : 2));
-                    binFile.Write((float)FabfilterProQ2.FreqConvert(Bands[i].Frequency));
-                    binFile.Write((float)Bands[i].Gain);
-                    binFile.Write((float)FabfilterProQ2.QConvert(Bands[i].Q));
-                    binFile.Write((float)Bands[i].Shape);
-                    binFile.Write((float)Bands[i].Slope);
-                    binFile.Write((float)Bands[i].StereoPlacement);
-                }
-                else
-                {
-                    binFile.Write((float)2);
-                    binFile.Write((float)FabfilterProQ2.FreqConvert(1000));
-                    binFile.Write((float)0);
-                    binFile.Write((float)FabfilterProQ2.QConvert(1));
-                    binFile.Write((float)ProQ2Shape.Bell);
-                    binFile.Write((float)ProQSlope.Slope24dB_oct);
-                    binFile.Write((float)ProQ2StereoPlacement.Stereo);
-                }
+                binFile.Write("FQ2p");
+                binFile.Write((int)Version);
+                binFile.Write(GetBandsContent());
             }
-
-            // write the remaining floats
-            binFile.Write((float)ProcessingMode);               // Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0
-            binFile.Write((float)ProcessingResolution);         // 0 - 4, Medium
-            binFile.Write((float)ChannelMode);                  // 0 = Left/Right, 1 = Mid/Side
-            binFile.Write((float)GainScale);                    // 100%
-            binFile.Write((float)OutputLevel);                  // 0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-            binFile.Write((float)OutputPan);                    // Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)
-            binFile.Write((float)ByPass);                       // Not Bypassed
-            binFile.Write((float)OutputInvertPhase);            // Normal
-            binFile.Write((float)AutoGain);                     // Off
-            binFile.Write((float)AnalyzerShowPreProcessing);    // Disabled - 0: Off, 1: On
-            binFile.Write((float)AnalyzerShowPostProcessing);   // Disabled - 0: Off, 1: On
-            binFile.Write((float)AnalyzerShowSidechain);        // Disabled - 0: Off, 1: On
-            binFile.Write((float)AnalyzerRange);                // Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB
-            binFile.Write((float)AnalyzerResolution);           // Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  
-            binFile.Write((float)AnalyzerSpeed);                // Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast
-            binFile.Write((float)AnalyzerTilt);                 // Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  
-            binFile.Write((float)AnalyzerFreeze);               // 0: Off, 1: On
-            binFile.Write((float)SpectrumGrab);                 // Enabled
-            binFile.Write((float)DisplayRange);                 // 12dB
-            binFile.Write((float)ReceiveMidi);                  // Enabled
-            binFile.Write((float)SoloBand);                     // -1
-            binFile.Write((float)SoloGain);                     // 0.00
-
-            // Don't write the ex fields
-            // binFile.Write((float)ExAutoGain);                   // (Other)
-
-            binFile.Close();
 
             return true;
         }
 
-        public override string ToString()
-        {
-            var writer = new StringWriter();
-
-            writer.WriteLine("Bands:");
-            foreach (var band in this.Bands)
-            {
-                writer.WriteLine(band.ToString());
-            }
-
-            writer.WriteLine();
-            writer.WriteLine("PostPresetParameters:");
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingMode", ProcessingMode, "Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingResolution", ProcessingResolution, "0 - 4, Medium"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ChannelMode", ChannelMode, "0 = Left/Right, 1 = Mid/Side"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "GainScale", GainScale, "100%"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputLevel", OutputLevel, "0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputPan", OutputPan, "Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ByPass", ByPass, "Not Bypassed"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputInvertPhase", OutputInvertPhase, "Normal"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AutoGain", AutoGain, "Off"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPreProcessing", AnalyzerShowPreProcessing, "Disabled - 0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPostProcessing", AnalyzerShowPostProcessing, "Disabled - 0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowSidechain", AnalyzerShowSidechain, "Disabled - 0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerRange", AnalyzerRange, "Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerResolution", AnalyzerResolution, "Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  "));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerSpeed", AnalyzerSpeed, "Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerTilt", AnalyzerTilt, "Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  "));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerFreeze", AnalyzerFreeze, "0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SpectrumGrab", SpectrumGrab, "Enabled"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "DisplayRange", DisplayRange, "12dB"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ReceiveMidi", ReceiveMidi, "Enabled"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloBand", SoloBand, "-1"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloGain", SoloGain, "0.00"));
-
-            return writer.ToString();
-        }
-
-
-        // log and inverse log
-        // a ^ x = b 
-        // x = log(b) / log(a)
-
-        public static double FreqConvert(double value)
-        {
-            // =LOG(A1)/LOG(2) (default = 1000 Hz)
-            return Math.Log10(value) / Math.Log10(2);
-        }
-
-        public static double FreqConvertBack(double value)
-        {
-            // =POWER(2; frequency)
-            return Math.Pow(2, value);
-        }
-
-        public static double QConvert(double value)
-        {
-            // =LOG(F1)*0,312098175+0,5 (default = 1)
-            return Math.Log10(value) * 0.312098175 + 0.5;
-        }
-
-        public static double QConvertBack(double value)
-        {
-            // =POWER(10;((B3-0,5)/0,312098175))
-            return Math.Pow(10, (value - 0.5) / 0.312098175);
-        }
-
-        protected override bool PreparedForWriting()
-        {
-            InitChunkData();
-            InitMetaInfoXml();
-            CalculateBytePositions();
-            return true;
-        }
-
-        public virtual void InitChunkData()
+        private byte[] GetBandsContent()
         {
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
-                binFile.Write("FabF");
-                binFile.Write((UInt32)Version);
-
-                var name = GetStringParameter("name");
-                binFile.Write((UInt32)(name != null ? name.Length : 0));
-                binFile.Write(name);
-
-                binFile.Write((UInt32)0); // unknown
                 binFile.Write((UInt32)(int)Bands.Count * 7 + 22);
 
                 for (int i = 0; i < 24; i++)
@@ -518,16 +339,108 @@ namespace PresetConverter
                 binFile.Write((float)SoloGain);                     // 0.00
 
                 // Don't write the ex fields
-                // binFile.Write((float)ExAutoGain);                   // (Other)                
-
-                binFile.Write((int)1);
-                binFile.Write((int)1);
-                binFile.Write("FFed");
-                binFile.Write((float)0.0);
-                binFile.Write((float)1.0);
+                // binFile.Write((float)ExAutoGain);                   // (Other)                       
             }
 
-            this.ChunkData = memStream.ToArray();
+            return memStream.ToArray();
+        }
+
+        public override string ToString()
+        {
+            var writer = new StringWriter();
+
+            writer.WriteLine("Bands:");
+            foreach (var band in this.Bands)
+            {
+                writer.WriteLine(band.ToString());
+            }
+
+            writer.WriteLine();
+            writer.WriteLine("PostPresetParameters:");
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingMode", ProcessingMode, "Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingResolution", ProcessingResolution, "0 - 4, Medium"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ChannelMode", ChannelMode, "0 = Left/Right, 1 = Mid/Side"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "GainScale", GainScale, "100%"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputLevel", OutputLevel, "0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputPan", OutputPan, "Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ByPass", ByPass, "Not Bypassed"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputInvertPhase", OutputInvertPhase, "Normal"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AutoGain", AutoGain, "Off"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPreProcessing", AnalyzerShowPreProcessing, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPostProcessing", AnalyzerShowPostProcessing, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowSidechain", AnalyzerShowSidechain, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerRange", AnalyzerRange, "Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerResolution", AnalyzerResolution, "Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  "));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerSpeed", AnalyzerSpeed, "Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerTilt", AnalyzerTilt, "Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  "));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerFreeze", AnalyzerFreeze, "0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SpectrumGrab", SpectrumGrab, "Enabled"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "DisplayRange", DisplayRange, "12dB"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ReceiveMidi", ReceiveMidi, "Enabled"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloBand", SoloBand, "-1"));
+            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloGain", SoloGain, "0.00"));
+
+            return writer.ToString();
+        }
+
+        protected override bool PreparedForWriting()
+        {
+            InitCompChunkData();
+            InitContChunkData();
+            InitMetaInfoXml();
+            CalculateBytePositions();
+            return true;
+        }
+
+        public void InitCompChunkData()
+        {
+            if (HasFXP)
+            {
+                SetCompChunkData(this.FXP);
+            }
+            else
+            {
+                var memStream = new MemoryStream();
+                using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+                {
+                    binFile.Write("FabF");
+                    binFile.Write((UInt32)Version);
+
+                    var presetName = GetStringParameter("PresetName");
+                    binFile.Write((UInt32)(presetName != null ? presetName.Length : 0));
+                    binFile.Write(presetName);
+
+                    binFile.Write((UInt32)0); // unknown
+
+                    binFile.Write(GetBandsContent());
+
+                    // add some unknown variables
+                    binFile.Write((int)1);
+                    binFile.Write((int)1);
+                }
+
+                this.CompChunkData = memStream.ToArray();
+            }
+        }
+
+        public void InitContChunkData()
+        {
+            if (HasFXP)
+            {
+                SetCompChunkData(this.FXP);
+            }
+            else
+            {
+                var memStream = new MemoryStream();
+                using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+                {
+                    binFile.Write("FFed");
+                    binFile.Write((float)0.0);
+                    binFile.Write((float)1.0);
+                }
+
+                this.ContChunkData = memStream.ToArray();
+            }
         }
 
         /// <summary>
