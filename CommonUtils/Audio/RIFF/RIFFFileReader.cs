@@ -9,7 +9,7 @@ using CommonUtils;
 using CommonUtils.Audio;
 using Serilog;
 
-namespace CSCore.Codecs.RIFF
+namespace CommonUtils.Audio.RIFF
 {
     /// <summary>
     /// Provides a decoder for reading RIFF files.
@@ -27,8 +27,6 @@ namespace CSCore.Codecs.RIFF
         {
             get { return _binaryFile; }
         }
-
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RIFFFileReader" /> class.

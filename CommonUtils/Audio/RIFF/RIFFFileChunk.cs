@@ -5,7 +5,7 @@ using CommonUtils.Audio;
 using Serilog;
 using Serilog.Events;
 
-namespace CSCore.Codecs.RIFF
+namespace CommonUtils.Audio.RIFF
 {
     /// <summary>
     /// Represents a riff file chunk.

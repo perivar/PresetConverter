@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using CommonUtils;
+using CommonUtils.Audio;
 
 namespace SDIR2WavConverter
 {
@@ -160,7 +161,7 @@ namespace SDIR2WavConverter
 
                     // read IEEE 80-bit extended double precision
                     byte[] sampleRateBytes = bFile.ReadBytes(0, 10, BinaryFile.ByteOrder.LittleEndian);
-                    double sampleRateDouble = NAudio.Utils.IEEE.ConvertFromIeeeExtended(sampleRateBytes);
+                    double sampleRateDouble = IEEE.ConvertFromIeeeExtended(sampleRateBytes);
                     sampleRate = (int)sampleRateDouble;
                 }
 

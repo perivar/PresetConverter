@@ -1,11 +1,11 @@
 using System;
 
-
-namespace NAudio.Utils
+namespace CommonUtils.Audio
 {
     /// <summary>
     /// Methods for converting between IEEE 80-bit extended double precision
     /// and standard C# double precision.
+    /// Copied from NAudio.Utils
     /// </summary>
     public static class IEEE
     {

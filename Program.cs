@@ -7,7 +7,7 @@ using System.Text;
 using System.Xml.Linq;
 using CommonUtils;
 using CommonUtils.Audio;
-using CSCore.Codecs.RIFF;
+using CommonUtils.Audio.RIFF;
 using McMaster.Extensions.CommandLineUtils;
 using PresetConverter;
 using SDIR2WavConverter;
