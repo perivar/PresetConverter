@@ -221,7 +221,7 @@ namespace AbletonLiveConverter
 
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
         {
-            var riffReader = new RIFFFileReader(file, false);
+            var riffReader = new RIFFFileReader(file);
 
             // get fourth chunk
             var chunk = riffReader.Chunks[3];

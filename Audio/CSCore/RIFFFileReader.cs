@@ -28,11 +28,14 @@ namespace CSCore.Codecs.RIFF
             get { return _binaryFile; }
         }
 
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RIFFFileReader" /> class.
         /// </summary>
         /// <param name="fileName">Filename which points to a wave file.</param>
-        public RIFFFileReader(string fileName, bool useWordAlignment = true)
+        /// <param name="useWordAlignment">whether to ensure word-alignment (defaults to false)</param>
+        public RIFFFileReader(string fileName, bool useWordAlignment = false)
         {
             if (fileName == null)
                 throw new ArgumentNullException("fileName");

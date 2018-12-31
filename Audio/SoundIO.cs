@@ -122,7 +122,7 @@ namespace CommonUtils.Audio
             {
                 for (int ic = 0; ic < channels; ic++)
                 {
-                    int val = SoundIOUtils.RoundToClosestInt(sound[ic][i] * 32768);
+                    int val = SoundIOUtils.RoundToClosestInt(sound[ic][i] * 32768.0f);
 
                     if (val > 32767)
                         val = 32767;
@@ -136,7 +136,15 @@ namespace CommonUtils.Audio
 
         public static void Read24Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < sampleCount; i++)
+            {
+                for (int ic = 0; ic < channels; ic++)
+                {
+                    byte[] buffer = waveFile.ReadBytes(0, 3);
+                    float f = (((sbyte)buffer[2] << 16) | (buffer[1] << 8) | buffer[0]) / 8388608.0f;
+                    sound[ic][i] = f;
+                }
+            }
         }
 
         public static void Write24Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
@@ -145,8 +153,16 @@ namespace CommonUtils.Audio
             {
                 for (int ic = 0; ic < channels; ic++)
                 {
-                    float sample = sound[ic][i];
-                    byte[] buffer = BitConverter.GetBytes((int)(0x7fffff * sample));
+                    float sample32 = sound[ic][i];
+
+                    // clip
+                    if (sample32 > 1.0f)
+                        sample32 = 1.0f;
+                    if (sample32 < -1.0f)
+                        sample32 = -1.0f;
+
+                    var sample24 = (int)(sample32 * 8388608.0f);
+                    byte[] buffer = BitConverter.GetBytes(sample24);
                     waveFile.Write(new[] { buffer[0], buffer[1], buffer[2] });
                 }
             }
@@ -282,10 +298,6 @@ namespace CommonUtils.Audio
 
             // bits per sample
             bitsPerSample = tag[10];
-            if (bitsPerSample == 24)
-            {
-                throw new NotSupportedException("24 bit PCM WAVE files are not currently supported");
-            }
 
             // audio format
             audioFormat = tag[5];
@@ -332,6 +344,10 @@ namespace CommonUtils.Audio
             else if (bitsPerSample == 16)
             {
                 Read16Bit(waveFile, sound, sampleCount, channels);
+            }
+            else if (bitsPerSample == 24)
+            {
+                Read24Bit(waveFile, sound, sampleCount, channels);
             }
             else if (bitsPerSample == 32)
             {
