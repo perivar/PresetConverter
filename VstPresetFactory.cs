@@ -35,6 +35,12 @@ namespace PresetConverter
                 case VstPreset.VstIDs.SteinbergREVerence:
                     preset = new SteinbergREVerence();
                     break;
+                case VstPreset.VstIDs.FabFilterProQ:
+                    preset = new FabfilterProQ();
+                    break;
+                case VstPreset.VstIDs.FabFilterProQ2:
+                    preset = new FabfilterProQ2();
+                    break;
                 case VstPreset.VstIDs.NIKontakt5:
                     preset = new NIKontakt5();
                     break;
@@ -60,6 +66,28 @@ namespace PresetConverter
                     // init wave paths and images from the parameters
                     var reverence = preset as SteinbergREVerence;
                     reverence.InitFromParameters();
+                }
+                else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                {
+                    // init preset parameters
+                    // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
+                    var fabFilterProQFloats = preset.Parameters
+                                                .Where(v => v.Value.StringValue == null)
+                                                .Where(v => v.Value.ByteValue == null)
+                                                .Select(v => (float)v.Value.NumberValue).ToArray();
+                    var fabFilterProQ = preset as FabfilterProQ;
+                    fabFilterProQ.InitFromParameters(fabFilterProQFloats, false);
+                }
+                else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                {
+                    // init preset parameters
+                    // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
+                    var fabFilterProQ2Floats = preset.Parameters
+                                                .Where(v => v.Value.StringValue == null)
+                                                .Where(v => v.Value.ByteValue == null)
+                                                .Select(v => (float)v.Value.NumberValue).ToArray();
+                    var fabFilterProQ2 = preset as FabfilterProQ2;
+                    fabFilterProQ2.InitFromParameters(fabFilterProQ2Floats, false);
                 }
             }
             catch (System.Exception e)
