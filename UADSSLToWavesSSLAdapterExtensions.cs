@@ -13,11 +13,11 @@ namespace PresetConverter
             wavesSSLChannel.PresetName = uadSSLChannel.PresetName;
             wavesSSLChannel.PresetGenericType = "SLCH";
             wavesSSLChannel.PresetGroup = null;
-            wavesSSLChannel.PluginName = "SSLChannel";
-            wavesSSLChannel.PluginSubComp = "SCHS";
-            wavesSSLChannel.PluginVersion = "9.92.0.45";
-            wavesSSLChannel.ActiveSetup = "SETUP_A";
-            wavesSSLChannel.SetupName = "";
+            wavesSSLChannel.PresetPluginName = "SSLChannel";
+            wavesSSLChannel.PresetPluginSubComp = "SCHS";
+            wavesSSLChannel.PresetPluginVersion = "9.92.0.45";
+            wavesSSLChannel.PresetActiveSetup = "SETUP_A";
+            wavesSSLChannel.PresetSetupName = "";
 
             wavesSSLChannel.CompThreshold = uadSSLChannel.FindClosestParameterValue("CMP Thresh", uadSSLChannel.CMPThresh);
             wavesSSLChannel.CompRatio = uadSSLChannel.FindClosestParameterValue("CMP Ratio", uadSSLChannel.CMPRatio);

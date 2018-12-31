@@ -21,12 +21,12 @@ namespace PresetConverter
         public string PresetName = null;
         public string PresetGenericType = null;
         public string PresetGroup = null;
-        public string PluginName = null;
-        public string PluginSubComp = null;
-        public string PluginVersion = null;
-        public string ActiveSetup = "CURRENT";
-        public string SetupName = null;
-        public string RealWorldParameters = null;
+        public string PresetPluginName = null;
+        public string PresetPluginSubComp = null;
+        public string PresetPluginVersion = null;
+        public string PresetActiveSetup = "CURRENT";
+        public string PresetSetupName = null;
+        public string PresetRealWorldParameters = null;
 
         public bool ReadFXP(string filePath)
         {
@@ -51,7 +51,7 @@ namespace PresetConverter
 
         public bool WriteTextSummary(string filePath)
         {
-            if (PluginName != null)
+            if (PresetPluginName != null)
             {
                 // create a writer and open the file
                 TextWriter tw = new StreamWriter(filePath);
@@ -291,31 +291,31 @@ namespace PresetConverter
             XmlNode pluginNameNode = presetNode.SelectSingleNode("PresetHeader/PluginName");
             if (pluginNameNode != null && pluginNameNode.InnerText != null)
             {
-                PluginName = pluginNameNode.InnerText;
+                PresetPluginName = pluginNameNode.InnerText;
             }
             else
             {
-                PluginName = "";
+                PresetPluginName = "";
             }
 
             XmlNode pluginSubCompNode = presetNode.SelectSingleNode("PresetHeader/PluginSubComp");
             if (pluginSubCompNode != null && pluginSubCompNode.InnerText != null)
             {
-                PluginSubComp = pluginSubCompNode.InnerText;
+                PresetPluginSubComp = pluginSubCompNode.InnerText;
             }
             else
             {
-                PluginSubComp = "";
+                PresetPluginSubComp = "";
             }
 
             XmlNode pluginVersionNode = presetNode.SelectSingleNode("PresetHeader/PluginVersion");
             if (pluginVersionNode != null && pluginVersionNode.InnerText != null)
             {
-                PluginVersion = pluginVersionNode.InnerText;
+                PresetPluginVersion = pluginVersionNode.InnerText;
             }
             else
             {
-                PluginVersion = "";
+                PresetPluginVersion = "";
             }
 
             XmlNode pluginGroupNode = presetNode.SelectSingleNode("PresetHeader/Group");
@@ -331,29 +331,29 @@ namespace PresetConverter
             XmlNode activeSetupNode = presetNode.SelectSingleNode("PresetHeader/ActiveSetup");
             if (activeSetupNode != null && activeSetupNode.InnerText != null)
             {
-                ActiveSetup = activeSetupNode.InnerText;
+                PresetActiveSetup = activeSetupNode.InnerText;
             }
             else
             {
-                ActiveSetup = "CURRENT";
+                PresetActiveSetup = "CURRENT";
             }
 
             // Read the preset data node
-            XmlNode presetDataNode = presetNode.SelectSingleNode("PresetData[@Setup='" + ActiveSetup + "']");
+            XmlNode presetDataNode = presetNode.SelectSingleNode("PresetData[@Setup='" + PresetActiveSetup + "']");
             if (presetDataNode != null)
             {
                 // Get the preset data node's attributes
                 XmlAttribute setupNameAtt = presetDataNode.Attributes["SetupName"];
                 if (setupNameAtt != null && setupNameAtt.Value != null)
                 {
-                    SetupName = setupNameAtt.Value;
+                    PresetSetupName = setupNameAtt.Value;
                 }
 
                 // And get the real world data
                 XmlNode parametersNode = presetDataNode.SelectSingleNode("Parameters[@Type='RealWorld']");
                 if (parametersNode != null && parametersNode.InnerText != null)
                 {
-                    RealWorldParameters = StringUtils.TrimMultiLine(parametersNode.InnerText);
+                    PresetRealWorldParameters = StringUtils.TrimMultiLine(parametersNode.InnerText);
                 }
 
                 return ReadRealWorldParameters();

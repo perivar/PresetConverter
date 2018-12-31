@@ -68,10 +68,11 @@ namespace PresetConverter
 
         protected override bool ReadRealWorldParameters()
         {
-            if (PluginName == "SSLChannel")
+            // Note that the PresetPluginName is "SSLChannel" even if the PlugInName is "SSLChannel Stereo"
+            if (PresetPluginName == "SSLChannel")
             {
                 // split the parameters text into sections
-                string[] splittedPhrase = RealWorldParameters.Split(' ', '\n');
+                string[] splittedPhrase = PresetRealWorldParameters.Split(' ', '\n');
 
                 CompThreshold = float.Parse(splittedPhrase[0], CultureInfo.InvariantCulture); // compression threshold in dB
                 CompRatio = float.Parse(splittedPhrase[1], CultureInfo.InvariantCulture); // compression ratio
@@ -315,10 +316,10 @@ namespace PresetConverter
             XElement doc = new XElement("PresetChunkXMLTree", new XAttribute("version", "2"),
                         new XElement("Preset", new XAttribute("Name", PresetName), new XAttribute("GenericType", PresetGenericType),
                         new XElement("PresetHeader",
-                            new XElement("PluginName", PluginName),
-                            new XElement("PluginSubComp", PluginSubComp),
-                            new XElement("PluginVersion", PluginVersion),
-                            new XElement("ActiveSetup", ActiveSetup),
+                            new XElement("PluginName", PresetPluginName),
+                            new XElement("PluginSubComp", PresetPluginSubComp),
+                            new XElement("PluginVersion", PresetPluginVersion),
+                            new XElement("ActiveSetup", PresetActiveSetup),
                             new XElement("ReadOnly", "true")
                             ),
                         new XElement("PresetData", new XAttribute("Setup", "SETUP_A"),

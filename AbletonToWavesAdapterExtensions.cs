@@ -12,11 +12,11 @@ namespace PresetConverter
             compressor.PresetName = "";
             compressor.PresetGenericType = "SLCO";
             compressor.PresetGroup = "";
-            compressor.PluginName = "SSLComp";
-            compressor.PluginSubComp = "SLCS";
-            compressor.PluginVersion = "10.0.0.16";
-            compressor.ActiveSetup = "SETUP_A";
-            compressor.SetupName = "";
+            compressor.PresetPluginName = "SSLComp";
+            compressor.PresetPluginSubComp = "SLCS";
+            compressor.PresetPluginVersion = "10.0.0.16";
+            compressor.PresetActiveSetup = "SETUP_A";
+            compressor.PresetSetupName = "";
 
             // invert threshold ?!
             compressor.Threshold = -comp.Threshold;

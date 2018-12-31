@@ -71,13 +71,14 @@ namespace PresetConverter
 
         protected override bool ReadRealWorldParameters()
         {
-            if (PluginName == "SSLComp")
+            // Note that the PresetPluginName is "SSLComp" even if the PlugInName is "SSLComp Stereo"
+            if (PresetPluginName == "SSLComp")
             {
                 // <Parameters Type="RealWorld">8 1 * 3 4 3 * 1 1 1
                 // 0 0 0.95000000000000006661 1 0.95000000000000006661 </Parameters>
 
                 // split the parameters text into sections
-                string[] splittedPhrase = RealWorldParameters.Split(' ', '\n');
+                string[] splittedPhrase = PresetRealWorldParameters.Split(' ', '\n');
 
                 // Threshold (-15 - +15)
                 Threshold = float.Parse(splittedPhrase[0], CultureInfo.InvariantCulture); // compression threshold in dB
@@ -259,10 +260,10 @@ namespace PresetConverter
             XElement doc = new XElement("PresetChunkXMLTree", new XAttribute("version", "2"),
                         new XElement("Preset", new XAttribute("Name", PresetName), new XAttribute("GenericType", PresetGenericType),
                         new XElement("PresetHeader",
-                            new XElement("PluginName", PluginName),
-                            new XElement("PluginSubComp", PluginSubComp),
-                            new XElement("PluginVersion", PluginVersion),
-                            new XElement("ActiveSetup", ActiveSetup),
+                            new XElement("PluginName", PresetPluginName),
+                            new XElement("PluginSubComp", PresetPluginSubComp),
+                            new XElement("PluginVersion", PresetPluginVersion),
+                            new XElement("ActiveSetup", PresetActiveSetup),
                             new XElement("ReadOnly", "true")
                             ),
                         new XElement("PresetData", new XAttribute("Setup", "SETUP_A"),
