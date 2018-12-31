@@ -348,7 +348,11 @@ namespace PresetConverter
                     binFile.Write((UInt32)Version);
 
                     var presetName = GetStringParameter("PresetName");
-                    binFile.Write((UInt32)(presetName != null ? presetName.Length : 0));
+                    if (presetName == null)
+                    {
+                        presetName = "Default Setting";
+                    }
+                    binFile.Write((UInt32)presetName.Length);
                     binFile.Write(presetName);
 
                     binFile.Write((UInt32)0); // unknown
