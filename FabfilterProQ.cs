@@ -95,6 +95,21 @@ namespace PresetConverter
             }
         }
 
+        public static string ToString(float[] parameters)
+        {
+            using (var sw = new StringWriter())
+            {
+                int counter = 0;
+                foreach (var f in parameters)
+                {
+                    sw.WriteLine("{0:0.0000}", f);
+                    counter++;
+                    if ((counter - 1) % 7 == 0) sw.WriteLine();
+                }
+                return sw.ToString();
+            }
+        }
+
         public static float[] Convert2FabfilterProQFloats(float[] ieeeFloatParameters)
         {
             var floatList = new List<float>();
@@ -308,7 +323,7 @@ namespace PresetConverter
             return 11.5507311008828f * value + 3.32193432374016f;
         }
 
-        public bool Read(string filePath)
+        public bool ReadFFP(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
 
@@ -483,7 +498,7 @@ namespace PresetConverter
             return writer.ToString();
         }
 
-        public bool Write(string filePath)
+        public bool WriteFFP(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
             binFile.Write("FPQr");

@@ -446,18 +446,8 @@ namespace AbletonLiveConverter
                             var program = set.Programs[i];
                             var parameters = program.Parameters;
 
-                            // using (var tw = new StreamWriter(outputFilePathNew))
-                            // {
-                            // int counter = 0;
-                            // foreach (var f in parameters)
-                            // {
-                            //     tw.WriteLine("{0:0.0000}", f);
-                            //     counter++;
-                            //     if (counter % 7 == 0) tw.WriteLine();
-                            // }
-                            // }
-
-                            var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                            // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
+                            var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters);
                             string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
                             HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                         }
@@ -474,17 +464,7 @@ namespace AbletonLiveConverter
                             var program = set.Programs[i];
                             var parameters = program.Parameters;
 
-                            // using (var tw = new StreamWriter(outputFilePathNew))
-                            // {
-                            // int counter = 0;
-                            // foreach (var f in parameters)
-                            // {
-                            //     tw.WriteLine("{0:0.0000}", f);
-                            //     counter++;
-                            //     if ((counter - 1) % 7 == 0) tw.WriteLine();
-                            // }
-                            // }
-
+                            // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
                             var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
                             string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
                             HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
@@ -510,6 +490,7 @@ namespace AbletonLiveConverter
                 if (vstPreset.Parameters.Count > 0)
                 {
                     // FabFilterProQ stores the parameters as floats not chunk
+                    // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
                     if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
                     {
                         var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
@@ -518,10 +499,11 @@ namespace AbletonLiveConverter
                     }
 
                     // FabFilterProQ2 stores the parameters as floats not chunk
+                    // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                     {
                         var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                        var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                        var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters, false);
                         HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtensionPart);
                     }
 
@@ -615,7 +597,7 @@ namespace AbletonLiveConverter
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                 {
                     var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                    var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters, false);
+                    var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters, false);
                     HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
                 }
 
@@ -660,7 +642,7 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
-                                var preset = FabfilterProQ2.Convert2FabfilterProQ(parameters);
+                                var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters);
                                 string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
                             }
@@ -703,19 +685,8 @@ namespace AbletonLiveConverter
             floatArray = FabfilterProQ.ReadFloats(file);
             if (floatArray != null)
             {
-                // using (var tw = new StreamWriter(outputFilePath))
-                // {
-                // int counter = 0;
-                // foreach (var f in floatArray)
-                // {
-                //     tw.WriteLine("{0:0.0000}", f);
-                //     counter++;
-                //     if ((counter - 1) % 7 == 0) tw.WriteLine();
-                // }
-                // }
-
                 var preset = new FabfilterProQ();
-                if (preset.Read(file))
+                if (preset.ReadFFP(file))
                 {
                     HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, outputFileName);
                 }
@@ -723,19 +694,8 @@ namespace AbletonLiveConverter
             else
             {
                 floatArray = FabfilterProQ2.ReadFloats(file);
-                // using (var tw = new StreamWriter(outputFilePath))
-                // {
-                // int counter = 0;
-                // foreach (var f in floatArray)
-                // {
-                //     tw.WriteLine("{0:0.0000}", f);
-                //     counter++;
-                //     if (counter % 7 == 0) tw.WriteLine();
-                // }
-                // }
-
                 var preset = new FabfilterProQ2();
-                if (preset.Read(file))
+                if (preset.ReadFFP(file))
                 {
                     HandleFabfilterPresetFile(preset, "FabfilterProQ2", outputDirectoryPath, outputFileName);
                 }
@@ -749,7 +709,7 @@ namespace AbletonLiveConverter
             File.WriteAllText(outputFilePath + ".txt", preset.ToString());
 
             // write the preset file as well
-            preset.Write(outputFilePath + ".ffp");
+            preset.WriteFFP(outputFilePath + ".ffp");
 
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();
@@ -769,7 +729,7 @@ namespace AbletonLiveConverter
             File.WriteAllText(outputFilePath + ".txt", preset.ToString());
 
             // write the preset file as well
-            preset.Write(outputFilePath + ".ffp");
+            preset.WriteFFP(outputFilePath + ".ffp");
 
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();

@@ -83,6 +83,21 @@ namespace PresetConverter
             }
         }
 
+        public static string ToString(float[] parameters)
+        {
+            using (var sw = new StringWriter())
+            {
+                int counter = 0;
+                foreach (var f in parameters)
+                {
+                    sw.WriteLine("{0:0.0000}", f);
+                    counter++;
+                    if (counter % 7 == 0) sw.WriteLine();
+                }
+                return sw.ToString();
+            }
+        }
+
         public static float[] Convert2FabfilterProQ2Floats(float[] ieeeFloatParameters)
         {
             var floatList = new List<float>();
@@ -130,7 +145,7 @@ namespace PresetConverter
 
         }
 
-        public static FabfilterProQ2 Convert2FabfilterProQ(float[] floatParameters, bool isIEEE = true)
+        public static FabfilterProQ2 Convert2FabfilterProQ2(float[] floatParameters, bool isIEEE = true)
         {
             var preset = new FabfilterProQ2();
             preset.Bands = new List<ProQ2Band>();
@@ -292,7 +307,7 @@ namespace PresetConverter
             return 11.5507311008828f * value + 3.32193432374016f;
         }
 
-        public bool Read(string filePath)
+        public bool ReadFFP(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
 
@@ -441,7 +456,7 @@ namespace PresetConverter
             return true;
         }
 
-        public bool Write(string filePath)
+        public bool WriteFFP(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true);
             binFile.Write("FQ2p");
