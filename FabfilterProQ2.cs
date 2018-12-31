@@ -519,6 +519,12 @@ namespace PresetConverter
 
                 // Don't write the ex fields
                 // binFile.Write((float)ExAutoGain);                   // (Other)                
+
+                binFile.Write((int)1);
+                binFile.Write((int)1);
+                binFile.Write("FFed");
+                binFile.Write((float)0.0);
+                binFile.Write((float)1.0);
             }
 
             this.ChunkData = memStream.ToArray();
