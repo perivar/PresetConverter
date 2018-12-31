@@ -233,9 +233,9 @@ namespace AbletonLiveConverter
             var vstMultitrackBytePattern = Encoding.ASCII.GetBytes("VST Multitrack\0");
             var vstMultitrackIndices = chunkBytes.FindAll(vstMultitrackBytePattern).ToList();
 
-            // since we are processing each entry based on the previous
-            // we will not process the last index without adding an extra element
-            // to the list, namely the index of the very last byte in the chunk byte array
+            // since we are processing each entry while requiring the index of the next entry
+            // we need to add an extra element to the list, 
+            // namely the index of the very last byte in the chunk byte array
             if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices.Add(chunkBytes.Length - 1);
 
             var binaryFile = riffReader.BinaryFile;
@@ -537,49 +537,48 @@ namespace AbletonLiveConverter
         {
             var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(file);
             string fileNameNoExtension = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
+            string outputFilePathText = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
 
             // if not using chunk-data but parameters instead
             if (vstPreset.Parameters.Count > 0 && !vstPreset.HasFXP)
             {
                 if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
                 {
-                    using (var tw = new StreamWriter(outputFilePath))
-                    {
-                        List<WavesSSLComp> compPresetList = WavesPreset.ParseXml<WavesSSLComp>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
-                        foreach (var wavesSSLComp in compPresetList)
-                        {
-                            tw.WriteLine(wavesSSLComp);
-                        }
-                    }
+                    // output the vstpreset
+                    string wavesSSLCompOutputFilePath = Path.Combine(outputDirectoryPath, "Waves", fileNameNoExtension);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves"));
+                    vstPreset.Write(wavesSSLCompOutputFilePath + ".vstpreset");
+
+                    // and dump the text info as well
+                    File.WriteAllText(wavesSSLCompOutputFilePath + ".txt", vstPreset.ToString());
                 }
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannelStereo))
                 {
-                    using (var tw = new StreamWriter(outputFilePath))
-                    {
-                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(vstPreset.Parameters.FirstOrDefault().Value.StringValue);
-                        foreach (var wavesSSLChannel in channelPresetList)
-                        {
-                            tw.WriteLine(wavesSSLChannel);
+                    // output the vstpreset
+                    string wavesSSLChannelOutputFilePath = Path.Combine(outputDirectoryPath, "Waves", fileNameNoExtension);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves"));
+                    vstPreset.Write(wavesSSLChannelOutputFilePath + ".vstpreset");
 
-                            // convert to UAD SSL Channel
-                            var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
-                            string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
-                            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
-                            uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
+                    // and dump the text info as well
+                    File.WriteAllText(wavesSSLChannelOutputFilePath + ".txt", vstPreset.ToString());
 
-                            // and dump the UAD SSL Channel info as well
-                            File.WriteAllText(outputPresetFilePath + ".txt", uadSSLChannel.ToString());
+                    // convert to UAD SSL Channel
+                    var wavesSSLChannel = vstPreset as WavesSSLChannel;
+                    var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
+                    string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
+                    uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
 
-                            // and store FXP as well
-                            // string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
-                            // uadSSLChannel.WriteFXP(outputFXPFilePath);
-                        }
-                    }
+                    // and dump the UAD SSL Channel info as well
+                    File.WriteAllText(outputPresetFilePath + ".txt", uadSSLChannel.ToString());
+
+                    // and store FXP as well
+                    // uadSSLChannel.WriteFXP(outputPresetFilePath + ".fxp");
                 }
                 else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.SteinbergREVerence))
                 {
-                    string reverenceOutputFilePath = Path.Combine(outputDirectoryPath, "REVerence", "Converted_" + fileNameNoExtension);
+                    // output the vstpreset
+                    string reverenceOutputFilePath = Path.Combine(outputDirectoryPath, "REVerence", fileNameNoExtension);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
                     vstPreset.Write(reverenceOutputFilePath + ".vstpreset");
 
@@ -589,22 +588,25 @@ namespace AbletonLiveConverter
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
                 {
-                    var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                    var preset = FabfilterProQ.Convert2FabfilterProQ(parameters, false);
-                    HandleFabfilterPresetFile(preset, "FabfilterProQ", outputDirectoryPath, fileNameNoExtension);
+                    var fabFilterProQ = vstPreset as FabfilterProQ;
+                    HandleFabfilterPresetFile(fabFilterProQ, "FabfilterProQ", outputDirectoryPath, fileNameNoExtension);
                 }
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
                 {
-                    var parameters = vstPreset.Parameters.Select(a => (float)a.Value.NumberValue).ToArray();
-                    var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters, false);
-                    HandleFabfilterPresetFile(preset, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
+                    // output the vstpreset
+                    string fabFilterProQ2OutputFilePath = Path.Combine(outputDirectoryPath, "FabfilterProQ2", fileNameNoExtension);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "FabfilterProQ2"));
+                    vstPreset.Write(fabFilterProQ2OutputFilePath + ".vstpreset");
+
+                    var fabFilterProQ2 = vstPreset as FabfilterProQ2;
+                    HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
                 }
 
                 // always output the information
                 else
                 {
-                    File.WriteAllText(outputFilePath, vstPreset.ToString());
+                    File.WriteAllText(outputFilePathText, vstPreset.ToString());
                 }
             }
             else
@@ -625,6 +627,7 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
+                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
                                 var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
                                 string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
@@ -642,6 +645,7 @@ namespace AbletonLiveConverter
                             {
                                 var program = set.Programs[i];
                                 var parameters = program.Parameters;
+                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
                                 var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters);
                                 string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
                                 HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
@@ -665,14 +669,14 @@ namespace AbletonLiveConverter
                     // always output the information
                     else
                     {
-                        File.WriteAllText(outputFilePath, vstPreset.ToString());
+                        File.WriteAllText(outputFilePathText, vstPreset.ToString());
                     }
                 }
 
                 // always output the information
                 else
                 {
-                    File.WriteAllText(outputFilePath, vstPreset.ToString());
+                    File.WriteAllText(outputFilePathText, vstPreset.ToString());
                 }
             }
         }

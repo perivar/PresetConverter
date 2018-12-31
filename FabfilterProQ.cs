@@ -10,7 +10,7 @@ namespace PresetConverter
     /// <summary>
     /// FabfilterProQ Preset Class for saving a Fabfilter Pro Q Preset file (fft)
     /// </summary>
-    public class FabfilterProQ
+    public class FabfilterProQ : VstPreset
     {
         public List<ProQBand> Bands { get; set; }
         public int Version { get; set; }                // Normally 2
@@ -28,36 +28,15 @@ namespace PresetConverter
         public float AnalyzerResolution { get; set; }   // 0 - 3 : low - medium[x] - high - maximum
         public float AnalyzerSpeed { get; set; }        // 0 - 3 : very slow, slow, medium[x], fast
         public float SoloBand { get; set; }        	    // -1
-        public float ExBand1Shape { get; set; }        	//
-        public float ExBand2Shape { get; set; }        	//
-        public float ExBand3Shape { get; set; }        	//
-        public float ExBand4Shape { get; set; }        	//
-        public float ExBand5Shape { get; set; }        	//
-        public float ExBand6Shape { get; set; }        	//
-        public float ExBand7Shape { get; set; }        	//
-        public float ExBand8Shape { get; set; }        	//
-        public float ExBand9Shape { get; set; }        	//
-        public float ExBand10Shape { get; set; }        //
-        public float ExBand11Shape { get; set; }        //
-        public float ExBand12Shape { get; set; }        //
-        public float ExBand13Shape { get; set; }        //
-        public float ExBand14Shape { get; set; }        //
-        public float ExBand15Shape { get; set; }        //
-        public float ExBand16Shape { get; set; }        //
-        public float ExBand17Shape { get; set; }        //
-        public float ExBand18Shape { get; set; }        //
-        public float ExBand19Shape { get; set; }        //
-        public float ExBand20Shape { get; set; }        //
-        public float ExBand21Shape { get; set; }        //
-        public float ExBand22Shape { get; set; }        //
-        public float ExBand23Shape { get; set; }        //
-        public float ExBand24Shape { get; set; }        //
-        public float ExDisplayRange { get; set; }       //
-        public float ExAnalyzer { get; set; }        	//
 
         public FabfilterProQ()
         {
             Version = 2;
+
+            Vst3ID = VstIDs.FabFilterProQ;
+            PlugInCategory = "Fx|EQ";
+            PlugInName = "FabFilter Pro-Q";
+            PlugInVendor = "FabFilter";
         }
 
         public static float[] ReadFloats(string filePath)
@@ -163,153 +142,7 @@ namespace PresetConverter
         public static FabfilterProQ Convert2FabfilterProQ(float[] floatParameters, bool isIEEE = true)
         {
             var preset = new FabfilterProQ();
-            preset.Bands = new List<ProQBand>();
-
-            float[] floatArray;
-            if (isIEEE)
-            {
-                // convert the ieee float parameters to fabfilter floats
-                floatArray = Convert2FabfilterProQFloats(floatParameters);
-            }
-            else
-            {
-                floatArray = floatParameters;
-            }
-
-            int index = 0;
-
-            // Read in how many bands are enabled
-            var numActiveBands = floatArray[index++]; // Number of active bands
-
-            for (int i = 0; i < 24; i++)
-            {
-                var band = new ProQBand();
-
-                band.Frequency = FabfilterProQ.FreqConvertBack(floatArray[index++]);
-                band.Gain = floatArray[index++]; // actual gain in dB
-                band.Q = FabfilterProQ.QConvertBack(floatArray[index++]);
-
-                // filter type: 0 - 5
-                var filterType = floatArray[index++];
-                switch (filterType)
-                {
-                    case (float)ProQShape.Bell:
-                        band.Shape = ProQShape.Bell;
-                        break;
-                    case (float)ProQShape.LowShelf:
-                        band.Shape = ProQShape.LowShelf;
-                        break;
-                    case (float)ProQShape.LowCut:
-                        band.Shape = ProQShape.LowCut;
-                        break;
-                    case (float)ProQShape.HighShelf:
-                        band.Shape = ProQShape.HighShelf;
-                        break;
-                    case (float)ProQShape.HighCut:
-                        band.Shape = ProQShape.HighCut;
-                        break;
-                    case (float)ProQShape.Notch:
-                        band.Shape = ProQShape.Notch;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(string.Format("Filter type is outside range: {0}", filterType));
-                }
-
-                // filterSlope: 0 - 3
-                var filterSlope = floatArray[index++];
-                switch (filterSlope)
-                {
-                    case (float)ProQLPHPSlope.Slope6dB_oct:
-                        band.LPHPSlope = ProQLPHPSlope.Slope6dB_oct;
-                        break;
-                    case (float)ProQLPHPSlope.Slope12dB_oct:
-                        band.LPHPSlope = ProQLPHPSlope.Slope12dB_oct;
-                        break;
-                    case (float)ProQLPHPSlope.Slope24dB_oct:
-                        band.LPHPSlope = ProQLPHPSlope.Slope24dB_oct;
-                        break;
-                    case (float)ProQLPHPSlope.Slope48dB_oct:
-                        band.LPHPSlope = ProQLPHPSlope.Slope48dB_oct;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(string.Format("Filter slope is outside range: {0}", filterSlope));
-                }
-
-                // stereo placement: 0 = Left, 1 = Right, 2 = Stereo
-                var filterStereoPlacement = floatArray[index++];
-                switch (filterStereoPlacement)
-                {
-                    case (float)ProQStereoPlacement.LeftOrMid:
-                        band.StereoPlacement = ProQStereoPlacement.LeftOrMid;
-                        break;
-                    case (float)ProQStereoPlacement.RightOrSide:
-                        band.StereoPlacement = ProQStereoPlacement.RightOrSide;
-                        break;
-                    case (float)ProQStereoPlacement.Stereo:
-                        band.StereoPlacement = ProQStereoPlacement.Stereo;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(string.Format("Filter stereo placement is outside range: {0}", filterStereoPlacement));
-                }
-
-                // enabled band: always 1.0
-                var unknown = floatArray[index++];
-
-                // check if band is enabled
-                if (numActiveBands > 0 && numActiveBands > i) band.Enabled = true;
-
-                preset.Bands.Add(band);
-            }
-
-            // read the remaining floats
-            try
-            {
-                preset.OutputGain = floatArray[index++];           // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
-                preset.OutputPan = floatArray[index++];            // -1 to 1 (0 = middle)
-                preset.DisplayRange = floatArray[index++];         // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
-                preset.ProcessMode = floatArray[index++];          // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
-                preset.ChannelMode = floatArray[index++];          // 0 = Left/Right, 1 = Mid/Side
-                preset.Bypass = floatArray[index++];               // 0 = No bypass
-                preset.ReceiveMidi = floatArray[index++];          // 0 = Enabled?
-                preset.Analyzer = floatArray[index++];             // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
-                preset.AnalyzerResolution = floatArray[index++];   // 0 - 3 : low - medium[x] - high - maximum
-                preset.AnalyzerSpeed = floatArray[index++];        // 0 - 3 : very slow, slow, medium[x], fast
-                preset.SoloBand = floatArray[index++];             // -1
-                preset.ExBand1Shape = floatArray[index++];         //
-                preset.ExBand2Shape = floatArray[index++];         //
-                preset.ExBand3Shape = floatArray[index++];         //
-                preset.ExBand4Shape = floatArray[index++];         //
-                preset.ExBand5Shape = floatArray[index++];         //
-                preset.ExBand6Shape = floatArray[index++];         //
-                preset.ExBand7Shape = floatArray[index++];         //
-                preset.ExBand8Shape = floatArray[index++];         //
-                preset.ExBand9Shape = floatArray[index++];         //
-                preset.ExBand10Shape = floatArray[index++];        //
-                preset.ExBand11Shape = floatArray[index++];        //
-                preset.ExBand12Shape = floatArray[index++];        //
-                preset.ExBand13Shape = floatArray[index++];        //
-                preset.ExBand14Shape = floatArray[index++];        //
-                preset.ExBand15Shape = floatArray[index++];        //
-                preset.ExBand16Shape = floatArray[index++];        //
-                preset.ExBand17Shape = floatArray[index++];        //
-                preset.ExBand18Shape = floatArray[index++];        //
-                preset.ExBand19Shape = floatArray[index++];        //
-                preset.ExBand20Shape = floatArray[index++];        //
-                preset.ExBand21Shape = floatArray[index++];        //
-                preset.ExBand22Shape = floatArray[index++];        //
-                preset.ExBand23Shape = floatArray[index++];        //
-                preset.ExBand24Shape = floatArray[index++];        //
-                preset.ExDisplayRange = floatArray[index++];       //
-                preset.ExAnalyzer = floatArray[index++];           //
-            }
-            catch { }
-
-            // check if mid/side
-            if (preset.ChannelMode == 1)
-            {
-                preset.Bands.ForEach(b => b.ChannelMode = ProQChannelMode.MidSide);
-            }
-
+            preset.InitFromParameters(floatParameters, isIEEE);
             return preset;
         }
 
@@ -431,32 +264,6 @@ namespace PresetConverter
                 AnalyzerResolution = binFile.ReadSingle();   // 0 - 3 : low - medium[x] - high - maximum
                 AnalyzerSpeed = binFile.ReadSingle();        // 0 - 3 : very slow, slow, medium[x], fast
                 SoloBand = binFile.ReadSingle();             // -1
-                ExBand1Shape = binFile.ReadSingle();         //
-                ExBand2Shape = binFile.ReadSingle();         //
-                ExBand3Shape = binFile.ReadSingle();         //
-                ExBand4Shape = binFile.ReadSingle();         //
-                ExBand5Shape = binFile.ReadSingle();         //
-                ExBand6Shape = binFile.ReadSingle();         //
-                ExBand7Shape = binFile.ReadSingle();         //
-                ExBand8Shape = binFile.ReadSingle();         //
-                ExBand9Shape = binFile.ReadSingle();         //
-                ExBand10Shape = binFile.ReadSingle();        //
-                ExBand11Shape = binFile.ReadSingle();        //
-                ExBand12Shape = binFile.ReadSingle();        //
-                ExBand13Shape = binFile.ReadSingle();        //
-                ExBand14Shape = binFile.ReadSingle();        //
-                ExBand15Shape = binFile.ReadSingle();        //
-                ExBand16Shape = binFile.ReadSingle();        //
-                ExBand17Shape = binFile.ReadSingle();        //
-                ExBand18Shape = binFile.ReadSingle();        //
-                ExBand19Shape = binFile.ReadSingle();        //
-                ExBand20Shape = binFile.ReadSingle();        //
-                ExBand21Shape = binFile.ReadSingle();        //
-                ExBand22Shape = binFile.ReadSingle();        //
-                ExBand23Shape = binFile.ReadSingle();        //
-                ExBand24Shape = binFile.ReadSingle();        //
-                ExDisplayRange = binFile.ReadSingle();       //
-                ExAnalyzer = binFile.ReadSingle();           //
             }
             catch { }
 
@@ -577,6 +384,138 @@ namespace PresetConverter
         {
             // =POWER(10;((B3-0,5)/0,312098175))
             return Math.Pow(10, (value - 0.5) / 0.312098175);
+        }
+
+        protected override bool PreparedForWriting()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Initialize the class specific variables using float parameters
+        /// </summary>
+        public void InitFromParameters(float[] floatParameters, bool isIEEE = true)
+        {
+            this.Bands = new List<ProQBand>();
+
+            float[] floatArray;
+            if (isIEEE)
+            {
+                // convert the ieee float parameters to fabfilter floats
+                floatArray = Convert2FabfilterProQFloats(floatParameters);
+            }
+            else
+            {
+                floatArray = floatParameters;
+            }
+
+            int index = 0;
+
+            // Read in how many bands are enabled
+            var numActiveBands = floatArray[index++]; // Number of active bands
+
+            for (int i = 0; i < 24; i++)
+            {
+                var band = new ProQBand();
+
+                band.Frequency = FabfilterProQ.FreqConvertBack(floatArray[index++]);
+                band.Gain = floatArray[index++]; // actual gain in dB
+                band.Q = FabfilterProQ.QConvertBack(floatArray[index++]);
+
+                // filter type: 0 - 5
+                var filterType = floatArray[index++];
+                switch (filterType)
+                {
+                    case (float)ProQShape.Bell:
+                        band.Shape = ProQShape.Bell;
+                        break;
+                    case (float)ProQShape.LowShelf:
+                        band.Shape = ProQShape.LowShelf;
+                        break;
+                    case (float)ProQShape.LowCut:
+                        band.Shape = ProQShape.LowCut;
+                        break;
+                    case (float)ProQShape.HighShelf:
+                        band.Shape = ProQShape.HighShelf;
+                        break;
+                    case (float)ProQShape.HighCut:
+                        band.Shape = ProQShape.HighCut;
+                        break;
+                    case (float)ProQShape.Notch:
+                        band.Shape = ProQShape.Notch;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(string.Format("Filter type is outside range: {0}", filterType));
+                }
+
+                // filterSlope: 0 - 3
+                var filterSlope = floatArray[index++];
+                switch (filterSlope)
+                {
+                    case (float)ProQLPHPSlope.Slope6dB_oct:
+                        band.LPHPSlope = ProQLPHPSlope.Slope6dB_oct;
+                        break;
+                    case (float)ProQLPHPSlope.Slope12dB_oct:
+                        band.LPHPSlope = ProQLPHPSlope.Slope12dB_oct;
+                        break;
+                    case (float)ProQLPHPSlope.Slope24dB_oct:
+                        band.LPHPSlope = ProQLPHPSlope.Slope24dB_oct;
+                        break;
+                    case (float)ProQLPHPSlope.Slope48dB_oct:
+                        band.LPHPSlope = ProQLPHPSlope.Slope48dB_oct;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(string.Format("Filter slope is outside range: {0}", filterSlope));
+                }
+
+                // stereo placement: 0 = Left, 1 = Right, 2 = Stereo
+                var filterStereoPlacement = floatArray[index++];
+                switch (filterStereoPlacement)
+                {
+                    case (float)ProQStereoPlacement.LeftOrMid:
+                        band.StereoPlacement = ProQStereoPlacement.LeftOrMid;
+                        break;
+                    case (float)ProQStereoPlacement.RightOrSide:
+                        band.StereoPlacement = ProQStereoPlacement.RightOrSide;
+                        break;
+                    case (float)ProQStereoPlacement.Stereo:
+                        band.StereoPlacement = ProQStereoPlacement.Stereo;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(string.Format("Filter stereo placement is outside range: {0}", filterStereoPlacement));
+                }
+
+                // enabled band: always 1.0
+                var unknown = floatArray[index++];
+
+                // check if band is enabled
+                if (numActiveBands > 0 && numActiveBands > i) band.Enabled = true;
+
+                this.Bands.Add(band);
+            }
+
+            // read the remaining floats
+            try
+            {
+                this.OutputGain = floatArray[index++];           // -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)
+                this.OutputPan = floatArray[index++];            // -1 to 1 (0 = middle)
+                this.DisplayRange = floatArray[index++];         // 0 = 6dB, 1 = 12dB, 2 = 30dB, 3 = 3dB
+                this.ProcessMode = floatArray[index++];          // 0 = zero latency, 1 = lin.phase.low - medium - high - maximum
+                this.ChannelMode = floatArray[index++];          // 0 = Left/Right, 1 = Mid/Side
+                this.Bypass = floatArray[index++];               // 0 = No bypass
+                this.ReceiveMidi = floatArray[index++];          // 0 = Enabled?
+                this.Analyzer = floatArray[index++];             // 0 = Off, 1 = Pre, 2 = Post, 3 = Pre+Post
+                this.AnalyzerResolution = floatArray[index++];   // 0 - 3 : low - medium[x] - high - maximum
+                this.AnalyzerSpeed = floatArray[index++];        // 0 - 3 : very slow, slow, medium[x], fast
+                this.SoloBand = floatArray[index++];             // -1
+            }
+            catch { }
+
+            // check if mid/side
+            if (this.ChannelMode == 1)
+            {
+                this.Bands.ForEach(b => b.ChannelMode = ProQChannelMode.MidSide);
+            }
         }
     }
 

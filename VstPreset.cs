@@ -551,7 +551,10 @@ namespace PresetConverter
             {
                 UInt32 version = bf.ReadUInt32();
                 UInt32 nameLength = bf.ReadUInt32();
+
                 var name = bf.ReadString((int)nameLength);
+                AddParameter("name", 0, name);
+
                 UInt32 unknown = bf.ReadUInt32();
                 UInt32 parameterCount = bf.ReadUInt32();
 

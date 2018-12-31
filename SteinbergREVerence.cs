@@ -73,7 +73,7 @@ namespace PresetConverter
         /// Initialize the REVerence specific variables using the stored Parameters list
         /// and make sure to delete the parameters afterwards
         /// </summary>
-        public void InitPathsAndImagesFromParameters()
+        public void InitFromParameters()
         {
             if (Parameters.ContainsKey("wave-file-path-1"))
             {

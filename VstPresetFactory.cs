@@ -59,7 +59,7 @@ namespace PresetConverter
                 {
                     // init wave paths and images from the parameters
                     var reverence = preset as SteinbergREVerence;
-                    reverence.InitPathsAndImagesFromParameters();
+                    reverence.InitFromParameters();
                 }
             }
             catch (System.Exception e)
@@ -99,8 +99,57 @@ namespace PresetConverter
 
                     // init wave paths and images from the parameters
                     var reverence = preset as SteinbergREVerence;
-                    reverence.InitPathsAndImagesFromParameters();
+                    reverence.InitFromParameters();
+                    break;
+                case VstPreset.VstIDs.FabFilterProQ:
+                    preset = new FabfilterProQ();
+                    preset.Parameters = vstPreset.Parameters;
+                    preset.FXP = vstPreset.FXP;
 
+                    // init preset parameters
+                    // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
+                    var fabFilterProQFloats = preset.Parameters
+                                                .Where(p => p.Value.StringValue == null)
+                                                .Select(a => (float)a.Value.NumberValue).ToArray();
+                    var fabFilterProQ = preset as FabfilterProQ;
+                    fabFilterProQ.InitFromParameters(fabFilterProQFloats, false);
+                    break;
+                case VstPreset.VstIDs.FabFilterProQ2:
+                    preset = new FabfilterProQ2();
+                    preset.Parameters = vstPreset.Parameters;
+                    preset.FXP = vstPreset.FXP;
+
+                    // init preset parameters
+                    // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
+                    var fabFilterProQ2Floats = preset.Parameters
+                                                .Where(p => p.Value.StringValue == null)
+                                                .Select(a => (float)a.Value.NumberValue).ToArray();
+                    var fabFilterProQ2 = preset as FabfilterProQ2;
+                    fabFilterProQ2.InitFromParameters(fabFilterProQ2Floats, false);
+                    break;
+                case VstPreset.VstIDs.WavesSSLChannelStereo:
+                    VstPreset.Parameter sslChannelXml = null;
+                    vstPreset.Parameters.TryGetValue("XmlContent", out sslChannelXml);
+                    if (sslChannelXml != null && sslChannelXml.StringValue != null)
+                    {
+                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(sslChannelXml.StringValue);
+                        // a single vstpreset likely (?) only contain one waves ssl preset, use the first
+                        preset = channelPresetList.FirstOrDefault();
+                        preset.Parameters = vstPreset.Parameters;
+                        preset.FXP = vstPreset.FXP;
+                    }
+                    break;
+                case VstPreset.VstIDs.WavesSSLCompStereo:
+                    VstPreset.Parameter sslCompXml = null;
+                    vstPreset.Parameters.TryGetValue("XmlContent", out sslCompXml);
+                    if (sslCompXml != null && sslCompXml.StringValue != null)
+                    {
+                        List<WavesSSLComp> channelPresetList = WavesPreset.ParseXml<WavesSSLComp>(sslCompXml.StringValue);
+                        // a single vstpreset likely (?) only contain one waves ssl preset, use the first
+                        preset = channelPresetList.FirstOrDefault();
+                        preset.Parameters = vstPreset.Parameters;
+                        preset.FXP = vstPreset.FXP;
+                    }
                     break;
                 case VstPreset.VstIDs.NIKontakt5:
                     preset = new NIKontakt5();
