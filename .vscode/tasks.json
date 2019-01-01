@@ -7,8 +7,41 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/AbletonLiveConverter.csproj"
+                "${workspaceFolder}/PresetConverterProject/PresetConverter.csproj"
             ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "shell",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "args": [
+                "test",
+                "${workspaceFolder}/TestProject/Test.csproj"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "dotnet version",
+            "command": "dotnet",
+            "args": [
+                "--version"
+            ],
+            "type": "shell",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
             "problemMatcher": "$msCompile"
         }
     ]

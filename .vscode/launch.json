@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Ableton",
@@ -29,7 +29,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\AbletonALS",
@@ -48,7 +48,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Steinberg Media Technologies",
@@ -67,7 +67,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Waves",
@@ -86,7 +86,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\WavesXPS",
@@ -105,7 +105,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Downloads\\AmazonDriveDownload",
@@ -124,7 +124,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
@@ -143,7 +143,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\FabFilter",
@@ -162,7 +162,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Kontakt 5",
@@ -181,7 +181,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\periv\\Documents\\Ableton\\User Library\\Presets\\Audio Effects",
@@ -200,7 +200,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "D:\\Amazon Drive\\Documents\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
@@ -219,7 +219,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\periv\\Documents\\VST3 Presets",
@@ -238,7 +238,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "C:\\Users\\Public\\Waves Audio\\Plug-In Settings",
@@ -257,7 +257,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "G:\\SAMPLES\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
@@ -276,7 +276,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "G:\\SAMPLES\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
@@ -297,7 +297,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "G:\\SAMPLES\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
@@ -318,7 +318,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "G:\\SAMPLES\\IMPULSE RESPONSES\\Lexicon 480",
@@ -337,7 +337,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "G:\\SAMPLES\\IMPULSE RESPONSES\\Logic Space Designer",
@@ -356,7 +356,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "E:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\polar express (free pack)",
@@ -375,7 +375,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "D:\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
@@ -394,7 +394,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
                 "D:\\Amazon Drive\\Documents\\My Projects\\FabFilter",
@@ -413,7 +413,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/AbletonLiveConverter.dll",
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

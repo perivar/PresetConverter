@@ -796,7 +796,7 @@ namespace AbletonLiveConverter
             {
                 Directory.CreateDirectory(filePath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // handle them here
             }
