@@ -364,6 +364,44 @@ namespace PresetConverter
             }
         }
 
+        public void InitFromParameters()
+        {
+            if (HasFXP)
+            {
+                var fxp = FXP;
+
+                if (fxp.Content is FXP.FxSet)
+                {
+                    var set = (FXP.FxSet)fxp.Content;
+
+                    // only use the parameters from the first program
+                    if (set.NumPrograms > 0)
+                    {
+                        var program = set.Programs[0];
+                        var parameters = program.Parameters;
+
+                        // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
+                        InitFromParameters(parameters);
+
+                        // and set the correct params
+                        PlugInCategory = "Fx";
+                        PlugInName = "FabFilter Pro-Q x64";
+                        PlugInVendor = "FabFilter";
+                    }
+                }
+            }
+            else
+            {
+                // init preset parameters
+                // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
+                var fabFilterProQFloats = Parameters
+                                            .Where(v => v.Value.StringValue == null)
+                                            .Where(v => v.Value.ByteValue == null)
+                                            .Select(v => (float)v.Value.NumberValue).ToArray();
+                InitFromParameters(fabFilterProQFloats, false);
+            }
+        }
+
         /// <summary>
         /// Initialize the class specific variables using float parameters
         /// </summary>

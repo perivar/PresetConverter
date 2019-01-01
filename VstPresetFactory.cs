@@ -75,84 +75,17 @@ namespace PresetConverter
                 else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ
                     || preset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                 {
+                    // init variables from the parameters or FXP object
                     var fabFilterProQ = preset as FabfilterProQ;
-
-                    if (preset.HasFXP)
-                    {
-                        var fxp = preset.FXP;
-
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            // only use the parameters from the first program
-                            if (set.NumPrograms > 0)
-                            {
-                                var program = set.Programs[0];
-                                var parameters = program.Parameters;
-
-                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                                fabFilterProQ.InitFromParameters(parameters);
-
-                                // and set the correct params
-                                preset.PlugInCategory = "Fx";
-                                preset.PlugInName = "FabFilter Pro-Q x64";
-                                preset.PlugInVendor = "FabFilter";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // init preset parameters
-                        // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
-                        var fabFilterProQFloats = preset.Parameters
-                                                    .Where(v => v.Value.StringValue == null)
-                                                    .Where(v => v.Value.ByteValue == null)
-                                                    .Select(v => (float)v.Value.NumberValue).ToArray();
-                        fabFilterProQ.InitFromParameters(fabFilterProQFloats, false);
-
-                    }
+                    fabFilterProQ.InitFromParameters();
                 }
 
                 else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2
                     || preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                 {
+                    // init variables from the parameters or FXP object
                     var fabFilterProQ2 = preset as FabfilterProQ2;
-
-                    if (preset.HasFXP)
-                    {
-                        var fxp = preset.FXP;
-
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            // only use the parameters from the first program
-                            if (set.NumPrograms > 0)
-                            {
-                                var program = set.Programs[0];
-                                var parameters = program.Parameters;
-
-                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                                fabFilterProQ2.InitFromParameters(parameters);
-
-                                // and set the correct params
-                                preset.PlugInCategory = "Fx";
-                                preset.PlugInName = "FabFilter Pro-Q 2 x64";
-                                preset.PlugInVendor = "FabFilter";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // init preset parameters
-                        // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
-                        var fabFilterProQ2Floats = preset.Parameters
-                                                    .Where(v => v.Value.StringValue == null)
-                                                    .Where(v => v.Value.ByteValue == null)
-                                                    .Select(v => (float)v.Value.NumberValue).ToArray();
-                        fabFilterProQ2.InitFromParameters(fabFilterProQ2Floats, false);
-                    }
+                    fabFilterProQ2.InitFromParameters();
                 }
             }
             catch (System.Exception e)
@@ -200,43 +133,9 @@ namespace PresetConverter
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
 
+                    // init variables from the parameters or FXP object
                     var fabFilterProQ = preset as FabfilterProQ;
-
-                    if (preset.HasFXP)
-                    {
-                        var fxp = preset.FXP;
-
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            // only use the parameters from the first program
-                            if (set.NumPrograms > 0)
-                            {
-                                var program = set.Programs[0];
-                                var parameters = program.Parameters;
-
-                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                                fabFilterProQ.InitFromParameters(parameters);
-
-                                // and set the correct params
-                                preset.Vst3ID = vstPreset.Vst3ID;
-                                preset.PlugInCategory = "Fx";
-                                preset.PlugInName = "FabFilter Pro-Q x64";
-                                preset.PlugInVendor = "FabFilter";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // init preset parameters
-                        // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
-                        var fabFilterProQFloats = preset.Parameters
-                                                    .Where(v => v.Value.StringValue == null)
-                                                    .Where(v => v.Value.ByteValue == null)
-                                                    .Select(v => (float)v.Value.NumberValue).ToArray();
-                        fabFilterProQ.InitFromParameters(fabFilterProQFloats, false);
-                    }
+                    fabFilterProQ.InitFromParameters();
                     break;
                 case VstPreset.VstIDs.FabFilterProQ2:
                 case VstPreset.VstIDs.FabFilterProQ2x64:
@@ -244,43 +143,10 @@ namespace PresetConverter
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
 
+                    // init variables from the parameters or FXP object
                     var fabFilterProQ2 = preset as FabfilterProQ2;
+                    fabFilterProQ2.InitFromParameters();
 
-                    if (preset.HasFXP)
-                    {
-                        var fxp = preset.FXP;
-
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            // only use the parameters from the first program
-                            if (set.NumPrograms > 0)
-                            {
-                                var program = set.Programs[0];
-                                var parameters = program.Parameters;
-
-                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                                fabFilterProQ2.InitFromParameters(parameters);
-
-                                // and set the correct params
-                                preset.Vst3ID = vstPreset.Vst3ID;
-                                preset.PlugInCategory = "Fx";
-                                preset.PlugInName = "FabFilter Pro-Q 2 x64";
-                                preset.PlugInVendor = "FabFilter";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // init preset parameters
-                        // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
-                        var fabFilterProQ2Floats = preset.Parameters
-                                                    .Where(v => v.Value.StringValue == null)
-                                                    .Where(v => v.Value.ByteValue == null)
-                                                    .Select(v => (float)v.Value.NumberValue).ToArray();
-                        fabFilterProQ2.InitFromParameters(fabFilterProQ2Floats, false);
-                    }
                     break;
                 case VstPreset.VstIDs.WavesSSLChannelStereo:
                     VstPreset.Parameter sslChannelXml = null;
@@ -288,6 +154,7 @@ namespace PresetConverter
                     if (sslChannelXml != null && sslChannelXml.StringValue != null)
                     {
                         List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(sslChannelXml.StringValue);
+
                         // a single vstpreset likely (?) only contain one waves ssl preset, use the first
                         preset = channelPresetList.FirstOrDefault();
                         preset.Parameters = vstPreset.Parameters;
@@ -300,6 +167,7 @@ namespace PresetConverter
                     if (sslCompXml != null && sslCompXml.StringValue != null)
                     {
                         List<WavesSSLComp> channelPresetList = WavesPreset.ParseXml<WavesSSLComp>(sslCompXml.StringValue);
+
                         // a single vstpreset likely (?) only contain one waves ssl preset, use the first
                         preset = channelPresetList.FirstOrDefault();
                         preset.Parameters = vstPreset.Parameters;
@@ -315,6 +183,8 @@ namespace PresetConverter
                     preset = vstPreset;
                     break;
             }
+
+            preset.Vst3ID = vstPreset.Vst3ID;
 
             return preset as T;
         }

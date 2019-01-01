@@ -578,8 +578,6 @@ namespace AbletonLiveConverter
                 // use chunk data
                 if (vstPreset.HasFXP)
                 {
-                    var fxp = vstPreset.FXP;
-
                     // check if FabFilterProQx64
                     if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                     {
