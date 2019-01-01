@@ -431,7 +431,7 @@ namespace PresetConverter
         {
             if (HasFXP)
             {
-                SetCompChunkData(this.FXP);
+                // don't do anything
             }
             else
             {

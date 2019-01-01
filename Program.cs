@@ -434,65 +434,18 @@ namespace AbletonLiveConverter
                 string fxpOutputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
                 fxp.Write(fxpOutputFilePath);
 
-                // check if FabFilterProQ2 
-                if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                 {
-                    if (fxp.Content is FXP.FxSet)
-                    {
-                        var set = (FXP.FxSet)fxp.Content;
-
-                        for (int i = 0; i < set.NumPrograms; i++)
-                        {
-                            var program = set.Programs[i];
-                            var parameters = program.Parameters;
-
-                            // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                            var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters);
-
-                            // to save as a vstpreset we need to store the fxp chunk
-                            preset.FXP = fxp;
-
-                            // and set the correct params
-                            preset.Vst3ID = VstPreset.VstIDs.FabFilterProQ2x64;
-                            preset.PlugInCategory = "Fx";
-                            preset.PlugInName = "FabFilter Pro-Q 2 x64";
-                            preset.PlugInVendor = "FabFilter";
-
-                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
-                            HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
-                        }
-                    }
-                }
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
-                {
-                    if (fxp.Content is FXP.FxSet)
-                    {
-                        var set = (FXP.FxSet)fxp.Content;
-
-                        for (int i = 0; i < set.NumPrograms; i++)
-                        {
-                            var program = set.Programs[i];
-                            var parameters = program.Parameters;
-
-                            // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                            var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-
-                            // to save as a vstpreset we need to store the fxp chunk
-                            preset.FXP = fxp;
-
-                            // and set the correct params
-                            preset.Vst3ID = VstPreset.VstIDs.FabFilterProQx64;
-                            preset.PlugInCategory = "Fx";
-                            preset.PlugInName = "FabFilter Pro-Q x64";
-                            preset.PlugInVendor = "FabFilter";
-
-                            string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtensionPart, i) : fileNameNoExtensionPart;
-                            HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
-                        }
-                    }
+                    var fabFilterProQ = vstPreset as FabfilterProQ;
+                    HandleFabfilterPresetFile(fabFilterProQ, "FabFilterProQx64", outputDirectoryPath, fileNameNoExtensionPart);
                 }
 
-                // check if NI Kontakt 5
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                {
+                    var fabFilterProQ2 = vstPreset as FabfilterProQ2;
+                    HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2x64", outputDirectoryPath, fileNameNoExtensionPart);
+                }
+
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                 {
                     // save the kontakt presets as .vstpreset files
@@ -630,63 +583,17 @@ namespace AbletonLiveConverter
                     // check if FabFilterProQx64
                     if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
                     {
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            for (int i = 0; i < set.NumPrograms; i++)
-                            {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
-
-                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                                var preset = FabfilterProQ.Convert2FabfilterProQ(parameters);
-
-                                // to save as a vstpreset we need to store the fxp chunk
-                                preset.FXP = fxp;
-
-                                // and set the correct params
-                                preset.Vst3ID = VstPreset.VstIDs.FabFilterProQx64;
-                                preset.PlugInCategory = "Fx";
-                                preset.PlugInName = "FabFilter Pro-Q x64";
-                                preset.PlugInVendor = "FabFilter";
-
-                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
-                                HandleFabfilterPresetFile(preset, "FabFilterProQx64", outputDirectoryPath, presetOutputFileName);
-                            }
-                        }
+                        var fabFilterProQ = vstPreset as FabfilterProQ;
+                        HandleFabfilterPresetFile(fabFilterProQ, "FabFilterProQx64", outputDirectoryPath, fileNameNoExtension);
                     }
+
                     // check if FabFilterProQ2x64
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
                     {
-                        if (fxp.Content is FXP.FxSet)
-                        {
-                            var set = (FXP.FxSet)fxp.Content;
-
-                            for (int i = 0; i < set.NumPrograms; i++)
-                            {
-                                var program = set.Programs[i];
-                                var parameters = program.Parameters;
-
-                                // Note that the floats are stored as IEEE (meaning between 0.0 - 1.0)
-                                var preset = FabfilterProQ2.Convert2FabfilterProQ2(parameters);
-
-                                // to save as a vstpreset we need to store the fxp chunk
-                                preset.FXP = fxp;
-
-                                // and set the correct params
-                                preset.Vst3ID = VstPreset.VstIDs.FabFilterProQ2x64;
-                                preset.PlugInCategory = "Fx";
-                                preset.PlugInName = "FabFilter Pro-Q 2 x64";
-                                preset.PlugInVendor = "FabFilter";
-
-                                string presetOutputFileName = set.NumPrograms > 1 ? string.Format("{0}{1}", fileNameNoExtension, i) : fileNameNoExtension;
-                                HandleFabfilterPresetFile(preset, "FabFilterProQ2x64", outputDirectoryPath, presetOutputFileName);
-                            }
-                        }
+                        var fabFilterProQ2 = vstPreset as FabfilterProQ2;
+                        HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2x64", outputDirectoryPath, fileNameNoExtension);
                     }
 
-                    // check if NI Kontakt 5
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                     {
                         // save the kontakt presets as .vstpreset files
