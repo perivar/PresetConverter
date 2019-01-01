@@ -130,33 +130,36 @@ namespace PresetConverter
             }
 
             public string Name;
-            public UInt32 Number;
-            public double NumberValue;
-            public string StringValue;
-            public byte[] ByteValue;
+            public UInt32 Index;
+
+            // make sure the values are nullable types
+            public double? Number;
+            public string String;
+            public byte[] Bytes;
+
             public ParameterType Type = ParameterType.Number;
 
-            public Parameter(string name, UInt32 number, double value)
+            public Parameter(string name, int index, double value)
             {
                 this.Name = name;
-                this.Number = number;
-                this.NumberValue = value;
+                this.Index = (UInt32)index;
+                this.Number = value;
                 this.Type = ParameterType.Number;
             }
 
-            public Parameter(string name, UInt32 number, string value)
+            public Parameter(string name, int index, string value)
             {
                 this.Name = name;
-                this.Number = number;
-                this.StringValue = value;
+                this.Index = (UInt32)index;
+                this.String = value;
                 this.Type = ParameterType.String;
             }
 
-            public Parameter(string name, UInt32 number, byte[] value)
+            public Parameter(string name, int index, byte[] value)
             {
                 this.Name = name;
-                this.Number = number;
-                this.ByteValue = value;
+                this.Index = (UInt32)index;
+                this.Bytes = value;
                 this.Type = ParameterType.Bytes;
             }
 
@@ -166,15 +169,15 @@ namespace PresetConverter
                 switch (this.Type)
                 {
                     case ParameterType.Number:
-                        return string.Format("[{1}] {0} = {2:0.00}", Name, Number, NumberValue);
+                        return string.Format("{1,-6} | {0,-20} | {2,8:0.00}", Name, Index, Number);
                     case ParameterType.String:
-                        shortenedString = GetShortenedString(StringValue);
-                        return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
+                        shortenedString = GetShortenedString(String);
+                        return string.Format("{1,-6} | {0,-20} | {2}", Name, Index, shortenedString);
                     case ParameterType.Bytes:
-                        shortenedString = StringUtils.ToHexEditorString(ByteValue);
-                        return string.Format("[{1}] {0} = {2}", Name, Number, shortenedString);
+                        shortenedString = StringUtils.ToHexEditorString(Bytes);
+                        return string.Format("{1,-6} | {0,-20} | {2}", Name, Index, shortenedString);
                     default:
-                        return string.Format("[{1}] {0} = 'No Values Set']", Name, Number);
+                        return string.Format("{1,-6} | {0,-20} | {2}", Name, Index, "No Values Set");
                 }
             }
         }
@@ -239,39 +242,39 @@ namespace PresetConverter
         }
 
         #region Parameter methods
-        public void AddParameter(string name, int number, double value)
+        public void AddParameter(string name, int index, double value)
         {
-            Parameters.Add(name, new Parameter(name, (UInt32)number, value));
+            Parameters.Add(name, new Parameter(name, index, value));
         }
 
-        public void AddParameter(string name, int number, string value)
+        public void AddParameter(string name, int index, string value)
         {
-            Parameters.Add(name, new Parameter(name, (UInt32)number, value));
+            Parameters.Add(name, new Parameter(name, index, value));
         }
 
-        public void AddParameter(string name, int number, byte[] value)
+        public void AddParameter(string name, int index, byte[] value)
         {
-            Parameters.Add(name, new Parameter(name, (UInt32)number, value));
+            Parameters.Add(name, new Parameter(name, index, value));
         }
 
-        public double GetNumberParameter(string key)
+        public double? GetNumberParameter(string key)
         {
             if (Parameters.ContainsKey(key))
             {
-                return Parameters[key].NumberValue;
+                return Parameters[key].Number.Value;
             }
             else
             {
-                return -1;
+                return null;
             }
         }
 
         public string GetStringParameter(string key)
         {
             if (Parameters.ContainsKey(key)
-            && Parameters[key].StringValue != null)
+            && Parameters[key].String != null)
             {
-                return Parameters[key].StringValue;
+                return Parameters[key].String;
             }
             else
             {
@@ -282,9 +285,9 @@ namespace PresetConverter
         public byte[] GetByteParameter(string key)
         {
             if (Parameters.ContainsKey(key)
-            && Parameters[key].ByteValue != null)
+            && Parameters[key].Bytes != null)
             {
-                return Parameters[key].ByteValue;
+                return Parameters[key].Bytes;
             }
             else
             {
@@ -313,7 +316,7 @@ namespace PresetConverter
                     // parameter already exist
                     // warn and overwrite
                     Log.Warning(string.Format("{0} bytes of Comp Chunk data already exist! Overwriting with new content of {1} bytes ...", CompChunkData.Length, value.Length));
-                    Parameters["CompChunkData"].ByteValue = value;
+                    Parameters["CompChunkData"].Bytes = value;
                 }
             }
         }
@@ -328,7 +331,7 @@ namespace PresetConverter
             {
                 string key = "CompChunkData";
                 if (Parameters.ContainsKey(key)
-                && Parameters[key].ByteValue != null)
+                && Parameters[key].Bytes != null)
                 {
                     return true;
                 }
@@ -357,7 +360,7 @@ namespace PresetConverter
                     // parameter already exist
                     // warn and overwrite
                     Log.Warning(string.Format("{0} bytes of Cont Chunk data already exist! Overwriting with new content of {1} bytes ...", ContChunkData.Length, value.Length));
-                    Parameters["ContChunkData"].ByteValue = value;
+                    Parameters["ContChunkData"].Bytes = value;
                 }
             }
         }
@@ -372,7 +375,7 @@ namespace PresetConverter
             {
                 string key = "ContChunkData";
                 if (Parameters.ContainsKey(key)
-                && Parameters[key].ByteValue != null)
+                && Parameters[key].Bytes != null)
                 {
                     return true;
                 }
@@ -984,6 +987,9 @@ namespace PresetConverter
 
             // see if if the chunk data is FXP
             this.FXP = new FXP(fxpChunkData);
+
+            // set the chunk data to fxp data
+            SetCompChunkData(this.FXP);
 
             // try to read the info xml 
             TryReadInfoXml(bf);

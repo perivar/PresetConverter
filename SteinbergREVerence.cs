@@ -77,7 +77,7 @@ namespace PresetConverter
         {
             if (Parameters.ContainsKey("wave-file-path-1"))
             {
-                WavFilePath1 = Parameters["wave-file-path-1"].StringValue;
+                WavFilePath1 = Parameters["wave-file-path-1"].String;
                 Parameters.Remove("wave-file-path-1");
             }
             if (Parameters.ContainsKey("wave-count"))
@@ -86,12 +86,12 @@ namespace PresetConverter
             }
             if (Parameters.ContainsKey("wave-file-path-2"))
             {
-                WavFilePath2 = Parameters["wave-file-path-2"].StringValue;
+                WavFilePath2 = Parameters["wave-file-path-2"].String;
                 Parameters.Remove("wave-file-path-2");
             }
             if (Parameters.ContainsKey("wave-file-name"))
             {
-                WavFileName = Parameters["wave-file-name"].StringValue;
+                WavFileName = Parameters["wave-file-name"].String;
                 Parameters.Remove("wave-file-name");
             }
             if (Parameters.ContainsKey("image-count"))
@@ -109,7 +109,7 @@ namespace PresetConverter
                 string key = string.Format("image-file-name-{0}", (i + 1));
                 if (Parameters.ContainsKey(key))
                 {
-                    Images.Add(Parameters[key].StringValue);
+                    Images.Add(Parameters[key].String);
                     Parameters.Remove(key);
                 }
                 else
@@ -171,8 +171,8 @@ namespace PresetConverter
                     {
                         var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
                         bf.Write(paramName);
-                        bf.Write(parameter.Number);
-                        bf.Write(parameter.NumberValue);
+                        bf.Write(parameter.Index);
+                        bf.Write(parameter.Number.Value);
                     }
                 }
 
@@ -188,8 +188,8 @@ namespace PresetConverter
                         {
                             var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
                             bf.Write(paramName);
-                            bf.Write(parameter.Number);
-                            bf.Write(parameter.NumberValue);
+                            bf.Write(parameter.Index);
+                            bf.Write(parameter.Number.Value);
                         }
                     }
                 }

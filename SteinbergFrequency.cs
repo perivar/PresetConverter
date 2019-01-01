@@ -66,7 +66,7 @@ namespace PresetConverter
 
         private void InitFrequencyBandParameters(int bandNumber)
         {
-            uint increment = (uint)bandNumber - 1;
+            int increment = bandNumber - 1;
             InitNumberParameter(String.Format("equalizerAon{0}", bandNumber), 100 + increment, 1.00);
             InitNumberParameter(String.Format("equalizerAgain{0}", bandNumber), 108 + increment, 0.00);
             InitNumberParameter(String.Format("equalizerAfreq{0}", bandNumber), 116 + increment, 100.00 * bandNumber);
@@ -114,9 +114,9 @@ namespace PresetConverter
 
             for (int bandNumber = 1; bandNumber <= 8; bandNumber++)
             {
-                double stereoPlacementType = Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue;
-                bool isBandEnabled = Parameters[String.Format("equalizerAbandon{0}", bandNumber)].NumberValue == 1.0;
-                bool isLinearPhase = Parameters[String.Format("linearphase{0}", bandNumber)].NumberValue == 1.0;
+                double stereoPlacementType = Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].Number.Value;
+                bool isBandEnabled = Parameters[String.Format("equalizerAbandon{0}", bandNumber)].Number.Value == 1.0;
+                bool isLinearPhase = Parameters[String.Format("linearphase{0}", bandNumber)].Number.Value == 1.0;
 
                 string channel = ""; // empty for main channel (channel 1). 'Ch2' for secondary channel 
                 string bandInfo = GetBandInfo(bandNumber, channel);
@@ -156,16 +156,16 @@ namespace PresetConverter
         {
             var sb = new StringBuilder();
 
-            bool isChannelOn = Parameters[String.Format("equalizerAon{0}{1}", bandNumber, channel)].NumberValue == 1.0;
-            double gain = Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].NumberValue;
-            double frequency = Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].NumberValue;
-            double q = Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].NumberValue;
-            bool isInverted = Parameters[String.Format("invert{0}{1}", bandNumber, channel)].NumberValue == 1.0;
+            bool isChannelOn = Parameters[String.Format("equalizerAon{0}{1}", bandNumber, channel)].Number.Value == 1.0;
+            double gain = Parameters[String.Format("equalizerAgain{0}{1}", bandNumber, channel)].Number.Value;
+            double frequency = Parameters[String.Format("equalizerAfreq{0}{1}", bandNumber, channel)].Number.Value;
+            double q = Parameters[String.Format("equalizerAq{0}{1}", bandNumber, channel)].Number.Value;
+            bool isInverted = Parameters[String.Format("invert{0}{1}", bandNumber, channel)].Number.Value == 1.0;
 
             string shape = "";
             if (bandNumber == 1 || bandNumber == 8)
             {
-                switch (Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue)
+                switch (Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].Number.Value)
                 {
                     case SteinbergFrequency.BandMode1And8.Cut6:
                         shape = "Cut6";
@@ -198,7 +198,7 @@ namespace PresetConverter
             }
             else
             {
-                switch (Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].NumberValue)
+                switch (Parameters[String.Format("equalizerAtype{0}{1}", bandNumber, channel)].Number.Value)
                 {
                     case SteinbergFrequency.BandMode2To7.LowShelf:
                         shape = "LowShelf";
@@ -217,7 +217,7 @@ namespace PresetConverter
 
             // stereo placement
             string stereoPlacement = "";
-            switch (Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].NumberValue)
+            switch (Parameters[String.Format("equalizerAeditchannel{0}", bandNumber)].Number.Value)
             {
                 case SteinbergFrequency.ChannelMode.LeftRightModeLeft:
                     stereoPlacement = "LR: Left";

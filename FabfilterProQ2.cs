@@ -358,28 +358,28 @@ namespace PresetConverter
 
             writer.WriteLine();
             writer.WriteLine("PostPresetParameters:");
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingMode", ProcessingMode, "Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ProcessingResolution", ProcessingResolution, "0 - 4, Medium"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ChannelMode", ChannelMode, "0 = Left/Right, 1 = Mid/Side"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "GainScale", GainScale, "100%"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputLevel", OutputLevel, "0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputPan", OutputPan, "Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ByPass", ByPass, "Not Bypassed"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "OutputInvertPhase", OutputInvertPhase, "Normal"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AutoGain", AutoGain, "Off"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPreProcessing", AnalyzerShowPreProcessing, "Disabled - 0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowPostProcessing", AnalyzerShowPostProcessing, "Disabled - 0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerShowSidechain", AnalyzerShowSidechain, "Disabled - 0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerRange", AnalyzerRange, "Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerResolution", AnalyzerResolution, "Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  "));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerSpeed", AnalyzerSpeed, "Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerTilt", AnalyzerTilt, "Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  "));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "AnalyzerFreeze", AnalyzerFreeze, "0: Off, 1: On"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SpectrumGrab", SpectrumGrab, "Enabled"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "DisplayRange", DisplayRange, "12dB"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "ReceiveMidi", ReceiveMidi, "Enabled"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloBand", SoloBand, "-1"));
-            writer.WriteLine(string.Format("{0,-30} {1,-10} {2}", "SoloGain", SoloGain, "0.00"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "ProcessingMode", ProcessingMode, "Zero Latency: 0.0, Natural Phase: 1.0, Linear Phase: 2.0"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "ProcessingResolution", ProcessingResolution, "0 - 4, Medium"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "ChannelMode", ChannelMode, "0 = Left/Right, 1 = Mid/Side"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "GainScale", GainScale, "100%"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "OutputLevel", OutputLevel, "0.0 dB, -1 to 1 (- Infinity to +36 dB , 0 = 0 dB)"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "OutputPan", OutputPan, "Left 0 dB, Right: 0 dB, -1 to 1 (0 = middle)"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "ByPass", ByPass, "Not Bypassed"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "OutputInvertPhase", OutputInvertPhase, "Normal"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AutoGain", AutoGain, "Off"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerShowPreProcessing", AnalyzerShowPreProcessing, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerShowPostProcessing", AnalyzerShowPostProcessing, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerShowSidechain", AnalyzerShowSidechain, "Disabled - 0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerRange", AnalyzerRange, "Analyzer Range in dB. 0.0: 60dB, 1.0: 90dB, 2.0: 120dB"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerResolution", AnalyzerResolution, "Analyzer Resolution. 0.0: Low, 1.0: Medium, 2.0: High, 3.00: Maximum  "));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerSpeed", AnalyzerSpeed, "Analyzer Speed. 0.0: Very Slow, 1.0: Slow, 2.0: Medium, 3.0 Fast, 4.0: Very Fast"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerTilt", AnalyzerTilt, "Analyzer Tilt in dB/oct. 0.0: 0.0, 1.0: 1.5, 2.0: 3.0, 3.0: 4.5, 4.0: 6.0  "));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "AnalyzerFreeze", AnalyzerFreeze, "0: Off, 1: On"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "SpectrumGrab", SpectrumGrab, "Enabled"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "DisplayRange", DisplayRange, "12dB"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "ReceiveMidi", ReceiveMidi, "Enabled"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "SoloBand", SoloBand, "-1"));
+            writer.WriteLine(string.Format("{0,-28} {1,8:0.00}  {2}", "SoloGain", SoloGain, "0.00"));
 
             return writer.ToString();
         }
@@ -482,9 +482,8 @@ namespace PresetConverter
                 // init preset parameters
                 // Note that the floats are not stored as IEEE (meaning between 0.0 - 1.0) but as floats representing the real values 
                 var fabFilterProQ2Floats = Parameters
-                                            .Where(v => v.Value.StringValue == null)
-                                            .Where(v => v.Value.ByteValue == null)
-                                            .Select(v => (float)v.Value.NumberValue).ToArray();
+                                            .Where(v => v.Value.Type == Parameter.ParameterType.Number)
+                                            .Select(v => (float)v.Value.Number.Value).ToArray();
                 InitFromParameters(fabFilterProQ2Floats, false);
             }
         }

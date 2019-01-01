@@ -30,15 +30,15 @@ namespace PresetConverter
             return true;
         }
 
-        public void InitStartBytes(UInt32 value)
+        public void InitStartBytes(int value)
         {
             // add the 4 unknown bytes before the parameters start
             this.Parameters.Add("StartBytes", new Parameter("StartBytes", 0, BitConverter.GetBytes(value)));
         }
 
-        public void InitNumberParameter(string name, UInt32 number, double value)
+        public void InitNumberParameter(string name, int index, double value)
         {
-            var parameter = new Parameter(name, number, value);
+            var parameter = new Parameter(name, index, value);
             this.Parameters.Add(name, parameter);
         }
 
@@ -52,20 +52,20 @@ namespace PresetConverter
                 {
                     if (parameter.Type == Parameter.ParameterType.Bytes)
                     {
-                        bf.Write(parameter.ByteValue);
+                        bf.Write(parameter.Bytes);
                     }
                     else
                     if (parameter.Type == Parameter.ParameterType.Number)
                     {
                         var paramName = parameter.Name.PadRight(128, '\0').Substring(0, 128);
                         bf.Write(paramName);
-                        bf.Write(parameter.Number);
-                        bf.Write(parameter.NumberValue);
+                        bf.Write(parameter.Index);
+                        bf.Write(parameter.Number.Value);
                     }
                     else
                     if (parameter.Type == Parameter.ParameterType.String)
                     {
-                        bf.Write(parameter.StringValue);
+                        bf.Write(parameter.String);
                     }
                 }
             }

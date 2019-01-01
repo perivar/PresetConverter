@@ -151,9 +151,9 @@ namespace PresetConverter
                 case VstPreset.VstIDs.WavesSSLChannelStereo:
                     VstPreset.Parameter sslChannelXml = null;
                     vstPreset.Parameters.TryGetValue("XmlContent", out sslChannelXml);
-                    if (sslChannelXml != null && sslChannelXml.StringValue != null)
+                    if (sslChannelXml != null && sslChannelXml.String != null)
                     {
-                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(sslChannelXml.StringValue);
+                        List<WavesSSLChannel> channelPresetList = WavesPreset.ParseXml<WavesSSLChannel>(sslChannelXml.String);
 
                         // a single vstpreset likely (?) only contain one waves ssl preset, use the first
                         preset = channelPresetList.FirstOrDefault();
@@ -164,9 +164,9 @@ namespace PresetConverter
                 case VstPreset.VstIDs.WavesSSLCompStereo:
                     VstPreset.Parameter sslCompXml = null;
                     vstPreset.Parameters.TryGetValue("XmlContent", out sslCompXml);
-                    if (sslCompXml != null && sslCompXml.StringValue != null)
+                    if (sslCompXml != null && sslCompXml.String != null)
                     {
-                        List<WavesSSLComp> channelPresetList = WavesPreset.ParseXml<WavesSSLComp>(sslCompXml.StringValue);
+                        List<WavesSSLComp> channelPresetList = WavesPreset.ParseXml<WavesSSLComp>(sslCompXml.String);
 
                         // a single vstpreset likely (?) only contain one waves ssl preset, use the first
                         preset = channelPresetList.FirstOrDefault();
