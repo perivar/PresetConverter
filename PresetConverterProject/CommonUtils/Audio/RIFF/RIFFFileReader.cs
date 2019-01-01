@@ -33,12 +33,13 @@ namespace CommonUtils.Audio.RIFF
         /// </summary>
         /// <param name="fileName">Filename which points to a wave file.</param>
         /// <param name="useWordAlignment">whether to ensure word-alignment (defaults to false)</param>
-        public RIFFFileReader(string fileName, bool useWordAlignment = false)
+        public RIFFFileReader(string fileName, bool useWordAlignment = false, bool closeBinaryFile = false)
         {
             if (fileName == null)
                 throw new ArgumentNullException("fileName");
 
             _useWordAlignment = useWordAlignment;
+            _closeBinaryFile = closeBinaryFile;
 
             _binaryFile = new BinaryFile(fileName, BinaryFile.ByteOrder.BigEndian);
 

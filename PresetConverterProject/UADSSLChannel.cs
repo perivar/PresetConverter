@@ -68,7 +68,7 @@ namespace PresetConverter
 
         public UADSSLChannel()
         {
-            InitializeMappingTables("UADSSLChannelParametersMap.xml");
+            InitializeMappingTables("PresetConverterProject\\UADSSLChannelParametersMap.xml");
             Vst3ID = VstIDs.UADSSLEChannel;
             PlugInCategory = "Fx|Channel Strip";
             PlugInName = "UAD SSL E Channel Strip";

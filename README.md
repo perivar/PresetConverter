@@ -1,2 +1,4 @@
-# AbletonLiveConverter
-Convert Ableton Live files into other formats for more simple conversion between DAWs
+# PresetConverter
+Convert a range of preset and solutions files into other formats for more simple conversion between DAWs
+
+i.e. from Ableton Live to Cubase
