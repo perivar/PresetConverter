@@ -88,16 +88,27 @@ namespace PresetConverter
             var compressor = new SteinbergCompressor();
 
             compressor.Parameters["threshold"].Number = 20 * Math.Log10(comp.Threshold); // 0.454823315 = -6.84dB, 0.0150452089 = -36.5dB, 0.110704564 = -19.1dB, 1 = 0.0dB, 0.151618019 = -16.4dB
-            compressor.Parameters["ratio"].Number = comp.Ratio;
+
+            if (comp.Ratio == AbletonCompressor.MaxFloatMinusEpsilon)
+            {
+                compressor.Parameters["ratio"].Number = 2.0f;
+                compressor.Parameters["limit"].Number = 1.0f;
+            }
+            else
+            {
+                compressor.Parameters["ratio"].Number = comp.Ratio;
+                compressor.Parameters["limit"].Number = 0.0f;
+            }
+
             compressor.Parameters["attack"].Number = comp.Attack;
             compressor.Parameters["release"].Number = comp.Release;
             compressor.Parameters["autorelease"].Number = comp.AutoReleaseControlOnOff == true ? 1.00 : 0.00;
             compressor.Parameters["hold"].Number = 0.00;
             compressor.Parameters["makeUp"].Number = comp.Gain;
             compressor.Parameters["automakeup"].Number = comp.GainCompensation == true ? 1.00 : 0.00;
-            compressor.Parameters["softknee"].Number = comp.Knee > 6.00 ? 1.00 : 0.00; // Knee value of 0.00 is hard knee, up to 18.00 dB (default 6.00 dB)
-            compressor.Parameters["rms"].Number = comp.Model == 1 ? 100.00 : 00.00; // 0.00 - 100.00 - Model: 0 = Peak, 1 = RMS, 2 = Expand
-            compressor.Parameters["drymix"].Number = (1 - comp.DryWet) * 100; // 0.00 - 100.00
+            compressor.Parameters["softknee"].Number = comp.Knee > 6.00 ? 1.00 : 0.00;  // Knee value of 0.00 is hard knee, up to 18.00 dB (default 6.00 dB)
+            compressor.Parameters["rms"].Number = comp.Model == 1 ? 100.00 : 00.00;     // 0.00 - 100.00 - Model: 0 = Peak, 1 = RMS, 2 = Expand
+            compressor.Parameters["drymix"].Number = (1 - comp.DryWet) * 100;           // 0.00 - 100.00
 
             Log.Debug(comp.ToString());
 

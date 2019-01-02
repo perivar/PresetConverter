@@ -31,14 +31,12 @@ namespace PresetConverterTests
             string filePath = Path.Combine(outputDirectoryPath, fileName);
 
             var readBytes = File.ReadAllBytes(filePath);
-            // var readBytesShortenedString = StringUtils.ToHexEditorString(readBytes);
 
             var preset = VstPresetFactory.GetVstPreset<VstPreset>(filePath);
 
             var memStream = new MemoryStream();
             var successful = preset.WritePreset(memStream);
             var writeBytes = memStream.ToArray();
-            // var writeBytesShortenedString = StringUtils.ToHexEditorString(writeBytes);
 
             Assert.Equal(readBytes, writeBytes, new JaggedByteComparer(0.001));
 

@@ -139,25 +139,34 @@ namespace PresetConverter
                         // Convert EQ8 to Steinberg Frequency
                         var eq = new AbletonEq8(xelement);
                         var steinbergFrequency = eq.ToSteinbergFrequency();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName + ".vstpreset");
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
-                        steinbergFrequency.Write(outputFilePath);
+                        steinbergFrequency.Write(outputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
                         break;
                     case "Compressor2":
                         // Convert Compressor2 to Steinberg Compressor
                         var compressor = new AbletonCompressor(xelement);
                         var steinbergCompressor = compressor.ToSteinbergCompressor();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName + ".vstpreset");
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
-                        steinbergCompressor.Write(outputFilePath);
+                        steinbergCompressor.Write(outputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", steinbergCompressor.ToString());
                         break;
                     case "GlueCompressor":
                         // Convert Glue compressor to Waves SSL Compressor
                         var glueCompressor = new AbletonGlueCompressor(xelement);
                         var wavesSSLComp = glueCompressor.ToWavesSSLComp();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName + ".vstpreset");
+                        outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
-                        wavesSSLComp.Write(outputFilePath);
+                        wavesSSLComp.Write(outputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", wavesSSLComp.ToString());
                         break;
                     case "MultibandDynamics":
                     case "AutoFilter":
@@ -189,25 +198,34 @@ namespace PresetConverter
                     // Convert EQ8 to Steinberg Frequency
                     var eq = new AbletonEq8(xelement);
                     var steinbergFrequency = eq.ToSteinbergFrequency();
-                    outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName + ".vstpreset");
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
-                    steinbergFrequency.Write(outputFilePath);
+                    steinbergFrequency.Write(outputFilePath + ".vstpreset");
+
+                    // and dump the text info as well
+                    File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
                     break;
                 case "Compressor2":
                     // Convert Compressor2 to Steinberg Compressor
                     var compressor = new AbletonCompressor(xelement);
                     var steinbergCompressor = compressor.ToSteinbergCompressor();
-                    outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName + ".vstpreset");
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
-                    steinbergCompressor.Write(outputFilePath);
+                    steinbergCompressor.Write(outputFilePath + ".vstpreset");
+
+                    // and dump the text info as well
+                    File.WriteAllText(outputFilePath + ".txt", steinbergCompressor.ToString());
                     break;
                 case "GlueCompressor":
                     // Convert Glue compressor to Waves SSL Compressor
                     var glueCompressor = new AbletonGlueCompressor(xelement);
                     var wavesSSLComp = glueCompressor.ToWavesSSLComp();
-                    outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName + ".vstpreset");
+                    outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
-                    wavesSSLComp.Write(outputFilePath);
+                    wavesSSLComp.Write(outputFilePath + ".vstpreset");
+
+                    // and dump the text info as well
+                    File.WriteAllText(outputFilePath + ".txt", wavesSSLComp.ToString());
                     break;
                 case "MultibandDynamics":
                 case "AutoFilter":

@@ -2,11 +2,14 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
+using Serilog;
 
 namespace PresetConverter
 {
     public class AbletonCompressor
     {
+        public const float MaxFloatMinusEpsilon = 340282326356119260000000000000000000000f;
+
         public float Threshold;
         public float Ratio;
         public float ExpansionRatio;
@@ -25,6 +28,10 @@ namespace PresetConverter
         {
             this.Threshold = float.Parse(xelement.Descendants("Threshold").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
             this.Ratio = float.Parse(xelement.Descendants("Ratio").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
+            if (this.Ratio == MaxFloatMinusEpsilon)
+            {
+                Log.Debug("AbletonCompressor ratio is set to max: {0}", MaxFloatMinusEpsilon);
+            }
             this.ExpansionRatio = float.Parse(xelement.Descendants("ExpansionRatio").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
             this.Attack = float.Parse(xelement.Descendants("Attack").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
             this.Release = float.Parse(xelement.Descendants("Release").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
