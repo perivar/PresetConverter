@@ -4,12 +4,10 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 using System.Globalization;
 
-using PresetConverter;
 using CommonUtils;
-using System.Xml.Linq;
-using AbletonLiveConverter;
 
 namespace PresetConverter
 {

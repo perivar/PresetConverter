@@ -19,10 +19,13 @@ namespace PresetConverter
             PlugInName = "Compressor";
             PlugInVendor = "Steinberg Media Technologies";
 
+            // later presets start with 2304 and contain two more parameters than previous presets (limit and drymix)
+            // previous presets start with 2016
             InitStartBytes(2304);
+
             InitParameters();
         }
-        
+
         private void InitParameters()
         {
             InitNumberParameter("threshold", 0, -20.00);

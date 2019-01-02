@@ -6,16 +6,16 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+
 using CommonUtils;
 using CommonUtils.Audio;
 using CommonUtils.Audio.RIFF;
 using McMaster.Extensions.CommandLineUtils;
-using PresetConverter;
 using SDIR2WavConverter;
 using Serilog;
 using Serilog.Events;
 
-namespace AbletonLiveConverter
+namespace PresetConverter
 {
     class Program
     {
@@ -23,8 +23,8 @@ namespace AbletonLiveConverter
         {
             // Setup command line parser
             var app = new CommandLineApplication();
-            app.Name = "AbletonLiveConverter";
-            app.Description = "Convert Ableton Live presets to readable formats";
+            app.Name = "PresetConverter";
+            app.Description = "Convert different DAW presets to other formats (both fxp, vstpresets and txt)";
             app.HelpOption();
             var optionInputDirectory = app.Option("-i|--input <path>", "The Input directory", CommandOptionType.SingleValue);
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
@@ -571,7 +571,13 @@ namespace AbletonLiveConverter
                 // always output the information
                 else
                 {
-                    File.WriteAllText(outputFilePathText, vstPreset.ToString());
+                    // output the vstpreset
+                    string presetOutputFilePath = Path.Combine(outputDirectoryPath, vstPreset.PlugInName, fileNameNoExtension);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
+                    vstPreset.Write(presetOutputFilePath + ".vstpreset");
+
+                    // and dump the text info as well
+                    File.WriteAllText(presetOutputFilePath + ".txt", vstPreset.ToString());
                 }
             }
             else
@@ -608,7 +614,13 @@ namespace AbletonLiveConverter
                     // always output the information
                     else
                     {
-                        File.WriteAllText(outputFilePathText, vstPreset.ToString());
+                        // output the vstpreset
+                        string presetOutputFilePath = Path.Combine(outputDirectoryPath, vstPreset.PlugInName, fileNameNoExtension);
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
+                        vstPreset.Write(presetOutputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(presetOutputFilePath + ".txt", vstPreset.ToString());
                     }
                 }
 

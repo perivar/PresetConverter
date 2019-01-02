@@ -6,9 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Globalization;
 
-using PresetConverter;
 using CommonUtils;
-using AbletonLiveConverter;
 
 namespace PresetConverter
 {

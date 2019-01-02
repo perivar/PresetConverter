@@ -1,11 +1,13 @@
+/* cSpell:disable */
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
+
 using CommonUtils;
-using PresetConverter;
 using Serilog;
 
 namespace PresetConverter
@@ -129,8 +131,9 @@ namespace PresetConverter
                 Bytes
             }
 
+            // parameter name and index
             public string Name;
-            public UInt32 Index;
+            public int Index;
 
             // make sure the values are nullable types
             public double? Number;
@@ -142,7 +145,7 @@ namespace PresetConverter
             public Parameter(string name, int index, double value)
             {
                 this.Name = name;
-                this.Index = (UInt32)index;
+                this.Index = index;
                 this.Number = value;
                 this.Type = ParameterType.Number;
             }
@@ -150,7 +153,7 @@ namespace PresetConverter
             public Parameter(string name, int index, string value)
             {
                 this.Name = name;
-                this.Index = (UInt32)index;
+                this.Index = index;
                 this.String = value;
                 this.Type = ParameterType.String;
             }
@@ -158,7 +161,7 @@ namespace PresetConverter
             public Parameter(string name, int index, byte[] value)
             {
                 this.Name = name;
-                this.Index = (UInt32)index;
+                this.Index = index;
                 this.Bytes = value;
                 this.Type = ParameterType.Bytes;
             }
@@ -187,8 +190,8 @@ namespace PresetConverter
         public string PlugInCategory;
         public string PlugInName;
         public string PlugInVendor;
-        public string MetaXml; // VstPreset MetaInfo Xml section as string
-        public byte[] MetaXmlBytesWithBOM; // VstPreset MetaInfo Xml section as bytes, including the BOM
+        public string InfoXml; // VstPreset MetaInfo Xml section as string
+        public byte[] InfoXmlBytesWithBOM; // VstPreset MetaInfo Xml section as bytes, including the BOM
 
         // byte positions and sizes within a vstpreset (for writing)
         public long ListPos; // position of List chunk
@@ -436,6 +439,11 @@ namespace PresetConverter
 
         #endregion
 
+        /// <summary>
+        /// Read the vstpreset using the passed filename. 
+        /// </summary>
+        /// <param name="fileName">filename</param>
+        /// <returns>true if successful</returns>
         public bool Read(string filePath)
         {
             ReadVstPreset(filePath);
@@ -448,13 +456,25 @@ namespace PresetConverter
             return true;
         }
 
+        /// <summary>
+        /// Write the vstpreset using the passed filename. 
+        /// The file is created or overwritten if it exists from before.
+        /// </summary>
+        /// <param name="fileName">filename</param>
+        /// <returns>true if successful</returns>
         public bool Write(string filePath)
         {
             return WritePreset(filePath);
         }
 
         #region ReadPreset Functions    
-        private void ReadVstPreset(string fileName)
+
+        /// <summary>
+        /// Read the vstpreset using the passed filename. 
+        /// </summary>
+        /// <param name="fileName">filename</param>
+        /// <returns>true if successful</returns>
+        public void ReadVstPreset(string fileName)
         {
             // Check file for existence
             if (!File.Exists(fileName))
@@ -654,6 +674,14 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergTremolo)
                     )
                 {
+                    // rewind 4 bytes (seek to data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+
+                    // read 4 bytes which probably is the version number
+                    var versionBytes = bf.ReadBytes(4);
+                    var versionNumber = BitConverter.ToInt32(versionBytes);
+                    AddParameter("StartBytes", versionNumber, versionBytes);
+
                     // read chunks of 140 bytes until read 19180 bytes (header = 52 bytes)
                     // (19180 + 52) = 19232 bytes
                     while (bf.Position != CompDataEndPosition)
@@ -1046,8 +1074,11 @@ namespace PresetConverter
             SeekToInfoXmlPosition(bf);
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            this.MetaXmlBytesWithBOM = bf.ReadBytes((int)this.InfoXmlChunkSize);
-            this.MetaXml = Encoding.UTF8.GetString(this.MetaXmlBytesWithBOM);
+            this.InfoXmlBytesWithBOM = bf.ReadBytes((int)this.InfoXmlChunkSize);
+            this.InfoXml = Encoding.UTF8.GetString(this.InfoXmlBytesWithBOM);
+
+            // parse out the key plugin variables
+            InitFromInfoXml();
         }
 
         private void SeekToInfoXmlPosition(BinaryFile bf)
@@ -1060,6 +1091,56 @@ namespace PresetConverter
                 // seek to start of meta xml
                 bf.Seek(this.InfoXmlStartPos, SeekOrigin.Begin);
             }
+        }
+
+        private void InitFromInfoXml()
+        {
+            if (null == this.InfoXml || "".Equals(this.InfoXml)) return;
+
+            var xmlString = RemoveByteOrderMark(this.InfoXml);
+            var xelement = XElement.Parse(xmlString);
+
+            var plugInCategoryNode = xelement.Descendants("Attribute").Where(a => a.Attribute("id").Value == "PlugInCategory").Attributes("value").FirstOrDefault();
+            if (plugInCategoryNode != null)
+            {
+                this.PlugInCategory = plugInCategoryNode.Value;
+            }
+
+            var plugInNameNode = xelement.Descendants("Attribute").Where(a => a.Attribute("id").Value == "PlugInName").Attributes("value").FirstOrDefault();
+            if (plugInNameNode != null)
+            {
+                this.PlugInName = plugInNameNode.Value;
+            }
+
+            var plugInVendorNode = xelement.Descendants("Attribute").Where(a => a.Attribute("id").Value == "PlugInVendor").Attributes("value").FirstOrDefault();
+            if (plugInVendorNode != null)
+            {
+                this.PlugInVendor = plugInVendorNode.Value;
+            }
+        }
+
+        private string RemoveByteOrderMark(string value)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+
+            if (bytes[0] == 239 &&
+            bytes[1] == 187 &&
+            bytes[2] == 191)
+            {
+                bytes = bytes.TakeLast(bytes.Length - 3).ToArray();
+            }
+
+            int byteLength = bytes.Length;
+            if (bytes[byteLength - 3] == 239 &&
+            bytes[byteLength - 2] == 187 &&
+            bytes[byteLength - 1] == 191)
+            {
+                bytes = bytes.Take(bytes.Length - 3).ToArray();
+            }
+
+            value = Encoding.UTF8.GetString(bytes);
+
+            return value;
         }
 
         private string ReadStringNullAndSkip(BinaryFile bf, Encoding encoding, long totalBytes)
@@ -1075,12 +1156,38 @@ namespace PresetConverter
         #endregion
 
         #region WritePreset Functions    
-        private bool WritePreset(string fileName)
+
+        /// <summary>
+        /// Write the vstpreset to the passed memory stream
+        /// </summary>
+        /// <param name="memStream">memory stream to write to</param>
+        /// <returns>true if successful</returns>
+        public bool WritePreset(MemoryStream memStream)
+        {
+            using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+            {
+                return WritePreset(bf);
+            }
+        }
+
+        /// <summary>
+        /// Write the vstpreset using the passed filename. 
+        /// The file is created or overwritten if it exists from before.
+        /// </summary>
+        /// <param name="fileName">filename</param>
+        /// <returns>true if successful</returns>
+        public bool WritePreset(string fileName)
+        {
+            using (BinaryFile bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true, Encoding.ASCII))
+            {
+                return WritePreset(bf);
+            }
+        }
+
+        private bool WritePreset(BinaryFile bf, bool closeBinaryFile = false)
         {
             if (PreparedForWriting())
             {
-                var bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, true, Encoding.ASCII);
-
                 // Write file header
                 bf.Write("VST3");
 
@@ -1104,7 +1211,7 @@ namespace PresetConverter
                 }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                bf.Write(this.MetaXmlBytesWithBOM);
+                bf.Write(this.InfoXmlBytesWithBOM);
 
                 // write LIST and 4 bytes
                 bf.Write("List");
@@ -1125,7 +1232,8 @@ namespace PresetConverter
                 bf.Write((UInt64)this.InfoXmlStartPos); // info xml start position
                 bf.Write((UInt64)this.InfoXmlChunkSize); // byte length of info xml data
 
-                bf.Close();
+                if (closeBinaryFile) bf.Close();
+
                 return true;
             }
             else
@@ -1154,8 +1262,8 @@ namespace PresetConverter
             }
 
             this.InfoXmlStartPos = this.ContDataStartPos + this.ContDataChunkSize;
-            this.InfoXmlChunkSize = MetaXmlBytesWithBOM.Length;
-            this.ListPos = (this.InfoXmlStartPos + this.MetaXmlBytesWithBOM.Length); // position of List chunk
+            this.InfoXmlChunkSize = InfoXmlBytesWithBOM.Length;
+            this.ListPos = (this.InfoXmlStartPos + this.InfoXmlBytesWithBOM.Length); // position of List chunk
         }
 
         /// <summary>
@@ -1199,11 +1307,11 @@ namespace PresetConverter
             attr4.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr4);
 
-            this.MetaXml = BeautifyXml(xml);
+            this.InfoXml = BeautifyXml(xml);
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlBytes = Encoding.UTF8.GetBytes(this.MetaXml);
-            this.MetaXmlBytesWithBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
+            var xmlBytes = Encoding.UTF8.GetBytes(this.InfoXml);
+            this.InfoXmlBytesWithBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
         }
 
         public string BeautifyXml(XmlDocument doc)
@@ -1256,18 +1364,18 @@ namespace PresetConverter
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("Vst3ID: {0}\n", Vst3ID);
+            sb.AppendFormat("Vst3ID: {0}\n", this.Vst3ID);
 
-            if (Parameters.Count > 0)
+            if (this.Parameters.Count > 0)
             {
                 // output parameters
-                foreach (var parameter in Parameters.Values)
+                foreach (var parameter in this.Parameters.Values)
                 {
                     sb.AppendLine(parameter.ToString());
                 }
             }
 
-            if (null != MetaXml) sb.AppendLine(MetaXml);
+            if (null != this.InfoXml) sb.AppendLine(this.InfoXml);
             return sb.ToString();
         }
     }

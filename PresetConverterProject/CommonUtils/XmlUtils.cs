@@ -19,7 +19,6 @@ namespace CommonUtils
         /// <param name="disableFormatting">whether to disable indentation when serializing</param>
         public static void SaveXDocument(XDocument xdoc, string fileName, bool disableUTF8BOMBytes = true, bool disableFormatting = false)
         {
-
             if (disableUTF8BOMBytes)
             {
                 // Save XML and disable the UTF-8 BOM bytes at the top of the Xml document (EF BB BF)

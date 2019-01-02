@@ -33,7 +33,7 @@ namespace PresetConverter
         public void InitStartBytes(int value)
         {
             // add the 4 unknown bytes before the parameters start
-            this.Parameters.Add("StartBytes", new Parameter("StartBytes", 0, BitConverter.GetBytes(value)));
+            this.Parameters.Add("StartBytes", new Parameter("StartBytes", value, BitConverter.GetBytes(value)));
         }
 
         public void InitNumberParameter(string name, int index, double value)

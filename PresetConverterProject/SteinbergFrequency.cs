@@ -51,6 +51,7 @@ namespace PresetConverter
             PlugInVendor = "Steinberg Media Technologies";
 
             InitStartBytes(19728);
+            
             InitParameters();
         }
 
