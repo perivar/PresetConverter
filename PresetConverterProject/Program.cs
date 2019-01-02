@@ -238,8 +238,70 @@ namespace PresetConverter
             }
         }
 
+        // Simple preset storage object to ensure we only process unique presets
+        // the vstEffectIndex can be different but the rest of the variables must be equal 
+        public class PresetInfo : IEquatable<PresetInfo>
+        {
+            public string OutputFileName { get; set; }
+            public string PluginName { get; set; }
+            public string GUID { get; set; }
+            public int VsteffectIndex { get; set; }
+            public int ByteLength { get; set; }
+
+
+            public override string ToString()
+            {
+                return string.Format("{0} {1} {2} {3}", GUID, OutputFileName, PluginName, ByteLength);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj == null) return false;
+                PresetInfo objAsPresetInfo = obj as PresetInfo;
+
+                if (objAsPresetInfo == null) return false;
+                else return Equals(objAsPresetInfo);
+            }
+
+            public override int GetHashCode()
+            {
+                return ToString().GetHashCode();
+            }
+
+            public bool Equals(PresetInfo other)
+            {
+                if (other == null) return false;
+
+                return (this.OutputFileName.Equals(other.OutputFileName) &&
+                this.PluginName.Equals(other.PluginName) &&
+                this.GUID.Equals(other.GUID) &&
+                // this.VsteffectIndex.Equals(other.VsteffectIndex) &&
+                this.ByteLength.Equals(other.ByteLength));
+            }
+
+            public static bool operator ==(PresetInfo presetInfo1, PresetInfo presetInfo2)
+            {
+                if (((object)presetInfo1) == null || ((object)presetInfo2) == null)
+                    return Object.Equals(presetInfo1, presetInfo2);
+
+                return presetInfo1.Equals(presetInfo2);
+            }
+
+            public static bool operator !=(PresetInfo presetInfo1, PresetInfo presetInfo2)
+            {
+                if (((object)presetInfo1) == null || ((object)presetInfo2) == null)
+                    return !Object.Equals(presetInfo1, presetInfo2);
+
+                return !(presetInfo1.Equals(presetInfo2));
+            }
+        }
+
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
         {
+            // dictionary to hold the processed presets, to avoid duplicates
+            var processedPresets = new List<PresetInfo>();
+
+            // parse the project file
             var riffReader = new RIFFFileReader(file);
 
             // get fourth chunk
@@ -330,7 +392,7 @@ namespace PresetConverter
                     Log.Information("Found VST Insert Effect at index: {0}", vstEffectIndex);
                     binaryFile.Seek(vstEffectIndex);
 
-                    if (!HandleCubaseVstInsertEffect(binaryFile, vstEffectBytePattern, vstEffectIndex,
+                    if (!HandleCubaseVstInsertEffect(processedPresets, binaryFile, vstEffectBytePattern, vstEffectIndex,
                         vstMultitrackCurrentIndex, vstMultitrackNextIndex,
                         outputDirectoryPath, outputFileName
                     )) continue;
@@ -343,6 +405,7 @@ namespace PresetConverter
         }
 
         private static bool HandleCubaseVstInsertEffect(
+            List<PresetInfo> processedPresets,
             BinaryFile binaryFile,
             byte[] vstEffectBytePattern, int vstEffectIndex,
             int vstMultitrackCurrentIndex, int vstMultitrackNextIndex,
@@ -413,15 +476,19 @@ namespace PresetConverter
                 return false;
             }
 
-            return HandleCubaseAudioComponent(binaryFile,
-            audioComponentPattern,
-            guid,
-            vstEffectIndex,
-            pluginName, origPluginName,
-            outputDirectoryPath, outputFileName);
+            return HandleCubaseAudioComponent(
+                processedPresets,
+                binaryFile,
+                audioComponentPattern,
+                guid,
+                vstEffectIndex,
+                pluginName, origPluginName,
+                outputDirectoryPath, outputFileName);
         }
 
-        private static bool HandleCubaseAudioComponent(BinaryFile binaryFile,
+        private static bool HandleCubaseAudioComponent(
+            List<PresetInfo> processedPresets,
+            BinaryFile binaryFile,
             byte[] audioComponentPattern,
             string guid,
             int vstEffectIndex,
@@ -436,7 +503,28 @@ namespace PresetConverter
             var t10 = binaryFile.ReadInt16();
             var t11 = binaryFile.ReadInt16();
             var presetByteLen = binaryFile.ReadInt32();
-            Log.Debug("Reading preset bytes: {0}", presetByteLen);
+
+            // store in processed preset list
+            var presetInfo = new PresetInfo();
+            presetInfo.OutputFileName = outputFileName;
+            presetInfo.PluginName = pluginName;
+            presetInfo.GUID = guid;
+            presetInfo.VsteffectIndex = vstEffectIndex;
+            presetInfo.ByteLength = presetByteLen;
+            Log.Debug("Preset byte length: {0}", presetByteLen);
+
+            if (processedPresets.Contains(presetInfo))
+            {
+                int idx = processedPresets.IndexOf(presetInfo);
+                var previouslyProcessed = processedPresets.ElementAt(idx);
+                Log.Information("Skipping {0} preset at index {1} as it seems we have already processed an identical one at index {2}", presetInfo.PluginName, presetInfo.VsteffectIndex, previouslyProcessed.VsteffectIndex);
+                return false;
+            }
+            else
+            {
+                processedPresets.Add(presetInfo);
+            }
+
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
             var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
 
