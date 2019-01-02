@@ -26,7 +26,7 @@ namespace PresetConverter
         protected override bool PreparedForWriting()
         {
             SetCompChunkData(this.FXP);
-            InitMetaInfoXml();
+            InitInfoXml();
             CalculateBytePositions();
             return true;
         }

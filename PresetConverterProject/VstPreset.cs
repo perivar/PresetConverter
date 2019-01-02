@@ -174,7 +174,7 @@ namespace PresetConverter
                     case ParameterType.Number:
                         return string.Format("{1,-6} | {0,-20} | {2,8:0.00}", Name, Index, Number);
                     case ParameterType.String:
-                        shortenedString = GetShortenedString(String);
+                        shortenedString = String.Truncate(200, " ...");
                         return string.Format("{1,-6} | {0,-20} | {2}", Name, Index, shortenedString);
                     case ParameterType.Bytes:
                         shortenedString = StringUtils.ToHexEditorString(Bytes);
@@ -312,13 +312,14 @@ namespace PresetConverter
             {
                 if (!HasCompChunkData)
                 {
-                    AddParameter("CompChunkData", 0, value);
+                    AddParameter("CompChunkData", value.Length, value);
                 }
                 else
                 {
                     // parameter already exist
                     // warn and overwrite
                     Log.Warning(string.Format("{0} bytes of Comp Chunk data already exist! Overwriting with new content of {1} bytes ...", CompChunkData.Length, value.Length));
+                    Parameters["CompChunkData"].Index = value.Length;
                     Parameters["CompChunkData"].Bytes = value;
                 }
             }
@@ -356,13 +357,14 @@ namespace PresetConverter
             {
                 if (!HasContChunkData)
                 {
-                    AddParameter("ContChunkData", 0, value);
+                    AddParameter("ContChunkData", value.Length, value);
                 }
                 else
                 {
                     // parameter already exist
                     // warn and overwrite
                     Log.Warning(string.Format("{0} bytes of Cont Chunk data already exist! Overwriting with new content of {1} bytes ...", ContChunkData.Length, value.Length));
+                    Parameters["ContChunkData"].Index = value.Length;
                     Parameters["ContChunkData"].Bytes = value;
                 }
             }
@@ -435,6 +437,14 @@ namespace PresetConverter
         public void SetFXP(byte[] presetBytes)
         {
             FXP = new FXP(presetBytes);
+        }
+
+        public bool HasInfoXml
+        {
+            get
+            {
+                return (this.InfoXml != null && this.InfoXmlBytesWithBOM != null);
+            }
         }
 
         #endregion
@@ -731,6 +741,10 @@ namespace PresetConverter
                 {
                     // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+
+                    // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
+                    // as in:
+                    // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
                     // read until all bytes have been read
                     this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
@@ -1269,7 +1283,7 @@ namespace PresetConverter
         /// <summary>
         /// Initialize VstPreset MetaInfo Xml Section as both string and bytes array (including the Byte Order Mark)    
         /// </summary>
-        public void InitMetaInfoXml()
+        public void InitInfoXml()
         {
             XmlDocument xml = new XmlDocument();
             // Adding the XmlDeclaration (version and utf-8) is not necessary as it is added  
@@ -1314,6 +1328,11 @@ namespace PresetConverter
             this.InfoXmlBytesWithBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
         }
 
+        /// <summary>
+        /// Return the XmlDocument as a Steinberg VstPreset formatted Xml Section
+        /// </summary>
+        /// <param name="doc">XmlDocument</param>
+        /// <returns>a Steinberg VstPreset formatted Xml Section</returns>
         public string BeautifyXml(XmlDocument doc)
         {
             StringBuilder sb = new StringBuilder();
@@ -1338,17 +1357,6 @@ namespace PresetConverter
             sb.Replace(" />", "/>");
 
             return sb.ToString();
-        }
-
-        private static string GetShortenedString(string stringValue)
-        {
-            // return string.Format("'{0}' ...", string.Join(string.Empty, stringValue.Take(200)));
-            return stringValue.Truncate(200, " ...");
-        }
-
-        private static string GetShortenedString(byte[] byteValue)
-        {
-            return string.Format("'{0}' ...", Encoding.ASCII.GetString(byteValue.Take(200).ToArray()).Replace('\0', ' '));
         }
 
         /// <summary>

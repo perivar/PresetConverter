@@ -194,7 +194,7 @@ namespace PresetConverter
         protected override bool PreparedForWriting()
         {
             InitCompChunkData();
-            InitMetaInfoXml();
+            InitInfoXml();
             CalculateBytePositions();
             return true;
         }

@@ -388,7 +388,7 @@ namespace PresetConverter
         {
             InitCompChunkData();
             InitContChunkData();
-            InitMetaInfoXml();
+            InitInfoXml();
             CalculateBytePositions();
             return true;
         }

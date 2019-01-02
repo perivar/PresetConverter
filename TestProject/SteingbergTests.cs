@@ -18,13 +18,18 @@ namespace PresetConverterTests
         }
 
         [Theory]
-        [InlineData(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\Compressor\Sidechain - Default.vstpreset")]
-        [InlineData(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\Compressor\Sidechain - Vocal Delay Throws.vstpreset")]
-        [InlineData(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\Frequency\Boost High Side (Stereo).vstpreset")]
-        [InlineData(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\Frequency\Subtle Stereo Enhancer (Stereo).vstpreset")]
+        [InlineData(@"Compressor\Sidechain - Default.vstpreset")]
+        [InlineData(@"Compressor\Sidechain - Vocal Delay Throws.vstpreset")]
+        [InlineData(@"Frequency\Boost High Side (Stereo).vstpreset")]
+        [InlineData(@"Frequency\Subtle Stereo Enhancer (Stereo).vstpreset")]
+        [InlineData(@"MultibandCompressor\Drum Bus (Get Bass Under Control Before Saturation).vstpreset")]
+        [InlineData(@"Groove Agent SE\Loveless - They Don't Know.vstpreset")]
         // [InlineData(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\REVerence\Bricasti - Small Room 27.vstpreset")]
-        public void Test2(string filePath)
+        public void Test2(string fileName)
         {
+            string outputDirectoryPath = @"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies";
+            string filePath = Path.Combine(outputDirectoryPath, fileName);
+
             var readBytes = File.ReadAllBytes(filePath);
             // var readBytesShortenedString = StringUtils.ToHexEditorString(readBytes);
 

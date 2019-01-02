@@ -24,8 +24,22 @@ namespace PresetConverter
 
         protected override bool PreparedForWriting()
         {
-            InitCompChunkData();
-            InitMetaInfoXml();
+            // unless the Comp Chunk Data has already been set
+            // set it here
+            if (!this.HasCompChunkData)
+            {
+                InitCompChunkData();
+            }
+
+            // ignore the Cont Chunk Data
+
+            // unless the Info Xml Data has already been set
+            // set it here
+            if (!this.HasInfoXml)
+            {
+                InitInfoXml();
+            }
+
             CalculateBytePositions();
             return true;
         }
