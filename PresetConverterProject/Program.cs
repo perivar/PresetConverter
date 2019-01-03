@@ -246,12 +246,12 @@ namespace PresetConverter
             public string PluginName { get; set; }
             public string GUID { get; set; }
             public int VsteffectIndex { get; set; }
-            public int ByteLength { get; set; }
+            public byte[] Bytes { get; set; }
 
 
             public override string ToString()
             {
-                return string.Format("{0} {1} {2} {3}", GUID, OutputFileName, PluginName, ByteLength);
+                return string.Format("{0} {1} {2} {3}", GUID, OutputFileName, PluginName, Bytes.Length);
             }
 
             public override bool Equals(object obj)
@@ -275,8 +275,7 @@ namespace PresetConverter
                 return (this.OutputFileName.Equals(other.OutputFileName) &&
                 this.PluginName.Equals(other.PluginName) &&
                 this.GUID.Equals(other.GUID) &&
-                // this.VsteffectIndex.Equals(other.VsteffectIndex) &&
-                this.ByteLength.Equals(other.ByteLength));
+                this.Bytes.SequenceEqual(other.Bytes));
             }
 
             public static bool operator ==(PresetInfo presetInfo1, PresetInfo presetInfo2)
@@ -503,6 +502,8 @@ namespace PresetConverter
             var t10 = binaryFile.ReadInt16();
             var t11 = binaryFile.ReadInt16();
             var presetByteLen = binaryFile.ReadInt32();
+            Log.Debug("Reading {0} bytes ...", presetByteLen);
+            var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
 
             // store in processed preset list
             var presetInfo = new PresetInfo();
@@ -510,14 +511,13 @@ namespace PresetConverter
             presetInfo.PluginName = pluginName;
             presetInfo.GUID = guid;
             presetInfo.VsteffectIndex = vstEffectIndex;
-            presetInfo.ByteLength = presetByteLen;
-            Log.Debug("Preset byte length: {0}", presetByteLen);
+            presetInfo.Bytes = presetBytes;
 
             if (processedPresets.Contains(presetInfo))
             {
                 int idx = processedPresets.IndexOf(presetInfo);
                 var previouslyProcessed = processedPresets.ElementAt(idx);
-                Log.Information("Skipping {0} preset at index {1} as it seems we have already processed an identical one at index {2}", presetInfo.PluginName, presetInfo.VsteffectIndex, previouslyProcessed.VsteffectIndex);
+                Log.Information("Skipping {0} preset at index {1} since we already have processed an identical at index {2}", presetInfo.PluginName, presetInfo.VsteffectIndex, previouslyProcessed.VsteffectIndex);
                 return false;
             }
             else
@@ -525,7 +525,6 @@ namespace PresetConverter
                 processedPresets.Add(presetInfo);
             }
 
-            var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
             var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
 
             string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "" : "_" + origPluginName);

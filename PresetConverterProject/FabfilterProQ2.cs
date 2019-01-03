@@ -349,6 +349,7 @@ namespace PresetConverter
         public override string ToString()
         {
             var writer = new StringWriter();
+            writer.WriteLine(string.Format("Vst3ID: {0}", this.Vst3ID));
 
             writer.WriteLine("Bands:");
             foreach (var band in this.Bands)

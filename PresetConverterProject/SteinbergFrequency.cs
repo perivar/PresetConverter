@@ -51,7 +51,7 @@ namespace PresetConverter
             PlugInVendor = "Steinberg Media Technologies";
 
             InitStartBytes(19728);
-            
+
             InitParameters();
         }
 
@@ -111,6 +111,7 @@ namespace PresetConverter
         public override string ToString()
         {
             var sb = new StringBuilder();
+            sb.AppendFormat("Vst3ID: {0}\n", this.Vst3ID);
             sb.AppendLine("Bands:");
 
             for (int bandNumber = 1; bandNumber <= 8; bandNumber++)
@@ -129,21 +130,21 @@ namespace PresetConverter
             }
 
             sb.AppendLine();
-            sb.AppendFormat("{0}\n", Parameters["equalizerAbypass"]);
-            sb.AppendFormat("{0}\n", Parameters["autoListen"]);
-            sb.AppendFormat("{0}\n", Parameters["bypass"]);
-            sb.AppendFormat("{0}\n", Parameters["reset"]);
-            sb.AppendFormat("{0}\n", Parameters["spectrumonoff"]);
-            sb.AppendFormat("{0}\n", Parameters["spectrum2ChMode"]);
-            sb.AppendFormat("{0}\n", Parameters["spectrumintegrate"]);
-            sb.AppendFormat("{0}\n", Parameters["spectrumPHonoff"]);
-            sb.AppendFormat("{0}\n", Parameters["spectrumslope"]);
-            sb.AppendFormat("{0}\n", Parameters["draweq"]);
-            sb.AppendFormat("{0}\n", Parameters["draweqfilled"]);
-            sb.AppendFormat("{0}\n", Parameters["spectrumbargraph"]);
-            sb.AppendFormat("{0}\n", Parameters["showPianoRoll"]);
-            sb.AppendFormat("{0}\n", Parameters["transparency"]);
-            sb.AppendFormat("{0}\n", Parameters["autoGainOutputValue"]);
+            sb.AppendLine(Parameters["equalizerAbypass"].ToString());
+            sb.AppendLine(Parameters["autoListen"].ToString());
+            sb.AppendLine(Parameters["bypass"].ToString());
+            sb.AppendLine(Parameters["reset"].ToString());
+            sb.AppendLine(Parameters["spectrumonoff"].ToString());
+            sb.AppendLine(Parameters["spectrum2ChMode"].ToString());
+            sb.AppendLine(Parameters["spectrumintegrate"].ToString());
+            sb.AppendLine(Parameters["spectrumPHonoff"].ToString());
+            sb.AppendLine(Parameters["spectrumslope"].ToString());
+            sb.AppendLine(Parameters["draweq"].ToString());
+            sb.AppendLine(Parameters["draweqfilled"].ToString());
+            sb.AppendLine(Parameters["spectrumbargraph"].ToString());
+            sb.AppendLine(Parameters["showPianoRoll"].ToString());
+            sb.AppendLine(Parameters["transparency"].ToString());
+            sb.AppendLine(Parameters["autoGainOutputValue"].ToString());
 
             return sb.ToString();
         }
