@@ -554,14 +554,17 @@ namespace PresetConverter
 
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                 {
+                    var kontakt = vstPreset as NIKontakt5;
                     // save the kontakt presets as .vstpreset files
-                    string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
+                    string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
-                    vstPreset.Write(kontaktOutputFilePath);
+                    kontakt.Write(kontaktOutputFilePath + ".vstpreset");
+
+                    // also save as Kontakt NKI preset file
+                    kontakt.WriteNKI(kontaktOutputFilePath + ".nki");
 
                     // and dump the text info as well
-                    string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
-                    File.WriteAllText(kontaktOutputFilePathText, vstPreset.ToString());
+                    File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
                 }
             }
             else
