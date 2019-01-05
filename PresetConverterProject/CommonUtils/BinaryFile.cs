@@ -759,6 +759,7 @@ namespace CommonUtils
         /// </summary>
         /// <param name="s">hex string</param>
         /// <returns>byte array</returns>
+        /// <see cref="CommonUtils.StringUtils.HexStringToByteArray(string)"/>
         public static byte[] HexStringToByteArray(string s)
         {
             var r = new byte[s.Length / 2];

@@ -121,10 +121,21 @@ namespace CommonUtils
         /// Convert byte to hex string
         /// </summary>
         /// <param name="b">byte</param>
-        /// <returns>hex string</returns>
+        /// <returns>hex string as two characters</returns>
         public static string ToHexString(byte b)
         {
             char c = (char)b;
+            string s = ToHexString(c);
+            return s;
+        }
+
+        /// <summary>
+        /// Convert char to hex string
+        /// </summary>
+        /// <param name="c">char</param>
+        /// <returns>hex string as two characters</returns>
+        public static string ToHexString(char c)
+        {
             string s = String.Format("{0,0:X2}", (int)c);
             return s;
         }
@@ -496,15 +507,17 @@ namespace CommonUtils
         /// </summary>
         /// <param name="hexString">hex string</param>
         /// <returns>byte array</returns>
+        /// <see cref="CommonUtils.BinaryFile.HexStringToByteArray(string)"/>
+        /// <seealso cref="ByteArrayToHexString(byte[])"/>
         public static byte[] HexStringToByteArray(string hex)
         {
-            // Note - also see method in CommonUtils BinaryFile: HexStringToByteArray
-
+            // The Linq version is readable but slow
             // return Enumerable.Range(0, hex.Length)
             //                      .Where(x => x % 2 == 0)
             //                      .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
             //                      .ToArray();
 
+            // This version is supposedly the fastest way
             if (hex.Length % 2 == 1)
                 throw new Exception("The binary key cannot have an odd number of digits");
 
@@ -535,6 +548,30 @@ namespace CommonUtils
 
             // Or the two combined, but a bit slower:
             return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+        }
+
+        /// <summary>
+        /// Convert a byte array to hex string 
+        /// </summary>
+        /// <param name="bytes">bytes</param>
+        /// <param name="doUppercase">true if uppercase hex is wanted</param>
+        /// <returns>a hex string</returns>
+        /// <see cref="HexStringToByteArray(string)"/>
+        public static string ByteArrayToHexString(byte[] bytes, bool doUppercase = true)
+        {
+            var hex = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes)
+            {
+                if (doUppercase)
+                {
+                    hex.AppendFormat("{0:X2}", b);
+                }
+                else
+                {
+                    hex.AppendFormat("{0:x2}", b);
+                }
+            }
+            return hex.ToString();
         }
 
         /// <summary>
