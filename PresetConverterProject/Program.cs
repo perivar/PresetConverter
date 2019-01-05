@@ -1,5 +1,6 @@
 ﻿/* cSpell:disable */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -11,6 +12,7 @@ using CommonUtils;
 using CommonUtils.Audio;
 using CommonUtils.Audio.RIFF;
 using McMaster.Extensions.CommandLineUtils;
+using PresetConverterProject.NIKontaktNKS;
 using SDIR2WavConverter;
 using Serilog;
 using Serilog.Events;
@@ -21,6 +23,10 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
+            IList list = new ArrayList();
+            NKS.nks_get_libraries(list);
+            return;
+
             // Setup command line parser
             var app = new CommandLineApplication();
             app.Name = "PresetConverter";

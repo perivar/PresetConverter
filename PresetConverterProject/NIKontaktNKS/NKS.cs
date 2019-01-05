@@ -4,12 +4,22 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
+using Microsoft.Win32;
+
 using CommonUtils;
+using System.Text.RegularExpressions;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
     public class NKS
     {
+
+        public const string PACKAGE_PREFIX = "com.native-instruments";
+        public const string REG_PATH = "Software\\Native Instruments";
+        public const string SEP = "\\";
+        public const int O_BINARY = 0;
+
         public const UInt32 NKS_MAGIC_DIRECTORY = 0x5e70ac54;
         public const UInt32 NKS_MAGIC_ENCRYPTED_FILE = 0x16ccf80a;
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
@@ -23,6 +33,93 @@ namespace PresetConverterProject.NIKontaktNKS
 
         // public static bool nks_find_sub_entry(NksEntry ent, FindEntryContext ctx)
         // public delegate bool NksTraverseFunc(NksEntry ent, FindEntryContext ctx);
+
+        internal static NksLibraryDesc create_library_desc(string key_name, string name)
+        {
+            NksLibraryDesc ld = null;
+            uint id = 0;
+
+            Regex re = new Regex(@"k2lib\d+");
+            Match m = re.Match(key_name);
+
+            if (m.Success)
+            {
+                id = UInt32.Parse(m.Value);
+            }
+            else
+            {
+                // throw new KeyNotFoundException("Unexpected library key" + key_name);
+            }
+
+            // string key_path = string.Format("{0}\\{1}", REG_PATH, name);
+            var key_path = "SOFTWARE\\paint.net\\Capabilities\\" + name;
+            try
+            {
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(key_path))
+                {
+                    if (key != null)
+                    {
+                        ld = new NksLibraryDesc();
+                        ld.id = id;
+                        ld.name = name.ToUpper();
+
+                        var test = key.GetValue(".bmp").ToString();
+
+                        // var jdx = key.GetValue("JDX").ToString();
+                        // nks_generating_key_set_key_str(ld.gen_key, buffer);
+
+                        var hu = key.GetValue("HU").ToString();
+                        // nks_generating_key_set_iv_str(ld.gen_key, buffer);
+
+                        if (ld.gen_key.key_len == 0 || ld.gen_key.iv_len == 0)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to open HKLM\\" + key_path);
+            }
+
+            return ld;
+        }
+
+        public static int nks_get_libraries(IList rlist)
+        {
+            NksLibraryDesc ld = null;
+            try
+            {
+                // var regPath = string.Format("{0}\\{1}", REG_PATH, "Content");
+                // var regPath = "SOFTWARE\\Realtek";
+                var regPath = "SOFTWARE\\paint.net\\Capabilities";
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(regPath))
+                {
+                    if (key != null)
+                    {
+                        // var subkeys = key.GetValueNames(); // values
+                        var subkeys = key.GetSubKeyNames(); // sub directory
+
+                        foreach (var subkey in subkeys)
+                        {
+                            ld = create_library_desc("", subkey);
+                            // ld = create_library_desc(subkey, key.GetValue(subkey).ToString());
+                            if (ld == null)
+                                continue;
+
+                            rlist.Add(ld);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to open HKLM\\" + REG_PATH + "\\Content");
+            }
+
+            return 0;
+        }
 
         public static void TraverseDirectory(string file_name)
         {
@@ -1045,13 +1142,5 @@ namespace PresetConverterProject.NIKontaktNKS
         public byte[] unknown_1 = new byte[5];
         public UInt32 size;
         public byte[] unknown_2 = new byte[8];
-    }
-
-    static partial class DefineConstants
-    {
-        public const string PACKAGE_PREFIX = "com.native-instruments";
-        public const string REG_PATH = "Software\\Native Instruments";
-        public const string SEP = "\\";
-        public const int O_BINARY = 0;
     }
 }
