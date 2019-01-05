@@ -14,11 +14,15 @@ namespace PresetConverterProject.NIKontaktNKS
         public const UInt32 NKS_MAGIC_ENCRYPTED_FILE = 0x16ccf80a;
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
 
-        // public delegate bool NksTraverseFunc<T1, T2, T3>(T1 nks, T2 entry, T3 user_data);
+        // public delegate bool NksTraverseFunc(T1 nks, T2 entry, T3 user_data);
         // public delegate bool NksTraverseFunc<T1, T2>(T1 ent, T2 ctx);
 
         // private static bool add_entry_to_list(Nks nks, NksEntry entry, IList list)
+        public delegate bool NksTraverseFunc(Nks nks, NksEntry entry, IList list);
+
+
         // public static bool nks_find_sub_entry(NksEntry ent, FindEntryContext ctx)
+        // public delegate bool NksTraverseFunc(NksEntry ent, FindEntryContext ctx);
 
         public static void TraverseDirectory(string file_name)
         {
@@ -44,8 +48,7 @@ namespace PresetConverterProject.NIKontaktNKS
             bool ret = true;
             var list = new ArrayList();
 
-            Func<Nks, NksEntry, IList, bool> traverseFunc = add_entry_to_list;
-
+            NksTraverseFunc traverseFunc = add_entry_to_list;
             int r = nks_list_dir_entry(nks, dir_entry, traverseFunc, list);
             if (r != 0)
             {
@@ -202,7 +205,7 @@ namespace PresetConverterProject.NIKontaktNKS
          * 
          * @return 0 on success
          */
-        public static int nks_list_dir(Nks nks, string dir, NksTraverseFunc func, FindEntryContext user_data)
+        public static int nks_list_dir(Nks nks, string dir, NksTraverseFunc func, IList user_data)
         {
             NksEntry ent = new NksEntry();
             int r;
@@ -225,7 +228,7 @@ namespace PresetConverterProject.NIKontaktNKS
          * but uses a NksEntry instead of a path.  The entry must correspond to a
          * directory and not a file..
          */
-        public static int nks_list_dir_entry<T1, T2, T3>(Nks nks, NksEntry entry, Func<T1, T2, T3, bool> func, object user_data)
+        public static int nks_list_dir_entry(Nks nks, NksEntry entry, NksTraverseFunc func, IList user_data)
         {
             NksDirectoryHeader header = new NksDirectoryHeader();
             int r;
@@ -434,14 +437,16 @@ namespace PresetConverterProject.NIKontaktNKS
         public static int nks_get_entry(Nks nks, NksEntry entry, string name, NksEntry ret)
         {
             FindEntryContext context = new FindEntryContext();
-            int r;
+            int r = 0;
 
             context.name = name;
             context.entry = ret;
             context.found = false;
 
-            // var traverseFunc = new NksTraverseFun(nks_find_sub_entry);
-            r = nks_list_dir_entry(nks, entry, traverseFunc, context);
+            // TODO: fix missing implementation
+            throw new NotImplementedException();
+            // NksTraverseFunc traverseFunc = nks_find_sub_entry;
+            // r = nks_list_dir_entry(nks, entry, traverseFunc, context);
 
             if (r != 0)
                 return r;
@@ -492,7 +497,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        public static int list_directory<T1, T2, T3>(Nks nks, NksDirectoryHeader header, Func<T1, T2, T3, bool> func, object user_data)
+        public static int list_directory(Nks nks, NksDirectoryHeader header, NksTraverseFunc func, IList user_data)
         {
             long offset;
             NksEntry ent = new NksEntry();
