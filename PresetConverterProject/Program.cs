@@ -30,8 +30,7 @@ namespace PresetConverter
             nks.root_entry.offset = 0;
             nks.root_entry.type = NksEntryType.NKS_ENT_DIRECTORY;
 
-            var list = new ArrayList();
-            bool ret = !NKS.traverse_directory(nks, nks.root_entry, "", list);
+            bool ret = !NKS.traverse_directory(nks, nks.root_entry, "");
             return;
 
             // Setup command line parser

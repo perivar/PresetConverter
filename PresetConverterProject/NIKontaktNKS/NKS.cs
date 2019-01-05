@@ -29,7 +29,7 @@ namespace PresetConverterProject.NIKontaktNKS
         // public delegate bool NksTraverseFunc<T1, T2>(T1 ent, T2 ctx);
 
         // private static bool add_entry_to_list(Nks nks, NksEntry entry, IList list)
-        public delegate bool NksTraverseFunc(Nks nks, NksEntry entry, IList list);
+        public delegate bool NksTraverseFunc(Nks nks, NksEntry entry);
 
 
         // public static bool nks_find_sub_entry(NksEntry ent, FindEntryContext ctx)
@@ -205,8 +205,11 @@ namespace PresetConverterProject.NIKontaktNKS
             bool ret = !traverse_directory(nks, root_entry, "");
         }
 
-        private static bool add_entry_to_list(Nks nks, NksEntry entry, IList list)
+        private static IList list = new ArrayList();
+
+        private static bool add_entry_to_list(Nks nks, NksEntry entry)
         {
+            Console.WriteLine(entry);
             list.Add(entry);
             return true;
         }
@@ -214,10 +217,10 @@ namespace PresetConverterProject.NIKontaktNKS
         public static bool traverse_directory(Nks nks, NksEntry dir_entry, string prefix)
         {
             bool ret = true;
-            var list = new ArrayList();
 
+            // var list = new ArrayList();
             NksTraverseFunc traverseFunc = add_entry_to_list;
-            int r = nks_list_dir_entry(nks, dir_entry, traverseFunc, list);
+            int r = nks_list_dir_entry(nks, dir_entry, traverseFunc);
             if (r != 0)
             {
                 ret = false;
@@ -226,6 +229,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (!traverse_directories(nks, list, prefix))
                 ret = false;
 
+            // this is where the files are decrypted and extracted
             if (!traverse_files(nks, list, prefix))
                 ret = false;
 
@@ -374,7 +378,7 @@ namespace PresetConverterProject.NIKontaktNKS
          * 
          * @return 0 on success
          */
-        public static int nks_list_dir(Nks nks, string dir, NksTraverseFunc func, IList user_data)
+        public static int nks_list_dir(Nks nks, string dir, NksTraverseFunc func)
         {
             NksEntry ent = new NksEntry();
             int r;
@@ -386,7 +390,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (ent.type != NksEntryType.NKS_ENT_DIRECTORY)
                 throw new DirectoryNotFoundException("-ENOTDIR");
 
-            r = nks_list_dir_entry(nks, ent, func, user_data);
+            r = nks_list_dir_entry(nks, ent, func);
             nks_entry_free(ent);
 
             return r;
@@ -397,7 +401,7 @@ namespace PresetConverterProject.NIKontaktNKS
          * but uses a NksEntry instead of a path.  The entry must correspond to a
          * directory and not a file..
          */
-        public static int nks_list_dir_entry(Nks nks, NksEntry entry, NksTraverseFunc func, IList user_data)
+        public static int nks_list_dir_entry(Nks nks, NksEntry entry, NksTraverseFunc func)
         {
             NksDirectoryHeader header = new NksDirectoryHeader();
             int r;
@@ -412,7 +416,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (r != 0)
                 return r;
 
-            return list_directory(nks, header, func, user_data);
+            return list_directory(nks, header, func);
         }
 
         /**
@@ -666,7 +670,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        public static int list_directory(Nks nks, NksDirectoryHeader header, NksTraverseFunc func, IList user_data)
+        public static int list_directory(Nks nks, NksDirectoryHeader header, NksTraverseFunc func)
         {
             long offset;
             NksEntry ent = new NksEntry();
@@ -707,7 +711,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
 
                 // https://stackoverflow.com/questions/3682366/method-using-funct-tresult-as-parameters
-                var f = func(nks, ent, user_data);
+                var f = func(nks, ent);
                 if (!f)
                 {
                     nks_entry_free(ent);
@@ -1144,6 +1148,11 @@ namespace PresetConverterProject.NIKontaktNKS
         public string name;
         public NksEntryType type;
         public UInt32 offset;
+
+        public override string ToString()
+        {
+            return string.Format(" {0} {1} {2}", name, type, offset);
+        }
     }
 
     public class NksSetKey
