@@ -23,16 +23,6 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
-            NKS.print_library_info(Console.Out);
-            Nks nks = new Nks();
-            NKS.nks_open(@"D:\Amazon Drive\Documents\My Projects\Native Instruments GmbH\Instruments\Neo-Soul Keys\NSR.nkx", nks);
-            nks.root_entry.name = "";
-            nks.root_entry.offset = 0;
-            nks.root_entry.type = NksEntryType.NKS_ENT_DIRECTORY;
-
-            bool ret = !NKS.traverse_directory(nks, nks.root_entry, "");
-            return;
-
             // Setup command line parser
             var app = new CommandLineApplication();
             app.Name = "PresetConverter";
@@ -62,7 +52,7 @@ namespace PresetConverter
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
 
@@ -96,6 +86,10 @@ namespace PresetConverter
                                 break;
                             case ".ffp":
                                 HandleFabfilterPresetFile(file, outputDirectoryPath);
+                                break;
+                            case ".nks":
+                            case ".nkx":
+                                HandleNIKontaktFile(file, outputDirectoryPath);
                                 break;
                         }
                     }
@@ -921,6 +915,19 @@ namespace PresetConverter
                 string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".wav");
                 SoundIO.WriteWaveFile(outputFilePath, sdir.WaveformData, false, sdir.Channels, sdir.SampleRate, sdir.BitsPerSample);
             }
+        }
+
+        private static void HandleNIKontaktFile(string file, string outputDirectoryPath)
+        {
+            NKS.print_library_info(Console.Out);
+
+            Nks nks = new Nks();
+            NKS.nks_open(file, nks);
+            nks.root_entry.name = "";
+            nks.root_entry.offset = 0;
+            nks.root_entry.type = NksEntryType.NKS_ENT_DIRECTORY;
+
+            bool ret = !NKS.traverse_directory(nks, nks.root_entry, "");
         }
 
         private static void CreateDirectoryIfNotExist(string filePath)
