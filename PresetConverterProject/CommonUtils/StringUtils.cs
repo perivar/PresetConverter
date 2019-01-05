@@ -492,6 +492,52 @@ namespace CommonUtils
         }
 
         /// <summary>
+        /// Convert hex string to byte array
+        /// </summary>
+        /// <param name="hexString">hex string</param>
+        /// <returns>byte array</returns>
+        public static byte[] HexStringToByteArray(string hex)
+        {
+            // Note - also see method in CommonUtils BinaryFile: HexStringToByteArray
+
+            // return Enumerable.Range(0, hex.Length)
+            //                      .Where(x => x % 2 == 0)
+            //                      .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+            //                      .ToArray();
+
+            if (hex.Length % 2 == 1)
+                throw new Exception("The binary key cannot have an odd number of digits");
+
+            byte[] arr = new byte[hex.Length >> 1];
+
+            for (int i = 0; i < hex.Length >> 1; ++i)
+            {
+                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
+            }
+
+            return arr;
+        }
+
+        /// <summary>
+        /// Return a int from a hex character
+        /// </summary>
+        /// <param name="hex">hex character</param>
+        /// <returns>int value</returns>
+        public static int GetHexVal(char hex)
+        {
+            int val = (int)hex;
+
+            // For uppercase A-F letters:
+            // return val - (val < 58 ? 48 : 55);
+
+            // For lowercase a-f letters:
+            //return val - (val < 58 ? 48 : 87);
+
+            // Or the two combined, but a bit slower:
+            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+        }
+
+        /// <summary>
         /// Convert Binary String to hex representation
         /// </summary>
         /// <param name="binary">binary string</param>

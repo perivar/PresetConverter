@@ -331,7 +331,7 @@ namespace CommonUtils
         }
 
         /// <summary>
-        /// Read an AsciiZ string in from the binary reader
+        /// Read a string from the binary reader until we hit a Null character (AsciiZ string)
         /// </summary>
         /// <returns>String, null terminator is truncated,
         /// stream reader positioned at byte after null
@@ -351,6 +351,13 @@ namespace CommonUtils
             return result;
         }
 
+        /// <summary>
+        /// Read a string from the binary reader until we hit a Null character while taking Encoding into account 
+        /// </summary>
+        /// <param name="encoding">encoding, e.g.false Encoding.Unicode</param>
+        /// <returns>String, null terminator is truncated,
+        /// stream reader positioned at byte after null
+        /// </returns>
         public string ReadStringNull(Encoding encoding)
         {
             if (binaryReader == null)

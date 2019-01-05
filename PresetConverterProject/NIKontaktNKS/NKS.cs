@@ -9,6 +9,7 @@ using Microsoft.Win32;
 
 using CommonUtils;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -34,56 +35,19 @@ namespace PresetConverterProject.NIKontaktNKS
         // public static bool nks_find_sub_entry(NksEntry ent, FindEntryContext ctx)
         // public delegate bool NksTraverseFunc(NksEntry ent, FindEntryContext ctx);
 
-        internal static NksLibraryDesc create_library_desc(string key_name, string name)
+        public static void print_library_info(TextWriter writer)
         {
-            NksLibraryDesc ld = null;
-            uint id = 0;
-
-            Regex re = new Regex(@"k2lib\d+");
-            Match m = re.Match(key_name);
-
-            if (m.Success)
+            IList list = new ArrayList();
+            NKS.nks_get_libraries(list);
+            foreach (NksLibraryDesc entry in list)
             {
-                id = UInt32.Parse(m.Value);
+                var id = entry.id;
+                var name = entry.name;
+                var keyHex = StringUtils.ToHexEditorString(entry.gen_key.key);
+                var ivHEx = StringUtils.ToHexEditorString(entry.gen_key.iv);
+
+                writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
             }
-            else
-            {
-                // throw new KeyNotFoundException("Unexpected library key" + key_name);
-            }
-
-            // string key_path = string.Format("{0}\\{1}", REG_PATH, name);
-            var key_path = "SOFTWARE\\paint.net\\Capabilities\\" + name;
-            try
-            {
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(key_path))
-                {
-                    if (key != null)
-                    {
-                        ld = new NksLibraryDesc();
-                        ld.id = id;
-                        ld.name = name.ToUpper();
-
-                        var test = key.GetValue(".bmp").ToString();
-
-                        // var jdx = key.GetValue("JDX").ToString();
-                        // nks_generating_key_set_key_str(ld.gen_key, buffer);
-
-                        var hu = key.GetValue("HU").ToString();
-                        // nks_generating_key_set_iv_str(ld.gen_key, buffer);
-
-                        if (ld.gen_key.key_len == 0 || ld.gen_key.iv_len == 0)
-                        {
-                            return null;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to open HKLM\\" + key_path);
-            }
-
-            return ld;
         }
 
         public static int nks_get_libraries(IList rlist)
@@ -91,20 +55,17 @@ namespace PresetConverterProject.NIKontaktNKS
             NksLibraryDesc ld = null;
             try
             {
-                // var regPath = string.Format("{0}\\{1}", REG_PATH, "Content");
-                // var regPath = "SOFTWARE\\Realtek";
-                var regPath = "SOFTWARE\\paint.net\\Capabilities";
+                var regPath = string.Format("{0}\\{1}", REG_PATH, "Content");
                 using (RegistryKey key = Registry.LocalMachine.OpenSubKey(regPath))
                 {
                     if (key != null)
                     {
-                        // var subkeys = key.GetValueNames(); // values
-                        var subkeys = key.GetSubKeyNames(); // sub directory
+                        var subkeys = key.GetValueNames(); // values in current reg folder
+                        // var subkeys = key.GetSubKeyNames(); // sub folders
 
                         foreach (var subkey in subkeys)
                         {
-                            ld = create_library_desc("", subkey);
-                            // ld = create_library_desc(subkey, key.GetValue(subkey).ToString());
+                            ld = create_library_desc(subkey, key.GetValue(subkey).ToString());
                             if (ld == null)
                                 continue;
 
@@ -115,10 +76,120 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to open HKLM\\" + REG_PATH + "\\Content");
+                throw new Exception("Failed to open HKLM\\" + REG_PATH + "\\Content", ex);
             }
 
             return 0;
+        }
+
+        private static NksLibraryDesc create_library_desc(string key_name, string name)
+        {
+            NksLibraryDesc ld = null;
+            uint id = 0;
+
+            Regex re = new Regex(@"k2lib(\d+)");
+            Match m = re.Match(key_name);
+
+            if (m.Success)
+            {
+                string sid = m.Groups[1].Value;
+                id = UInt32.Parse(sid);
+            }
+            else
+            {
+                // throw new KeyNotFoundException("Unexpected library key" + key_name);
+                return ld;
+            }
+
+            string key_path = string.Format("{0}\\{1}", REG_PATH, name);
+            try
+            {
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(key_path))
+                {
+                    if (key != null)
+                    {
+                        ld = new NksLibraryDesc();
+                        ld.id = id;
+                        ld.name = name.ToUpper();
+
+                        var jdx = key.GetValue("JDX");
+                        if (jdx != null)
+                        {
+                            nks_generating_key_set_key_str(ld.gen_key, jdx.ToString());
+                        }
+
+                        var hu = key.GetValue("HU");
+                        if (hu != null)
+                        {
+                            nks_generating_key_set_iv_str(ld.gen_key, hu.ToString());
+                        }
+
+                        if (ld.gen_key.key_len == 0 || ld.gen_key.iv_len == 0)
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to open HKLM\\" + key_path, ex);
+            }
+
+            return ld;
+        }
+
+        private static bool nks_generating_key_set_key_str(NksGeneratingKey generatingKey, string key)
+        {
+            byte[] data = null;
+            byte len = 0;
+            if (!hex_string_to_binary(key, out data, out len))
+                return false;
+
+            if (len != 16 && len != 24 && len != 32)
+            {
+                return false;
+            }
+
+            generatingKey.key = data;
+            generatingKey.key_len = len;
+            return true;
+        }
+
+        private static bool nks_generating_key_set_iv_str(NksGeneratingKey generatingKey, string key)
+        {
+            byte[] data = null;
+            byte len = 0;
+            if (!hex_string_to_binary(key, out data, out len))
+                return false;
+
+            if (len != 16 && len != 24 && len != 32)
+            {
+                return false;
+            }
+
+            generatingKey.iv = data;
+            generatingKey.iv_len = len;
+            return true;
+        }
+
+        private static bool hex_string_to_binary(string str, out byte[] rdata, out byte rlen)
+        {
+            int len = str.Length;
+
+            if ((len % 2) != 0)
+            {
+                rdata = null;
+                rlen = 0;
+                return false;
+            }
+
+            byte[] data = StringUtils.HexStringToByteArray(str);
+
+            rdata = data;
+            rlen = (byte)data.Length;
+
+            return true;
         }
 
         public static void TraverseDirectory(string file_name)
@@ -140,7 +211,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool traverse_directory(Nks nks, NksEntry dir_entry, string prefix)
+        public static bool traverse_directory(Nks nks, NksEntry dir_entry, string prefix)
         {
             bool ret = true;
             var list = new ArrayList();
@@ -244,34 +315,35 @@ namespace PresetConverterProject.NIKontaktNKS
          */
         public static int nks_open(string file_name, Nks ret)
         {
-            BinaryFile fd = new BinaryFile(file_name, BinaryFile.ByteOrder.LittleEndian, false);
+            BinaryFile bf = new BinaryFile(file_name, BinaryFile.ByteOrder.LittleEndian, false);
 
-            int r = nks_open_fd(fd, ret);
+            int r = nks_open_bf(bf, ret);
             if (r != 0)
             {
-                fd.Close();
+                bf.Close();
                 return r;
             }
 
+            ret.bf = bf;
             return 0;
         }
 
         /**
          * Similar to nks_open, but uses a file descriptor instead of a file name.  If
-         * this function completes successfully, you must not use fd any more directly.
-         * Make sure that fd is open in binary mode on systems that distinguish between
+         * this function completes successfully, you must not use bf any more directly.
+         * Make sure that bf is open in binary mode on systems that distinguish between
          * text and binary.
          */
-        public static int nks_open_fd(BinaryFile fd, Nks ret)
+        public static int nks_open_bf(BinaryFile bf, Nks ret)
         {
-            if (fd == null)
+            if (bf == null)
                 throw new ArgumentException("-EINVAL");
 
             Nks nks = new Nks();
             nks.root_entry.name = "/";
             nks.root_entry.type = NksEntryType.NKS_ENT_DIRECTORY;
             nks.root_entry.offset = 0;
-            nks.fd = fd;
+            nks.bf = bf;
             nks.set_keys = new Dictionary<string, string>();
 
             ret = nks;
@@ -333,10 +405,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (entry.type != NksEntryType.NKS_ENT_DIRECTORY)
                 throw new DirectoryNotFoundException("-ENOTDIR");
 
-            if (nks.fd.Seek(entry.offset, SeekOrigin.Begin) < 0)
+            if (nks.bf.Seek(entry.offset, SeekOrigin.Begin) < 0)
                 throw new IOException("-EIO");
 
-            r = nks_read_directory_header(nks.fd, header);
+            r = nks_read_directory_header(nks.bf, header);
             if (r != 0)
                 return r;
 
@@ -356,10 +428,10 @@ namespace PresetConverterProject.NIKontaktNKS
             NksEncryptedFileHeader header = new NksEncryptedFileHeader();
             int r;
 
-            if (nks.fd.Seek(entry.offset, SeekOrigin.Begin) < 0)
+            if (nks.bf.Seek(entry.offset, SeekOrigin.Begin) < 0)
                 throw new IOException("-EIO");
 
-            UInt32 magic = nks.fd.ReadUInt32(); // read_u32_le
+            UInt32 magic = nks.bf.ReadUInt32(); // read_u32_le
 
             switch (magic)
             {
@@ -373,10 +445,10 @@ namespace PresetConverterProject.NIKontaktNKS
                     throw new NotSupportedException("-ENOTSUP");
             }
 
-            if (nks.fd.Seek(entry.offset, SeekOrigin.Begin) < 0)
+            if (nks.bf.Seek(entry.offset, SeekOrigin.Begin) < 0)
                 throw new IOException("-EIO");
 
-            r = nks_read_encrypted_file_header(nks.fd, header);
+            r = nks_read_encrypted_file_header(nks.bf, header);
             if (r != 0)
                 return r;
 
@@ -395,10 +467,10 @@ namespace PresetConverterProject.NIKontaktNKS
          */
         public static int nks_extract_file_entry(Nks nks, NksEntry entry, string out_file)
         {
-            BinaryFile fd = new BinaryFile(out_file, BinaryFile.ByteOrder.LittleEndian, true);
+            BinaryFile bf = new BinaryFile(out_file, BinaryFile.ByteOrder.LittleEndian, true);
 
-            int r = nks_extract_file_entry_to_fd(nks, entry, fd);
-            fd.Close();
+            int r = nks_extract_file_entry_to_bf(nks, entry, bf);
+            bf.Close();
 
             return r;
         }
@@ -408,16 +480,16 @@ namespace PresetConverterProject.NIKontaktNKS
          * nks_extract_entry, but accepts an output file descriptor instead of a file
          * name.
          */
-        public static int nks_extract_file_entry_to_fd(Nks nks, NksEntry entry, BinaryFile out_fd)
+        public static int nks_extract_file_entry_to_bf(Nks nks, NksEntry entry, BinaryFile out_bf)
         {
             NksEncryptedFileHeader enc_header = new NksEncryptedFileHeader();
             NksFileHeader file_header = new NksFileHeader();
             int r;
 
-            if (nks.fd.Seek(entry.offset, SeekOrigin.Begin) < 0)
+            if (nks.bf.Seek(entry.offset, SeekOrigin.Begin) < 0)
                 throw new IOException("-EIO");
 
-            UInt32 magic = nks.fd.ReadUInt32(); // read_u32_le
+            UInt32 magic = nks.bf.ReadUInt32(); // read_u32_le
             switch (magic)
             {
                 case NKS_MAGIC_ENCRYPTED_FILE:
@@ -431,12 +503,12 @@ namespace PresetConverterProject.NIKontaktNKS
                     throw new NotSupportedException("-ENOTSUP");
             }
 
-            if (nks.fd.Seek(entry.offset, SeekOrigin.Begin) < 0)
+            if (nks.bf.Seek(entry.offset, SeekOrigin.Begin) < 0)
                 throw new IOException("-EIO");
 
             if (magic == NKS_MAGIC_ENCRYPTED_FILE)
             {
-                r = nks_read_encrypted_file_header(nks.fd, enc_header);
+                r = nks_read_encrypted_file_header(nks.bf, enc_header);
                 if (r != 0)
                     return r;
 
@@ -444,7 +516,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     case 0x0100:
                     case 0x0110:
-                        return extract_encrypted_file_entry_to_fd(nks, enc_header, out_fd);
+                        return extract_encrypted_file_entry_to_bf(nks, enc_header, out_bf);
 
                     default:
                         throw new NotSupportedException("-ENOTSUP");
@@ -452,7 +524,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else
             {
-                r = nks_read_file_header(nks.fd, file_header);
+                r = nks_read_file_header(nks.bf, file_header);
                 if (r != 0)
                     return r;
 
@@ -460,7 +532,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     case 0x0100:
                     case 0x0110:
-                        return extract_file_entry_to_fd(nks, file_header, out_fd);
+                        return extract_file_entry_to_bf(nks, file_header, out_bf);
 
                     default:
                         throw new NotSupportedException("-ENOTSUP");
@@ -601,23 +673,23 @@ namespace PresetConverterProject.NIKontaktNKS
             UInt32 n;
             int r;
 
-            offset = nks.fd.Seek(0, SeekOrigin.Current);
+            offset = nks.bf.Seek(0, SeekOrigin.Current);
             if (offset < 0)
                 throw new IOException("-EIO");
 
             for (n = 0; n < header.entry_count; n++)
             {
-                if (nks.fd.Seek(offset, SeekOrigin.Begin) < 0)
+                if (nks.bf.Seek(offset, SeekOrigin.Begin) < 0)
                     throw new IOException("-EIO");
 
                 switch (header.version)
                 {
                     case 0x0100:
-                        r = nks_read_0100_nks_entry(nks.fd, header, ent);
+                        r = nks_read_0100_nks_entry(nks.bf, header, ent);
                         break;
 
                     case 0x0110:
-                        r = nks_read_0110_nks_entry(nks.fd, header, ent);
+                        r = nks_read_0110_nks_entry(nks.bf, header, ent);
                         break;
 
                     default:
@@ -627,7 +699,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (r != 0)
                     return r;
 
-                offset = nks.fd.Seek(0, SeekOrigin.Current);
+                offset = nks.bf.Seek(0, SeekOrigin.Current);
                 if (offset < 0)
                 {
                     nks_entry_free(ent);
@@ -648,7 +720,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int extract_encrypted_file_entry_to_fd(Nks nks, NksEncryptedFileHeader header, BinaryFile out_fd)
+        public static int extract_encrypted_file_entry_to_bf(Nks nks, NksEncryptedFileHeader header, BinaryFile out_bf)
         {
             // string buffer = new string(new char[16384]);
             // byte key;
@@ -667,7 +739,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             //     //Debug.Assert(key_length == 0x10);
 
-            //     key_pos = lseek(nks.fd, 0, SEEK_CUR);
+            //     key_pos = lseek(nks.bf, 0, SEEK_CUR);
             //     if (key_pos < 0)
             //         throw new IOException("-EIO");
             // }
@@ -704,12 +776,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
             // size = header.size;
 
-            // allocate_file_space(out_fd, size);
+            // allocate_file_space(out_bf, size);
 
             // while (size > 0)
             // {
             //     to_read = Math.Min(sizeof(sbyte), size);
-            //     count = read(nks.fd, buffer, to_read);
+            //     count = read(nks.bf, buffer, to_read);
             //     if (count != to_read)
             //         throw new IOException("-EIO");
 
@@ -720,7 +792,7 @@ namespace PresetConverterProject.NIKontaktNKS
             //         key_pos++;
             //     }
 
-            //     count = write(out_fd, buffer, to_read);
+            //     count = write(out_bf, buffer, to_read);
             //     if (count != to_read)
             //         throw new IOException("-EIO");
 
@@ -730,7 +802,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int extract_file_entry_to_fd(Nks nks, NksFileHeader header, BinaryFile out_fd)
+        public static int extract_file_entry_to_bf(Nks nks, NksFileHeader header, BinaryFile out_bf)
         {
             char[] buffer = new char[16384];
             int to_read;
@@ -739,9 +811,9 @@ namespace PresetConverterProject.NIKontaktNKS
             while (size > 0)
             {
                 to_read = Math.Min((int)buffer.Length, size);
-                var readBytes = nks.fd.ReadBytes(to_read);
+                var readBytes = nks.bf.ReadBytes(to_read);
 
-                out_fd.Write(readBytes);
+                out_bf.Write(readBytes);
 
                 size -= to_read;
             }
@@ -886,23 +958,23 @@ namespace PresetConverterProject.NIKontaktNKS
 
         #region NKS_IO
 
-        public static int nks_read_directory_header(BinaryFile fd, NksDirectoryHeader header)
+        public static int nks_read_directory_header(BinaryFile bf, NksDirectoryHeader header)
         {
-            UInt32 magic = fd.ReadUInt32(); // read_u32_le
+            UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != (UInt32)(0x5e70ac54))
                 throw new IOException("-EILSEQ;");
 
-            header.version = fd.ReadUInt16(); // read_u16_le
+            header.version = bf.ReadUInt16(); // read_u16_le
 
-            header.set_id = fd.ReadUInt32(); // read_u32_le
+            header.set_id = bf.ReadUInt32(); // read_u32_le
 
-            if ((header.unknown_0 = fd.ReadBytes(4)).Length != 4)
+            if ((header.unknown_0 = bf.ReadBytes(4)).Length != 4)
                 throw new IOException("-EIO");
 
-            header.entry_count = fd.ReadUInt32(); // read_u32_le
+            header.entry_count = bf.ReadUInt32(); // read_u32_le
 
-            if ((header.unknown_1 = fd.ReadBytes(4)).Length != 4)
+            if ((header.unknown_1 = bf.ReadBytes(4)).Length != 4)
                 throw new IOException("-EIO");
 
             switch (header.version)
@@ -917,32 +989,32 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int nks_read_0100_entry_header(BinaryFile fd, Nks0100EntryHeader header)
+        public static int nks_read_0100_entry_header(BinaryFile bf, Nks0100EntryHeader header)
         {
-            header.name = fd.ReadString(129);
+            header.name = bf.ReadString(129);
 
-            if ((header.unknown = fd.ReadBytes(1)).Length != 1)
+            if ((header.unknown = bf.ReadBytes(1)).Length != 1)
                 throw new IOException("-EIO");
 
-            header.offset = fd.ReadUInt32(); // read_u32_le
+            header.offset = bf.ReadUInt32(); // read_u32_le
 
-            header.type = fd.ReadUInt16(); // read_u16_le
+            header.type = bf.ReadUInt16(); // read_u16_le
 
             if (header.type == (UInt16)NksTypeHint.NKS_TH_ENCRYPTED_FILE)
                 header.offset = decode_offset(header.offset);
 
             return 0;
         }
-        public static int nks_read_0110_entry_header(BinaryFile fd, Nks0110EntryHeader header)
+        public static int nks_read_0110_entry_header(BinaryFile bf, Nks0110EntryHeader header)
         {
-            if ((header.unknown = fd.ReadBytes(2)).Length != 2)
+            if ((header.unknown = bf.ReadBytes(2)).Length != 2)
                 throw new IOException("-EIO");
 
-            header.offset = fd.ReadUInt32(); // read_u32_le
+            header.offset = bf.ReadUInt32(); // read_u32_le
 
-            header.type = fd.ReadUInt16(); // read_u16_le
+            header.type = bf.ReadUInt16(); // read_u16_le
 
-            header.name = fd.ReadStringNull();
+            header.name = bf.ReadStringNull(Encoding.Unicode);
 
             if (header.type == (UInt16)NksTypeHint.NKS_TH_ENCRYPTED_FILE)
                 header.offset = decode_offset(header.offset);
@@ -954,11 +1026,11 @@ namespace PresetConverterProject.NIKontaktNKS
             header = null;
         }
 
-        public static int nks_read_0100_nks_entry(BinaryFile fd, NksDirectoryHeader dir, NksEntry ent)
+        public static int nks_read_0100_nks_entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry ent)
         {
             Nks0100EntryHeader hdr = new Nks0100EntryHeader();
 
-            int r = nks_read_0100_entry_header(fd, hdr);
+            int r = nks_read_0100_entry_header(bf, hdr);
             if (r != 0)
                 return r;
 
@@ -968,11 +1040,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int nks_read_0110_nks_entry(BinaryFile fd, NksDirectoryHeader dir, NksEntry ent)
+        public static int nks_read_0110_nks_entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry ent)
         {
             Nks0110EntryHeader hdr = new Nks0110EntryHeader();
 
-            int r = nks_read_0110_entry_header(fd, hdr);
+            int r = nks_read_0110_entry_header(bf, hdr);
             if (r != 0)
                 return r;
 
@@ -984,25 +1056,25 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int nks_read_encrypted_file_header(BinaryFile fd, NksEncryptedFileHeader ret)
+        public static int nks_read_encrypted_file_header(BinaryFile bf, NksEncryptedFileHeader ret)
         {
-            UInt32 magic = fd.ReadUInt32(); // read_u32_le
+            UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != (UInt32)(0x16ccf80a))
                 throw new IOException("-EILSEQ");
 
-            ret.version = fd.ReadUInt16(); // read_u16_le
+            ret.version = bf.ReadUInt16(); // read_u16_le
 
-            ret.set_id = fd.ReadUInt32(); // read_u32_le
+            ret.set_id = bf.ReadUInt32(); // read_u32_le
 
-            ret.key_index = fd.ReadUInt32(); // read_u32_le
+            ret.key_index = bf.ReadUInt32(); // read_u32_le
 
-            if ((ret.unknown_1 = fd.ReadBytes(5)).Length != 5)
+            if ((ret.unknown_1 = bf.ReadBytes(5)).Length != 5)
                 throw new IOException("-EIO");
 
-            ret.size = fd.ReadUInt32(); // read_u32_le
+            ret.size = bf.ReadUInt32(); // read_u32_le
 
-            if ((ret.unknown_2 = fd.ReadBytes(8)).Length != 8)
+            if ((ret.unknown_2 = bf.ReadBytes(8)).Length != 8)
                 throw new IOException("-EIO");
 
             switch (ret.version)
@@ -1017,21 +1089,21 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int nks_read_file_header(BinaryFile fd, NksFileHeader ret)
+        public static int nks_read_file_header(BinaryFile bf, NksFileHeader ret)
         {
-            UInt32 magic = fd.ReadUInt32(); // read_u32_le
+            UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != (UInt32)(0x4916e63c))
                 throw new IOException("-EILSEQ");
 
-            ret.version = fd.ReadUInt16(); // read_u16_le
+            ret.version = bf.ReadUInt16(); // read_u16_le
 
-            if ((ret.unknown_1 = fd.ReadBytes(13)).Length != 13)
+            if ((ret.unknown_1 = bf.ReadBytes(13)).Length != 13)
                 throw new IOException("-EIO");
 
-            ret.size = fd.ReadUInt32(); // read_u32_le
+            ret.size = bf.ReadUInt32(); // read_u32_le
 
-            if ((ret.unknown_2 = fd.ReadBytes(4)).Length != 4)
+            if ((ret.unknown_2 = bf.ReadBytes(4)).Length != 4)
                 throw new IOException("-EIO");
 
             return 0;
@@ -1082,7 +1154,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class Nks
     {
-        public BinaryFile fd;
+        public BinaryFile bf;
         public NksEntry root_entry = new NksEntry();
         public Dictionary<string, string> set_keys;
     }

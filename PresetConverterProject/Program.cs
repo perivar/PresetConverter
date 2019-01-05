@@ -23,8 +23,15 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
-            IList list = new ArrayList();
-            NKS.nks_get_libraries(list);
+            NKS.print_library_info(Console.Out);
+            Nks nks = new Nks();
+            NKS.nks_open(@"D:\Amazon Drive\Documents\My Projects\Native Instruments GmbH\Instruments\Neo-Soul Keys\NSR.nkx", nks);
+            nks.root_entry.name = "";
+            nks.root_entry.offset = 0;
+            nks.root_entry.type = NksEntryType.NKS_ENT_DIRECTORY;
+
+            var list = new ArrayList();
+            bool ret = !NKS.traverse_directory(nks, nks.root_entry, "", list);
             return;
 
             // Setup command line parser
