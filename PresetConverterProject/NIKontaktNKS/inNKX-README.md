@@ -32,12 +32,13 @@ Samples and addresses of their placement in the containers of proprietary librar
 They are intended mainly for storing service files, although their structure is no different from basic (nkx) containers. Resource container files are sometimes encrypted.
 
 Kontakt searches for service files and reverberation pulses only in certain directories of an nkr-container with fixed names:
+```
 [Resources]
     | __ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
     | __ [pictures] (Image directory: png, tga) (2)
     | __ [scripts] (script directory: txt)
     | __ [data] (directory for presets: nka)
-
+```
 
 Notes:
 1. Monolithic patches nki, nkm, nkb, nkg are also supported (open with the Ctrl + PageDown key combination).
@@ -60,15 +61,16 @@ Monolithic patches created in version 5 Contact are an independent type of conta
 Intended to store service files required for registering branded libraries on end-user systems.
 Kontakt imposes certain restrictions on the contents of the nicnt-containers, which should have the following file structure:
 
-[Resources] directory with required resource files for registration
-<Library Name> .xml main xml file with library registration data
-ContentVersion.txt text file with version of library content
+    [Resources] directory with required resource files for registration
+    [Library name] .xml main xml file with library registration data
+    ContentVersion.txt text file with version of library content
+
 
 The presence of other files in the container root directory, except for these 2 files and the [Resources] directory is not allowed. It is also not allowed to delete the above files (although they can be replaced and edited) and the presence of subdirectories in the [Resources] directory.
 All these features of nicnt-containers are controlled by the plugin and all incorrect operations performed with the container will be stopped or skipped with the user being notified of errors.
  
-<Library Name> is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints \ Product \ Name in the text of the <Library Name> .xml itself.
-This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints \ Product \ Name parameter).
+    [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints \ Product \ Name in the text of the [Library name] .xml itself.
+    This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints \ Product \ Name parameter).
 
 In the ContentVersion.txt file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
 major.minor. [build]
@@ -87,25 +89,25 @@ You can find out the fixed names of other [Resources] catalog files and examine 
 Thus, to create a new nicnt-container, you must first prepare:
 
 1. the main xml-file with the correct registration data of the new library with approximately the following (minimal) content (the red highlights the parameters that must be unique, do not coincide with other libraries):
-```
+```xml
 <? xml version = "1.0" encoding = "UTF-8" standalone = "no"?>
 <ProductHints spec = "1.0.16">
   <Product version = "1">
-    <Name> NewLibrary </ Name>
-    <Type> Content </ Type>
+    <Name> NewLibrary </Name>
+    <Type> Content </Type>
     <Relevance>
-      <Application nativeContent = "true"> kontakt </ Application>
-    </ Relevance>
-    <PoweredBy> Kontakt </ PoweredBy>
-    <Visibility> 1 </ Visibility>
-    <Company> My Company </ Company>
-    <SNPID> 999 </ SNPID>
-    <RegKey> NewLibrary </ RegKey>
+      <Application nativeContent = "true"> kontakt </Application>
+    </Relevance>
+    <PoweredBy> Kontakt </PoweredBy>
+    <Visibility> 1 </Visibility>
+    <Company> My Company </Company>
+    <SNPID> 999 </SNPID>
+    <RegKey> NewLibrary </RegKey>
     <ProductSpecific>
-      <Visibility type = "Number"> 3 </ Visibility>
-    </ ProductSpecific>
-  </ Product>
-</ ProductHints>
+      <Visibility type = "Number"> 3 </Visibility>
+    </ProductSpecific>
+  </Product>
+</ProductHints>
 ```
 2. text file ContentVersion.txt (optional, will be added to the container automatically with the default content version)
 
@@ -124,11 +126,11 @@ Encryption of files added to containers is not supported due to the absence of a
 
 # Extract files from encrypted containers:
 inNKX can decrypt and extract files from encrypted containers without question. The search for the decryption key is performed automatically in the following order:
-1. Sobsvennaya (built-in) key database.
+1. Sobsvennaya/Local Storage (built-in) key database.
 2. Custom key database: the nklibs_info.userdb file in the plugin directory (3) (more about it later).
-3. Registry (HKEY_LOCAL_MACHINE \ SOFTWARE \ Native Instruments \ <Library name> \).
-4. Service Center catalog (% Program Files% \ Common Files \ Native Instruments \ Service Center \ <Library Name> .xml).
-5. Library catalog (<Library name> .nicnt or <Library name> _info.nkx). It is assumed that the target container is in the library (usually in the Samples directory), and the nicnt or _info.nkx file is in the same directory as the container or one or more levels higher.
+3. Registry (HKEY_LOCAL_MACHINE \ SOFTWARE \ Native Instruments \ [Library name] \).
+4. Service Center catalog (% Program Files% \ Common Files \ Native Instruments \ Service Center \ [Library name] .xml).
+5. Library catalog ([Library name] .nicnt or [Library name] _info.nkx). It is assumed that the target container is in the library (usually in the Samples directory), and the nicnt or _info.nkx file is in the same directory as the container or one or more levels higher.
 In this way, the following container files will be decrypted and extracted:
 - library available in the plug-in embedded database (4);
 - a registered library (successfully added to the bookmarks of the NI Kontakt browser via the Add Library);
@@ -162,7 +164,7 @@ HU = C3CCA2803ABC14A68EAACC38EAA7E8EC
 
 
 # UNIX file names:
-File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (\? * "|: <>), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
+File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (\? * "|: &gt; &lt;), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
 Each forbidden character is assigned a control sequence of characters:
     \ [bslash]
     ? [qmark]
@@ -175,22 +177,22 @@ Each forbidden character is assigned a control sequence of characters:
 
 When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences (6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
 Example (7):
-file name in the container; .PAResources | database | PAL | PAL.meta
-operation:                  unpacking [down arraw] [up arrow] packaging
-file name on disk           .PAResources [pipe] database [pipe] PAL [pipe] PAL.meta
+    file name in the container; .PAResources | database | PAL | PAL.meta
+    operation:                  unpacking [down arraw] [up arrow] packaging
+    file name on disk           .PAResources [pipe] database [pipe] PAL [pipe] PAL.meta
 
 
 There is some possibility that the file name (directory) of the container will contain the control sequences themselves. In order to block the conversion of the control sequence to the corresponding forbidden character during repacking, all opening angle brackets before the control sequence will be doubled, and the user will be warned that the names of the files on the disk and in the container are different.
 Example:
-file name in                [more] [music] [less] [noise] .aif container
-operation:                  unpacking [down arraw] [up arrow] packaging
-disk file name              [more] [music] [[less] [noise] .aif
+    file name in                [more] [music] [less] [noise] .aif container
+    operation:                  unpacking [down arraw] [up arrow] packaging
+    disk file name              [more] [music] [[less] [noise] .aif
 
 Thus, an even number of opening angle brackets in front of the control sequence shields it (blocks conversion to a forbidden character when packed), but each pair of these brackets ([[) will be replaced with a single ([).
 
 Example:
-file name on disk package name in container
-[[[[[pipe]] organ [[[colon]] A # .aiff → [[[pipe]] organ [:] A # .aiff
+    file name on disk package name in container
+    [[[[[pipe]] organ [[[colon]] A # .aiff → [[[pipe]] organ [:] A # .aiff
 
 
 Notes:
@@ -241,26 +243,26 @@ First release.
 # Plugin's built-in database (complete list of keys to decrypt files):
 ## SNPID (key identifier) ​​RegKey (unique library name)
 13. Keyboard Collection
-14. <not known>
+14. [not known]
 101. Stradivari Solo Violin
-102. <not known>
+102. [not known]
 103. otto
 104. Acoustic Legends HD
 105. Ambience Impacts Rhythms
 106. Chris Hein - Guitars
 107. Solo Strings Advanced
-108. <not known>
-110. <not known>
+108. [not known]
+110. [not known]
 111. Drums Overkill
-112. <not known>
-113. <not known>
-114. <not known>
-115. <not known>
+112. [not known]
+113. [not known]
+114. [not known]
+115. [not known]
 116. Gofriller Cello
-117. <not known>
-118. <not known>
-119. <not known>
-120. <not known>
+117. [not known]
+118. [not known]
+119. [not known]
+120. [not known]
 152. The Giant
 156. DrumMic'a!
 157. juggernaut
@@ -424,7 +426,7 @@ First release.
 804. Symphonic Sphere
 805. Orchestral String Runs
 806. Pop Rock Strings
-807. <not known>
+807. [not known]
 809. RIG
 810. VOXOS
 811. Q
@@ -432,8 +434,8 @@ First release.
 813. Cinematic Guitars
 814. Violence
 815. SR5 Rock Bass
-816. <not known>
-817. <not known>
+816. [not known]
+817. [not known]
 818. Circus Circuit Bending
 819. Chris Hein Horns Vol 3
 820. Chris Hein Horns Vol 4
@@ -554,6 +556,6 @@ First release.
 993. Cinematic Guitars 2
 995. ZapZorn Elements
 996. Shreddage II
-4999. <not known>
+4999. [not known]
 5000. UserPatches
 
