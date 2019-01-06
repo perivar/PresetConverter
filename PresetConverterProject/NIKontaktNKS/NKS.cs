@@ -15,7 +15,6 @@ namespace PresetConverterProject.NIKontaktNKS
 {
     public class NKS
     {
-
         public const string PACKAGE_PREFIX = "com.native-instruments";
         public const string REG_PATH = "Software\\Native Instruments";
         public const string SEP = "\\";
@@ -26,14 +25,14 @@ namespace PresetConverterProject.NIKontaktNKS
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
 
         // public delegate bool NksTraverseFunc(T1 nks, T2 entry, T3 user_data);
-        // public delegate bool NksTraverseFunc<T1, T2>(T1 ent, T2 ctx);
+        // public delegate bool NksTraverseFunc<T1, T2>(T1 entry, T2 ctx);
 
         // private static bool add_entry_to_list(Nks nks, NksEntry entry, IList list)
-        public delegate bool NksTraverseFunc(Nks nks, NksEntry entry);
+        // public delegate bool NksTraverseFunc(Nks nks, NksEntry entry);
 
 
-        // public static bool nks_find_sub_entry(NksEntry ent, FindEntryContext ctx)
-        // public delegate bool NksTraverseFunc(NksEntry ent, FindEntryContext ctx);
+        // public static bool nks_find_sub_entry(NksEntry entry, FindEntryContext ctx)
+        // public delegate bool NksTraverseFunc(NksEntry entry, FindEntryContext ctx);
 
         public static void print_library_info(TextWriter writer)
         {
@@ -207,20 +206,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private static IList list = new ArrayList();
 
-        private static bool add_entry_to_list(Nks nks, NksEntry entry)
-        {
-            Console.WriteLine(entry);
-            list.Add(entry);
-            return true;
-        }
-
         public static bool traverse_directory(Nks nks, NksEntry dir_entry, string prefix)
         {
+            var list = new ArrayList();
             bool ret = true;
-
-            // var list = new ArrayList();
-            NksTraverseFunc traverseFunc = add_entry_to_list;
-            int r = nks_list_dir_entry(nks, dir_entry, traverseFunc);
+            int r = nks_list_dir_entry(nks, list, dir_entry);
             if (r != 0)
             {
                 ret = false;
@@ -270,6 +260,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (entry.type == NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
 
+                Console.WriteLine("Processing {0}", entry);
+
                 if (!traverse_file(nks, entry, prefix))
                     ret = false;
             }
@@ -294,7 +286,9 @@ namespace PresetConverterProject.NIKontaktNKS
                     r = nks_extract_file_entry(nks, file_entry, buffer);
 
                     if (r == 0)
+                    {
                         extr_count++;
+                    }
 
                     ret = (r == 0);
                     break;
@@ -378,20 +372,20 @@ namespace PresetConverterProject.NIKontaktNKS
          * 
          * @return 0 on success
          */
-        public static int nks_list_dir(Nks nks, string dir, NksTraverseFunc func)
+        public static int nks_list_dir(Nks nks, IList list, string dir)
         {
-            NksEntry ent = new NksEntry();
+            NksEntry entry = new NksEntry();
             int r;
 
-            r = nks_find_entry(nks, dir, ent);
+            r = nks_find_entry(nks, dir, entry);
             if (r != 0)
                 return r;
 
-            if (ent.type != NksEntryType.NKS_ENT_DIRECTORY)
+            if (entry.type != NksEntryType.NKS_ENT_DIRECTORY)
                 throw new DirectoryNotFoundException("-ENOTDIR");
 
-            r = nks_list_dir_entry(nks, ent, func);
-            nks_entry_free(ent);
+            r = nks_list_dir_entry(nks, list, entry);
+            entry = null;
 
             return r;
         }
@@ -401,7 +395,7 @@ namespace PresetConverterProject.NIKontaktNKS
          * but uses a NksEntry instead of a path.  The entry must correspond to a
          * directory and not a file..
          */
-        public static int nks_list_dir_entry(Nks nks, NksEntry entry, NksTraverseFunc func)
+        public static int nks_list_dir_entry(Nks nks, IList list, NksEntry entry)
         {
             NksDirectoryHeader header = new NksDirectoryHeader();
             int r;
@@ -416,7 +410,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (r != 0)
                 return r;
 
-            return list_directory(nks, header, func);
+            return list_directory(nks, list, header);
         }
 
         /**
@@ -587,7 +581,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (r != 0)
                     throw new ArgumentException("-ENOTDIR");
 
-                nks_entry_free(entry);
+                entry = null;
 
                 entry = sub_entry;
             }
@@ -631,14 +625,6 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         /**
-         * Frees an entry.
-         */
-        public static void nks_entry_free(NksEntry entry)
-        {
-            entry = null;
-        }
-
-        /**
          * Copies an entry.
          *
          * @param src pointer to the entry to copy from
@@ -658,11 +644,11 @@ namespace PresetConverterProject.NIKontaktNKS
             return (a - b);
         }
 
-        public static bool nks_find_sub_entry(NksEntry ent, FindEntryContext ctx)
+        public static bool nks_find_sub_entry(NksEntry entry, FindEntryContext ctx)
         {
-            if (String.Equals(ent.name, ctx.name, StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(entry.name, ctx.name, StringComparison.OrdinalIgnoreCase))
             {
-                nks_entry_copy(ent, ctx.entry);
+                nks_entry_copy(entry, ctx.entry);
                 ctx.found = true;
                 return false;
             }
@@ -670,30 +656,28 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        public static int list_directory(Nks nks, NksDirectoryHeader header, NksTraverseFunc func)
+        public static int list_directory(Nks nks, IList list, NksDirectoryHeader header)
         {
-            long offset;
-            NksEntry ent = new NksEntry();
-            UInt32 n;
-            int r;
-
-            offset = nks.bf.Seek(0, SeekOrigin.Current);
+            long offset = nks.bf.Seek(0, SeekOrigin.Current);
             if (offset < 0)
                 throw new IOException("-EIO");
 
-            for (n = 0; n < header.entry_count; n++)
+            int r = 0;
+            for (int n = 0; n < header.entry_count; n++)
             {
                 if (nks.bf.Seek(offset, SeekOrigin.Begin) < 0)
                     throw new IOException("-EIO");
 
+                NksEntry entry = new NksEntry();
+
                 switch (header.version)
                 {
                     case 0x0100:
-                        r = nks_read_0100_nks_entry(nks.bf, header, ent);
+                        r = nks_read_0100_nks_entry(nks.bf, header, entry);
                         break;
 
                     case 0x0110:
-                        r = nks_read_0110_nks_entry(nks.bf, header, ent);
+                        r = nks_read_0110_nks_entry(nks.bf, header, entry);
                         break;
 
                     default:
@@ -706,19 +690,19 @@ namespace PresetConverterProject.NIKontaktNKS
                 offset = nks.bf.Seek(0, SeekOrigin.Current);
                 if (offset < 0)
                 {
-                    nks_entry_free(ent);
+                    entry = null;
                     throw new IOException("-EIO");
                 }
 
-                // https://stackoverflow.com/questions/3682366/method-using-funct-tresult-as-parameters
-                var f = func(nks, ent);
-                if (!f)
+                // add to list    
+                var f = list.Add(entry);
+                if (f == -1)
                 {
-                    nks_entry_free(ent);
+                    entry = null;
                     break;
                 }
 
-                nks_entry_free(ent);
+                entry = null;
             }
 
             return 0;
@@ -966,7 +950,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(0x5e70ac54))
+            if (magic != (UInt32)(NKS_MAGIC_DIRECTORY)) // 0x5e70ac54
                 throw new IOException("-EILSEQ;");
 
             header.version = bf.ReadUInt16(); // read_u16_le
@@ -1025,12 +1009,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static void nks_0110_entry_header_free(Nks0110EntryHeader header)
-        {
-            header = null;
-        }
 
-        public static int nks_read_0100_nks_entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry ent)
+        public static int nks_read_0100_nks_entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
         {
             Nks0100EntryHeader hdr = new Nks0100EntryHeader();
 
@@ -1038,13 +1018,13 @@ namespace PresetConverterProject.NIKontaktNKS
             if (r != 0)
                 return r;
 
-            ent.name = hdr.name.ToUpper();
-            ent.offset = hdr.offset;
-            ent.type = type_hint_to_entry_type(hdr.type);
+            entry.name = hdr.name.ToUpper();
+            entry.offset = hdr.offset;
+            entry.type = type_hint_to_entry_type(hdr.type);
 
             return 0;
         }
-        public static int nks_read_0110_nks_entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry ent)
+        public static int nks_read_0110_nks_entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
         {
             Nks0110EntryHeader hdr = new Nks0110EntryHeader();
 
@@ -1052,11 +1032,11 @@ namespace PresetConverterProject.NIKontaktNKS
             if (r != 0)
                 return r;
 
-            ent.name = hdr.name.ToUpper();
-            ent.offset = hdr.offset;
-            ent.type = type_hint_to_entry_type(hdr.type);
+            entry.name = hdr.name.ToUpper();
+            entry.offset = hdr.offset;
+            entry.type = type_hint_to_entry_type(hdr.type);
 
-            nks_0110_entry_header_free(hdr);
+            hdr = null;
 
             return 0;
         }
@@ -1064,7 +1044,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(0x16ccf80a))
+            if (magic != (UInt32)(NKS_MAGIC_ENCRYPTED_FILE)) // 0x16ccf80a
                 throw new IOException("-EILSEQ");
 
             ret.version = bf.ReadUInt16(); // read_u16_le
@@ -1097,7 +1077,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(0x4916e63c))
+            if (magic != (UInt32)(NKS_MAGIC_FILE)) // 0x4916e63c
                 throw new IOException("-EILSEQ");
 
             ret.version = bf.ReadUInt16(); // read_u16_le
@@ -1151,7 +1131,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public override string ToString()
         {
-            return string.Format(" {0} {1} {2}", name, type, offset);
+            return string.Format("{0} {1,-30} {2}", name, type, offset);
         }
     }
 
