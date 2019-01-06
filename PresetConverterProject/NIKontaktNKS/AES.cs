@@ -24,8 +24,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private void InitializeRijndael()
         {
-            rijndael.Mode = CipherMode.CBC;
-            rijndael.Padding = PaddingMode.PKCS7;
+            rijndael.Mode = CipherMode.ECB; // orig CBC
+            rijndael.Padding = PaddingMode.Zeros; // orig PKCS7
         }
 
         public Aes()
@@ -71,6 +71,13 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             ICryptoTransform encryptor = rijndael.CreateEncryptor();
             byte[] cipher = unicodeEncoding.GetBytes(plain);
+            byte[] encryptedValue = encryptor.TransformFinalBlock(cipher, 0, cipher.Length);
+            return encryptedValue;
+        }
+
+        public byte[] EncryptToByte(byte[] cipher)
+        {
+            ICryptoTransform encryptor = rijndael.CreateEncryptor();
             byte[] encryptedValue = encryptor.TransformFinalBlock(cipher, 0, cipher.Length);
             return encryptedValue;
         }

@@ -691,8 +691,9 @@ namespace CommonUtils
         /// Initialize a jagged array in many dimensions
         /// </summary>
         /// <example>
-        /// double[][] my2DArray = CreateJaggedArray<double[][]>(noOfRows, noOfCols);
-        /// int[][][] my3DArray = CreateJaggedArray<int[][][]>(1, 2, 3);
+        /// var my2DArray = CreateJaggedArray<double[][]>(noOfRows, noOfCols);
+        /// var my2DArray = CreateJaggedArray<byte[][]>(32, 16);
+        /// var my3DArray = CreateJaggedArray<int[][][]>(1, 2, 3);
         /// </example>
         /// <param name="lengths">array that contain the length of each dimension</param>
         /// <returns>a initialized multidimensional jagged array</returns>

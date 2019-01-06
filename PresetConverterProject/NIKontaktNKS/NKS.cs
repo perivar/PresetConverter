@@ -141,7 +141,7 @@ namespace PresetConverterProject.NIKontaktNKS
         private static bool NksGeneratingKeySetKeyStr(NksGeneratingKey generatingKey, string key)
         {
             byte[] data = null;
-            byte len = 0;
+            int len = 0;
             if (!HexStringToBinary(key, out data, out len))
                 return false;
 
@@ -151,14 +151,13 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             generatingKey.Key = data;
-            generatingKey.KeyLength = len;
             return true;
         }
 
         private static bool NksGeneratingKeySetIvStr(NksGeneratingKey generatingKey, string key)
         {
             byte[] data = null;
-            byte len = 0;
+            int len = 0;
             if (!HexStringToBinary(key, out data, out len))
                 return false;
 
@@ -168,25 +167,24 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             generatingKey.IV = data;
-            generatingKey.IVLength = len;
             return true;
         }
 
-        private static bool HexStringToBinary(string str, out byte[] rdata, out byte rlen)
+        private static bool HexStringToBinary(string str, out byte[] returnData, out int returnLength)
         {
             int len = str.Length;
 
             if ((len % 2) != 0)
             {
-                rdata = null;
-                rlen = 0;
+                returnData = null;
+                returnLength = 0;
                 return false;
             }
 
             byte[] data = StringUtils.HexStringToByteArray(str);
 
-            rdata = data;
-            rlen = (byte)data.Length;
+            returnData = data;
+            returnLength = data.Length;
 
             return true;
         }
@@ -738,21 +736,19 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     NksLibraryDesc lib = NKSLibraries.libraries.Where(a => a.Id == header.SetId).FirstOrDefault();
 
-                    //     lib = GlobalMembersLibs.nks_get_library_desc(header.set_id);
-                    //     if (lib == null)
-                    //         return -ENOKEY;
+                    if (lib == null)
+                        throw new KeyNotFoundException("-ENOKEY");
 
-                    //     setKey = g_malloc(sizeof(setKey));
-                    //     setKey.set_id = header.set_id;
-                    //     r = GlobalMembersKeys.nks_create_0110Key(lib.GenKey, setKey.data, sizeof(uint8_t));
-                    //     if (r != 0)
-                    //     {
-                    //         g_free(setKey);
-                    //         return r;
-                    //     }
+                    setKey = new NksSetKey();
+                    setKey.SetId = header.SetId;
+                    int r = NksCreate0110Key(lib.GenKey, setKey.Data);
+                    if (r != 0)
+                    {
+                        setKey = null;
+                        return r;
+                    }
 
-                    //     g_tree_insert(nks.setKeys, setKey.set_id, setKey);
-
+                    nks.SetKeys.Add(setKey.SetId, setKey);
                     key = setKey.Data;
                 }
 
@@ -815,10 +811,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (keyIndex >= 0x20)
                 throw new ArgumentException("-ENOKEY");
 
-            if (Nks0100Keys[0, 0] == 0)
+            if (Nks0100Keys[0][0] == 0)
                 Generate0100Keys();
 
-            retKey = Nks0100Keys.SliceRow(keyIndex).ToArray();
+            retKey = Nks0100Keys[keyIndex];
             retLength = 0x10;
 
             if (key != null)
@@ -829,95 +825,101 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int NksCreate0110Key(NksGeneratingKey gk, UInt32 buffer, uint len)
+
+        public static int NksCreate0110Key(NksGeneratingKey gk, byte[] buffer)
         {
-            // Aes cipher;
-            // byte[] ctr = new byte[16];
-            // byte bkp;
-            // byte bp;
-            // uint n;
-            // uint m;
-            // int algoKeySize;
-            // int r;
+            int len = buffer.Length;
 
-            // if (gk.key == null)
-            //     throw new ArgumentException("-EINVAL");
+            if (gk.Key == null)
+                throw new ArgumentException("-EINVAL");
 
-            // if (gk.key_len != 16 && gk.key_len != 24 && gk.key_len != 32)
-            //     throw new ArgumentException("-EINVAL");
+            if (gk.KeyLength != 16 && gk.KeyLength != 24 && gk.KeyLength != 32)
+                throw new ArgumentException("-EINVAL");
 
-            // if (gk.iv == null || gk.iv_len != 16)
-            //     throw new ArgumentException("-EINVAL");
+            if (gk.IV == null || gk.IVLength != 16)
+                throw new ArgumentException("-EINVAL");
 
-            // if (buffer == null || len < 16 || (len & 15) != 0)
-            //     throw new ArgumentException("-EINVAL");
+            if (buffer == null || len < 16 || (len & 15) != 0)
+                throw new ArgumentException("-EINVAL");
 
-            // if (nks_0110_baseKey == null)
-            //     generate_0110_baseKey();
+            if (Nks0110BaseKey == null)
+                Generate0110BaseKey();
 
-            // switch (gk.key_len)
-            // {
-            //     case 16:
-            //         algoKeySize = 128;
-            //         break;
-            //     case 24:
-            //         algoKeySize = 192;
-            //         break;
-            //     case 32:
-            //         algoKeySize = 256;
-            //         break;
-            //     default:
-            //         return -1;
-            // }
+            // AES cipher
+            int algoKeySize = 0;
+            switch (gk.KeyLength)
+            {
+                case 16:
+                    algoKeySize = 128;
+                    break;
+                case 24:
+                    algoKeySize = 192;
+                    break;
+                case 32:
+                    algoKeySize = 256;
+                    break;
+                default:
+                    return -1;
+            }
 
-            // bp = buffer;
-            // bkp = nks_0110_baseKey;
+            var cipher = new Aes(gk.Key, gk.IV);
 
-            // for (n = 0; 16 * n < len; n++)
-            // {
-            //     if (gcry_cipher_encrypt(cipher, bp, 16, ctr, 16) != 0)
-            //     {
-            //         throw new NotSupportedException("-ENOTSUP");
-            //     }
+            var ctr = gk.IV;
 
-            //     for (m = 0; m < 16; m++)
-            //         bp[m] ^= bkp[m];
+            var bp = buffer;
+            var bkp = Nks0110BaseKey;
 
-            //     increment_counter(ctr, 16);
+            for (int n = 0; 16 * n < len; n++)
+            {
+                // gcry_cipher_encrypt (cipher, bp, 16, ctr, 16)
+                // gcry_error_t gcry_cipher_encrypt (gcry_cipher_hd_t h, unsigned char *out, size_t outsize, const unsigned char *in, size_t inlen)
+                bp = cipher.EncryptToByte(ctr);
 
-            //     bp += 16;
-            //     bkp += 16;
-            // }
+                for (int m = 0; m < 16; m++)
+                {
+                    bp[m] ^= bkp[m];
+                }
+
+                IncrementCounter(ctr, 16);
+
+                // bp += 16;
+                // bkp += 16;
+            }
 
             return 0;
         }
 
-        public static byte[,] Nks0100Keys = new byte[32, 16];
+        public static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
         public static byte[] Nks0110BaseKey;
 
         public static void Generate0100Keys()
         {
-            UInt32 seed = 0x6ee38fe0;
-            int key;
-            int n;
+            int seed = 0x6ee38fe0;
 
-            for (key = 0; key < 32; key++)
+            for (int key = 0; key < 32; key++)
             {
-                for (n = 0; n < 16; n++)
-                    Nks0100Keys[key, n] = (byte)(RandMs(seed) & 0xff);
+                for (int n = 0; n < 16; n++)
+                {
+                    Nks0100Keys[key][n] = (byte)(RandMs(seed) & 0xff);
+                }
             }
         }
 
-        public static UInt32 RandMs(UInt32 seedp)
+        // thanks to Iñigo Quilez
+        // from http://www.iquilezles.org/www/articles/sfrand/sfrand.htm
+        // https://stackoverflow.com/questions/1026327/what-common-algorithms-are-used-for-cs-rand
+        public static int RandMs(int seed)
         {
-            seedp = seedp * 0x343fd + 0x269ec3;
-            return (seedp >> 16);
+            // seed = seed * 0x343fd + 0x269ec3;
+            // return (seed >> 16);
+
+            Random rnd = new Random();
+            return rnd.Next(0, 0xff);
         }
 
         public static void Generate0110BaseKey()
         {
-            int n;
-            UInt32 seed;
+            int seed;
 
             if (Nks0110BaseKey != null)
                 return;
@@ -925,15 +927,15 @@ namespace PresetConverterProject.NIKontaktNKS
             Nks0110BaseKey = new byte[0x10000];
             seed = 0x608da0a2;
 
-            for (n = 0; n < 0x10000; n++)
+            for (int n = 0; n < 0x10000; n++)
+            {
                 Nks0110BaseKey[n] = (byte)(RandMs(seed) & 0xff);
+            }
         }
 
-        public static void IncrementCounter(byte[] num, uint len)
+        public static void IncrementCounter(byte[] num, int len)
         {
-            uint n;
-
-            for (n = len - 1; n > 0; n--)
+            for (int n = len - 1; n > 0; n--)
             {
                 if (++num[n] != 0)
                     break;
