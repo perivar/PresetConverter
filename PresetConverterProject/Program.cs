@@ -919,15 +919,9 @@ namespace PresetConverter
 
         private static void HandleNIKontaktFile(string file, string outputDirectoryPath)
         {
-            NKS.print_library_info(Console.Out);
+            NKS.PrintLibraryInfo(Console.Out);
 
-            Nks nks = new Nks();
-            NKS.nks_open(file, nks);
-            nks.root_entry.name = "";
-            nks.root_entry.offset = 0;
-            nks.root_entry.type = NksEntryType.NKS_ENT_DIRECTORY;
-
-            bool ret = !NKS.traverse_directory(nks, nks.root_entry, "");
+            NKS.TraverseDirectory(file, outputDirectoryPath);
         }
 
         private static void CreateDirectoryIfNotExist(string filePath)
