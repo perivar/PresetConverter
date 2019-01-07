@@ -869,7 +869,7 @@ namespace PresetConverterProject.NIKontaktNKS
             var bp = buffer;
             var bkp = Nks0110BaseKey;
 
-            for (int n = 0; 16 * n < len; n++)
+            for (int n = 0, i = 0; 16 * n < len; n++, i += 16)
             {
                 // gcry_cipher_encrypt (cipher, bp, 16, ctr, 16)
                 // gcry_error_t gcry_cipher_encrypt (gcry_cipher_hd_t h, unsigned char *out, size_t outsize, const unsigned char *in, size_t inlen)
@@ -880,7 +880,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     bp[m] ^= bkp[m];
                 }
 
-                IncrementCounter(ctr, 16);
+                IncrementCounter(ctr);
 
                 // bp += 16;
                 // bkp += 16;
@@ -933,9 +933,9 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void IncrementCounter(byte[] num, int len)
+        public static void IncrementCounter(byte[] num)
         {
-            for (int n = len - 1; n > 0; n--)
+            for (int n = num.Length - 1; n > 0; n--)
             {
                 if (++num[n] != 0)
                     break;
