@@ -863,28 +863,29 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             var cipher = new Aes(gk.Key, gk.IV);
-
             var ctr = gk.IV;
-
-            var bp = buffer;
             var bkp = Nks0110BaseKey;
 
-            for (int n = 0, i = 0; 16 * n < len; n++, i += 16)
+            var bufferList = new List<byte>();
+
+            for (int n = 0; 16 * n < len; n++)
             {
-                // gcry_cipher_encrypt (cipher, bp, 16, ctr, 16)
-                // gcry_error_t gcry_cipher_encrypt (gcry_cipher_hd_t h, unsigned char *out, size_t outsize, const unsigned char *in, size_t inlen)
-                bp = cipher.EncryptToByte(ctr);
+                var bp = cipher.EncryptToByte(ctr);
 
                 for (int m = 0; m < 16; m++)
                 {
-                    bp[m] ^= bkp[m];
+                    // ^=	Bitwise exclusive OR and assignment operator.	
+                    // C ^= 2 is same as C = C ^ 2
+                    bp[m] ^= bkp[16 * n + m];
                 }
 
-                IncrementCounter(ctr);
+                // store within buffer
+                bufferList.AddRange(bp);
 
-                // bp += 16;
-                // bkp += 16;
+                IncrementCounter(ctr);
             }
+
+            buffer = bufferList.ToArray();
 
             return 0;
         }
