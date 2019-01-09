@@ -52,7 +52,7 @@ namespace PresetConverter
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
 
@@ -89,6 +89,7 @@ namespace PresetConverter
                                 break;
                             case ".nks":
                             case ".nkx":
+                            case ".nkr":
                                 HandleNIKontaktFile(file, outputDirectoryPath);
                                 break;
                         }
@@ -919,7 +920,7 @@ namespace PresetConverter
 
         private static void HandleNIKontaktFile(string file, string outputDirectoryPath)
         {
-            NKS.PrintLibraryInfo(Console.Out);
+            // NKS.PrintLibraryInfo(Console.Out);
 
             NKS.TraverseDirectory(file, outputDirectoryPath);
         }
