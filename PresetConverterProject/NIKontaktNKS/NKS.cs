@@ -14,7 +14,6 @@ namespace PresetConverterProject.NIKontaktNKS
 {
     public class NKS
     {
-        public const string PACKAGE_PREFIX = "com.native-instruments";
         public const string REG_PATH = "Software\\Native Instruments";
 
         public const UInt32 NKS_MAGIC_DIRECTORY = 0x5e70ac54;
@@ -39,7 +38,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static int NksGetLibraries(IList regList)
+        private static int NksGetLibraries(IList regList)
         {
             NksLibraryDesc ld = null;
             try
@@ -180,7 +179,42 @@ namespace PresetConverterProject.NIKontaktNKS
         }
         #endregion
 
-        #region UnNks methods        
+        #region List, traverse and extract methods     
+
+        /// <summary>Opens an archive. This must be called first, before anything else can be done
+        /// with archives.</summary>
+        /// <param name="fileName">name of the file to open</param>
+        /// <param name="nks">Nks object, which will be initialized upon
+        /// success.</param>
+        /// <returns>0 on success</returns>
+        private static int NksOpen(string fileName, Nks nks)
+        {
+            BinaryFile bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false);
+
+            int r = NksOpenBf(bf, nks);
+            if (r != 0)
+            {
+                bf.Close();
+                return r;
+            }
+
+            return 0;
+        }
+
+        private static int NksOpenBf(BinaryFile bf, Nks nks)
+        {
+            if (bf == null)
+                throw new ArgumentNullException("BinaryFile cannot be null");
+
+            nks.RootEntry.Name = "/";
+            nks.RootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
+            nks.RootEntry.Offset = 0;
+            nks.BinaryFile = bf;
+            nks.SetKeys = new Dictionary<UInt32, NksSetKey>();
+
+            return 0;
+        }
+
         public static void TraverseDirectory(string fileName, string prefix)
         {
             Nks nks = new Nks();
@@ -191,28 +225,28 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int r = NksOpen(fileName, nks);
 
-            bool ret = !TraverseDirectory(nks, rootEntry, prefix);
+            bool isSuccessfull = !TraverseDirectory(nks, rootEntry, prefix);
         }
 
-        public static bool TraverseDirectory(Nks nks, NksEntry dirEntry, string prefix)
+        private static bool TraverseDirectory(Nks nks, NksEntry dirEntry, string prefix)
         {
             var list = new ArrayList();
-            bool ret = true;
+            bool isSuccessfull = true;
             int r = NksListDirEntry(nks, list, dirEntry);
             if (r != 0)
             {
-                ret = false;
+                isSuccessfull = false;
             }
 
             if (!TraverseDirectories(nks, list, prefix))
-                ret = false;
+                isSuccessfull = false;
 
-            // this is where the files are decrypted and extracted
+            // decrypt and extract files
             if (!TraverseFiles(nks, list, prefix))
-                ret = false;
+                isSuccessfull = false;
 
             list.Clear();
-            return ret;
+            return isSuccessfull;
         }
 
         private static bool TraverseDirectories(Nks nks, IList list, string prefix)
@@ -220,7 +254,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (list == null)
                 return true;
 
-            bool ret = true;
+            bool isSuccessfull = true;
 
             foreach (NksEntry entry in list)
             {
@@ -230,10 +264,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 string prefix_buffer = Path.Join(prefix, entry.Name);
 
                 if (!TraverseDirectory(nks, entry, prefix_buffer))
-                    ret = false;
+                    isSuccessfull = false;
             }
 
-            return ret;
+            return isSuccessfull;
         }
 
         private static bool TraverseFiles(Nks nks, IList list, string prefix)
@@ -286,98 +320,11 @@ namespace PresetConverterProject.NIKontaktNKS
             return isSuccessfull;
         }
 
-        /**
-         * Opens an archive.  This must be called first, before anything else can be done
-         * with archives.
-         *
-         * @param fileName name of the file to open
-         * @param ret	    pointer to a Nks * pointer, which will be initialised upon
-         * 		    success.  It has to be closed with nks_close after it is no
-         * 	            longer used.
-         *
-         * @return 0 on success
-         */
-        public static int NksOpen(string fileName, Nks nks)
-        {
-            BinaryFile bf = new BinaryFile(fileName, BinaryFile.ByteOrder.LittleEndian, false);
-
-            int r = NksOpenBf(bf, nks);
-            if (r != 0)
-            {
-                bf.Close();
-                return r;
-            }
-
-            return 0;
-        }
-
-        /**
-         * Similar to nks_open, but uses a file descriptor instead of a file name.  If
-         * this function completes successfully, you must not use bf any more directly.
-         * Make sure that bf is open in binary mode on systems that distinguish between
-         * text and binary.
-         */
-        public static int NksOpenBf(BinaryFile bf, Nks nks)
-        {
-            if (bf == null)
-                throw new ArgumentNullException("BinaryFile cannot be null");
-
-            nks.RootEntry.Name = "/";
-            nks.RootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
-            nks.RootEntry.Offset = 0;
-            nks.BinaryFile = bf;
-            nks.SetKeys = new Dictionary<UInt32, NksSetKey>();
-
-            return 0;
-        }
-
-        /**
-         * Closes an archive.
-         */
-        public static void NksClose(Nks nks)
-        {
-            nks = null;
-        }
-
-        /**
-         * Lists the contents of a directory in an archive.  It calls func for each
-         * entry in the directory.  If func returns false, then then no more entries
-         * will be listed.  Do not modify or free the entries provided to func.
-         * If you want to copy any of the entries, you must use nksEntry_copy.
-         *
-         * @param nks       the archive
-         * @param dir       the path to the directory to list.  It must contain slashes
-         *                  ('/') as separators, and must not start with a slash.  If it
-         *                  contains non-ASCII characters, it must be encoded in UTF-8.
-         * @param func      the function to call for each entry
-         * @param user_data an optional argument passed to func
-         * 
-         * @return 0 on success
-         */
-        public static int NksListDir(Nks nks, IList list, string dir)
-        {
-            NksEntry entry = new NksEntry();
-            int r;
-
-            r = NksFindEntry(nks, dir, entry);
-            if (r != 0)
-                return r;
-
-            if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
-                throw new ArgumentException("Type is not a directory");
-
-            r = NksListDirEntry(nks, list, entry);
-            entry = null;
-
-            return r;
-        }
-
-        /**
-         * Lists the contents of a directory in an archive.  It is similar to nks_list,
-         * but uses a NksEntry instead of a path.  The entry must correspond to a
-         * directory and not a file..
-         */
-        public static int NksListDirEntry(Nks nks, IList list, NksEntry entry)
+        /// <summary>Lists the contents of a directory in an archive. It is similar to nks_list,
+        /// but uses a NksEntry instead of a path.The entry must correspond to a
+        /// directory and not a file..
+        /// </summary>
+        private static int NksListDirEntry(Nks nks, IList list, NksEntry entry)
         {
             NksDirectoryHeader header = new NksDirectoryHeader();
             int r;
@@ -395,273 +342,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return ListDirectory(nks, list, header);
         }
 
-        /**
-         * Returns the size of a file in an archive.
-         *
-         * @param nks   the archive
-         * @param entry the entry corresponding to a file in the archive
-         *
-         * @return the size, or a negative value on error
-         */
-        public static int NksFileSize(Nks nks, NksEntry entry)
-        {
-            NksEncryptedFileHeader header = new NksEncryptedFileHeader();
-            int r;
-
-            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
-                throw new IOException("Failed reading from stream");
-
-            UInt32 magic = nks.BinaryFile.ReadUInt32(); // read_u32_le
-
-            switch (magic)
-            {
-                case NKS_MAGIC_ENCRYPTED_FILE:
-                    break;
-
-                case NKS_MAGIC_DIRECTORY:
-                    throw new ArgumentException("magic is a directory");
-
-                default:
-                    throw new NotSupportedException("magic not supported " + magic);
-            }
-
-            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
-                throw new IOException("Failed reading from stream");
-
-            r = NksReadEncryptedFileHeader(nks.BinaryFile, header);
-            if (r != 0)
-                return r;
-
-            return (int)header.Size;
-        }
-
-        /**
-         * Extracts a file from an archive.
-         *
-         * @param nks      the archive
-         * @param entry    the entry corresponding to the file to extract in the archive
-         * @param out_file the name of the file to extract to.  The file will be
-         *                 created.
-         *
-         * @return 0 on success
-         */
-        public static int NksExtractFileEntry(Nks nks, NksEntry entry, string outFile)
-        {
-            try
-            {
-                string directoryPath = Path.GetDirectoryName(outFile);
-                Directory.CreateDirectory(directoryPath);
-            }
-            catch (Exception)
-            {
-                // handle them here
-            }
-
-            BinaryFile bf = new BinaryFile(outFile, BinaryFile.ByteOrder.LittleEndian, true);
-
-            int r = NksExtractFileEntryToBf(nks, entry, bf);
-            bf.Close();
-
-            return r;
-        }
-
-        /**
-         * Extracts a file from an archive.  This function is similar to
-         * nks_extractEntry, but accepts an output file descriptor instead of a file
-         * name.
-         */
-        public static int NksExtractFileEntryToBf(Nks nks, NksEntry entry, BinaryFile outbinaryFile)
-        {
-            NksEncryptedFileHeader encHeader = new NksEncryptedFileHeader();
-            NksFileHeader fileHeader = new NksFileHeader();
-            int r;
-
-            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
-                throw new IOException("Failed reading from stream");
-
-            UInt32 magic = nks.BinaryFile.ReadUInt32(); // read_u32_le
-            switch (magic)
-            {
-                case NKS_MAGIC_ENCRYPTED_FILE:
-                case NKS_MAGIC_FILE:
-                case NKS_MAGIC_CONTENT_FILE: // like tga, txt, xml, png, cache
-                    break;
-
-                case NKS_MAGIC_DIRECTORY:
-                    throw new NotSupportedException("magic is a directory");
-
-                default:
-                    throw new NotSupportedException("magic not supported " + magic);
-            }
-
-            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
-                throw new IOException("Failed reading from stream");
-
-            if (magic == NKS_MAGIC_ENCRYPTED_FILE)
-            {
-                r = NksReadEncryptedFileHeader(nks.BinaryFile, encHeader);
-                if (r != 0)
-                    return r;
-
-                switch (encHeader.Version)
-                {
-                    case 0x0100:
-                    case 0x0110:
-                        return ExtractEncryptedFileEntryToBf(nks, encHeader, outbinaryFile);
-
-                    default:
-                        throw new NotSupportedException("encrypted header version not supported " + encHeader.Version);
-                }
-            }
-            else if (magic == NKS_MAGIC_CONTENT_FILE)
-            {
-                r = NksReadContentFileHeader(nks.BinaryFile, fileHeader);
-                if (r != 0)
-                    return r;
-
-                switch (fileHeader.Version)
-                {
-                    case 0x0100:
-                    case 0x0110:
-                        return ExtractFileEntryToBf(nks, fileHeader, outbinaryFile);
-
-                    default:
-                        throw new NotSupportedException("file header version not supported " + fileHeader.Version);
-                }
-            }
-            else
-            {
-                r = NksReadFileHeader(nks.BinaryFile, fileHeader);
-                if (r != 0)
-                    return r;
-
-                switch (fileHeader.Version)
-                {
-                    case 0x0100:
-                    case 0x0110:
-                        return ExtractFileEntryToBf(nks, fileHeader, outbinaryFile);
-
-                    default:
-                        throw new NotSupportedException("file header version not supported " + fileHeader.Version);
-                }
-            }
-        }
-
-        /**
-         * Finds the entry corresponding to the given path.
-         *
-         * @param nks  archive handle
-         * @param path path to the entry
-         * @param ret  pointer to a NksEntry structure to be filled in.  Must be
-         * 	       disposed of with nksEntry_free.
-         *
-         * @return 0 on success
-         */
-        public static int NksFindEntry(Nks nks, string name, NksEntry ret)
-        {
-            NksEntry entry = new NksEntry();
-            NksEntry subEntry = new NksEntry();
-            string buffer = new string(new char[512]);
-            int r;
-
-            if (name == null || name[0] == '/')
-                throw new ArgumentException("invalid name " + name);
-
-            NksEntryCopy(nks.RootEntry, entry);
-
-            var path_segments = name.Split('/');
-            foreach (var path_segment in path_segments)
-            {
-                r = NksGetEntry(nks, entry, buffer, subEntry);
-                if (r != 0)
-                    throw new ArgumentException("not a directory");
-
-                if (buffer[0] == 0)
-                {
-                    if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
-                    {
-                        throw new ArgumentException("not a directory");
-                    }
-
-                    break;
-                }
-
-                r = NksGetEntry(nks, entry, buffer, subEntry);
-                if (r != 0)
-                    throw new ArgumentException("not a directory");
-
-                entry = null;
-
-                entry = subEntry;
-            }
-
-            ret = entry;
-            return 0;
-        }
-
-        /**
-         * Gets an immediate sub-entry of the given directory entry.
-         *
-         * @param nks   archive handle
-         * @param entry directory entry
-         * @param name  the name of the sub-entry
-         * @param ret   pointer to a NksEntry structure to be filled in.  Must be
-         *              disposed of with nksEntry_free.
-         *
-         * @return 0 on success
-         */
-        public static int NksGetEntry(Nks nks, NksEntry entry, string name, NksEntry ret)
-        {
-            FindEntryContext context = new FindEntryContext();
-            int r = 0;
-
-            context.Name = name;
-            context.Entry = ret;
-            context.Found = false;
-
-            // TODO: fix missing implementation
-            throw new NotImplementedException();
-
-            // NksTraverseFunc traverseFunc = nks_find_subEntry;
-            // r = nks_list_dirEntry(nks, entry, traverseFunc, context);
-
-            if (r != 0)
-                return r;
-
-            if (!context.Found)
-                throw new KeyNotFoundException("-ENOENT");
-
-            return 0;
-        }
-
-        /**
-         * Copies an entry.
-         *
-         * @param src pointer to the entry to copy from
-         * @param dst pointer to the entry to copy to.  dst must point to a block
-         *            of allocated memory.  When no longer needed, it must be freed with
-         *            nksEntry_free.
-         */
-        public static void NksEntryCopy(NksEntry src, NksEntry dst)
-        {
-            dst.Name = src.Name.ToUpper();
-            dst.Type = src.Type;
-            dst.Offset = src.Offset;
-        }
-
-        public static bool NksFindSubEntry(NksEntry entry, FindEntryContext ctx)
-        {
-            if (String.Equals(entry.Name, ctx.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                NksEntryCopy(entry, ctx.Entry);
-                ctx.Found = true;
-                return false;
-            }
-
-            return true;
-        }
-
-        public static int ListDirectory(Nks nks, IList list, NksDirectoryHeader header)
+        private static int ListDirectory(Nks nks, IList list, NksDirectoryHeader header)
         {
             long offset = nks.BinaryFile.Seek(0, SeekOrigin.Current);
             if (offset < 0)
@@ -686,7 +367,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         break;
 
                     default:
-                        throw new NotSupportedException("header version not supported " + header.Version);
+                        throw new NotSupportedException("Header version not supported " + header.Version);
                 }
 
                 if (r != 0)
@@ -713,7 +394,152 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int ExtractEncryptedFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
+        /// <summary>Returns the size of a file in an archive.
+        /// </summary>
+        /// <param name="nks">the archive</param>
+        /// <param name="entry">the entry corresponding to a file in the archive</param>
+        /// <returns>the size, or a negative value on error</returns>
+        public static int NksFileSize(Nks nks, NksEntry entry)
+        {
+            NksEncryptedFileHeader header = new NksEncryptedFileHeader();
+            int r;
+
+            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
+                throw new IOException("Failed reading from stream");
+
+            UInt32 magic = nks.BinaryFile.ReadUInt32(); // read_u32_le
+
+            switch (magic)
+            {
+                case NKS_MAGIC_ENCRYPTED_FILE:
+                    break;
+
+                case NKS_MAGIC_DIRECTORY:
+                    throw new ArgumentException("Magic is a directory");
+
+                default:
+                    throw new NotSupportedException("Magic not supported " + magic);
+            }
+
+            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
+                throw new IOException("Failed reading from stream");
+
+            r = NksReadEncryptedFileHeader(nks.BinaryFile, header);
+            if (r != 0)
+                return r;
+
+            return (int)header.Size;
+        }
+
+        /// <summary>Extracts a file from an archive.
+        /// </summary>
+        /// <param name="nks">the archive</param>
+        /// <param name="entry">the entry corresponding to the file to extract in the archive</param>
+        /// <param name="out_file">the name of the file to extract to. The file will be
+        /// created.</param>
+        /// <returns>0 on success</returns>
+        private static int NksExtractFileEntry(Nks nks, NksEntry entry, string outFile)
+        {
+            try
+            {
+                string directoryPath = Path.GetDirectoryName(outFile);
+                Directory.CreateDirectory(directoryPath);
+            }
+            catch (Exception)
+            {
+                // handle them here
+            }
+
+            BinaryFile bf = new BinaryFile(outFile, BinaryFile.ByteOrder.LittleEndian, true);
+
+            int r = NksExtractFileEntryToBf(nks, entry, bf);
+            bf.Close();
+
+            return r;
+        }
+
+        /// <summary>Extracts a file from an archive. This function is similar to
+        /// NksExtractEntry, but accepts an output BinaryFile instead of a file
+        /// name.
+        /// </summary>
+        private static int NksExtractFileEntryToBf(Nks nks, NksEntry entry, BinaryFile outbinaryFile)
+        {
+            NksEncryptedFileHeader encHeader = new NksEncryptedFileHeader();
+            NksFileHeader fileHeader = new NksFileHeader();
+            int r;
+
+            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
+                throw new IOException("Failed reading from stream");
+
+            UInt32 magic = nks.BinaryFile.ReadUInt32(); // read_u32_le
+            switch (magic)
+            {
+                case NKS_MAGIC_ENCRYPTED_FILE:
+                case NKS_MAGIC_FILE:
+                case NKS_MAGIC_CONTENT_FILE: // like tga, txt, xml, png, cache
+                    break;
+
+                case NKS_MAGIC_DIRECTORY:
+                    throw new NotSupportedException("Magic is a directory");
+
+                default:
+                    throw new NotSupportedException("Magic not supported " + magic);
+            }
+
+            if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
+                throw new IOException("Failed reading from stream");
+
+            if (magic == NKS_MAGIC_ENCRYPTED_FILE)
+            {
+                r = NksReadEncryptedFileHeader(nks.BinaryFile, encHeader);
+                if (r != 0)
+                    return r;
+
+                switch (encHeader.Version)
+                {
+                    case 0x0100:
+                    case 0x0110:
+                        return ExtractEncryptedFileEntryToBf(nks, encHeader, outbinaryFile);
+
+                    default:
+                        throw new NotSupportedException("Encrypted header version not supported " + encHeader.Version);
+                }
+            }
+            else if (magic == NKS_MAGIC_CONTENT_FILE)
+            {
+                r = NksReadContentFileHeader(nks.BinaryFile, fileHeader);
+                if (r != 0)
+                    return r;
+
+                switch (fileHeader.Version)
+                {
+                    case 0x0100:
+                    case 0x0110:
+                        return ExtractFileEntryToBf(nks, fileHeader, outbinaryFile);
+
+                    default:
+                        throw new NotSupportedException("File header version not supported " + fileHeader.Version);
+                }
+            }
+            else
+            {
+                r = NksReadFileHeader(nks.BinaryFile, fileHeader);
+                if (r != 0)
+                    return r;
+
+                switch (fileHeader.Version)
+                {
+                    case 0x0100:
+                    case 0x0110:
+                        return ExtractFileEntryToBf(nks, fileHeader, outbinaryFile);
+
+                    default:
+                        throw new NotSupportedException("File header version not supported " + fileHeader.Version);
+                }
+            }
+        }
+
+        private static int ExtractEncryptedFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
         {
             int bufferLength = 16384;
             int toRead;
@@ -790,7 +616,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int ExtractFileEntryToBf(Nks nks, NksFileHeader header, BinaryFile outBinaryFile)
+        private static int ExtractFileEntryToBf(Nks nks, NksFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
             int toRead;
@@ -811,8 +637,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
         #endregion
 
-        #region Key mehods
-        public static int NksGet0100Key(int keyIndex, byte[] key, out int length)
+        #region Generate and Read Keys mehods
+        private static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
+        private static byte[] Nks0110BaseKey;
+
+        private static int NksGet0100Key(int keyIndex, byte[] key, out int length)
         {
             byte[] retKey;
             length = 0;
@@ -836,7 +665,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static byte[] NksCreate0110Key(NksGeneratingKey gk, int len)
+        private static byte[] NksCreate0110Key(NksGeneratingKey gk, int len)
         {
             if (gk.Key == null)
                 throw new ArgumentException("Missing key");
@@ -851,24 +680,16 @@ namespace PresetConverterProject.NIKontaktNKS
                 throw new ArgumentException("Missing iv");
 
             if (Nks0110BaseKey == null)
+            {
                 Generate0110BaseKey();
 
-            // AES cipher
-            // int algoKeySize = 0;
-            // switch (gk.KeyLength)
-            // {
-            //     case 16:
-            //         algoKeySize = 128;
-            //         break;
-            //     case 24:
-            //         algoKeySize = 192;
-            //         break;
-            //     case 32:
-            //         algoKeySize = 256;
-            //         break;
-            //     default:
-            //         throw new ArgumentException("Wrong key length.");
-            // }
+                // write base key to file
+                // string outDumpFile = @"0110_base_key_port.bin";
+                // using (BinaryFile bfdump = new BinaryFile(outDumpFile, BinaryFile.ByteOrder.LittleEndian, true))
+                // {
+                //     bfdump.Write(Nks0110BaseKey);
+                // }
+            }
 
             var cipher = new Aes(gk.Key, gk.IV);
             var ctr = gk.IV;
@@ -896,36 +717,29 @@ namespace PresetConverterProject.NIKontaktNKS
             return bufferList.ToArray();
         }
 
-        public static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
-        public static byte[] Nks0110BaseKey;
-
-        public static void Generate0100Keys()
+        private static void Generate0100Keys()
         {
-            // int seed = 0x6ee38fe0;
-
-            // Fill array with random bytes
-            Random random = new Random();
-
+            // Fill arrays with pseudo random bytes
+            int seed = 0x6ee38fe0;
             for (int key = 0; key < 32; key++)
             {
                 for (int n = 0; n < 16; n++)
                 {
-                    // Nks0100Keys[key][n] = (byte)(RandMs(seed) & 0xff);
-                    Nks0100Keys[key][n] = (byte)random.Next(0, 0xff);
+                    Nks0100Keys[key][n] = RandMs(ref seed);
                 }
             }
         }
 
         // Thanks to Iñigo Quilez
-        // from http://www.iquilezles.org/www/articles/sfrand/sfrand.htm
+        // see http://www.iquilezles.org/www/articles/sfrand/sfrand.htm
         // https://stackoverflow.com/questions/1026327/what-common-algorithms-are-used-for-cs-rand
-        // public static int RandMs(int seed)
-        // {
-        //     seed = seed * 0x343fd + 0x269ec3;
-        //     return (seed >> 16);
-        // }
+        private static byte RandMs(ref int seed)
+        {
+            seed = seed * 0x343fd + 0x269ec3;
+            return (byte)((seed >> 16) & 0xff);
+        }
 
-        public static void Generate0110BaseKey()
+        private static void Generate0110BaseKey()
         {
             int seed;
 
@@ -934,18 +748,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             Nks0110BaseKey = new byte[0x10000];
 
-            // seed = 0x608da0a2;
-            // for (int n = 0; n < 0x10000; n++)
-            // {
-            //     Nks0110BaseKey[n] = (byte)RandMs(seed);
-            // }
-
-            // Fill array with random bytes
-            Random random = new Random();
-            random.NextBytes(Nks0110BaseKey);
+            // Fill array with pseudo random bytes
+            seed = 0x608da0a2;
+            for (int n = 0; n < 0x10000; n++)
+            {
+                Nks0110BaseKey[n] = RandMs(ref seed);
+            }
         }
 
-        public static void IncrementCounter(byte[] num)
+        private static void IncrementCounter(byte[] num)
         {
             for (int n = num.Length - 1; n > 0; n--)
             {
@@ -955,14 +766,13 @@ namespace PresetConverterProject.NIKontaktNKS
         }
         #endregion
 
-        #region Nks Input Output
-
-        public static int NksReadDirectoryHeader(BinaryFile bf, NksDirectoryHeader header)
+        #region Read file header methods
+        private static int NksReadDirectoryHeader(BinaryFile bf, NksDirectoryHeader header)
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != (UInt32)(NKS_MAGIC_DIRECTORY)) // 0x5e70ac54
-                throw new IOException("magic not as expected (0x5e70ac54) but " + magic);
+                throw new IOException("Magic not as expected (0x5e70ac54) but " + magic);
 
             header.Version = bf.ReadUInt16(); // read_u16_le
 
@@ -983,12 +793,13 @@ namespace PresetConverterProject.NIKontaktNKS
                     break;
 
                 default:
-                    throw new ArgumentException("header version not valid: " + header.Version);
+                    throw new ArgumentException("Header version not valid: " + header.Version);
             }
 
             return 0;
         }
-        public static int NksRead0100EntryHeader(BinaryFile bf, Nks0100EntryHeader header)
+
+        private static int NksRead0100EntryHeader(BinaryFile bf, Nks0100EntryHeader header)
         {
             header.Name = bf.ReadString(129);
 
@@ -1006,7 +817,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int NksRead0110EntryHeader(BinaryFile bf, Nks0110EntryHeader header)
+
+        private static int NksRead0110EntryHeader(BinaryFile bf, Nks0110EntryHeader header)
         {
             if ((header.Unknown = bf.ReadBytes(2)).Length != 2)
                 throw new IOException("Failed reading from stream");
@@ -1025,7 +837,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int NksRead0100NksEntry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
+        private static int NksRead0100NksEntry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
         {
             Nks0100EntryHeader hdr = new Nks0100EntryHeader();
 
@@ -1039,7 +851,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return 0;
         }
-        public static int NksRead0110NksEntry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
+
+        private static int NksRead0110NksEntry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
         {
             Nks0110EntryHeader hdr = new Nks0110EntryHeader();
 
@@ -1056,12 +869,12 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int NksReadEncryptedFileHeader(BinaryFile bf, NksEncryptedFileHeader ret)
+        private static int NksReadEncryptedFileHeader(BinaryFile bf, NksEncryptedFileHeader ret)
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != (UInt32)(NKS_MAGIC_ENCRYPTED_FILE)) // 0x16ccf80a
-                throw new IOException("magic not as expected (0x16ccf80a) but " + magic);
+                throw new IOException("Magic not as expected (0x16ccf80a) but " + magic);
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
@@ -1090,12 +903,12 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int NksReadContentFileHeader(BinaryFile bf, NksFileHeader ret)
+        private static int NksReadContentFileHeader(BinaryFile bf, NksFileHeader ret)
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != NKS_MAGIC_CONTENT_FILE) // 0x2AE905FA
-                throw new IOException("magic not as expected (0x2AE905FA) but " + magic);
+                throw new IOException("Magic not as expected (0x2AE905FA) but " + magic);
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
@@ -1110,12 +923,12 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static int NksReadFileHeader(BinaryFile bf, NksFileHeader ret)
+        private static int NksReadFileHeader(BinaryFile bf, NksFileHeader ret)
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
             if (magic != (UInt32)(NKS_MAGIC_FILE)) // 0x4916e63c
-                throw new IOException("magic not as expected (0x4916e63c) but " + magic);
+                throw new IOException("Magic not as expected (0x4916e63c) but " + magic);
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
@@ -1130,12 +943,12 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        public static UInt32 DecodeOffset(UInt32 offset)
+        private static UInt32 DecodeOffset(UInt32 offset)
         {
             return (offset ^ (UInt32)(0x1f4e0c8d));
         }
 
-        public static NksEntryType TypeHintToEntryType(UInt16 typeHint)
+        private static NksEntryType TypeHintToEntryType(UInt16 typeHint)
         {
             switch (typeHint)
             {
@@ -1190,12 +1003,6 @@ namespace PresetConverterProject.NIKontaktNKS
         public Dictionary<UInt32, NksSetKey> SetKeys { get; set; }
     }
 
-    public class FindEntryContext
-    {
-        public string Name { get; set; }
-        public NksEntry Entry { get; set; }
-        public bool Found { get; set; }
-    }
 
     public class NksDirectoryHeader
     {
