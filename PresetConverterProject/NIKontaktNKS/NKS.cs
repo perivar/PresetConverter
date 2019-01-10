@@ -15,18 +15,18 @@ namespace PresetConverterProject.NIKontaktNKS
     public class NKS
     {
         public const string REG_PATH = "Software\\Native Instruments";
+        public const string SETTINGS_PATH = "Settings.cfg";
 
         public const UInt32 NKS_MAGIC_DIRECTORY = 0x5e70ac54;
         public const UInt32 NKS_MAGIC_ENCRYPTED_FILE = 0x16ccf80a;
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
-        public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA; // like tga, txt, xml, png, cache
+        public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA; // like tga, txt, xml, png, cache       
 
-
-        #region Read Library Descriptors from Registry
-        public static void PrintLibraryInfo(TextWriter writer)
+        #region Read Library Descriptors from Settings.cfg
+        public static void PrintSettingsLibraryInfo(TextWriter writer)
         {
-            IList list = new ArrayList();
-            NKS.NksGetLibraries(list);
+            var list = NKS.NksGetSettingsLibraries();
+
             foreach (NksLibraryDesc entry in list)
             {
                 var id = entry.Id;
@@ -38,7 +38,128 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static int NksGetLibraries(IList regList)
+        private static List<NksLibraryDesc> NksGetSettingsLibraries()
+        {
+            Regex sectionRegex = new Regex(@"\[([\w\d\s]+)\]");
+            Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
+
+            var keyElements = new List<string>();
+            keyElements.Add("Name");
+            keyElements.Add("SNPID");
+            keyElements.Add("Company");
+            keyElements.Add("ContentDir");
+            keyElements.Add("JDX");
+            keyElements.Add("HU");
+
+            List<NksLibraryDesc> settingsList = null;
+
+            using (var reader = new StreamReader(SETTINGS_PATH))
+            {
+                string line = null;
+                string sectionName = null;
+                bool isProcessingSection = false;
+                NksLibraryDesc libDesc = null;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (isProcessingSection)
+                    {
+                        Match elementMatch = elementRegex.Match(line);
+
+                        // found new section
+                        if (elementMatch.Success)
+                        {
+                            string key = elementMatch.Groups[1].Value;
+                            string value = elementMatch.Groups[2].Value;
+
+                            if (keyElements.Contains(key))
+                            {
+                                if (libDesc == null) libDesc = new NksLibraryDesc();
+
+                                switch (key)
+                                {
+                                    case "Name":
+                                        libDesc.Name = value.ToUpper();
+                                        break;
+                                    case "SNPID":
+                                        try
+                                        {
+                                            uint id = UInt32.Parse(value);
+                                            libDesc.Id = id;
+                                        }
+                                        catch (System.Exception)
+                                        {
+                                            try
+                                            {
+                                                // is it hex?
+                                                uint id = Convert.ToUInt32(value, 16);
+                                                libDesc.Id = id;
+                                            }
+                                            catch (System.Exception)
+                                            {
+                                                // ignore invalid (?) ids
+                                            }
+                                        }
+                                        break;
+                                    case "Company":
+                                        break;
+                                    case "ContentDir":
+                                        break;
+                                    case "JDX":
+                                        NksGeneratingKeySetKeyStr(libDesc.GenKey, value);
+                                        break;
+                                    case "HU":
+                                        NksGeneratingKeySetIvStr(libDesc.GenKey, value);
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException("Key not supported: " + key);
+                                }
+                            }
+                        }
+                    }
+
+                    Match sectionMatch = sectionRegex.Match(line);
+
+                    // found new section
+                    if (sectionMatch.Success)
+                    {
+                        sectionName = sectionMatch.Groups[1].Value;
+                        isProcessingSection = true;
+
+                        // store previously finished libDesc if found new section
+                        if (libDesc != null
+                        && libDesc.Id != 0
+                        && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0)
+                        {
+                            if (settingsList == null) settingsList = new List<NksLibraryDesc>();
+                            settingsList.Add(libDesc);
+
+                            libDesc = null;
+                        }
+                    }
+                }
+            }
+
+            return settingsList;
+        }
+
+        #endregion
+
+        #region Read Library Descriptors from Registry
+        public static void PrintRegistryLibraryInfo(TextWriter writer)
+        {
+            var list = NKS.NksGetRegistryLibraries();
+            foreach (NksLibraryDesc entry in list)
+            {
+                var id = entry.Id;
+                var name = entry.Name;
+                var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
+                var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
+
+                writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+            }
+        }
+
+        private static List<NksLibraryDesc> NksGetRegistryLibraries()
         {
             NksLibraryDesc ld = null;
             try
@@ -48,6 +169,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     if (key != null)
                     {
+                        var regList = new List<NksLibraryDesc>();
+
                         var subKeys = key.GetValueNames(); // values in current reg folder
                         // var subkeys = key.GetSubKeyNames(); // sub folders
 
@@ -59,6 +182,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
                             regList.Add(ld);
                         }
+
+                        return regList;
                     }
                 }
             }
@@ -67,7 +192,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 throw new Exception("Failed to open HKLM\\" + REG_PATH + "\\Content", ex);
             }
 
-            return 0;
+            return null;
         }
 
         private static NksLibraryDesc CreateLibraryDesc(string keyName, string name)
@@ -224,6 +349,12 @@ namespace PresetConverterProject.NIKontaktNKS
             rootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
 
             int r = NksOpen(fileName, nks);
+
+            // read in all libraries
+            var regList = NksGetRegistryLibraries();
+            if (regList != null) NKSLibraries.Libraries.AddRange(regList);
+            var settingsList = NksGetSettingsLibraries();
+            if (settingsList != null) NKSLibraries.Libraries.AddRange(settingsList);
 
             bool isSuccessfull = !TraverseDirectory(nks, rootEntry, prefix);
         }
@@ -566,7 +697,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 if (setKey == null)
                 {
-                    NksLibraryDesc lib = NKSLibraries.libraries.Where(a => a.Id == header.SetId).FirstOrDefault();
+                    NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Id == header.SetId).FirstOrDefault();
 
                     if (lib == null)
                         throw new KeyNotFoundException("lib could not be found");

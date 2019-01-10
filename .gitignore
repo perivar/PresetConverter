@@ -264,3 +264,4 @@ node_modules
 solution-explorer
 debug
 **/Logs/
+Settings.cfg

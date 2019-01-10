@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
     public static class NKSLibraries
     {
-        public static NksLibraryDesc[] libraries =
-        new NksLibraryDesc[]
+        public static List<NksLibraryDesc> Libraries =
+        new List<NksLibraryDesc>
         {
           new NksLibraryDesc {
             Id = 0x0000000d, Name = "Keyboard Collection", GenKey = new NksGeneratingKey {
@@ -217,9 +218,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class NksGeneratingKey
     {
-        public byte[] Key = new byte[32];
-        public int KeyLength { get { return Key.Length; } }
-        public byte[] IV = new byte[16];
-        public int IVLength { get { return IV.Length; } }
+        public byte[] Key { get; set; }
+        public int KeyLength { get { return Key != null ? Key.Length : 0; } }
+        public byte[] IV { get; set; }
+        public int IVLength { get { return IV != null ? IV.Length : 0; } }
     }
 }

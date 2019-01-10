@@ -920,7 +920,8 @@ namespace PresetConverter
 
         private static void HandleNIKontaktFile(string file, string outputDirectoryPath)
         {
-            // NKS.PrintLibraryInfo(Console.Out);
+            // NKS.PrintRegistryLibraryInfo(Console.Out);
+            // NKS.PrintSettingsLibraryInfo(Console.Out);
 
             NKS.TraverseDirectory(file, outputDirectoryPath);
         }
