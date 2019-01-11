@@ -923,6 +923,7 @@ namespace PresetConverter
             // NKS.PrintRegistryLibraryInfo(Console.Out);
             // NKS.PrintSettingsLibraryInfo(Console.Out);
 
+            NKS.NksReadLibrariesInfo();
             NKS.TraverseDirectory(file, outputDirectoryPath);
         }
 

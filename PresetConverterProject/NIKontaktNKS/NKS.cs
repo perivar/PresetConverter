@@ -22,6 +22,29 @@ namespace PresetConverterProject.NIKontaktNKS
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
         public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA; // like tga, txt, xml, png, cache       
 
+        public static void NksReadLibrariesInfo()
+        {
+            // read in all libraries
+            var regList = NksGetRegistryLibraries();
+            if (regList != null)
+            {
+                foreach (var regEntry in regList)
+                {
+                    // ignore if duplicates are silently eliminated
+                    NKSLibraries.Libraries[regEntry.Id] = regEntry;
+                }
+            }
+            var settingsList = NksGetSettingsLibraries();
+            if (settingsList != null)
+            {
+                foreach (var settingsEntry in settingsList)
+                {
+                    // ignore if duplicates are silently eliminated
+                    NKSLibraries.Libraries[settingsEntry.Id] = settingsEntry;
+                }
+            }
+        }
+
         #region Read Library Descriptors from Settings.cfg
         public static void PrintSettingsLibraryInfo(TextWriter writer)
         {
@@ -81,17 +104,20 @@ namespace PresetConverterProject.NIKontaktNKS
                                         libDesc.Name = value.ToUpper();
                                         break;
                                     case "SNPID":
-                                        try
+                                        uint id = 0;
+                                        UInt32.TryParse(value, out id);
+
+                                        if (id != 0)
                                         {
-                                            uint id = UInt32.Parse(value);
                                             libDesc.Id = id;
+
                                         }
-                                        catch (System.Exception)
+                                        else
                                         {
                                             try
                                             {
                                                 // is it hex?
-                                                uint id = Convert.ToUInt32(value, 16);
+                                                id = Convert.ToUInt32(value, 16);
                                                 libDesc.Id = id;
                                             }
                                             catch (System.Exception)
@@ -349,12 +375,6 @@ namespace PresetConverterProject.NIKontaktNKS
             rootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
 
             int r = NksOpen(fileName, nks);
-
-            // read in all libraries
-            var regList = NksGetRegistryLibraries();
-            if (regList != null) NKSLibraries.Libraries.AddRange(regList);
-            var settingsList = NksGetSettingsLibraries();
-            if (settingsList != null) NKSLibraries.Libraries.AddRange(settingsList);
 
             bool isSuccessfull = !TraverseDirectory(nks, rootEntry, prefix);
         }
@@ -697,7 +717,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 if (setKey == null)
                 {
-                    NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Id == header.SetId).FirstOrDefault();
+                    NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == header.SetId).FirstOrDefault().Value;
 
                     if (lib == null)
                         throw new KeyNotFoundException("lib could not be found");
@@ -887,7 +907,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static void IncrementCounter(byte[] num)
+        public static void IncrementCounter(byte[] num)
         {
             for (int n = num.Length - 1; n > 0; n--)
             {
