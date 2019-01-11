@@ -707,7 +707,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static int ExtractEncryptedFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
+        public static int ExtractEncryptedFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
         {
             int bufferLength = 16384;
             int toRead;

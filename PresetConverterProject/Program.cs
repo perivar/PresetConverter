@@ -52,7 +52,7 @@ namespace PresetConverter
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" };
                     var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
                     .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
 
@@ -87,9 +87,10 @@ namespace PresetConverter
                             case ".ffp":
                                 HandleFabfilterPresetFile(file, outputDirectoryPath);
                                 break;
-                            case ".nks":
                             case ".nkx":
+                            case ".nks":
                             case ".nkr":
+                            case ".nki":
                                 HandleNIKontaktFile(file, outputDirectoryPath);
                                 break;
                         }
@@ -920,11 +921,58 @@ namespace PresetConverter
 
         private static void HandleNIKontaktFile(string file, string outputDirectoryPath)
         {
-            // NKS.PrintRegistryLibraryInfo(Console.Out);
-            // NKS.PrintSettingsLibraryInfo(Console.Out);
+            string extension = new FileInfo(file).Extension.ToLowerInvariant();
+            if (extension == ".nki")
+            {
+                if (file.Contains("Soft R&B.nki"))
+                {
+                    NKS.NksReadLibrariesInfo();
 
-            NKS.NksReadLibrariesInfo();
-            NKS.TraverseDirectory(file, outputDirectoryPath);
+                    using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
+                    {
+                        UInt32 fileSize = bf.ReadUInt32();
+
+                        // neo-soul keys - Retro Soul.nki has binary content at 936 and SNPID at 354
+                        // neo-soul keys - Soft R&B.nki has binary content at 932 and SNPID at 354
+                        // 01. Full Orchestra Sustains.nki has binary content at 1200
+                        bf.Seek(354, SeekOrigin.Begin);
+                        string snpid = bf.ReadStringNull(Encoding.Unicode);
+
+                        bf.Seek(932, SeekOrigin.Begin);
+                        UInt32 chunkSize = bf.ReadUInt32();
+
+                        // read bytes
+                        // var bytes = bf.ReadBytes((int)chunkSize);
+
+                        string outputFileName = Path.GetFileNameWithoutExtension(file);
+                        string outputFilePath = Path.Combine(outputDirectoryPath, "TEST", outputFileName + ".bin");
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "TEST"));
+
+                        var nks = new Nks();
+                        nks.BinaryFile = bf;
+                        nks.SetKeys = new Dictionary<UInt32, NksSetKey>();
+
+                        NksEncryptedFileHeader header = new NksEncryptedFileHeader();
+                        header.SetId = uint.Parse(snpid);
+                        header.KeyIndex = 0x100;
+                        header.Size = chunkSize;
+
+                        BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
+                        NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
+
+                        // epic horns: d8c
+                    }
+                }
+            }
+            else
+            {
+                // NKS.PrintRegistryLibraryInfo(Console.Out);
+                // NKS.PrintSettingsLibraryInfo(Console.Out);
+
+                // NKS.NksReadLibrariesInfo();
+                // NKS.TraverseDirectory(file, outputDirectoryPath);
+
+            }
         }
 
         private static void CreateDirectoryIfNotExist(string filePath)
