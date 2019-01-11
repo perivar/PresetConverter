@@ -658,18 +658,35 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else if (magic == NKS_MAGIC_CONTENT_FILE)
             {
-                r = NksReadContentFileHeader(nks.BinaryFile, fileHeader);
+                r = NksReadContentFileHeader(nks.BinaryFile, encHeader);
                 if (r != 0)
                     return r;
 
-                switch (fileHeader.Version)
+                if (encHeader.SetId != 0)
                 {
-                    case 0x0100:
-                    case 0x0110:
-                        return ExtractFileEntryToBf(nks, fileHeader, outbinaryFile);
+                    // likely encoded content
+                    switch (encHeader.Version)
+                    {
+                        case 0x0100:
+                        case 0x0110:
+                            return ExtractEncryptedFileEntryToBf(nks, encHeader, outbinaryFile);
 
-                    default:
-                        throw new NotSupportedException("File header version not supported " + fileHeader.Version);
+                        default:
+                            throw new NotSupportedException("File header version not supported " + fileHeader.Version);
+                    }
+                }
+                else
+                {
+                    // non encoded content
+                    switch (encHeader.Version)
+                    {
+                        case 0x0100:
+                        case 0x0110:
+                            return ExtractFileEntryToBf(nks, encHeader, outbinaryFile);
+
+                        default:
+                            throw new NotSupportedException("Encrypted header version not supported " + encHeader.Version);
+                    }
                 }
             }
             else
@@ -768,6 +785,25 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         private static int ExtractFileEntryToBf(Nks nks, NksFileHeader header, BinaryFile outBinaryFile)
+        {
+            byte[] buffer = new byte[16384];
+            int toRead;
+            int size = (int)header.Size;
+
+            while (size > 0)
+            {
+                toRead = Math.Min((int)buffer.Length, size);
+                var readBytes = nks.BinaryFile.ReadBytes(toRead);
+
+                outBinaryFile.Write(readBytes);
+
+                size -= toRead;
+            }
+
+            return 0;
+        }
+
+        private static int ExtractFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
             int toRead;
@@ -1054,7 +1090,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        private static int NksReadContentFileHeader(BinaryFile bf, NksFileHeader ret)
+        private static int NksReadContentFileHeader(BinaryFile bf, NksEncryptedFileHeader ret)
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
@@ -1063,8 +1099,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            if ((ret.Unknown1 = bf.ReadBytes(8)).Length != 8)
-                throw new IOException("Failed reading from stream");
+            ret.SetId = bf.ReadUInt32(); // read_u32_le
+
+            ret.KeyIndex = bf.ReadUInt32(); // read_u32_le
 
             ret.Size = bf.ReadUInt32(); // read_u32_le
 
