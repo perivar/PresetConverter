@@ -719,14 +719,21 @@ namespace PresetConverterProject.NIKontaktNKS
 
             if (header.KeyIndex < 0xff)
             {
-                if (NksGet0100Key((int)header.KeyIndex, key, out keyLength) != 0)
+                if (NksGet0100Key((int)header.KeyIndex, out key, out keyLength) != 0)
+                {
                     throw new KeyNotFoundException("Could not find key");
+                }
 
-                if (keyLength != 0x10) throw new InvalidDataException("Key is not 16 bytes but " + keyLength);
+                if (keyLength != 0x10)
+                {
+                    throw new InvalidDataException("Key is not 16 bytes but " + keyLength);
+                }
 
                 keyPos = nks.BinaryFile.Seek(0, SeekOrigin.Current);
                 if (keyPos < 0)
+                {
                     throw new IOException("Failed reading from stream");
+                }
             }
             else if (header.KeyIndex == 0x100)
             {
@@ -737,7 +744,9 @@ namespace PresetConverterProject.NIKontaktNKS
                     NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == header.SetId).FirstOrDefault().Value;
 
                     if (lib == null)
+                    {
                         throw new KeyNotFoundException("lib could not be found");
+                    }
 
                     setKey = new NksSetKey();
                     setKey.SetId = header.SetId;
@@ -828,11 +837,10 @@ namespace PresetConverterProject.NIKontaktNKS
         private static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
         private static byte[] Nks0110BaseKey;
 
-        private static int NksGet0100Key(int keyIndex, byte[] key, out int length)
+        private static int NksGet0100Key(int keyIndex, out byte[] key, out int length)
         {
-            byte[] retKey;
+            key = null;
             length = 0;
-            int retLength = 0;
 
             if (keyIndex >= 0x20)
                 throw new ArgumentException("Could not find key");
@@ -840,13 +848,12 @@ namespace PresetConverterProject.NIKontaktNKS
             if (Nks0100Keys[0][0] == 0)
                 Generate0100Keys();
 
-            retKey = Nks0100Keys[keyIndex];
-            retLength = retKey.Length;
+            var retKey = Nks0100Keys[keyIndex];
 
-            if (key != null)
+            if (retKey != null)
             {
                 key = retKey;
-                length = retLength;
+                length = retKey.Length;
             }
 
             return 0;
@@ -923,20 +930,18 @@ namespace PresetConverterProject.NIKontaktNKS
         private static byte RandMs(ref int seed)
         {
             seed = seed * 0x343fd + 0x269ec3;
-            return (byte)((seed >> 16) & 0xff);
+            return (byte)((seed >> 0x10) & 0x7fff);
         }
 
         private static void Generate0110BaseKey()
         {
-            int seed;
-
             if (Nks0110BaseKey != null)
                 return;
 
             Nks0110BaseKey = new byte[0x10000];
 
             // Fill array with pseudo random bytes
-            seed = 0x608da0a2;
+            int seed = 0x608da0a2;
             for (int n = 0; n < 0x10000; n++)
             {
                 Nks0110BaseKey[n] = RandMs(ref seed);

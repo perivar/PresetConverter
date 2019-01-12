@@ -924,7 +924,7 @@ namespace PresetConverter
             string extension = new FileInfo(file).Extension.ToLowerInvariant();
             if (extension == ".nki")
             {
-                if (file.Contains("Soft R&B.nki"))
+                if (true) //file.Contains("Soft R&B.nki"))
                 {
                     NKS.NksReadLibrariesInfo();
 
@@ -935,14 +935,56 @@ namespace PresetConverter
                         // neo-soul keys - Retro Soul.nki has binary content at 936 and SNPID at 354
                         // neo-soul keys - Soft R&B.nki has binary content at 932 and SNPID at 354
                         // 01. Full Orchestra Sustains.nki has binary content at 1200
-                        bf.Seek(354, SeekOrigin.Begin);
-                        string snpid = bf.ReadStringNull(Encoding.Unicode);
+                        bf.Seek(350, SeekOrigin.Begin);
+                        int snpidCount = bf.ReadInt32();
+                        string snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
 
-                        bf.Seek(932, SeekOrigin.Begin);
+                        if (snpidCount == 256)
+                        {
+                            // don't understand this format
+                            return;
+                        }
+                        else
+                        {
+                            bf.ReadBytes(25);
+                        }
+                        Console.WriteLine("snpid: " + snpid);
+
+                        int versionCount = bf.ReadInt32();
+                        string version = bf.ReadString(versionCount * 2, Encoding.Unicode);
+
+                        bf.ReadBytes(122);
+                        int nameCount = bf.ReadInt32();
+                        string name = bf.ReadString(nameCount * 2, Encoding.Unicode);
+
+                        bf.ReadBytes(52);
+
+                        int s1Count = bf.ReadInt32();
+                        string s1 = bf.ReadString(s1Count * 2, Encoding.Unicode);
+                        int s1Rest = bf.ReadInt32();
+
+                        int s2Count = bf.ReadInt32();
+                        if (s2Count != 0)
+                        {
+                            string s2 = bf.ReadString(s2Count * 2, Encoding.Unicode);
+                            int s2Rest = bf.ReadInt32();
+                        }
+
+                        int number = bf.ReadInt32();
+
+                        for (int i = 0; i < number * 2; i++)
+                        {
+                            int sCount = bf.ReadInt32();
+                            string s = bf.ReadString(sCount * 2, Encoding.Unicode);
+                            Console.WriteLine(s);
+                        }
+
+                        bf.ReadBytes(249);
+
+                        // bf.Seek(932, SeekOrigin.Begin);
                         UInt32 chunkSize = bf.ReadUInt32();
-
-                        // read bytes
-                        // var bytes = bf.ReadBytes((int)chunkSize);
+                        Console.WriteLine(chunkSize);
+                        return;
 
                         string outputFileName = Path.GetFileNameWithoutExtension(file);
                         string outputFilePath = Path.Combine(outputDirectoryPath, "TEST", outputFileName + ".bin");
@@ -959,8 +1001,6 @@ namespace PresetConverter
 
                         BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
                         NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
-
-                        // epic horns: d8c
                     }
                 }
             }
