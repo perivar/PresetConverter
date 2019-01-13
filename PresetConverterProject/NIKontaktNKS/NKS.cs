@@ -792,7 +792,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
-        private static int ExtractFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
+        public static int ExtractFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
             int toRead;
@@ -1050,7 +1050,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            ret.SetId = bf.ReadUInt32().ToString(); // read_u32_le
+            uint setid = bf.ReadUInt32(); // read_u32_le
+            if (setid > 0)
+            {
+                ret.SetId = setid.ToString();
+            }
+            else
+            {
+                ret.SetId = null;
+            }
 
             ret.KeyIndex = bf.ReadUInt32(); // read_u32_le
 
@@ -1084,7 +1092,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            ret.SetId = bf.ReadUInt32().ToString(); // read_u32_le
+            uint setid = bf.ReadUInt32(); // read_u32_le
+            if (setid > 0)
+            {
+                ret.SetId = setid.ToString();
+            }
+            else
+            {
+                ret.SetId = null;
+            }
 
             ret.KeyIndex = bf.ReadUInt32(); // read_u32_le
 

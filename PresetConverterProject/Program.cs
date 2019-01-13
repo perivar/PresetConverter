@@ -935,17 +935,18 @@ namespace PresetConverter
                     int snpidCount = bf.ReadInt32();
                     string snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
 
-                    if (snpidCount == 256)
+                    // snpid cannot have more than 4 characters (?!)
+                    if (snpidCount > 4)
                     {
-                        // don't understand this format, return
-                        Console.WriteLine("Error parsing NKI! SNPID: " + snpid);
-                        return;
+                        snpidCount = 0;
+                        snpid = "";
+                        bf.Seek(355, SeekOrigin.Begin);
                     }
                     else
                     {
                         bf.ReadBytes(25);
                     }
-                    Console.WriteLine("SNPID: " + snpid);
+                    Console.WriteLine("snpid: " + snpid);
 
                     int versionCount = bf.ReadInt32();
                     string version = bf.ReadString(versionCount * 2, Encoding.Unicode);
@@ -969,11 +970,12 @@ namespace PresetConverter
                     int libraryNameRest = bf.ReadInt32();
                     Console.WriteLine("libraryName: " + libraryName);
 
-                    int s2Count = bf.ReadInt32();
-                    if (s2Count != 0)
+                    int typeCount = bf.ReadInt32();
+                    if (typeCount != 0)
                     {
-                        string s2 = bf.ReadString(s2Count * 2, Encoding.Unicode);
-                        int s2Rest = bf.ReadInt32();
+                        string type = bf.ReadString(typeCount * 2, Encoding.Unicode);
+                        int typeRest = bf.ReadInt32();
+                        Console.WriteLine("type: " + type);
                     }
 
                     int number = bf.ReadInt32();
@@ -1005,7 +1007,15 @@ namespace PresetConverter
                     header.Size = chunkSize;
 
                     BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
-                    NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
+
+                    if (snpid == "")
+                    {
+                        NKS.ExtractFileEntryToBf(nks, header, outBinaryFile);
+                    }
+                    else
+                    {
+                        NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
+                    }
                 }
             }
             else
