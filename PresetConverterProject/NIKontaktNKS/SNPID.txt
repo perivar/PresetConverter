@@ -1,0 +1,68 @@
+• SNPID numbers should only be three 4-bit characters (ie use only 1-0 or a-f). 
+As some people have discovered, larger entries can work, but only because KONTAKT IGNORES EVERYTHING AFTER THE FIRST THREE CHARACTERS.
+So if you've assigned Spitfire All Strings a SNPID of d553 and Spitfire All Horns a SNPID of d554, you will have a conflict, 
+since Kontakt sees them as having the same number.
+
+
+[Berlin Orchestra Inspire]
+Name=sz:Berlin Orchestra Inspire
+SNPID=sz:P04
+84 8E 00 00 = 36484
+
+[Berlin Orchestra Inspire 2]
+Name=sz:Berlin Orchestra Inspire 2
+SNPID=sz:Q23
+DB 93 00 00 = 37851
+
+[Metropolis Ark 3]
+Name=sz:Metropolis Ark 3
+SNPID=sz:P74
+80 8F 00 00 = 36736
+
+
+[Metropolis Ark 2]
+Name=sz:Metropolis Ark 2
+SNPID=sz:051
+33 00 00 00 = 51
+
+[Metropolis Ark 1]
+Name=sz:Metropolis Ark 1
+SNPID=sz:672
+A0 02 00 00 = 672
+
+[Albion]
+Name=sz:Albion
+SNPID=sz:935
+A7 03 00 00 = 935
+
+[Action Strings]
+Name=sz:Action Strings
+SNPID=sz:454
+C6 01 00 00 = 454
+
+
+
+<Name>Cinebrass Core</Name>
+<RegKey>Cinebrass Core</RegKey>
+<Type>Content</Type>
+<PoweredBy>Kontakt</PoweredBy>
+<Icon>kontakt</Icon>
+<Visibility>1</Visibility>
+<AuthSystem>RAS2</AuthSystem>
+<SNPID>c80</SNPID>
+
+03 Trumpet Solo True Legato NKI file:
+37 00 34 00 37 00: 7 4 7
+
+[Cinebrass]
+Name=sz:Cinebrass
+SNPID=sz:747
+
+
+02 Trumpet Solo True Legato PRO NKI file:
+37 00 34 00 38 00 : 7 4 8 
+
+[Cinebrass pro]
+Name=sz:Cinebrass pro
+SNPID=sz:c81
+
