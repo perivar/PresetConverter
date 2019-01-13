@@ -104,27 +104,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                         libDesc.Name = value.ToUpper();
                                         break;
                                     case "SNPID":
-                                        uint id = 0;
-                                        UInt32.TryParse(value, out id);
-
-                                        if (id != 0)
-                                        {
-                                            libDesc.Id = id;
-
-                                        }
-                                        else
-                                        {
-                                            try
-                                            {
-                                                // is it hex?
-                                                id = Convert.ToUInt32(value, 16);
-                                                libDesc.Id = id;
-                                            }
-                                            catch (System.Exception)
-                                            {
-                                                // ignore invalid (?) ids
-                                            }
-                                        }
+                                        libDesc.Id = value.ToUpper();
                                         break;
                                     case "Company":
                                         break;
@@ -153,7 +133,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                         // store previously finished libDesc if found new section
                         if (libDesc != null
-                        && libDesc.Id != 0
+                        && libDesc.Id != null
                         && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0)
                         {
                             if (settingsList == null) settingsList = new List<NksLibraryDesc>();
@@ -248,7 +228,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (key != null)
                     {
                         libDesc = new NksLibraryDesc();
-                        libDesc.Id = id;
+                        libDesc.Id = id.ToString();
                         libDesc.Name = name.ToUpper();
 
                         var jdx = key.GetValue("JDX");
@@ -361,7 +341,7 @@ namespace PresetConverterProject.NIKontaktNKS
             nks.RootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
             nks.RootEntry.Offset = 0;
             nks.BinaryFile = bf;
-            nks.SetKeys = new Dictionary<UInt32, NksSetKey>();
+            nks.SetKeys = new Dictionary<String, NksSetKey>();
 
             return 0;
         }
@@ -662,7 +642,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (r != 0)
                     return r;
 
-                if (encHeader.SetId != 0)
+                if (encHeader.SetId != null)
                 {
                     // likely encoded content
                     switch (encHeader.Version)
@@ -1070,7 +1050,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            ret.SetId = bf.ReadUInt32(); // read_u32_le
+            ret.SetId = bf.ReadUInt32().ToString(); // read_u32_le
 
             ret.KeyIndex = bf.ReadUInt32(); // read_u32_le
 
@@ -1104,7 +1084,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            ret.SetId = bf.ReadUInt32(); // read_u32_le
+            ret.SetId = bf.ReadUInt32().ToString(); // read_u32_le
 
             ret.KeyIndex = bf.ReadUInt32(); // read_u32_le
 
@@ -1185,7 +1165,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class NksSetKey
     {
-        public UInt32 SetId { get; set; }
+        public String SetId { get; set; }
         public byte[] Data = new byte[0x10000];
     }
 
@@ -1193,7 +1173,7 @@ namespace PresetConverterProject.NIKontaktNKS
     {
         public BinaryFile BinaryFile { get; set; }
         public NksEntry RootEntry = new NksEntry();
-        public Dictionary<UInt32, NksSetKey> SetKeys { get; set; }
+        public Dictionary<String, NksSetKey> SetKeys { get; set; }
     }
 
 
@@ -1241,7 +1221,7 @@ namespace PresetConverterProject.NIKontaktNKS
     public class NksEncryptedFileHeader
     {
         public UInt16 Version { get; set; }
-        public UInt32 SetId { get; set; }
+        public String SetId { get; set; }
         public UInt32 KeyIndex { get; set; }
         public byte[] Unknown1 = new byte[5];
         public UInt32 Size { get; set; }
