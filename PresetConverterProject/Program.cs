@@ -946,36 +946,36 @@ namespace PresetConverter
                     {
                         bf.ReadBytes(25);
                     }
-                    Console.WriteLine("snpid: " + snpid);
+                    Log.Debug("snpid: " + snpid);
 
                     int versionCount = bf.ReadInt32();
                     string version = bf.ReadString(versionCount * 2, Encoding.Unicode);
-                    Console.WriteLine("version: " + version);
+                    Log.Debug("version: " + version);
 
                     bf.ReadBytes(122);
                     int presetNameCount = bf.ReadInt32();
                     string presetName = bf.ReadString(presetNameCount * 2, Encoding.Unicode);
                     int presetNameRest = bf.ReadInt32();
-                    Console.WriteLine("presetName: " + presetName);
+                    Log.Debug("presetName: " + presetName);
 
                     int companyNameCount = bf.ReadInt32();
                     string companyName = bf.ReadString(companyNameCount * 2, Encoding.Unicode);
                     int companyNameRest = bf.ReadInt32();
-                    Console.WriteLine("companyName: " + companyName);
+                    Log.Debug("companyName: " + companyName);
 
                     bf.ReadBytes(40);
 
                     int libraryNameCount = bf.ReadInt32();
                     string libraryName = bf.ReadString(libraryNameCount * 2, Encoding.Unicode);
                     int libraryNameRest = bf.ReadInt32();
-                    Console.WriteLine("libraryName: " + libraryName);
+                    Log.Debug("libraryName: " + libraryName);
 
                     int typeCount = bf.ReadInt32();
                     if (typeCount != 0)
                     {
                         string type = bf.ReadString(typeCount * 2, Encoding.Unicode);
                         int typeRest = bf.ReadInt32();
-                        Console.WriteLine("type: " + type);
+                        Log.Debug("type: " + type);
                     }
 
                     int number = bf.ReadInt32();
@@ -984,13 +984,13 @@ namespace PresetConverter
                     {
                         int sCount = bf.ReadInt32();
                         string s = bf.ReadString(sCount * 2, Encoding.Unicode);
-                        Console.WriteLine(s);
+                        Log.Debug(s);
                     }
 
                     bf.ReadBytes(249);
 
                     UInt32 chunkSize = bf.ReadUInt32();
-                    Console.WriteLine("chunkSize: " + chunkSize);
+                    Log.Debug("chunkSize: " + chunkSize);
 
                     string outputFileName = Path.GetFileNameWithoutExtension(file);
                     string outputFilePath = Path.Combine(outputDirectoryPath, "NKI_CONTENT", outputFileName + ".bin");
@@ -1022,8 +1022,14 @@ namespace PresetConverter
             {
                 // NKS.PrintRegistryLibraryInfo(Console.Out);
                 // NKS.PrintSettingsLibraryInfo(Console.Out);
-
-                NKS.TraverseDirectory(file, outputDirectoryPath);
+                try
+                {
+                    NKS.TraverseDirectory(file, outputDirectoryPath);
+                }
+                catch (System.Exception e)
+                {
+                    Log.Error("Error processing {0} ({1})...", file, e);
+                }
             }
         }
 

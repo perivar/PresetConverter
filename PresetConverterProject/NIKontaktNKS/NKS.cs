@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-using Microsoft.Win32;
-
-using CommonUtils;
 using System.Text.RegularExpressions;
 using System.Text;
+
+using Microsoft.Win32; // for registry access
+
+using CommonUtils;
+using Serilog;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -408,7 +409,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             foreach (NksEntry entry in list)
             {
-                Console.WriteLine("Traversing file: {0, -30}{1}", prefix, entry);
+                Log.Information(string.Format("Extracting {0, -30}{1}", prefix, entry));
 
                 if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
