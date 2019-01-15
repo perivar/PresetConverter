@@ -43,6 +43,42 @@
                 "focus": true
             },
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish release win-x64",
+            "command": "dotnet",
+            "args": [
+                "publish",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "win-x64"
+            ],
+            "type": "shell",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish release linux-x64",
+            "command": "dotnet",
+            "args": [
+                "publish",
+                "--configuration",
+                "Release",
+                "--runtime",
+                "linux-x64"
+            ],
+            "type": "shell",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": "$msCompile"
         }
     ]
 }

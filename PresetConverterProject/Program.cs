@@ -51,7 +51,9 @@ namespace PresetConverter
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
 
-                    var files = HandleMultipleInputPaths(optionInputDirectory);
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" };
+                    var files = HandleMultipleInputPaths(optionInputDirectory, extensions);
+
                     foreach (var file in files)
                     {
                         Log.Information("Processing {0} ...", file);
@@ -110,11 +112,9 @@ namespace PresetConverter
             }
         }
 
-        private static IEnumerable<string> HandleMultipleInputPaths(CommandOption optionInputDirectory)
+        private static IEnumerable<string> HandleMultipleInputPaths(CommandOption optionInputDirectory, List<string> extensions)
         {
             List<string> files = new List<string>();
-
-            var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" };
 
             foreach (var inputDirectoryOrFilePath in optionInputDirectory.Values)
             {
