@@ -28,16 +28,15 @@ namespace PresetConverter
             app.Name = "PresetConverter";
             app.Description = "Convert different DAW presets to other formats (both fxp, vstpresets and txt)";
             app.HelpOption();
-            var optionInputDirectory = app.Option("-i|--input <path>", "The Input directory", CommandOptionType.SingleValue);
+            var optionInputDirectory = app.Option("-i|--input <path>", "The Input directory or file", CommandOptionType.MultipleValue);
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
-            var optionInputExtra = app.Option("-e|--extra <path>", "Extra information as used by the different converters", CommandOptionType.SingleValue);
+            var optionInputExtra = app.Option("-e|--extra <path>", "Extra information as used by the different converters. (E.g. for wav this is a path to an image)", CommandOptionType.SingleValue);
 
             app.OnExecute(() =>
             {
                 if (optionInputDirectory.HasValue()
                 && optionOutputDirectory.HasValue())
                 {
-                    string inputDirectoryPath = optionInputDirectory.Value();
                     string outputDirectoryPath = optionOutputDirectory.Value();
                     string inputExtra = optionInputExtra.Value();
 
@@ -52,10 +51,7 @@ namespace PresetConverter
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" };
-                    var files = Directory.GetFiles(inputDirectoryPath, "*.*", SearchOption.AllDirectories)
-                    .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
-
+                    var files = HandleMultipleInputPaths(optionInputDirectory);
                     foreach (var file in files)
                     {
                         Log.Information("Processing {0} ...", file);
@@ -112,6 +108,49 @@ namespace PresetConverter
             {
                 Log.Error("{0}", e.Message);
             }
+        }
+
+        private static IEnumerable<string> HandleMultipleInputPaths(CommandOption optionInputDirectory)
+        {
+            List<string> files = new List<string>();
+
+            var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" };
+
+            foreach (var inputDirectoryOrFilePath in optionInputDirectory.Values)
+            {
+                // check if input is a filepath or a directory
+                var isDirectory = IOUtils.IsDirectory(inputDirectoryOrFilePath);
+                if (isDirectory.HasValue)
+                {
+                    if (isDirectory.Value)
+                    {
+                        // directory
+                        var directoryFilePaths = Directory.GetFiles(inputDirectoryOrFilePath, "*.*", SearchOption.AllDirectories)
+                        .Where(s => extensions.Contains(Path.GetExtension(s).ToLowerInvariant()));
+
+                        // append to main file list
+                        files.AddRange(directoryFilePaths);
+                    }
+                    else
+                    {
+                        // file
+                        if (extensions.Contains(Path.GetExtension(inputDirectoryOrFilePath).ToLowerInvariant()))
+                        {
+                            files.Add(inputDirectoryOrFilePath);
+                        }
+                        else
+                        {
+                            Log.Error("Not a valid file extension {0} ...", inputDirectoryOrFilePath);
+                        }
+                    }
+                }
+                else
+                {
+                    Log.Error("Not a valid file or directory {0} ...", inputDirectoryOrFilePath);
+                }
+            }
+
+            return files;
         }
 
         private static void HandleAbletonLiveProject(string file, string outputDirectoryPath)

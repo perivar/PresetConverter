@@ -195,6 +195,27 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
+            "name": ".NET Core Launch (LAPTOP) NI Kontakt Multi Files",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
+            "args": [
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings_info.nkx",
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Orchestral Brass Classic_info.nkx",
+                "-o",
+                "C:\\Users\\perner\\My Projects\\Temp"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": ".NET Core Launch (DAW) Ableton",
             "type": "coreclr",
             "request": "launch",
