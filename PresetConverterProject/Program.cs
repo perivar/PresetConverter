@@ -12,6 +12,7 @@ using CommonUtils;
 using CommonUtils.Audio;
 using CommonUtils.Audio.RIFF;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Configuration;
 using PresetConverterProject.NIKontaktNKS;
 using SDIR2WavConverter;
 using Serilog;
@@ -23,6 +24,10 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
+            IConfiguration config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .Build();
+
             // Setup command line parser
             var app = new CommandLineApplication();
             app.Name = "PresetConverter";
@@ -89,7 +94,7 @@ namespace PresetConverter
                             case ".nks":
                             case ".nkr":
                             case ".nki":
-                                HandleNIKontaktFile(file, outputDirectoryPath);
+                                HandleNIKontaktFile(file, outputDirectoryPath, config);
                                 break;
                         }
                     }
@@ -958,11 +963,11 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleNIKontaktFile(string file, string outputDirectoryPath)
+        private static void HandleNIKontaktFile(string file, string outputDirectoryPath, IConfiguration config)
         {
             string extension = new FileInfo(file).Extension.ToLowerInvariant();
 
-            NKS.NksReadLibrariesInfo();
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
 
             if (extension == ".nki")
             {

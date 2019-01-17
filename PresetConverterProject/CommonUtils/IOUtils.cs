@@ -5,6 +5,7 @@ using System.Linq;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace CommonUtils
 {
@@ -456,6 +457,17 @@ namespace CommonUtils
         }
 
         #endregion
+
+        /// <summary>
+        /// Return the path where the executable is running from
+        /// </summary>
+        /// <see cref="http://codebuckets.com/2017/10/19/getting-the-root-directory-path-for-net-core-applications/"></see>
+        /// <returns>the path where the executable is running from</returns>
+        public static string GetApplicationExecutionPath()
+        {
+            // get the application execution path
+            return Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+        }
 
     }
 }

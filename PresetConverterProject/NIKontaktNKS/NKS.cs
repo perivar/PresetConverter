@@ -16,14 +16,13 @@ namespace PresetConverterProject.NIKontaktNKS
     public class NKS
     {
         public const string REG_PATH = "Software\\Native Instruments";
-        public const string SETTINGS_PATH = "Settings.cfg";
 
         public const UInt32 NKS_MAGIC_DIRECTORY = 0x5e70ac54;
         public const UInt32 NKS_MAGIC_ENCRYPTED_FILE = 0x16ccf80a;
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
         public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA; // like tga, txt, xml, png, cache       
 
-        public static void NksReadLibrariesInfo()
+        public static void NksReadLibrariesInfo(string nksSettingsPath)
         {
             // read in all libraries
             var regList = NksGetRegistryLibraries();
@@ -35,7 +34,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     NKSLibraries.Libraries[regEntry.Id] = regEntry;
                 }
             }
-            var settingsList = NksGetSettingsLibraries();
+            var settingsList = NksGetSettingsLibraries(nksSettingsPath);
             if (settingsList != null)
             {
                 foreach (var settingsEntry in settingsList)
@@ -49,7 +48,7 @@ namespace PresetConverterProject.NIKontaktNKS
         #region Read Library Descriptors from Settings.cfg
         public static void PrintSettingsLibraryInfo(TextWriter writer)
         {
-            var list = NKS.NksGetSettingsLibraries();
+            var list = NKS.NksGetSettingsLibraries("Settings.cfg");
 
             foreach (NksLibraryDesc entry in list)
             {
@@ -62,7 +61,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc> NksGetSettingsLibraries()
+        private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath)
         {
             Regex sectionRegex = new Regex(@"\[([\w\d\s]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
@@ -77,7 +76,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             List<NksLibraryDesc> settingsList = null;
 
-            using (var reader = new StreamReader(SETTINGS_PATH))
+            using (var reader = new StreamReader(nksSettingsPath))
             {
                 string line = null;
                 string sectionName = null;
