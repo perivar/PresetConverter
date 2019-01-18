@@ -23,18 +23,21 @@ namespace PresetConverterTests
         [Fact]
         public void Test1()
         {
-            var ctr = new byte[16];
-            for (int i = 0; i < 16; i++)
-            {
-                Random rnd = new Random();
-                ctr[i] = (byte)rnd.Next(0, 0xff);
-                output.WriteLine("{0}", ctr[i]);
-            }
-            ctr[15] = 0xff;
-            ctr[14] = 0xff;
-            ctr[13] = 0xff;
+            var fromBytes = new byte[16];
+            fromBytes[15] = 0xff;
+            fromBytes[14] = 0xff;
+            fromBytes[13] = 0xff;
+            fromBytes[12] = 0x44;
 
-            NKS.IncrementCounter(ctr);
+            NKS.IncrementCounter(fromBytes);
+
+            var toBytes = new byte[16];
+            toBytes[15] = 0x00;
+            toBytes[14] = 0x00;
+            toBytes[13] = 0x00;
+            toBytes[12] = 0x45;
+
+            Assert.Equal(fromBytes, toBytes, new JaggedByteComparer(0.001));
 
         }
     }
