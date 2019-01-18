@@ -467,6 +467,27 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
+            "name": ".NET Core Launch (DAW) NI Kontakt Multi Files",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
+            "args": [
+                "-i",
+                "H:\\SAMPLES\\NI Kontakt\\Impact Soundworks Django Gypsy Jazz Guitar\\Django.nkr",
+                "-i",
+                "H:\\SAMPLES\\NI Kontakt\\Hephaestus Sounds Harp The Magic Of Agatha V1.01\\Pack\\TMOA.nkr",
+                "-o",
+                "D:\\Development Projects\\Own Projects\\Temp"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",

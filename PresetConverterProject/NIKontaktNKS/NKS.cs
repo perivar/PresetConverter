@@ -746,7 +746,15 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else
             {
-                throw new KeyNotFoundException("Could not find key");
+                if (header.SetId == null)
+                {
+                    // this is a unencoded file
+                    return ExtractFileEntryToBf(nks, header, outBinaryFile);
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Could not find key");
+                }
             }
 
             while (size > 0)
@@ -773,6 +781,13 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
+        /// <summary>
+        /// Extract non encoded file to output file
+        /// </summary>
+        /// <param name="nks">nks</param>
+        /// <param name="header">unencoded header information</param>
+        /// <param name="outBinaryFile">output file</param>
+        /// <returns>0 if succesfull</returns>
         private static int ExtractFileEntryToBf(Nks nks, NksFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
@@ -792,6 +807,13 @@ namespace PresetConverterProject.NIKontaktNKS
             return 0;
         }
 
+        /// <summary>
+        /// Ignore SetId and extract as if the file is not encrypted to output file
+        /// </summary>
+        /// <param name="nks">nks</param>
+        /// <param name="header">encrypted header information</param>
+        /// <param name="outBinaryFile">output file</param>
+        /// <returns>0 if succesfull</returns>
         public static int ExtractFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
