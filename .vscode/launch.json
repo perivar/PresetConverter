@@ -475,6 +475,8 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
+                "H:\\SAMPLES\\NI Kontakt\\Orchestral Tools METROPOLIS ARK 3\\Samples\\Horn Ensemble_2.nkx",
+                "-i",
                 "H:\\SAMPLES\\NI Kontakt\\Impact Soundworks Django Gypsy Jazz Guitar\\Django.nkr",
                 "-i",
                 "H:\\SAMPLES\\NI Kontakt\\Hephaestus Sounds Harp The Magic Of Agatha V1.01\\Pack\\TMOA.nkr",

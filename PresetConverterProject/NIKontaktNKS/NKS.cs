@@ -493,6 +493,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         r = NksRead0100NksEntry(nks.BinaryFile, header, entry);
                         break;
 
+                    case 0x0111:
                     case 0x0110:
                         r = NksRead0110NksEntry(nks.BinaryFile, header, entry);
                         break;
@@ -630,6 +631,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     case 0x0100:
                     case 0x0110:
+                    case 0x0111:
                         return ExtractEncryptedFileEntryToBf(nks, encHeader, outbinaryFile);
 
                     default:
@@ -649,6 +651,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         case 0x0100:
                         case 0x0110:
+                        case 0x0111:
                             return ExtractEncryptedFileEntryToBf(nks, encHeader, outbinaryFile);
 
                         default:
@@ -662,6 +665,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         case 0x0100:
                         case 0x0110:
+                        case 0x0111:
                             return ExtractFileEntryToBf(nks, encHeader, outbinaryFile);
 
                         default:
@@ -679,6 +683,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     case 0x0100:
                     case 0x0110:
+                    case 0x0111:
                         return ExtractFileEntryToBf(nks, fileHeader, outbinaryFile);
 
                     default:
@@ -725,7 +730,28 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     if (lib == null)
                     {
-                        throw new KeyNotFoundException("lib could not be found");
+                        // try again
+                        string mappedKey = "";
+                        switch (header.SetId)
+                        {
+                            case "36484": // Berlin Orchestra Inspire
+                                mappedKey = "P04";
+                                break;
+                            case "36736": // Metropolis Ark 3
+                                mappedKey = "P74";
+                                break;
+                            case "37851": // Berlin Orchestra Inspire 2
+                                mappedKey = "Q23";
+                                break;
+                            default:
+                                throw new KeyNotFoundException("lib could not be found");
+                        }
+
+                        lib = NKSLibraries.Libraries.Where(a => a.Key == mappedKey).FirstOrDefault().Value;
+                        if (lib == null)
+                        {
+                            throw new KeyNotFoundException("lib could not be found");
+                        }
                     }
 
                     setKey = new NksSetKey();
@@ -984,6 +1010,7 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 case 0x0100:
                 case 0x0110:
+                case 0x0111:
                     break;
 
                 default:
@@ -1096,6 +1123,7 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 case 0x0100:
                 case 0x0110:
+                case 0x0111:
                     break;
 
                 default:
