@@ -613,7 +613,8 @@ namespace PresetConverter
                     kontakt.Write(kontaktOutputFilePath + ".vstpreset");
 
                     // also save as Kontakt NKI preset file
-                    kontakt.WriteNKI(kontaktOutputFilePath + ".nki");
+                    // this doesn't seem to work properly
+                    // kontakt.WriteNKI(kontaktOutputFilePath + ".nki");
 
                     // and dump the text info as well
                     File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
