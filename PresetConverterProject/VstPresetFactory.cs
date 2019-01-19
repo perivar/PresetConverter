@@ -48,6 +48,9 @@ namespace PresetConverter
                 case VstPreset.VstIDs.NIKontakt5:
                     preset = new NIKontakt5();
                     break;
+                case VstPreset.VstIDs.EastWestPlay:
+                    preset = new EastWestPlay();
+                    break;
                 default:
                     preset = new SteinbergVstPreset();
                     preset.Vst3ID = guid;
@@ -179,6 +182,12 @@ namespace PresetConverter
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
                     break;
+
+                case VstPreset.VstIDs.EastWestPlay:
+                    preset = new EastWestPlay();
+                    preset.Parameters = vstPreset.Parameters;
+                    break;
+
                 default:
                     preset = vstPreset;
                     break;

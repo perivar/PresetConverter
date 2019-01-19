@@ -51,6 +51,7 @@ namespace PresetConverter
         public struct VstIDs
         {
             // Steinberg
+            public const string SteinbergAutoPan = "1CA6E894E4624F73ADEB29CD01DDE9EE";
             public const string SteinbergCompressor = "5B38F28281144FFE80285FF7CCF20483";
             public const string SteinbergDeEsser = "75FD13A528D24880982197D541BC582A";
             public const string SteinbergDistortion = "A990C1062CDE43839ECEF8FE91743DA5";
@@ -85,6 +86,7 @@ namespace PresetConverter
             public const string WavesMaseratiACGStereo = "565354544E41536D6173657261746920";
             public const string WavesMaseratiVX1Stereo = "565354544E56536D6173657261746920";
             public const string WavesMetaFlangerStereo = "565354464C4E536D657461666C616E67";
+            public const string WavesOneKnobFilterStereo = "65354525346536F6E656B6E6F622066";
             public const string WavesPuigChild670Stereo = "56535446434853707569676368696C64";
             public const string WavesPuigTecEQP1AStereo = "56535450314153707569677465632065";
             public const string WavesQ10Stereo = "56535445514153713130207374657265";
@@ -113,6 +115,10 @@ namespace PresetConverter
             public const string FabFilterProQx64 = "5653544650517266616266696C746572";
             public const string FabFilterProQ2 = "55FD08E6C00B44A697DA68F61C6FD576";
             public const string FabFilterProQ2x64 = "5653544651327066616266696C746572";
+
+            // East West
+            public const string EastWestPlay = "ABCDEF019182FAEB2D45572D4577506C";
+            public const string EastWestPlayx64 = "565354706C6179706C61795F7673745F";
         }
 
         private class ListElement
@@ -669,6 +675,7 @@ namespace PresetConverter
             else
             {
                 if (
+                    this.Vst3ID.Equals(VstIDs.SteinbergAutoPan) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
@@ -874,6 +881,7 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMetaFlangerStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesOneKnobFilterStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesPuigChild670Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesPuigTecEQP1AStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesQ10Stereo) ||
@@ -959,6 +967,36 @@ namespace PresetConverter
                         var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
 
                         AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                    }
+
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
+
+                    return;
+                }
+
+                else if (
+                    this.Vst3ID.Equals(VstIDs.EastWestPlay) ||
+                    this.Vst3ID.Equals(VstIDs.EastWestPlayx64)
+                    )
+                {
+                    // rewind 4 bytes (seek to comp data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+
+                    // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
+                    // as in:
+                    // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
+
+                    // read until all bytes have been read
+                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+
+                    // seek to cont start pos
+                    if (this.ContDataChunkSize > 0)
+                    {
+                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+
+                        // read until all bytes have been read
+                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
                     }
 
                     // try to read the info xml 

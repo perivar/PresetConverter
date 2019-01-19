@@ -617,7 +617,7 @@ namespace PresetConverter
                     // kontakt.WriteNKI(kontaktOutputFilePath + ".nki");
 
                     // and dump the text info as well
-                    File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
+                    // File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
                 }
             }
             else
@@ -641,8 +641,11 @@ namespace PresetConverter
                     // Save the preset parameters
                     else
                     {
-                        string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".txt");
-                        File.WriteAllText(outputFilePath, vstPreset.ToString());
+                        string outputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension);
+                        File.WriteAllText(outputFilePath + ".txt", vstPreset.ToString());
+
+                        // and output vstpreset as well
+                        vstPreset.Write(outputFilePath + ".vstpreset");
                     }
                 }
             }
