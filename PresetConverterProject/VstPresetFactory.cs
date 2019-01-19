@@ -186,6 +186,7 @@ namespace PresetConverter
                 case VstPreset.VstIDs.EastWestPlay:
                     preset = new EastWestPlay();
                     preset.Parameters = vstPreset.Parameters;
+                    preset.FXP = vstPreset.FXP;
                     break;
 
                 default:

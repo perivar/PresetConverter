@@ -638,6 +638,19 @@ namespace PresetConverter
                         HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtensionPart);
                     }
 
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.EastWestPlay)
+                    {
+                        var play = vstPreset as EastWestPlay;
+
+                        // save the Play presets as .vstpreset files
+                        string playOutputFilePath = Path.Combine(outputDirectoryPath, "Play", fileNameNoExtension);
+                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Play"));
+                        play.Write(playOutputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(playOutputFilePath + ".txt", play.ToString());
+                    }
+
                     // Save the preset parameters
                     else
                     {

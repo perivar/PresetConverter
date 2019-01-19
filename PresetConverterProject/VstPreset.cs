@@ -86,7 +86,7 @@ namespace PresetConverter
             public const string WavesMaseratiACGStereo = "565354544E41536D6173657261746920";
             public const string WavesMaseratiVX1Stereo = "565354544E56536D6173657261746920";
             public const string WavesMetaFlangerStereo = "565354464C4E536D657461666C616E67";
-            public const string WavesOneKnobFilterStereo = "65354525346536F6E656B6E6F622066";
+            public const string WavesOneKnobFilterStereo = "565354525346536F6E656B6E6F622066";
             public const string WavesPuigChild670Stereo = "56535446434853707569676368696C64";
             public const string WavesPuigTecEQP1AStereo = "56535450314153707569677465632065";
             public const string WavesQ10Stereo = "56535445514153713130207374657265";
@@ -253,17 +253,41 @@ namespace PresetConverter
         #region Parameter methods
         public void AddParameter(string name, int index, double value)
         {
-            Parameters.Add(name, new Parameter(name, index, value));
+            if (!Parameters.ContainsKey(name))
+            {
+                Parameters.Add(name, new Parameter(name, index, value));
+            }
+            else
+            {
+                Log.Warning(String.Format("Duplicate key '{0}' - using key '{0}{1}' instead (index: {1}, value: {2})", name, index, value));
+                Parameters.Add(name + index, new Parameter(name, index, value));
+            }
         }
 
         public void AddParameter(string name, int index, string value)
         {
-            Parameters.Add(name, new Parameter(name, index, value));
+            if (!Parameters.ContainsKey(name))
+            {
+                Parameters.Add(name, new Parameter(name, index, value));
+            }
+            else
+            {
+                Log.Warning(String.Format("Duplicate key '{0}' - using key '{0}{1}' instead (index: {1}, value: {2})", name, index, value));
+                Parameters.Add(name + index, new Parameter(name, index, value));
+            }
         }
 
         public void AddParameter(string name, int index, byte[] value)
         {
-            Parameters.Add(name, new Parameter(name, index, value));
+            if (!Parameters.ContainsKey(name))
+            {
+                Parameters.Add(name, new Parameter(name, index, value));
+            }
+            else
+            {
+                Log.Warning(String.Format("Duplicate key '{0}' - using key '{0}{1}' instead (index: {1}, byte count: {2})", name, index, value.Length));
+                Parameters.Add(name + index, new Parameter(name, index, value));
+            }
         }
 
         public double? GetNumberParameter(string key)
