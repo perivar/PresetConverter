@@ -1031,6 +1031,28 @@ namespace PresetConverter
                 }
                 else
                 {
+                    // rewind 4 bytes (seek to comp data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+
+                    // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
+                    // as in:
+                    // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
+
+                    // read until all bytes have been read
+                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+
+                    // seek to cont start pos
+                    if (this.ContDataChunkSize > 0)
+                    {
+                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+
+                        // read until all bytes have been read
+                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                    }
+
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
+
                     throw new FormatException("Data does not contain any known formats or FXB or FXP data (1)");
                 }
             }
