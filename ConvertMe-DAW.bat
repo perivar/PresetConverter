@@ -5,6 +5,7 @@ SET "OUTPUTDIR=D:\Development Projects\Own Projects\Temp"
 SET "CONVERTER=PresetConverter.exe"
 
 FOR %%i IN (%*) DO IF EXIST %%~si\NUL (CALL :ISDIR %%i) ELSE (CALL :ISFILE %%i)
+%SystemRoot%\explorer.exe "%OUTPUTDIR%"
 GOTO EXIT
 
 :ISDIR
