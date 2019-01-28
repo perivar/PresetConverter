@@ -813,7 +813,7 @@ namespace PresetConverterProject.NIKontaktNKS
         /// <param name="nks">nks</param>
         /// <param name="header">unencoded header information</param>
         /// <param name="outBinaryFile">output file</param>
-        /// <returns>0 if succesfull</returns>
+        /// <returns>0 if successfull</returns>
         private static int ExtractFileEntryToBf(Nks nks, NksFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
@@ -839,7 +839,7 @@ namespace PresetConverterProject.NIKontaktNKS
         /// <param name="nks">nks</param>
         /// <param name="header">encrypted header information</param>
         /// <param name="outBinaryFile">output file</param>
-        /// <returns>0 if succesfull</returns>
+        /// <returns>0 if successfull</returns>
         public static int ExtractFileEntryToBf(Nks nks, NksEncryptedFileHeader header, BinaryFile outBinaryFile)
         {
             byte[] buffer = new byte[16384];
@@ -1099,10 +1099,10 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            uint setid = bf.ReadUInt32(); // read_u32_le
-            if (setid > 0)
+            uint setId = bf.ReadUInt32(); // read_u32_le
+            if (setId > 0)
             {
-                ret.SetId = setid.ToString();
+                ret.SetId = setId.ToString();
             }
             else
             {
@@ -1142,10 +1142,10 @@ namespace PresetConverterProject.NIKontaktNKS
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
-            uint setid = bf.ReadUInt32(); // read_u32_le
-            if (setid > 0)
+            uint setId = bf.ReadUInt32(); // read_u32_le
+            if (setId > 0)
             {
-                ret.SetId = setid.ToString();
+                ret.SetId = setId.ToString();
             }
             else
             {
