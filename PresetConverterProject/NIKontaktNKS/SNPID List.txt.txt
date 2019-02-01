@@ -1,0 +1,126 @@
+<SNPID>012 Elastic Thump
+<SNPID>064 Session Guitarist - Strummed Acoustic 2
+<SNPID>085 Form
+<SNPID>087 Symphony Essentials Woodwind Solo
+<SNPID>088 Symphony Essentials Woodwind Ensemble
+<SNPID>090 Molten Veil
+<SNPID>095 Queensbridge Story
+<SNPID>140 Massive
+<SNPID>151 Skanner XT
+<SNPID>152 The Giant
+<SNPID>158 Drum Lab
+<SNPID>191 RC 24
+<SNPID>192 RC 48
+<SNPID>204 Reaktor Prism
+<SNPID>205 The Finger R2
+<SNPID>206 Reaktor Spark R2
+<SNPID>209 The Mouth
+<SNPID>212 Razor
+<SNPID>225 Action Strikes
+<SNPID>229 Kinetic Metal
+<SNPID>248 Molekular
+<SNPID>249 Battery 4
+<SNPID>250 Battery 4 Factory Library
+<SNPID>269 Absynth 5
+<SNPID>275 FM8
+<SNPID>294 Supercharger GT
+<SNPID>295 Marble Rims
+<SNPID>314 Session Horns Pro
+<SNPID>324 Kontakt Factory Library
+<SNPID>325 Rise And Hit
+<SNPID>329 Halcyon Sky
+<SNPID>333 True School
+<SNPID>336 Platinum Bounce
+<SNPID>349 Drop Squad Bundle
+<SNPID>391 Reaktor 6
+<SNPID>402 Maschine Drum Selection
+<SNPID>405 Evolve Mutations
+<SNPID>406 Scarbee Pre-Bass
+<SNPID>407 Scarbee Pre-Bass Amped
+<SNPID>408 Balinese Gamelan
+<SNPID>413 Scarbee MM-Bass
+<SNPID>414 Scarbee MM-Bass Amped
+<SNPID>415 Scarbee Jay-Bass
+<SNPID>417 Alicias Keys
+<SNPID>419 Evolve Mutations 2
+<SNPID>422 Scarbee Vintage Keys
+<SNPID>425 Vintage Organs
+<SNPID>430 George Duke Soul Treasures
+<SNPID>431 Scarbee Funk Guitarist
+<SNPID>433 West Africa
+<SNPID>435 Studio Drummer
+<SNPID>436 Retro Machines Mk2
+<SNPID>437 Damage
+<SNPID>438 Abbey Road 60s Drummer
+<SNPID>439 Abbey Road 70s Drummer
+<SNPID>440 Abbey Road 80s Drummer
+<SNPID>441 Abbey Road Modern Drummer
+<SNPID>442 Evolve R2
+<SNPID>444 Enhanced EQ
+<SNPID>445 Passive EQ
+<SNPID>446 Vari Comp
+<SNPID>447 Solid EQ FX
+<SNPID>448 VC 76 FX
+<SNPID>449 Solid Dynamics FX
+<SNPID>450 Solid Bus Comp FX
+<SNPID>451 Transient Master FX
+<SNPID>452 VC 160 FX
+<SNPID>453 VC 2A FX
+<SNPID>454 Action Strings
+<SNPID>456 Monark
+<SNPID>457 Abbey Road Vintage Drummer
+<SNPID>458 Driver
+<SNPID>459 Scarbee Rickenbacker Bass
+<SNPID>469 Abbey Road 50s Drummer
+<SNPID>471 Lucid Mission
+<SNPID>485 Komplete Kontrol
+<SNPID>486 The Maverick
+<SNPID>487 The Grandeur
+<SNPID>488 The Gentleman
+<SNPID>489 Rounds
+<SNPID>490 Polyplex
+<SNPID>491 Kontour
+<SNPID>518 Rammfire
+<SNPID>520 Reflektor
+<SNPID>523 Traktors 12
+<SNPID>525 Guitar Rig 5
+<SNPID>540 Cuba
+<SNPID>546 Caribbean Current
+<SNPID>561 Replika XT
+<SNPID>568 Session Guitarist - Strummed Acoustic
+<SNPID>569 Emotive Strings
+<SNPID>577 Neon Drive
+<SNPID>581 Astral Flutter
+<SNPID>584 Golden Kingdom
+<SNPID>587 India
+<SNPID>599 Flesh
+<SNPID>632 Velvet Lounge
+<SNPID>635 Reaktor Blocks
+<SNPID>636 Reaktor Factory Library
+<SNPID>653 Cavern Floor
+<SNPID>659 Una Corda
+<SNPID>663 Kinetic Toys
+<SNPID>668 Symphony Essentials Brass Ensemble
+<SNPID>669 Symphony Essentials Brass Solo
+<SNPID>670 Symphony Essentials String Ensemble
+<SNPID>681 Lazer Dice
+<SNPID>949 Thrill
+<SNPID>FX0 Choral
+<SNPID>FX1 Flair
+<SNPID>FX2 Phasis
+<SNPID>FX4 Bite
+<SNPID>FX5 Freak
+<SNPID>FX6 Dirt
+<SNPID>K01 Middle East
+<SNPID>K02 Session Guitarist - Electric Sunburst
+<SNPID>K04 Session Strings Pro 2
+<SNPID>K6E Kontakt (6)
+<SNPID>MXE Massive X ???
+<SNPID>MXL Massive X Library ???
+<SNPID>NB1 Native Browser Preview Library
+<SNPID>SE1 Symphony Essentials Percussion
+<SNPID>TRK TRK-01
+<SNPID>X01 London Grit
+<SNPID>X03 Byte Riot
+<SNPID>X04 Decoded Forms
+<SNPID>X05 Deep Matter
