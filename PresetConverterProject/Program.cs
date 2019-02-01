@@ -610,6 +610,14 @@ namespace PresetConverter
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                 {
                     var kontakt = vstPreset as NIKontakt5;
+
+                    var snpid = GetSNPIDFromKontaktFXP(fxp);
+                    if (!string.IsNullOrEmpty(snpid))
+                    {
+                        Log.Debug("snpid: " + snpid);
+                        fileNameNoExtension += ("_" + snpid);
+                    }
+
                     // save the kontakt presets as .vstpreset files
                     string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension);
                     CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
@@ -672,6 +680,41 @@ namespace PresetConverter
             if (IsWrongField(binaryFile, "editController", editControllerField)) return false;
 
             return true;
+        }
+
+        private static string GetSNPIDFromKontaktFXP(FXP fxp)
+        {
+            var byteArray = new byte[0];
+            if (fxp.Content is FXP.FxProgramSet)
+            {
+                byteArray = ((FXP.FxProgramSet)fxp.Content).ChunkData;
+            }
+            else if (fxp.Content is FXP.FxChunkSet)
+            {
+                byteArray = ((FXP.FxChunkSet)fxp.Content).ChunkData;
+            }
+
+            // read the snpid
+            string snpid = null;
+            using (BinaryFile bf = new BinaryFile(byteArray))
+            {
+                UInt32 fileSize = bf.ReadUInt32();
+
+                if (fileSize == byteArray.Length)
+                {
+                    bf.Seek(543, SeekOrigin.Begin);
+                    int snpidCount = bf.ReadInt32();
+                    snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
+
+                    // snpid cannot have more than 4 characters (?!)
+                    if (snpidCount > 4)
+                    {
+                        snpid = null;
+                    }
+                }
+            }
+
+            return snpid;
         }
 
         private static bool IsWrongField(BinaryFile binaryFile, string expectedValue, string foundValue)
@@ -781,14 +824,21 @@ namespace PresetConverter
 
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                     {
+                        var snpid = GetSNPIDFromKontaktFXP(vstPreset.FXP);
+                        if (!string.IsNullOrEmpty(snpid))
+                        {
+                            Log.Debug("snpid: " + snpid);
+                            fileNameNoExtension += ("_" + snpid);
+                        }
+
                         // save the kontakt presets as .vstpreset files
                         string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
                         CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
                         vstPreset.Write(kontaktOutputFilePath);
 
                         // and dump the text info as well
-                        string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
-                        File.WriteAllText(kontaktOutputFilePathText, vstPreset.ToString());
+                        // string kontaktOutputFilePathText = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".txt");
+                        // File.WriteAllText(kontaktOutputFilePathText, vstPreset.ToString());
                     }
 
                     // always output the information
