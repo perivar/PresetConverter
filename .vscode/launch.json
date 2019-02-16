@@ -226,7 +226,7 @@
                 "-i",
                 "C:\\Users\\periv\\Documents\\Ableton\\User Library\\Presets\\Audio Effects",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -243,9 +243,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "D:\\Amazon Drive\\Documents\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
+                "G:\\Amazon Drive\\Documents\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -262,9 +262,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "C:\\Users\\periv\\Documents\\VST3 Presets",
+                "C:\\Users\\periv\\OneDrive\\Documents\\VST3 Presets",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -283,7 +283,7 @@
                 "-i",
                 "C:\\Users\\Public\\Waves Audio\\Plug-In Settings",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -300,9 +300,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
+                "H:\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -319,11 +319,11 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
+                "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp",
+                "G:\\Development Projects\\Own Projects\\Temp",
                 "-e",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Bricasti M7.JPG",
+                "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Bricasti M7.JPG",
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -340,11 +340,11 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
+                "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp",
+                "G:\\Development Projects\\Own Projects\\Temp",
                 "-e",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\TCE System 6000.jpg",
+                "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\TCE System 6000.jpg",
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -361,9 +361,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\Lexicon 480",
+                "H:\\IMPULSE RESPONSES\\Lexicon 480",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -380,9 +380,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "G:\\SAMPLES\\IMPULSE RESPONSES\\Logic Space Designer",
+                "H:\\IMPULSE RESPONSES\\Logic Space Designer",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp",
+                "G:\\Development Projects\\Own Projects\\Temp",
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -399,9 +399,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "E:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\polar express (free pack)",
+                "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\polar express (free pack)",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp",
+                "G:\\Development Projects\\Own Projects\\Temp",
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -418,9 +418,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "D:\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
+                "G:\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp",
+                "G:\\Development Projects\\Own Projects\\Temp",
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -437,9 +437,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "D:\\Amazon Drive\\Documents\\My Projects\\FabFilter",
+                "G:\\Amazon Drive\\Documents\\My Projects\\FabFilter",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -456,9 +456,9 @@
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp2.2/PresetConverter.dll",
             "args": [
                 "-i",
-                "D:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments",
+                "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -481,7 +481,7 @@
                 "-i",
                 "H:\\SAMPLES\\NI Kontakt\\Hephaestus Sounds Harp The Magic Of Agatha V1.01\\Pack\\TMOA.nkr",
                 "-o",
-                "D:\\Development Projects\\Own Projects\\Temp"
+                "G:\\Development Projects\\Own Projects\\Temp"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
