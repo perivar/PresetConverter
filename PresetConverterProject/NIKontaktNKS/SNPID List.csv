@@ -1,16 +1,22 @@
 ﻿SNPID;Company Name;Product Name
-12;Native Instruments;Elastic Thump
-13;Native Instruments;Keyboard Collection
-64;Native Instruments;Session Guitarist - Strummed Acoustic 2
-85;Native Instruments;Form
-87;Best Service;Chris Hein - Solo Violin
-88;Native Instruments;Symphony Essentials Woodwind Ensemble
-90;Native Instruments;Molten Veil
-92;Big Fish Audio;Cyborg
-95;Native Instruments;Queensbridge Story
-97;Heavyocity;Heavyocity MS Ensemble Woods
+012;Native Instruments;Elastic Thump
+013;Native Instruments;Keyboard Collection
+026;Sonokinetic;Ostinato Strings
+033;Soundiron;Elysium Harp
 051;Orchestral Tools;Metropolis Ark 3
 055;Orchestral Tools;Berlin Brass
+058;Spitfire Audio;Chamber Strings
+064;Native Instruments;Session Guitarist - Strummed Acoustic 2
+079;Cinematic Samples;Cinematic Studio Strings
+081;Cinesamples;CineStrings SOLO
+085;Native Instruments;Form
+087;Best Service;Chris Hein - Solo Violin
+088;Native Instruments;Symphony Essentials Woodwind Ensemble
+089;Chris Hein;Chris Hein - Solo Violin
+090;Native Instruments;Molten Veil
+092;Big Fish Audio;Cyborg
+095;Native Instruments;Queensbridge Story
+097;Heavyocity;Heavyocity MS Ensemble Woods
 100;Cinesamples;Piano in Blue V2
 101;Garritan;Stradivari Solo Violin
 103;Native Instruments;Otto
@@ -50,7 +56,7 @@
 150;Native Instruments;Audio Kontrol 1
 151;Native Instruments;Skanner XT
 152;Native Instruments;The Giant
-156;Sennheiser ;DrumMic'a!
+156;Sennheiser;DrumMic'a!
 157;Impact Soundworks;Juggernaut
 158;Native Instruments;Drum Lab
 159;Native Instruments;Static Friction
@@ -173,6 +179,7 @@
 302;Native Instruments;Reaktor
 303;Native Instruments;Reaktor
 304;Native Instruments;Reaktor
+305;Native Instruments;Reaktor 4
 306;Native Instruments;Reaktor 4
 307;Native Instruments;Reaktor Sesson
 308;Native Instruments;Reaktor Session
@@ -471,6 +478,7 @@
 681;Native Instruments;Lazer Dice
 684;Orange Tree Samples;Evolution Banshee
 687;Native Instruments;Crystal Daggers
+688;Spitfire Audio;Albion One -  Legacy
 689;Sonic Faction;Archetype
 691;Heavyocity;GP02 Vocalise
 695;Impact Soundworks;Shreddage Bass 2
@@ -693,6 +701,7 @@
 938;Gospelmusicians;MK Sensation
 940;Native Instruments;Kore
 941;Native Instruments;Kore 2
+943;Spitfire Audio;London Contemporary Strings
 945;Native Instruments;Kore Player
 949;Native Instruments;Thrill
 950;Native Instruments;NI Komplete 2
@@ -739,9 +748,25 @@
 997;Evolution Series;World Percussion 2.0
 998;Output;REV
 999;Native Instruments;Komplete Selection, Percussion Hits
+8D0;8Dio;Adagio Violins Vol.1
+8D1;8Dio;Adagio Violins Vol.1.1
+8D2;8Dio;Adagio Violas Vol.1
 8D3;8Dio;Epic Toms Ensemble
+8D4;8Dio;Adagio Cellos Vol.1
+8D5;8Dio;Adagio Basses  Vol.1
+8D6;8Dio;Requiem Pro
+8D7;8Dio;Ambient Guitar
+8D8;8Dio;
 8D9;8Dio;Hybrid Tools Vol.2
+9A0;Embertone;Sensual Saxophone
+9A1;PettinHouse;Acoustic Guitar Complete
+9A2;Cinematic Strings;Monster Staccatos
+9A3;StrezovSampling;Tickle
+9A4;Vienna Symphonic Library;Epic Horns
+9A5;Unversalsampling;Windchimes
+9A6;Impact Soundworks;Django Gypsy Guitar
 9AC;;Synthesis
+CC7;Spitfire Audio;Albion One Collection
 CC8;Spitfire Audio;BML Bones Vol.1
 CC9;Spitfire Audio;Orchestral Grand Piano
 DD0;Spitfire Audio;Solo Strings
@@ -760,10 +785,11 @@ EE2;Cinesamples;CinePerc Epic
 EE3;Cinesamples;CinePerc Aux
 EE4;Spitfire Audio;Grand Cimbalom
 EE5;Cinesamples;Piano in Blue
-EE6;Cinesamples;Drums of War 
+EE6;Cinesamples;Drums of War
 EE7;Cinesamples;Drums of War 2
 EE8;Cinesamples;Randy's Celeste
 EE9;Cinesamples;CineBells
+EEA;Cinesamples;Piano in Blue 2
 F00;Native Instruments;Guitar Rig Transient Master for Maschine
 F01;Native Instruments;Guitar Rig VC 160 for Maschine
 F02;Native Instruments;Guitar Rig VC 2A for Maschine
@@ -781,13 +807,23 @@ FFB;Native Instruments;Guitar Rig VC 76 for Maschine
 FFC;Native Instruments;Traktors 12 for Maschine
 FFD;Native Instruments;Rammfire for Maschine
 FFE;Native Instruments;Reflektor for Maschine
-FFF;Native Instruments;FFF Guitar Rig Transient Master for Maschine
+FFF;Native Instruments;Guitar Rig Transient Master for Maschine
 FX0;Native Instruments;Choral
 FX1;Native Instruments;Flair
 FX2;Native Instruments;Phasis
 FX4;Native Instruments;Bite
 FX5;Native Instruments;Freak
 FX6;Native Instruments;Dirt
+IL0;Ilya Efimov;
+IL1;Ilya Efimov;
+IL2;Ilya Efimov;
+IL3;Ilya Efimov;
+IL4;Ilya Efimov;
+IL5;Ilya Efimov;
+IL6;Ilya Efimov;
+IL7;Ilya Efimov;
+IL8;Ilya Efimov;
+IL9;Ilya Efimov;
 K01;Native Instruments;Middle East
 K02;Native Instruments;Session Guitarist - Electric Sunburst
 K04;Native Instruments;Session Strings Pro 2
