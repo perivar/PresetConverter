@@ -2,8 +2,11 @@
 012;Native Instruments;Elastic Thump
 013;Native Instruments;Keyboard Collection
 026;Sonokinetic;Ostinato Strings
+029;Spitfire Audio;Spitfire Symphonic Woodwinds
+031;Spitfire Audio;Spitfire Symphonic Strings
 033;Soundiron;Elysium Harp
-051;Orchestral Tools;Metropolis Ark 3
+049;Spitfire Audio;Spitfire Symphonic Brass
+051;Orchestral Tools;Metropolis Ark 2
 055;Orchestral Tools;Berlin Brass
 058;Spitfire Audio;Chamber Strings
 064;Native Instruments;Session Guitarist - Strummed Acoustic 2
@@ -107,7 +110,7 @@
 214;Soundiron;Olympus Elements
 215;Plugin Guru;MegaMacho Drums
 217;Sample Logic;Virtual Ensemble Trilogy
-218;Big Fish Audio;Epic
+218;Big Fish Audio;Epic Cinematic Drums and Sound Design
 219;Embertone;Blakus Cello
 221;Vir2;Cinematic Thunder
 222;Sample Modeling;The Trombone 3.0
@@ -187,7 +190,7 @@
 310;Native Instruments;Studio Collection
 311;Native Instruments;Studio Collection
 312;Native Instruments;Reaktor Session
-313;Spitfire Audio;HZ Percussion
+313;Spitfire Audio;Hans Zimmer HZ01 Percussion
 314;Native Instruments;Session Horns Pro
 315;Native Instruments;Reaktor 5
 320;Native Instruments;Maschine
@@ -336,7 +339,7 @@
 491;Native Instruments;Kontour
 492;Native Instruments;Komplete 10
 493;Native Instruments;Komplete 10 Ultimate
-494;Spitfire Audio;HZ02 Percussion Los Angeles
+494;Spitfire Audio;Hans Zimmer HZ02 Percussion Los Angeles
 495;Native Instruments;Circuit Halo
 496;The Sound of Poland;B-11X Multi-timbral Synth and Organ
 497;Samplephonics;Dirty Modular
@@ -387,7 +390,7 @@
 549;Big Fish Audio;Vintage Strings
 550;Best Service;Drums Overkill
 551;Sample Logic;Xosphere
-552;Spitfire Audio;HZ03 - London Solos
+552;Spitfire Audio;Hans Zimmer HZ03 Percussion London Solos
 553;ProjectSAM;Orchestral Essentials 2
 554;Native Instruments;Paradise Rinse
 555;Native Instruments;Arcane
@@ -438,7 +441,7 @@
 619;Impact Soundworks;Bravura Scoring Brass
 620;Native Instruments;Traktor D3
 622;Native Instruments;Traktor Hercules
-623;Cinesamples;CineWinds
+623;Cinesamples;CineWinds Core
 624;Native Instruments;Traktor Hercules
 625;Native Instruments;Traktor 3 LE
 627;Cinesamples;CineWinds Pro
@@ -455,11 +458,13 @@
 642;The Loop Loft;Drum Direktor CINEMATIK
 643;The Loop Loft;Drum Direktor FNK-4
 645;Big Fish Audio;Vintage Rhythm Section
+648;Orchestral Tools;Berlin Percussion
 649;Sample Logic;CinemorphX
 650;Native Instruments;Black Arc
 651;Heavyocity;GP01 Natural Forces
 652;Native Instruments;Symphony Series Brass Collection
 653;Native Instruments;Cavern Floor
+654;Cinesamples;CinePerc
 656;Orange Tree Samples;Evolution Strawberry (New Version)
 659;Native Instruments;Una Corda
 660;Native Instruments;Komplete 9
@@ -741,7 +746,7 @@
 989;4SCORING;Solo Violino Classico
 990;4SCORING;Solo Violino Virtuoso
 991;Orchestral Tools;Berlin Woodwinds
-992;Spitfire Audio;Albion 2 -  Loegria
+992;Spitfire Audio;Albion 2 - Loegria
 993;Sample Logic;Cinematic Guitars 2
 995;Zapzorn;Zapzorn Elements
 996;Impact Soundworks;Shreddage II
@@ -766,9 +771,11 @@
 9A5;Unversalsampling;Windchimes
 9A6;Impact Soundworks;Django Gypsy Guitar
 9AC;;Synthesis
+C08;8Dio;Liberis Angelic Choir
 CC7;Spitfire Audio;Albions Collection
 CC8;Spitfire Audio;BML Bones Vol.1
 CC9;Spitfire Audio;Orchestral Grand Piano
+D05;8Dio;Requim Pro
 DD0;Spitfire Audio;Solo Strings
 DD1;Spitfire Audio;BML Horn Section
 DD2;Spitfire Audio;BML Low Brass
@@ -779,6 +786,7 @@ DD6;Spitfire Audio;Flute Consort Vol.1
 DD7;Spitfire Audio;Harp Redux
 DD8;Spitfire Audio;Harpsichord
 DD9;8Dio;Epic Taiko Ensemble
+EC1;Soundiron;Mercury
 EE0;Cinesamples;CinePerc Core
 EE1;Cinesamples;CinePerc Pro
 EE2;Cinesamples;CinePerc Epic
@@ -797,6 +805,7 @@ F03;Native Instruments;Guitar Rig VC 76 for Maschine
 FE3;Native Instruments;Guitar Rig Pro Library for Machine
 FE4;Native Instruments;Guitar Rig Factory Selection for Machine
 FE5;Native Instruments;Guitar Rig Elements for Maschine
+FF1;Soundiron;Mars
 FF3;Native Instruments;Guitar Rig Pro Library for Maschine
 FF6;Native Instruments;Solid Dynamics for Maschine
 FF7;Native Instruments;Solid Bus Comp for Maschine
@@ -814,20 +823,21 @@ FX2;Native Instruments;Phasis
 FX4;Native Instruments;Bite
 FX5;Native Instruments;Freak
 FX6;Native Instruments;Dirt
-IL0;Ilya Efimov;
-IL1;Ilya Efimov;
-IL2;Ilya Efimov;
-IL3;Ilya Efimov;
-IL4;Ilya Efimov;
-IL5;Ilya Efimov;
-IL6;Ilya Efimov;
-IL7;Ilya Efimov;
+IL0;Ilya Efimov;Acoustic Guitar
+IL1;Ilya Efimov;Acoustic Guitar Strum
+IL2;Ilya Efimov;Nylon Guitar
+IL3;Ilya Efimov;Nylon Guitar Strum
+IL4;Ilya Efimov;LP Electric Guitar
+IL5;Ilya Efimov;LP Electric Guitar Strum
+IL6;Ilya Efimov;TC Electric Guitar
+IL7;Ilya Efimov;TC Electric Guitar Strum
 IL8;Ilya Efimov;
 IL9;Ilya Efimov;
 K01;Native Instruments;Middle East
 K02;Native Instruments;Session Guitarist - Electric Sunburst
 K04;Native Instruments;Session Strings Pro 2
 K6E;Native Instruments;Kontakt 6
+MTK;8Dio;Lacrimosa Epic Choir
 MXE;Native Instruments;Massive X ???
 MXL;Native Instruments;Massive X Library ???
 NB1;Native Instruments;Native Browser Preview Library
@@ -835,8 +845,10 @@ P04;Orchestral Tools;Inspire
 P74;Orchestral Tools;Metropolis Ark 3
 Q23;Orchestral Tools;Inspire 2
 SE1;Native Instruments;Symphony Essentials Percussion
+T38;Soundiron;Venus Symphonic Womens Choir
 TRK;Native Instruments;TRK-01
 X01;Native Instruments;London Grit
 X03;Native Instruments;Byte Riot
 X04;Native Instruments;Decoded Forms
 X05;Native Instruments;Deep Matter
+X2Y;Cinesamples;CineBells
