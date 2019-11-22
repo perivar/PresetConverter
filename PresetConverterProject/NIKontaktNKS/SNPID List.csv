@@ -11,7 +11,7 @@
 058;Spitfire Audio;Chamber Strings
 064;Native Instruments;Session Guitarist - Strummed Acoustic 2
 079;Cinematic Samples;Cinematic Studio Strings
-081;Cinesamples;CineStrings SOLO
+081;Cinesamples;CineStrings Solo
 085;Native Instruments;Form
 087;Best Service;Chris Hein - Solo Violin
 088;Native Instruments;Symphony Essentials Woodwind Ensemble
@@ -129,7 +129,7 @@
 240;Native Instruments;Reaktor 2.3
 241;Soniccoutre;The Attic
 242;Soniccoutre;Vibraphone SC
-245;Cinesamples;CineStrings CORE
+245;Cinesamples;CineStrings Core
 246;Zero-G;Epica
 247;Native Instruments;Resonant Blaze
 248;Native Instruments;Molekular
@@ -326,7 +326,7 @@
 474;Big Fish Audio;GOTH
 475;Sample Logic;Arpology
 480;Native Instruments;Arcane Attic
-481;Cinesamples;CineStrings - RUNS
+481;Cinesamples;CineStrings - Runs
 482;Cinesamples;Artist Series - Tina Guo
 483;Sonokinetic;Grosso
 484;Prominy;Hummingbird
@@ -441,9 +441,10 @@
 619;Impact Soundworks;Bravura Scoring Brass
 620;Native Instruments;Traktor D3
 622;Native Instruments;Traktor Hercules
-623;Cinesamples;CineWinds Core
+623;Cinesamples;CineWinds
 624;Native Instruments;Traktor Hercules
 625;Native Instruments;Traktor 3 LE
+626;Cinesamples;CineWinds Core
 627;Cinesamples;CineWinds Pro
 628;Native Instruments;Discovery Series: Gamelan
 629;Impact Soundworks;Shreddage Drums
@@ -470,8 +471,8 @@
 660;Native Instruments;Komplete 9
 661;Native Instruments;Komplete 9 Ultimate
 663;Native Instruments;Kinetic Toys
-666;Soundiron;Venus - Symphonic Womenï¿½s Choir
-667;Soundiron;Mars
+666;Soundiron;Venus - Symphonic Womens Choir
+667;Soundiron;Mars - Symphonic Mens Choir
 668;Soundiron;Apocalypse Percussion Ensemble
 669;Soundiron;Mercury - Symphonic Boychoir
 670;Native Instruments;Symphony Essentials String Ensemble
@@ -706,6 +707,7 @@
 938;Gospelmusicians;MK Sensation
 940;Native Instruments;Kore
 941;Native Instruments;Kore 2
+942;Cinesamples;CineBrass Descant Horn
 943;Spitfire Audio;London Contemporary Strings
 945;Native Instruments;Kore Player
 949;Native Instruments;Thrill
@@ -753,6 +755,7 @@
 997;Evolution Series;World Percussion 2.0
 998;Output;REV
 999;Native Instruments;Komplete Selection, Percussion Hits
+AA0;Christian John;Keyscape Library by Christian John
 8D0;8Dio;Adagio Violins Vol.1
 8D1;8Dio;Adagio Violins Vol.1.1
 8D2;8Dio;Adagio Violas Vol.1
@@ -781,7 +784,7 @@ DD1;Spitfire Audio;BML Horn Section
 DD2;Spitfire Audio;BML Low Brass
 DD3;Spitfire Audio;Sable Strings Vol.1
 DD4;Spitfire Audio;Sable Strings Vol.2
-DD5;Spitfire Audio;Spitfire Sable vol.3
+DD5;Spitfire Audio;Spitfire Sable Vol.3
 DD6;Spitfire Audio;Flute Consort Vol.1
 DD7;Spitfire Audio;Harp Redux
 DD8;Spitfire Audio;Harpsichord
@@ -844,6 +847,7 @@ NB1;Native Instruments;Native Browser Preview Library
 P04;Orchestral Tools;Inspire
 P74;Orchestral Tools;Metropolis Ark 3
 Q23;Orchestral Tools;Inspire 2
+Q82;Cinesamples;CineWinds Monster Low Winds
 SE1;Native Instruments;Symphony Essentials Percussion
 T38;Soundiron;Venus Symphonic Womens Choir
 TRK;Native Instruments;TRK-01
