@@ -1,6 +1,6 @@
 @ECHO off
 
-SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\netcoreapp2.2\win-x64\publish"
+SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\netcoreapp3.0\win-x64\publish"
 SET "OUTPUTDIR=G:\Development Projects\Own Projects\Temp"
 SET "CONVERTER=PresetConverter.exe"
 
