@@ -39,6 +39,7 @@ namespace PresetConverter
             var optionInputDirectory = app.Option("-i|--input <path>", "The Input directory or file", CommandOptionType.MultipleValue);
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
             var optionInputExtra = app.Option("-e|--extra <path>", "Extra information as used by the different converters. (E.g. for wav this is a path to an image)", CommandOptionType.SingleValue);
+            var switchConvertKontakt6 = app.Option("-k6|--kontakt6", "Convert discovered Kontakt presets to Kontakt 6", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
@@ -47,6 +48,9 @@ namespace PresetConverter
                 {
                     string outputDirectoryPath = optionOutputDirectory.Value();
                     string inputExtra = optionInputExtra.Value();
+
+                    // check convert arguments
+                    bool doConvertToKontakt6 = switchConvertKontakt6.HasValue();
 
                     // Setup Logger
                     string errorLogFilePath = Path.Combine(outputDirectoryPath, "log-error.log");
@@ -88,7 +92,7 @@ namespace PresetConverter
                                 HandleSDIRFile(file, outputDirectoryPath);
                                 break;
                             case ".cpr":
-                                HandleCubaseProjectFile(file, outputDirectoryPath);
+                                HandleCubaseProjectFile(file, outputDirectoryPath, config, doConvertToKontakt6);
                                 break;
                             case ".ffp":
                                 HandleFabfilterPresetFile(file, outputDirectoryPath);
@@ -350,8 +354,11 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleCubaseProjectFile(string file, string outputDirectoryPath)
+        private static void HandleCubaseProjectFile(string file, string outputDirectoryPath, IConfiguration config, bool doConvertToKontakt6)
         {
+            // read Kontakt library ids
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
+
             // dictionary to hold the processed presets, to avoid duplicates
             var processedPresets = new List<PresetInfo>();
 
@@ -448,7 +455,8 @@ namespace PresetConverter
 
                     if (!HandleCubaseVstInsertEffect(processedPresets, binaryFile, vstEffectBytePattern, vstEffectIndex,
                         vstMultitrackCurrentIndex, vstMultitrackNextIndex,
-                        outputDirectoryPath, outputFileName
+                        outputDirectoryPath, outputFileName,
+                        doConvertToKontakt6
                     )) continue;
                 }
                 if (vstEffectIndex < 0)
@@ -463,7 +471,8 @@ namespace PresetConverter
             BinaryFile binaryFile,
             byte[] vstEffectBytePattern, int vstEffectIndex,
             int vstMultitrackCurrentIndex, int vstMultitrackNextIndex,
-            string outputDirectoryPath, string outputFileName
+            string outputDirectoryPath, string outputFileName,
+            bool doConvertToKontakt6
             )
         {
             var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
@@ -537,7 +546,8 @@ namespace PresetConverter
                 guid,
                 vstEffectIndex,
                 pluginName, origPluginName,
-                outputDirectoryPath, outputFileName);
+                outputDirectoryPath, outputFileName,
+                doConvertToKontakt6);
         }
 
         private static bool HandleCubaseAudioComponent(
@@ -547,7 +557,8 @@ namespace PresetConverter
             string guid,
             int vstEffectIndex,
             string pluginName, string origPluginName,
-            string outputDirectoryPath, string outputFileName
+            string outputDirectoryPath, string outputFileName,
+            bool doConvertToKontakt6
         )
         {
             // 'audioComponent' field            
@@ -611,16 +622,31 @@ namespace PresetConverter
                 {
                     var kontakt = vstPreset as NIKontakt5;
 
+                    // check if we should convert to kontakt 6 preset
+                    if (doConvertToKontakt6)
+                    {
+                        origPluginName = "Kontakt 6";
+                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6;
+                    }
+
+                    string kontaktLibraryName = "";
                     var snpid = GetSNPIDFromKontaktFXP(fxp);
                     if (!string.IsNullOrEmpty(snpid))
                     {
                         Log.Debug("snpid: " + snpid);
                         fileNameNoExtension += ("_" + snpid);
+
+                        // loookup library name
+                        NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == snpid).FirstOrDefault().Value;
+                        if (lib != null)
+                        {
+                            kontaktLibraryName = lib.Name;
+                        }
                     }
 
                     // save the kontakt presets as .vstpreset files
-                    string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
+                    string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, origPluginName, fileNameNoExtension);
+                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, origPluginName));
                     kontakt.Write(kontaktOutputFilePath + ".vstpreset");
 
                     // also save as Kontakt NKI preset file

@@ -109,6 +109,7 @@ namespace PresetConverter
 
             // Native Instruments
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
+            public const string NIKontakt6 = "5653544E694F356B6F6E74616B740000";
 
             // Fabfilter
             public const string FabFilterProQ = "E45D59E8CB2540FAB0F346E115F8AFD4";
