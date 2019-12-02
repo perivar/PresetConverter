@@ -25,6 +25,11 @@ namespace PresetConverterProject.NIKontaktNKS
         public String Id { get; set; }
         public string Name { get; set; }
         public NksGeneratingKey GenKey = new NksGeneratingKey();
+
+        public override string ToString()
+        {
+            return string.Format("Id: {0}, Name: {1}", Id, Name);
+        }
     }
 
     public class NksGeneratingKey

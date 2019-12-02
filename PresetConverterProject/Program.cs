@@ -637,7 +637,7 @@ namespace PresetConverter
                     string kontaktLibraryName = "";
                     var snpid = GetSNPIDFromKontaktFXP(fxp);
                     if (!string.IsNullOrEmpty(snpid))
-                    {
+                    { 
                         Log.Debug("snpid: " + snpid);
 
                         // loookup library name
@@ -648,6 +648,7 @@ namespace PresetConverter
                         }
                         else
                         {
+                            Log.Error("Could not find any kontakt libraries using the snpid: " + snpid);
                             kontaktLibraryName = snpid;
                         }
                         fileNameNoExtension += ("_" + kontaktLibraryName);

@@ -63,7 +63,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath)
         {
-            Regex sectionRegex = new Regex(@"\[([\w\d\s]+)\]");
+            Regex sectionRegex = new Regex(@"\[([\w\d\s\.]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
 
             var keyElements = new List<string>();
@@ -134,7 +134,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         // store previously finished libDesc if found new section
                         if (libDesc != null
                         && libDesc.Id != null
-                        && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0)
+                        // && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0
+                        )
                         {
                             if (settingsList == null) settingsList = new List<NksLibraryDesc>();
                             settingsList.Add(libDesc);

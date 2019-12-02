@@ -349,7 +349,7 @@ namespace PresetConverter
                 {
                     // parameter already exist
                     // warn and overwrite
-                    Log.Warning(string.Format("{0} bytes of Comp Chunk data already exist! Overwriting with new content of {1} bytes ...", CompChunkData.Length, value.Length));
+                    Log.Debug(string.Format("{0} bytes of Comp Chunk data already exist! Overwriting with new content of {1} bytes ...", CompChunkData.Length, value.Length));
                     Parameters["CompChunkData"].Index = value.Length;
                     Parameters["CompChunkData"].Bytes = value;
                 }
@@ -394,7 +394,7 @@ namespace PresetConverter
                 {
                     // parameter already exist
                     // warn and overwrite
-                    Log.Warning(string.Format("{0} bytes of Cont Chunk data already exist! Overwriting with new content of {1} bytes ...", ContChunkData.Length, value.Length));
+                    Log.Debug(string.Format("{0} bytes of Cont Chunk data already exist! Overwriting with new content of {1} bytes ...", ContChunkData.Length, value.Length));
                     Parameters["ContChunkData"].Index = value.Length;
                     Parameters["ContChunkData"].Bytes = value;
                 }
