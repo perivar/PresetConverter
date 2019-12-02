@@ -595,7 +595,11 @@ namespace PresetConverter
 
             string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "" : "_" + origPluginName);
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
-            string fileNameNoExtension = string.Format("{0}_{1}", fileNameNoExtensionPart, pluginName);
+            string fileNameNoExtension = fileNameNoExtensionPart;
+            if (!fileNameNoExtensionPart.Contains(pluginName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                fileNameNoExtension = string.Format("{0}_{1}", fileNameNoExtensionPart, pluginName);
+            }
             fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
 
             if (vstPreset.HasFXP)
@@ -634,13 +638,16 @@ namespace PresetConverter
                     if (!string.IsNullOrEmpty(snpid))
                     {
                         Log.Debug("snpid: " + snpid);
-                        fileNameNoExtension += ("_" + snpid);
 
                         // loookup library name
                         NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == snpid).FirstOrDefault().Value;
                         if (lib != null)
                         {
                             kontaktLibraryName = lib.Name;
+                        }
+                        else
+                        {
+                            kontaktLibraryName = snpid;
                         }
                         fileNameNoExtension += ("_" + kontaktLibraryName);
                     }
