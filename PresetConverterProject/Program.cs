@@ -429,7 +429,7 @@ namespace PresetConverter
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
-                outputFileName = string.Format("{0}_{1:D3}_{2}", outputFileName, trackNumber, trackName);
+                outputFileName = string.Format("{0} {1:D3} - {2}", outputFileName, trackNumber, trackName);
                 outputFileName = StringUtils.MakeValidFileName(outputFileName);
 
                 // 'Type'
@@ -593,12 +593,12 @@ namespace PresetConverter
 
             var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(presetBytes, guid, origPluginName != null ? origPluginName + " - " + pluginName : pluginName);
 
-            string fileNameNoExtensionPart = string.Format("{0}_{1}{2}", outputFileName, vstEffectIndex, origPluginName == null ? "" : "_" + origPluginName);
+            string fileNameNoExtensionPart = string.Format("{0} ({1}){2}", outputFileName, vstEffectIndex, origPluginName == null ? "" : " - " + origPluginName);
             fileNameNoExtensionPart = StringUtils.MakeValidFileName(fileNameNoExtensionPart);
             string fileNameNoExtension = fileNameNoExtensionPart;
             if (!fileNameNoExtensionPart.Contains(pluginName, StringComparison.InvariantCultureIgnoreCase))
             {
-                fileNameNoExtension = string.Format("{0}_{1}", fileNameNoExtensionPart, pluginName);
+                fileNameNoExtension = string.Format("{0} - {1}", fileNameNoExtensionPart, pluginName);
             }
             fileNameNoExtension = StringUtils.MakeValidFileName(fileNameNoExtension);
 
@@ -651,7 +651,7 @@ namespace PresetConverter
                             Log.Error("Could not find any kontakt libraries using the snpid: " + snpid);
                             kontaktLibraryName = snpid;
                         }
-                        fileNameNoExtension += ("_" + kontaktLibraryName);
+                        fileNameNoExtension += (" - " + kontaktLibraryName);
                     }
 
                     // save the kontakt presets as .vstpreset files
