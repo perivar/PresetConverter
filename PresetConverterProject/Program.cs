@@ -642,6 +642,7 @@ namespace PresetConverter
                         {
                             kontaktLibraryName = lib.Name;
                         }
+                        fileNameNoExtension += ("_" + kontaktLibraryName);
                     }
 
                     // save the kontakt presets as .vstpreset files
