@@ -22,7 +22,7 @@ namespace PresetConverterProject.NIKontaktNKS
         public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
         public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA; // like tga, txt, xml, png, cache       
 
-        public static void NksReadLibrariesInfo(string nksSettingsPath)
+        public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false)
         {
             // read in all libraries
             var regList = NksGetRegistryLibraries();
@@ -34,7 +34,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     NKSLibraries.Libraries[regEntry.Id] = regEntry;
                 }
             }
-            var settingsList = NksGetSettingsLibraries(nksSettingsPath);
+            var settingsList = NksGetSettingsLibraries(nksSettingsPath, includeNonEncryptedLibs);
             if (settingsList != null)
             {
                 foreach (var settingsEntry in settingsList)
@@ -46,9 +46,9 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         #region Read Library Descriptors from Settings.cfg
-        public static void PrintSettingsLibraryInfo(TextWriter writer)
+        public static void PrintSettingsLibraryInfo(TextWriter writer, bool includeNonEncryptedLibs = false)
         {
-            var list = NKS.NksGetSettingsLibraries("Settings.cfg");
+            var list = NKS.NksGetSettingsLibraries("Settings.cfg", includeNonEncryptedLibs);
 
             foreach (NksLibraryDesc entry in list)
             {
@@ -61,7 +61,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath)
+        private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath, bool includeNonEncryptedLibs = false)
         {
             Regex sectionRegex = new Regex(@"\[([\w\d\s\.\-]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
@@ -134,7 +134,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         // store previously finished libDesc if found new section
                         if (libDesc != null
                         && libDesc.Id != null
-                        // && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0
+                        && ((!includeNonEncryptedLibs && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0) || includeNonEncryptedLibs)
                         )
                         {
                             if (settingsList == null) settingsList = new List<NksLibraryDesc>();

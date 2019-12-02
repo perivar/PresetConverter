@@ -357,7 +357,7 @@ namespace PresetConverter
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath, IConfiguration config, bool doConvertToKontakt6)
         {
             // read Kontakt library ids
-            NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], true);
 
             // dictionary to hold the processed presets, to avoid duplicates
             var processedPresets = new List<PresetInfo>();
