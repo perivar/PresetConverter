@@ -625,6 +625,7 @@ namespace PresetConverter
                 else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
                 {
                     var kontakt = vstPreset as NIKontakt5;
+                    origPluginName = "Kontakt 5";
 
                     // check if we should convert to kontakt 6 preset
                     if (doConvertToKontakt6)
