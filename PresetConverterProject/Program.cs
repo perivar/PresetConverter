@@ -648,7 +648,7 @@ namespace PresetConverter
                         }
                         else
                         {
-                            Log.Error("Could not find any kontakt libraries using the snpid: " + snpid);
+                            Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " and filename: " + fileNameNoExtension);
                             kontaktLibraryName = snpid;
                         }
                         fileNameNoExtension += (" - " + kontaktLibraryName);
