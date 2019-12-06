@@ -634,37 +634,15 @@ namespace PresetConverter
                         kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6;
                     }
 
-                    string kontaktLibraryName = "";
-                    var snpid = GetSNPIDFromKontaktFXP(fxp);
-                    if (!string.IsNullOrEmpty(snpid))
-                    { 
-                        Log.Debug("snpid: " + snpid);
+                    HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
+                }
 
-                        // loookup library name
-                        NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == snpid).FirstOrDefault().Value;
-                        if (lib != null)
-                        {
-                            kontaktLibraryName = lib.Name;
-                        }
-                        else
-                        {
-                            Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " and filename: " + fileNameNoExtension);
-                            kontaktLibraryName = snpid;
-                        }
-                        fileNameNoExtension += (" - " + kontaktLibraryName);
-                    }
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt6)
+                {
+                    var kontakt = vstPreset as NIKontakt6;
+                    origPluginName = "Kontakt 6";
 
-                    // save the kontakt presets as .vstpreset files
-                    string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, origPluginName, fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, origPluginName));
-                    kontakt.Write(kontaktOutputFilePath + ".vstpreset");
-
-                    // also save as Kontakt NKI preset file
-                    // this doesn't seem to work properly
-                    // kontakt.WriteNKI(kontaktOutputFilePath + ".nki");
-
-                    // and dump the text info as well
-                    // File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
+                    HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
             }
             else
@@ -716,6 +694,44 @@ namespace PresetConverter
             if (IsWrongField(binaryFile, "editController", editControllerField)) return false;
 
             return true;
+        }
+
+        private static void HandleNIKontaktFXP(NIKontaktBase kontakt, FXP fxp,
+        string origPluginName,
+        string fileNameNoExtension,
+        string outputDirectoryPath)
+        {
+            string kontaktLibraryName = "";
+            var snpid = GetSNPIDFromKontaktFXP(fxp);
+            if (!string.IsNullOrEmpty(snpid))
+            {
+                Log.Debug("snpid: " + snpid);
+
+                // loookup library name
+                NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == snpid).FirstOrDefault().Value;
+                if (lib != null)
+                {
+                    kontaktLibraryName = lib.Name;
+                }
+                else
+                {
+                    Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " and filename: " + fileNameNoExtension);
+                    kontaktLibraryName = snpid;
+                }
+                fileNameNoExtension += (" - " + kontaktLibraryName);
+            }
+
+            // save the kontakt presets as .vstpreset files
+            string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, origPluginName, fileNameNoExtension);
+            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, origPluginName));
+            kontakt.Write(kontaktOutputFilePath + ".vstpreset");
+
+            // also save as Kontakt NKI preset file
+            // this doesn't seem to work properly
+            // kontakt.WriteNKI(kontaktOutputFilePath + ".nki");
+
+            // and dump the text info as well
+            // File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
         }
 
         private static string GetSNPIDFromKontaktFXP(FXP fxp)

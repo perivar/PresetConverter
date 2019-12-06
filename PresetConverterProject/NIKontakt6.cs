@@ -11,15 +11,15 @@ using CommonUtils;
 namespace PresetConverter
 {
     /// <summary>
-    /// Native Instruments Kontakt 5 Preset
+    /// Native Instruments Kontakt 6 Preset
     /// </summary>
-    public class NIKontakt5 : NIKontaktBase
+    public class NIKontakt6 : NIKontaktBase
     {
-        public NIKontakt5()
+        public NIKontakt6()
         {
-            Vst3ID = VstIDs.NIKontakt5;
+            Vst3ID = VstIDs.NIKontakt6;
             PlugInCategory = "Instrument";
-            PlugInName = "Kontakt 5";
+            PlugInName = "Kontakt 6";
             PlugInVendor = "Native Instruments GmbH";
         }
     }
