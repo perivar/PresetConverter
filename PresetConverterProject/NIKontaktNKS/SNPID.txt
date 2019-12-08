@@ -4,7 +4,7 @@ So if you've assigned Spitfire All Strings a SNPID of d553 and Spitfire All Horn
 since Kontakt sees them as having the same number.
 
 
-== WEIRD ==
+== WEIRD CONVERSION BETWEEN THE UINT32 IN THE FILE AND THE SNPID ==
 
 [Berlin Orchestra Inspire]
 Name=sz:Berlin Orchestra Inspire
@@ -24,42 +24,51 @@ SNPID=sz:P74
 [Monster Low Winds]
 Name=sz:Monster Low Winds
 SNPID=sz:Q82
+B2 94 00 00  = 38066
 
 [90s Retro Trumpets]
 Name=sz:90s Retro Trumpets
 SNPID=sz:Q28
+E0 93 00 00 = 37856
 
 [Voices of War - Men of the North]
 Name=sz:Voices of War - Men of the North
 SNPID=sz:Q47
+27 94 00 00 = 37927
 
 [The Orchestral Grands]
 Name=sz:The Orchestral Grands
 SNPID=sz:Q53
+47 94 00 00 = 37959
 
 [Joshua Bell Violin]
 Name=sz:Joshua Bell Violin
 SNPID=sz:P10
+00 00 00 00 = 0
 
 [Palette]
 Name=sz:Palette
 SNPID=sz:P37
+F3 8E 00 00 = 36595
 
 [CinePiano]
 Name=sz:CinePiano
 SNPID=sz:P85
+A5 8F 00 00 = 36773
 
 [Artist Series - Randys Prepared Piano]
 Name=sz:Artist Series - Randys Prepared Piano
 SNPID=sz:W03
+F3 B1 00 00 = 45555
 
 [Artist Series - Taylor Davis]
 Name=sz:Artist Series - Taylor Davis
 SNPID=sz:W35
+61 B2 00 00 = 45665
 
 
 
-== NORMAL ==
+== NORMAL (EQUAL) ==
 
 [Metropolis Ark 1]
 Name=sz:Metropolis Ark 1
