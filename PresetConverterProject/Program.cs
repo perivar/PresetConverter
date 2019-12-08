@@ -63,7 +63,7 @@ namespace PresetConverter
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
 
-                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" };
+                    var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki" }; // , ".nicnt"
                     var files = HandleMultipleInputPaths(optionInputDirectory, extensions);
 
                     foreach (var file in files)
@@ -101,6 +101,7 @@ namespace PresetConverter
                             case ".nks":
                             case ".nkr":
                             case ".nki":
+                            case ".nicnt":
                                 HandleNIKontaktFile(file, outputDirectoryPath, config);
                                 break;
                         }

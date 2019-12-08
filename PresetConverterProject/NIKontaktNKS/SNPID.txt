@@ -1,8 +1,10 @@
-• SNPID numbers should only be three 4-bit characters (ie use only 1-0 or a-f). 
+SNPID numbers should only be three 4-bit characters (ie use only 1-0 or a-f). 
 As some people have discovered, larger entries can work, but only because KONTAKT IGNORES EVERYTHING AFTER THE FIRST THREE CHARACTERS.
 So if you've assigned Spitfire All Strings a SNPID of d553 and Spitfire All Horns a SNPID of d554, you will have a conflict, 
 since Kontakt sees them as having the same number.
 
+
+== WEIRD ==
 
 [Berlin Orchestra Inspire]
 Name=sz:Berlin Orchestra Inspire
@@ -19,16 +21,55 @@ Name=sz:Metropolis Ark 3
 SNPID=sz:P74
 80 8F 00 00 = 36736
 
+[Monster Low Winds]
+Name=sz:Monster Low Winds
+SNPID=sz:Q82
 
-[Metropolis Ark 2]
-Name=sz:Metropolis Ark 2
-SNPID=sz:051
-33 00 00 00 = 51
+[90s Retro Trumpets]
+Name=sz:90s Retro Trumpets
+SNPID=sz:Q28
+
+[Voices of War - Men of the North]
+Name=sz:Voices of War - Men of the North
+SNPID=sz:Q47
+
+[The Orchestral Grands]
+Name=sz:The Orchestral Grands
+SNPID=sz:Q53
+
+[Joshua Bell Violin]
+Name=sz:Joshua Bell Violin
+SNPID=sz:P10
+
+[Palette]
+Name=sz:Palette
+SNPID=sz:P37
+
+[CinePiano]
+Name=sz:CinePiano
+SNPID=sz:P85
+
+[Artist Series - Randys Prepared Piano]
+Name=sz:Artist Series - Randys Prepared Piano
+SNPID=sz:W03
+
+[Artist Series - Taylor Davis]
+Name=sz:Artist Series - Taylor Davis
+SNPID=sz:W35
+
+
+
+== NORMAL ==
 
 [Metropolis Ark 1]
 Name=sz:Metropolis Ark 1
 SNPID=sz:672
 A0 02 00 00 = 672
+
+[Metropolis Ark 2]
+Name=sz:Metropolis Ark 2
+SNPID=sz:051
+33 00 00 00 = 51
 
 [Albion]
 Name=sz:Albion
@@ -40,34 +81,32 @@ Name=sz:Action Strings
 SNPID=sz:454
 C6 01 00 00 = 454
 
-
-
-<Name>Cinebrass Core</Name>
-<RegKey>Cinebrass Core</RegKey>
-<Type>Content</Type>
-<PoweredBy>Kontakt</PoweredBy>
-<Icon>kontakt</Icon>
-<Visibility>1</Visibility>
-<AuthSystem>RAS2</AuthSystem>
-<SNPID>c80</SNPID>
-
-03 Trumpet Solo True Legato NKI file:
-37 00 34 00 37 00: 7 4 7
-
 [Cinebrass]
 Name=sz:Cinebrass
 SNPID=sz:747
+EB 02 00 00 = 747
 
+[Berlin Strings]
+Name=sz:Berlin Strings
+SNPID=sz:232
+E8 00 00 00 = 232
 
-02 Trumpet Solo True Legato PRO NKI file:
-37 00 34 00 38 00 : 7 4 8 
+[Loegria]
+Name=sz:Loegria
+SNPID=sz:992
+E0 03 00 00 = 992
 
-[Cinebrass pro]
-Name=sz:Cinebrass pro
-SNPID=sz:c81
+[Spitfire Symphonic Woodwinds]
+Name=sz:Spitfire Symphonic Woodwinds
+SNPID=sz:029
+1D 00 00 00 = 29
 
-Old KOntakt 5: 
-5653544E694F356B6F6E74616B742035
+[Spitfire Symphonic Strings]
+Name=sz:Spitfire Symphonic Strings
+SNPID=sz:031
+1F 00 00 00 = 31
 
-New Kontakt - Kontakt 6?
-5653544E694F356B6F6E74616B740000
+[Spitfire Symphonic Brass]
+Name=sz:Spitfire Symphonic Brass
+SNPID=sz:049
+31 00 00 00 = 49

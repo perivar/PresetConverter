@@ -17,10 +17,20 @@ namespace PresetConverterProject.NIKontaktNKS
     {
         public const string REG_PATH = "Software\\Native Instruments";
 
-        public const UInt32 NKS_MAGIC_DIRECTORY = 0x5e70ac54;
-        public const UInt32 NKS_MAGIC_ENCRYPTED_FILE = 0x16ccf80a;
-        public const UInt32 NKS_MAGIC_FILE = 0x4916e63c;
-        public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA; // like tga, txt, xml, png, cache       
+        public const UInt32 NKS_MAGIC_DIRECTORY = 0x5E70AC54;               // 54 AC 70 5E = 0x5E70AC54 = 1584442452
+        public const UInt32 NKS_MAGIC_ENCRYPTED_FILE = 0x16CCF80A;          // 0A F8 CC 16 = 0x16CCF80A = 382531594
+
+
+        // TODO: when is this used
+        public const UInt32 NKS_MAGIC_FILE = 0x4916E63C;                    // 3C E6 16 49 = 0x4916E63C = 1226237500
+
+
+        // Magic content is files like tga, txt, xml, png, cache       
+        public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA;            // FA 05 E9 2A = 0x2AE905FA = 719914490
+
+
+        // Some files that contain both NKI and NCW files start with this
+        public const UInt32 NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE = 0x7FA89012;  // 12 90 A8 7F = 0x7FA89012  = 2141753362        
 
         public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false)
         {
@@ -50,14 +60,17 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             var list = NKS.NksGetSettingsLibraries("Settings.cfg", includeNonEncryptedLibs);
 
-            foreach (NksLibraryDesc entry in list)
+            if (list != null)
             {
-                var id = entry.Id;
-                var name = entry.Name;
-                var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
-                var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
+                foreach (NksLibraryDesc entry in list)
+                {
+                    var id = entry.Id;
+                    var name = entry.Name;
+                    var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
+                    var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
 
-                writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+                }
             }
         }
 
@@ -155,14 +168,18 @@ namespace PresetConverterProject.NIKontaktNKS
         public static void PrintRegistryLibraryInfo(TextWriter writer)
         {
             var list = NKS.NksGetRegistryLibraries();
-            foreach (NksLibraryDesc entry in list)
-            {
-                var id = entry.Id;
-                var name = entry.Name;
-                var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
-                var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
 
-                writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+            if (list != null)
+            {
+                foreach (NksLibraryDesc entry in list)
+                {
+                    var id = entry.Id;
+                    var name = entry.Name;
+                    var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
+                    var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
+
+                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+                }
             }
         }
 
@@ -373,7 +390,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (!TraverseDirectories(nks, list, prefix))
                 isSuccessfull = false;
 
-            // decrypt and extract files
+            // extract files (both non-decrypted and decrypted) 
             if (!TraverseFiles(nks, list, prefix))
                 isSuccessfull = false;
 
@@ -409,7 +426,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             foreach (NksEntry entry in list)
             {
-                Log.Information(string.Format("Extracting {0, -30}{1}", prefix, entry));
+                Log.Information(string.Format("Extracting {0, -30}\\{1}", prefix, entry));
 
                 if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
@@ -992,8 +1009,17 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(NKS_MAGIC_DIRECTORY)) // 0x5e70ac54
-                throw new IOException("Magic not as expected (0x5e70ac54) but " + magic);
+            if (magic == (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE))
+            {
+                // don't know what the data until offset 222 is
+                // skip to offset 222
+                bf.ReadBytes(218);
+                magic = bf.ReadUInt32(); // read_u32_le
+            }
+
+            if (magic != (UInt32)(NKS_MAGIC_DIRECTORY)) // 54 AC 70 5E = 0x5E70AC54 = 1584442452
+                throw new IOException("Magic not as expected (0x5E70AC54) but " + magic);
+
 
             header.Version = bf.ReadUInt16(); // read_u16_le
 
@@ -1095,15 +1121,15 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(NKS_MAGIC_ENCRYPTED_FILE)) // 0x16ccf80a
-                throw new IOException("Magic not as expected (0x16ccf80a) but " + magic);
+            if (magic != (UInt32)(NKS_MAGIC_ENCRYPTED_FILE)) // 0A F8 CC 16 = 0x16CCF80A
+                throw new IOException("Magic not as expected (0x16CCF80A) but " + magic);
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
             uint setId = bf.ReadUInt32(); // read_u32_le
             if (setId > 0)
             {
-                ret.SetId = setId.ToString();
+                ret.SetId = setId.ToString("000");
             }
             else
             {
@@ -1167,8 +1193,8 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(NKS_MAGIC_FILE)) // 0x4916e63c
-                throw new IOException("Magic not as expected (0x4916e63c) but " + magic);
+            if (magic != (UInt32)(NKS_MAGIC_FILE)) // 0x4916E63C
+                throw new IOException("Magic not as expected (0x4916E63C) but " + magic);
 
             ret.Version = bf.ReadUInt16(); // read_u16_le
 
