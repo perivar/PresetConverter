@@ -11,20 +11,35 @@ Name=sz:Berlin Orchestra Inspire
 SNPID=sz:P04
 84 8E 00 00 = 36484
 
-[Berlin Orchestra Inspire 2]
-Name=sz:Berlin Orchestra Inspire 2
-SNPID=sz:Q23
-DB 93 00 00 = 37851
+[Palette]
+Name=sz:Palette
+SNPID=sz:P37
+F3 8E 00 00 = 36595
+
+[Joshua Bell Violin]
+Name=sz:Joshua Bell Violin
+SNPID=sz:P10
+00 00 00 00 = 0
 
 [Metropolis Ark 3]
 Name=sz:Metropolis Ark 3
 SNPID=sz:P74
 80 8F 00 00 = 36736
 
-[Monster Low Winds]
-Name=sz:Monster Low Winds
-SNPID=sz:Q82
-B2 94 00 00  = 38066
+[Olafur Arnalds Chamber Evolutions]
+Name=sz:Olafur Arnalds Chamber Evolutions
+SNPID=sz:P78
+84 8F 00 00 = 36740
+
+[CinePiano]
+Name=sz:CinePiano
+SNPID=sz:P85
+A5 8F 00 00 = 36773
+
+[Berlin Orchestra Inspire 2]
+Name=sz:Berlin Orchestra Inspire 2
+SNPID=sz:Q23
+DB 93 00 00 = 37851
 
 [90s Retro Trumpets]
 Name=sz:90s Retro Trumpets
@@ -41,20 +56,10 @@ Name=sz:The Orchestral Grands
 SNPID=sz:Q53
 47 94 00 00 = 37959
 
-[Joshua Bell Violin]
-Name=sz:Joshua Bell Violin
-SNPID=sz:P10
-00 00 00 00 = 0
-
-[Palette]
-Name=sz:Palette
-SNPID=sz:P37
-F3 8E 00 00 = 36595
-
-[CinePiano]
-Name=sz:CinePiano
-SNPID=sz:P85
-A5 8F 00 00 = 36773
+[Monster Low Winds]
+Name=sz:Monster Low Winds
+SNPID=sz:Q82
+B2 94 00 00  = 38066
 
 [Artist Series - Randys Prepared Piano]
 Name=sz:Artist Series - Randys Prepared Piano
