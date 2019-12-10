@@ -752,12 +752,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         // try again - this time converting the number to Base36 (alphanumeric)             
                         long base10Id = long.Parse(header.SetId);
+
+                        if ((base10Id - SNPID_CONST) < 0)
+                        {
+                            // this is wrong and likely means the Kontakt library has not been installed
+                            throw new KeyNotFoundException(String.Format("Lib could not be found using id: {0}. Has it been added to Kontakt?", base10Id));
+                        }
+
                         string base36Key = Base36Converter.Encode(base10Id - SNPID_CONST);
 
                         lib = NKSLibraries.Libraries.Where(a => a.Key == base36Key).FirstOrDefault().Value;
                         if (lib == null)
                         {
-                            throw new KeyNotFoundException("lib could not be found (even after base36 lookup)");
+                            throw new KeyNotFoundException(String.Format("Lib could not be found neither using id: {0} or key: {1}. Has it been added to Kontakt?", base10Id, base36Key));
                         }
                     }
 
