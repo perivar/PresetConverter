@@ -32,6 +32,9 @@ namespace PresetConverterProject.NIKontaktNKS
         // Some files that contain both NKI and NCW files start with this
         public const UInt32 NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE = 0x7FA89012;  // 12 90 A8 7F = 0x7FA89012  = 2141753362        
 
+        // Number used in SNPID Base36 conversion
+        const int SNPID_CONST = 4080;
+
         public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false)
         {
             // read in all libraries
@@ -745,30 +748,16 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (setKey == null)
                 {
                     NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == header.SetId).FirstOrDefault().Value;
-
                     if (lib == null)
                     {
-                        // try again
-                        string mappedKey = "";
-                        switch (header.SetId)
-                        {
-                            case "36484": // Berlin Orchestra Inspire
-                                mappedKey = "P04";
-                                break;
-                            case "36736": // Metropolis Ark 3
-                                mappedKey = "P74";
-                                break;
-                            case "37851": // Berlin Orchestra Inspire 2
-                                mappedKey = "Q23";
-                                break;
-                            default:
-                                throw new KeyNotFoundException("lib could not be found");
-                        }
+                        // try again - this time converting the number to Base36 (alphanumeric)             
+                        long base10Id = long.Parse(header.SetId);
+                        string base36Key = Base36Converter.Encode(base10Id - SNPID_CONST);
 
-                        lib = NKSLibraries.Libraries.Where(a => a.Key == mappedKey).FirstOrDefault().Value;
+                        lib = NKSLibraries.Libraries.Where(a => a.Key == base36Key).FirstOrDefault().Value;
                         if (lib == null)
                         {
-                            throw new KeyNotFoundException("lib could not be found");
+                            throw new KeyNotFoundException("lib could not be found (even after base36 lookup)");
                         }
                     }
 
