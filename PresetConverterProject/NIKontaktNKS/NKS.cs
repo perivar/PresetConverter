@@ -875,6 +875,337 @@ namespace PresetConverterProject.NIKontaktNKS
 
         #endregion
 
+
+        #region Scan Files
+
+        public static void ScanFile(string fileName)
+        {
+            Nks nks = new Nks();
+            int r = NksOpen(fileName, nks);
+
+            scan_chunk(nks, "/", 0);
+        }
+
+
+        /// <summary>Extracts a file from an archive. This function is similar to
+        /// NksExtractEntry, but accepts an output BinaryFile instead of a file
+        /// name.
+        /// </summary>
+        private static bool scan_chunk(Nks nks, string name, int indent)
+        {
+            UInt32 magic = 0;
+            long offset = -1;
+
+            if ((offset = nks.BinaryFile.Seek(0, SeekOrigin.Current)) < 0)
+                return false;
+
+            try
+            {
+                magic = nks.BinaryFile.ReadUInt32(); // read_u32_le
+
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
+
+            if (nks.BinaryFile.Seek(-0x04, SeekOrigin.Current) < 0)
+                return false;
+
+            switch (magic)
+            {
+                case NKS_MAGIC_ENCRYPTED_FILE:
+                    return scan_encrypted_file(nks, name, indent);
+
+                case NKS_MAGIC_DIRECTORY:
+                    return scan_directory(nks, name, indent);
+
+                case NKS_MAGIC_FILE:
+                case NKS_MAGIC_CONTENT_FILE: // like tga, txt, xml, png, cache
+                    return scan_file(nks, name, indent);
+
+                case NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE:
+                default:
+                    print_indent(indent);
+                    Console.Write("u:{0}:0x{1:X}:{2}\n", offset, magic, name);
+                    return true;
+            }
+        }
+
+        private static bool scan_encrypted_file(Nks nks, string name, int indent)
+        {
+            byte[] expected_data = Encoding.UTF8.GetBytes("RIFF\x00\x00\x00\x00WAVEfmt ");
+
+            NksEncryptedFileHeader header = new NksEncryptedFileHeader();
+            long offset = -1;
+            byte[] data = new byte[16];
+
+            if ((offset = nks.BinaryFile.Seek(0, SeekOrigin.Current)) < 0)
+            {
+                Console.Error.WriteLine("Seeking error");
+                return false;
+            }
+
+            int r = NksReadEncryptedFileHeader(nks.BinaryFile, header);
+            if (r < 0)
+            {
+                Console.Error.WriteLine("NksReadEncryptedFileHeader: {0}", r);
+                return false;
+            }
+
+            try
+            {
+                data = nks.BinaryFile.ReadBytes(16);
+            }
+            catch (System.Exception e)
+            {
+                Console.Error.WriteLine("ReadBytes: {0}", e);
+                return false;
+            }
+
+            print_indent(indent++);
+
+            Console.Write("x:{0}:0x{1:X}:{2}:{3}:{4}:0x", offset, header.Version, header.SetId, header.KeyIndex, header.Size);
+
+            for (int n = 0; n < 5; n++)
+                Console.Write("{0:X2}", header.Unknown1[n]);
+
+            Console.Write(":0x");
+
+            for (int n = 0; n < 8; n++)
+                Console.Write("{0:X2}", header.Unknown2[n]);
+
+            Console.Write("\n");
+
+            print_indent(indent);
+
+            for (int n = 0; n < 16; n++)
+            {
+                if (n != 0)
+                    Console.Write(" ");
+
+                if (n != 0 && (n % 4) == 0)
+                    Console.Write(" ");
+
+                Console.Write("{0:X2}", data[n]);
+            }
+
+            Console.Write("\n");
+
+            /*
+            print_indent(indent);
+
+            for (int n = 0; n < 16; n++)
+            {
+                if (n != 0)
+                    Console.Write(" ");
+
+                if (n != 0 && (n % 4) == 0)
+                    Console.Write(" ");
+
+                if (n < 4 || n >= 8)
+                    Console.Write("{0:X2}", data[n] ^ expected_data[n]);
+                else
+                    Console.Write("  ");
+            }
+
+            Console.Write("\n");
+            */
+
+            return true;
+        }
+
+        private static bool scan_file(Nks nks, string name, int indent)
+        {
+            NksFileHeader header = new NksFileHeader();
+            long offset = -1;
+
+            if ((offset = nks.BinaryFile.Seek(0, SeekOrigin.Current)) < 0)
+            {
+                Console.Error.WriteLine("Seeking error");
+                return false;
+            }
+
+            int r = NksReadFileHeader(nks.BinaryFile, header);
+            if (r < 0)
+            {
+                Console.Error.WriteLine("NksReadFileHeader: {0}", r);
+                return false;
+            }
+
+            print_indent(indent++);
+
+            Console.Write("f:{0}:0x{1:X}:", offset, header.Version);
+
+            for (int n = 0; n < 13; n++)
+                Console.Write("{0:X2}", header.Unknown1[n]);
+
+            Console.Write(":{0}:", header.Size);
+
+            for (int n = 0; n < 4; n++)
+                Console.Write("{0:X2}", header.Unknown2[n]);
+
+            Console.Write(":{0}\n", name);
+
+            return true;
+        }
+
+        private static bool scan_directory(Nks nks, string name, int indent)
+        {
+            NksDirectoryHeader header = new NksDirectoryHeader();
+            int r;
+            long offset = -1;
+
+            if ((offset = nks.BinaryFile.Seek(0, SeekOrigin.Current)) < 0)
+            {
+                Console.Error.WriteLine("Seeking error");
+                return false;
+            }
+
+            r = NksReadDirectoryHeader(nks.BinaryFile, header);
+            if (r < 0)
+            {
+                Console.Error.WriteLine("NksReadDirectoryHeader: {0}", r);
+                return false;
+            }
+
+            print_indent(indent++);
+
+            Console.Write("d:{0}:0x{1:X}:{2}:0x", offset, header.Version, header.SetId);
+
+            for (int n = 0; n < 4; n++)
+                Console.Write("{0:X2}", header.Unknown0[n]);
+
+            Console.Write(":0x");
+
+            for (int n = 0; n < 4; n++)
+                Console.Write("{0:X2}", header.Unknown1[n]);
+
+            Console.Write(":{0}:{1}\n", header.EntryCount, name);
+
+            switch (header.Version)
+            {
+                case 0x0100:
+                    if (!scan_0100_entries(nks, header.EntryCount, indent))
+                        return false;
+                    break;
+
+                case 0x0111:
+                case 0x0110:
+                    if (!scan_0110_entries(nks, header.EntryCount, indent))
+                        return false;
+                    break;
+
+                default:
+                    throw new NotSupportedException("Header version not supported " + header.Version);
+            }
+
+            return true;
+        }
+
+        private static bool scan_0100_entry(Nks nks, long offset, Nks0100EntryHeader header, int indent)
+        {
+            print_indent(indent++);
+
+            Console.Write("e:{0}:{1}:{2}:0x{3:X2}:0x{4:X2}:{5}\n", offset, header.Offset, header.Type, header.Unknown[0], header.Unknown[1], header.Name);
+
+            if (nks.BinaryFile.Seek(header.Offset, SeekOrigin.Begin) < 0)
+                return false;
+
+            return scan_chunk(nks, header.Name, indent);
+        }
+
+        private static bool scan_0100_entries(Nks nks, uint count, int indent)
+        {
+            long[] offsets = new long[count];
+            Nks0100EntryHeader[] entries = new Nks0100EntryHeader[count];
+            int n;
+            int r;
+
+            for (n = 0; n < count; n++)
+            {
+                offsets[n] = nks.BinaryFile.Seek(0, SeekOrigin.Current);
+                if (offsets[n] < 0)
+                {
+                    Console.Error.WriteLine("Seeking error");
+                    return false;
+                }
+
+                entries[n] = new Nks0100EntryHeader();
+                r = NksRead0100EntryHeader(nks.BinaryFile, entries[n]);
+                if (r < 0)
+                {
+                    Console.Write("nks_read_0100_entry_header: {0}\n", -r);
+                    return false;
+                }
+            }
+
+            for (n = 0; n < count; n++)
+            {
+                if (!scan_0100_entry(nks, offsets[n], entries[n], indent))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool scan_0110_entry(Nks nks, long offset, Nks0110EntryHeader header, int indent)
+        {
+            print_indent(indent++);
+
+            Console.Write("e:{0}:{1}:{2}:0x{3:X2}:0x{4:X2}:{5}\n", offset, header.Offset, header.Type, header.Unknown[0], header.Unknown[1], header.Name);
+
+            if (nks.BinaryFile.Seek(header.Offset, SeekOrigin.Begin) < 0)
+                return false;
+
+            return scan_chunk(nks, header.Name, indent);
+        }
+
+        private static bool scan_0110_entries(Nks nks, uint count, int indent)
+        {
+            long[] offsets = new long[count];
+            Nks0110EntryHeader[] entries = new Nks0110EntryHeader[count];
+            int n;
+            int r;
+
+            for (n = 0; n < count; n++)
+            {
+                offsets[n] = nks.BinaryFile.Seek(0, SeekOrigin.Current);
+                if (offsets[n] < 0)
+                {
+                    Console.Error.WriteLine("Seeking error");
+                    return false;
+                }
+
+                entries[n] = new Nks0110EntryHeader();
+                r = NksRead0110EntryHeader(nks.BinaryFile, entries[n]);
+                if (r < 0)
+                {
+                    Console.Write("nks_read_0100_entry_header: {0}\n", -r);
+                    return false;
+                }
+            }
+
+            for (n = 0; n < count; n++)
+            {
+                if (!scan_0110_entry(nks, offsets[n], entries[n], indent))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static void print_indent(int indent)
+        {
+            for (int n = 0; n < indent; n++)
+            {
+                Console.Write("  ");
+            }
+        }
+
+
+        #endregion
+
         #region Generate and Read Keys mehods
         private static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
         private static byte[] Nks0110BaseKey;

@@ -1192,6 +1192,7 @@ namespace PresetConverter
                 try
                 {
                     NKS.TraverseDirectory(file, outputDirectoryPath);
+                    // NKS.ScanFile(file);
                 }
                 catch (System.Exception e)
                 {
