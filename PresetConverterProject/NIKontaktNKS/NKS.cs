@@ -933,6 +933,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     return ScanContentFile(nks, name, indentCount);
 
                 case NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE:
+                    return ScanBundleFile(nks, name, indentCount);
+
                 default:
                     Log.Information(GetIndentStrings(indentCount) + "[{0}] unknown 0x{1:X}:{2}", offset, magic, name);
                     return true;
@@ -1013,6 +1015,24 @@ namespace PresetConverterProject.NIKontaktNKS
             Log.Information(GetIndentStrings(indentCount) + StringUtils.ToHexAndAsciiString(data));
 
             return true;
+        }
+
+        private static bool ScanBundleFile(Nks nks, string name, int indentCount)
+        {
+            NksBundleHeader header = new NksBundleHeader();
+            long offset = -1;
+
+            if ((offset = nks.BinaryFile.Seek(0, SeekOrigin.Current)) < 0)
+            {
+                return false;
+            }
+
+            var r = NksReadBundleHeader(nks.BinaryFile, header);
+            if (!r) return false;
+
+            Log.Information(GetIndentStrings(indentCount++) + "[{0}] bundle_file", offset);
+
+            return ScanDirectory(nks, name, indentCount);
         }
 
         private static bool ScanDirectory(Nks nks, string name, int indentCount)
@@ -1305,10 +1325,8 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic == (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE))
+            if (magic == (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE)) // 12 90 A8 7F = 0x7FA89012  = 2141753362
             {
-                // don't know what the data until offset 222 is
-                // skip to offset 222
                 bf.ReadBytes(218);
                 magic = bf.ReadUInt32(); // read_u32_le
             }
@@ -1337,6 +1355,19 @@ namespace PresetConverterProject.NIKontaktNKS
                 default:
                     throw new ArgumentException("Header version not valid: " + header.Version);
             }
+
+            return true;
+        }
+
+        private static bool NksReadBundleHeader(BinaryFile bf, NksBundleHeader header)
+        {
+            UInt32 magic = bf.ReadUInt32(); // read_u32_le
+
+            if (magic != (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE)) // 12 90 A8 7F = 0x7FA89012  = 2141753362        
+                throw new IOException("Magic not as expected (0x7FA89012) but " + magic);
+
+            if ((header.Unknown = bf.ReadBytes(218)).Length != 218)
+                throw new IOException("Failed reading from stream");
 
             return true;
         }
@@ -1630,6 +1661,11 @@ namespace PresetConverterProject.NIKontaktNKS
     public class NksEncryptedContentFileHeader : NksEncryptedHeader
     {
         public byte[] Unknown = new byte[4];
+    }
+
+    public class NksBundleHeader
+    {
+        public byte[] Unknown = new byte[218];
     }
 
     public class NcwAudioHeader
