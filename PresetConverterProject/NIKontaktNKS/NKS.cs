@@ -370,11 +370,10 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         /// <summary>
-        /// Extract all files in the NKS file archive.
+        /// List all files in the NKS file archive.
         /// </summary>
-        /// <param name="fileName">file to extract from</param>
-        /// <param name="prefix">directory path to use</param>
-        public static void ExtractArchive(string fileName, string prefix)
+        /// <param name="fileName">file to list</param>
+        public static bool ListArchive(string fileName)
         {
             Nks nks = new Nks();
             NksEntry rootEntry = new NksEntry();
@@ -384,7 +383,71 @@ namespace PresetConverterProject.NIKontaktNKS
 
             var r = NksOpen(fileName, nks);
 
-            bool isSuccessfull = !ExtractArchive(nks, rootEntry, prefix);
+            return ListArchive(nks, rootEntry);
+        }
+
+        private static bool ListArchive(Nks nks, NksEntry dirEntry)
+        {
+            var list = new ArrayList();
+            bool isSuccessfull = true;
+
+            if (!NksListDirEntry(nks, list, dirEntry))
+                isSuccessfull = false;
+
+            if (!ListTraverseDirectories(nks, list))
+                isSuccessfull = false;
+
+            foreach (NksEntry entry in list)
+            {
+                if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
+                {
+                    Log.Information(string.Format("/{0,-20}{1} [{2}]", dirEntry.Name.Length > 0 ? dirEntry.Name + "/" : "", entry, list.Count));
+                }
+                else
+                {
+                    Log.Information(string.Format("/{0,-20}{1}", dirEntry.Name.Length > 0 ? dirEntry.Name + "/" : "", entry));
+                }
+            }
+
+            list.Clear();
+            return isSuccessfull;
+        }
+
+        private static bool ListTraverseDirectories(Nks nks, IList list)
+        {
+            if (list == null)
+                return true;
+
+            bool isSuccessfull = true;
+
+            foreach (NksEntry entry in list)
+            {
+                if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
+                    continue;
+
+                if (!ListArchive(nks, entry))
+                    isSuccessfull = false;
+            }
+
+            return isSuccessfull;
+        }
+
+        /// <summary>
+        /// Extract all files in the NKS file archive.
+        /// </summary>
+        /// <param name="fileName">file to extract from</param>
+        /// <param name="prefix">directory path to use</param>
+        public static bool ExtractArchive(string fileName, string prefix)
+        {
+            Nks nks = new Nks();
+            NksEntry rootEntry = new NksEntry();
+            rootEntry.Name = "";
+            rootEntry.Offset = 0;
+            rootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
+
+            var r = NksOpen(fileName, nks);
+
+            return ExtractArchive(nks, rootEntry, prefix);
         }
 
         private static bool ExtractArchive(Nks nks, NksEntry dirEntry, string prefix)
@@ -395,18 +458,18 @@ namespace PresetConverterProject.NIKontaktNKS
             if (!NksListDirEntry(nks, list, dirEntry))
                 isSuccessfull = false;
 
-            if (!TraverseDirectories(nks, list, prefix))
+            if (!ExtractTraverseDirectories(nks, list, prefix))
                 isSuccessfull = false;
 
             // extract files (both non-decrypted and decrypted) 
-            if (!TraverseFiles(nks, list, prefix))
+            if (!ExtractTraverseFiles(nks, list, prefix))
                 isSuccessfull = false;
 
             list.Clear();
             return isSuccessfull;
         }
 
-        private static bool TraverseDirectories(Nks nks, IList list, string prefix)
+        private static bool ExtractTraverseDirectories(Nks nks, IList list, string prefix)
         {
             if (list == null)
                 return true;
@@ -427,7 +490,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return isSuccessfull;
         }
 
-        private static bool TraverseFiles(Nks nks, IList list, string prefix)
+        private static bool ExtractTraverseFiles(Nks nks, IList list, string prefix)
         {
             if (list == null)
                 return true;
@@ -439,7 +502,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
 
-                if (!TraverseFile(nks, entry, prefix))
+                if (!ExtractTraverseFile(nks, entry, prefix))
                 {
                     return false;
                 }
@@ -448,7 +511,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool TraverseFile(Nks nks, NksEntry fileEntry, string prefix)
+        private static bool ExtractTraverseFile(Nks nks, NksEntry fileEntry, string prefix)
         {
             bool isSuccessfull = true;
             int extractedCount = 0;
@@ -936,7 +999,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     return ScanBundleFile(nks, name, indentCount);
 
                 default:
-                    Log.Information(GetIndentStrings(indentCount) + "[{0}] unknown 0x{1:X}:{2}", offset, magic, name);
+                    Log.Debug(GetIndentStrings(indentCount) + "[{0}] unknown 0x{1}:{2}", offset, magic.ToString("X"), name);
                     return true;
             }
         }
@@ -1276,7 +1339,7 @@ namespace PresetConverterProject.NIKontaktNKS
         private static void Generate0100Keys()
         {
             // Fill arrays with pseudo random bytes
-            int seed = 0x6ee38fe0;
+            int seed = 0x6EE38FE0;
             for (int key = 0; key < 32; key++)
             {
                 for (int n = 0; n < 16; n++)
@@ -1291,8 +1354,8 @@ namespace PresetConverterProject.NIKontaktNKS
         // https://stackoverflow.com/questions/1026327/what-common-algorithms-are-used-for-cs-rand
         private static byte RandMs(ref int seed)
         {
-            seed = seed * 0x343fd + 0x269ec3;
-            return (byte)((seed >> 0x10) & 0x7fff);
+            seed = seed * 0x343FD + 0x269EC3;
+            return (byte)((seed >> 0x10) & 0x7FFF);
         }
 
         private static void Generate0110BaseKey()
@@ -1303,7 +1366,7 @@ namespace PresetConverterProject.NIKontaktNKS
             Nks0110BaseKey = new byte[0x10000];
 
             // Fill array with pseudo random bytes
-            int seed = 0x608da0a2;
+            int seed = 0x608DA0A2;
             for (int n = 0; n < 0x10000; n++)
             {
                 Nks0110BaseKey[n] = RandMs(ref seed);
@@ -1327,7 +1390,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             if (magic == (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE)) // 12 90 A8 7F = 0x7FA89012  = 2141753362
             {
-                Log.Information("Detected Magic 0x7FA89012 (NKI_AND_SAMPLES_BUNDLE). Skipping to where Directory is expected.");
+                Log.Debug("Detected Magic 0x7FA89012 (NKI_AND_SAMPLES_BUNDLE). Skipping to where Directory is expected.");
                 bf.ReadBytes(218);
                 magic = bf.ReadUInt32(); // read_u32_le
             }
@@ -1583,7 +1646,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public override string ToString()
         {
-            return string.Format("{0,-30} {1,-20} {2}", Name, Type, Offset);
+            return string.Format("{0,-50} {1,-20} {2}", Name, Type, Offset);
         }
     }
 
@@ -1619,19 +1682,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public abstract class NksEntryHeader
     {
+        public string Name { get; set; }
         public UInt32 Offset { get; set; }
         public UInt16 Type { get; set; }
     }
 
     public class Nks0100EntryHeader : NksEntryHeader
     {
-        public string Name { get; set; }
         public byte[] Unknown = new byte[1];
     }
 
     public class Nks0110EntryHeader : NksEntryHeader
     {
-        public string Name { get; set; }
         public byte[] Unknown = new byte[2];
     }
 

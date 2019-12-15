@@ -40,6 +40,7 @@ namespace PresetConverter
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
             var optionInputExtra = app.Option("-e|--extra <path>", "Extra information as used by the different converters. (E.g. for wav this is a path to an image)", CommandOptionType.SingleValue);
             var switchConvertKontakt6 = app.Option("-k6|--kontakt6", "Convert discovered Kontakt presets to Kontakt 6", CommandOptionType.NoValue);
+            var switchList = app.Option("-l|--list", "List the content of archives", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
@@ -51,6 +52,7 @@ namespace PresetConverter
 
                     // check convert arguments
                     bool doConvertToKontakt6 = switchConvertKontakt6.HasValue();
+                    bool doList = switchList.HasValue();
 
                     // Setup Logger
                     string errorLogFilePath = Path.Combine(outputDirectoryPath, "log-error.log");
@@ -102,7 +104,7 @@ namespace PresetConverter
                             case ".nkr":
                             case ".nki":
                             case ".nicnt":
-                                HandleNIKontaktFile(file, outputDirectoryPath, config);
+                                HandleNIKontaktFile(file, outputDirectoryPath, config, doList);
                                 break;
                         }
                     }
@@ -1086,7 +1088,7 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleNIKontaktFile(string file, string outputDirectoryPath, IConfiguration config)
+        private static void HandleNIKontaktFile(string file, string outputDirectoryPath, IConfiguration config, bool doList)
         {
             string extension = new FileInfo(file).Extension.ToLowerInvariant();
 
@@ -1177,11 +1179,11 @@ namespace PresetConverter
 
                     if (snpid == "")
                     {
-                        NKS.ExtractFileEntryToBf(nks, header, outBinaryFile);
+                        if (!doList) NKS.ExtractFileEntryToBf(nks, header, outBinaryFile);
                     }
                     else
                     {
-                        NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
+                        if (!doList) NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
                     }
                 }
             }
@@ -1191,8 +1193,16 @@ namespace PresetConverter
                 // NKS.PrintSettingsLibraryInfo(Console.Out);
                 try
                 {
-                    NKS.ExtractArchive(file, outputDirectoryPath);
-                    // NKS.ScanArchive(file);
+                    if (doList)
+                    {
+                        // NKS.ScanArchive(file);
+                        NKS.ListArchive(file);
+                    }
+                    else
+                    {
+                        NKS.ExtractArchive(file, outputDirectoryPath);
+
+                    }
                 }
                 catch (System.Exception e)
                 {
