@@ -1191,8 +1191,8 @@ namespace PresetConverter
                 // NKS.PrintSettingsLibraryInfo(Console.Out);
                 try
                 {
-                    NKS.TraverseDirectory(file, outputDirectoryPath);
-                    // NKS.ScanFile(file);
+                    NKS.ExtractArchive(file, outputDirectoryPath);
+                    // NKS.ScanArchive(file);
                 }
                 catch (System.Exception e)
                 {
