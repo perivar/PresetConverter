@@ -203,8 +203,8 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
             "args": [
-                // "-i",
-                // "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Sacconi_vln1_MainMics_Add_0.nkx",
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Sacconi_vln1_MainMics_Add_0.nkx",
                 // "-i",
                 // "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\SymphonicBrass__Bass Trombones a2003.nkx",
                 // "-i",

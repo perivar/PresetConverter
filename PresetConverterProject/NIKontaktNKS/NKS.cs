@@ -514,12 +514,12 @@ namespace PresetConverterProject.NIKontaktNKS
                 switch (header.Version)
                 {
                     case 0x0100:
-                        r = NksRead0100NksEntry(nks.BinaryFile, header, entry);
+                        r = NksRead0100Entry(nks.BinaryFile, header, entry);
                         break;
 
                     case 0x0111:
                     case 0x0110:
-                        r = NksRead0110NksEntry(nks.BinaryFile, header, entry);
+                        r = NksRead0110Entry(nks.BinaryFile, header, entry);
                         break;
 
                     default:
@@ -1327,6 +1327,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             if (magic == (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE)) // 12 90 A8 7F = 0x7FA89012  = 2141753362
             {
+                Log.Information("Detected Magic 0x7FA89012 (NKI_AND_SAMPLES_BUNDLE). Skipping to where Directory is expected.");
                 bf.ReadBytes(218);
                 magic = bf.ReadUInt32(); // read_u32_le
             }
@@ -1407,7 +1408,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool NksRead0100NksEntry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
+        private static bool NksRead0100Entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
         {
             Nks0100EntryHeader hdr = new Nks0100EntryHeader();
 
@@ -1421,7 +1422,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool NksRead0110NksEntry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
+        private static bool NksRead0110Entry(BinaryFile bf, NksDirectoryHeader dir, NksEntry entry)
         {
             Nks0110EntryHeader hdr = new Nks0110EntryHeader();
 
@@ -1541,7 +1542,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private static UInt32 DecodeOffset(UInt32 offset)
         {
-            return (offset ^ (UInt32)(0x1f4e0c8d));
+            return (offset ^ (UInt32)(0x1F4E0C8D));
         }
 
         private static NksEntryType TypeHintToEntryType(UInt16 typeHint)
