@@ -396,13 +396,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private static void PrintArchiveTree(NksEntry entry)
         {
+            string indent = GetIndentStrings(entry.Level);
+
             if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
             {
-                Log.Information(string.Format("{0}/{1,-30} [{2}]", GetIndentStrings(entry.Level), entry.Name, entry.Children != null ? entry.Children.Count : 0));
+                Log.Information(string.Format("{0}{1} [{2}]", indent + "+- ", entry.Name.Length > 0 ? entry.Name : "ROOT", entry.Children != null ? entry.Children.Count : 0));
             }
             else
             {
-                Log.Information(string.Format("{0}/{1,-30}", GetIndentStrings(entry.Level), entry.Name));
+                Log.Information(string.Format("{0}{1}", indent + "- ", entry.Name));
 
             }
 
@@ -415,29 +417,31 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static bool ListArchive(Nks nks, NksEntry dirEntry, int levelCount)
+        private static bool ListArchive(Nks nks, NksEntry dirEntry, int level)
         {
-            var list = new List<NksEntry>();
+            var children = new List<NksEntry>();
             bool isSuccessfull = true;
 
-            if (!NksListDirEntry(nks, list, dirEntry))
+            if (!NksListDirEntry(nks, children, dirEntry))
                 isSuccessfull = false;
 
-            // if successfull - add the children list to the current node
+            // if successfull, add the children list to the current node
             if (isSuccessfull)
             {
                 // toList() copies the elements
-                dirEntry.Children = list.ToList();
+                dirEntry.Children = children.ToList();
             }
 
-            if (!ListTraverseDirectories(nks, list, levelCount + 1))
+            if (!ListTraverseDirectories(nks, children, level + 1))
                 isSuccessfull = false;
 
-            list.Clear();
+            // reset list
+            children.Clear();
+
             return isSuccessfull;
         }
 
-        private static bool ListTraverseDirectories(Nks nks, IList list, int levelCount)
+        private static bool ListTraverseDirectories(Nks nks, IList list, int level)
         {
             if (list == null)
                 return true;
@@ -447,14 +451,14 @@ namespace PresetConverterProject.NIKontaktNKS
             foreach (NksEntry entry in list)
             {
                 // store the level
-                entry.Level = levelCount;
+                entry.Level = level;
 
-                // skip files
+                // only care about directories, skip the rest
                 if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
 
-                // check directories
-                if (!ListArchive(nks, entry, levelCount))
+                // recursively check directories
+                if (!ListArchive(nks, entry, level))
                     isSuccessfull = false;
             }
 
@@ -1280,7 +1284,7 @@ namespace PresetConverterProject.NIKontaktNKS
             string indent = "";
             for (int n = 0; n < indentCount; n++)
             {
-                indent += "  ";
+                indent += "   ";
             }
             return indent;
         }
