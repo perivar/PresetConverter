@@ -27,8 +27,8 @@ namespace PresetConverterProject.NIKontaktNKS
         public const UInt32 NKS_MAGIC_CONTENT_FILE = 0x2AE905FA;            // FA 05 E9 2A = 0x2AE905FA = 719914490
 
 
-        // Some files that contain both NKI and NCW files start with this
-        public const UInt32 NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE = 0x7FA89012;  // 12 90 A8 7F = 0x7FA89012  = 2141753362        
+        // Some nkx files that contain both NKI and NCW files start with this
+        public const UInt32 NKS_MAGIC_NKI = 0x7FA89012;                     // 12 90 A8 7F = 0x7FA89012  = 2141753362        
 
 
         // NCW files start with this
@@ -360,7 +360,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (bf == null)
                 throw new ArgumentNullException("BinaryFile cannot be null");
 
-            nks.RootEntry.Name = "/";
+            nks.RootEntry.Name = "";
             nks.RootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
             nks.RootEntry.Offset = 0;
             nks.BinaryFile = bf;
@@ -376,53 +376,59 @@ namespace PresetConverterProject.NIKontaktNKS
         public static bool ListArchive(string fileName)
         {
             Nks nks = new Nks();
-            NksEntry rootEntry = new NksEntry();
-            rootEntry.Name = "";
-            rootEntry.Offset = 0;
-            rootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
-
-            var r = NksOpen(fileName, nks);
-
-            if (ListArchive(nks, rootEntry, 0))
+            if (NksOpen(fileName, nks))
             {
-                // recursively print the archive tree
-                PrintArchiveTree(rootEntry);
+                if (ListArchiveRecursive(nks, nks.RootEntry, 0))
+                {
+                    // recursively print the archive tree
+                    PrintArchiveRecursive(nks, nks.RootEntry);
 
-                return true;
+                    return true;
+                }
             }
 
             return false;
         }
 
-        private static void PrintArchiveTree(NksEntry entry)
+        private static void PrintArchiveRecursive(Nks nks, NksEntry entry)
         {
             string indent = GetIndentStrings(entry.Level);
 
             if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
             {
-                Log.Information(string.Format("{0}{1} [{2}]", indent + "+- ", entry.Name.Length > 0 ? entry.Name : "ROOT", entry.Children != null ? entry.Children.Count : 0));
+                Log.Information(string.Format("{0}{1}  [{2} elements]", indent + "+- ", entry.Name.Length > 0 ? entry.Name : "ROOT", entry.Children != null ? entry.Children.Count : 0));
             }
             else
             {
-                Log.Information(string.Format("{0}{1}", indent + "- ", entry.Name));
+                int fileSize = -1;
+                try
+                {
+                    fileSize = NksFileSize(nks, entry);
 
+                }
+                catch (System.Exception e)
+                {
+                    Log.Error("Failed reading file size for entry " + entry, e);
+                }
+
+                Log.Information(string.Format("{0}{1}  ({2} bytes)", indent + "- ", entry.Name, fileSize));
             }
 
             if (entry.Children != null)
             {
                 foreach (NksEntry child in entry.Children)
                 {
-                    PrintArchiveTree(child);
+                    PrintArchiveRecursive(nks, child);
                 }
             }
         }
 
-        private static bool ListArchive(Nks nks, NksEntry dirEntry, int level)
+        private static bool ListArchiveRecursive(Nks nks, NksEntry dirEntry, int level)
         {
             var children = new List<NksEntry>();
             bool isSuccessfull = true;
 
-            if (!NksListDirEntry(nks, children, dirEntry))
+            if (!NksAddDirEntriesToList(nks, children, dirEntry))
                 isSuccessfull = false;
 
             // if successfull, add the children list to the current node
@@ -432,7 +438,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 dirEntry.Children = children.ToList();
             }
 
-            if (!ListTraverseDirectories(nks, children, level + 1))
+            if (!ListDirectory(nks, children, level + 1))
                 isSuccessfull = false;
 
             // reset list
@@ -441,7 +447,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return isSuccessfull;
         }
 
-        private static bool ListTraverseDirectories(Nks nks, IList list, int level)
+        private static bool ListDirectory(Nks nks, IList list, int level)
         {
             if (list == null)
                 return true;
@@ -457,8 +463,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
 
-                // recursively check directories
-                if (!ListArchive(nks, entry, level))
+                // recursively find the files in the directories
+                if (!ListArchiveRecursive(nks, entry, level))
                     isSuccessfull = false;
             }
 
@@ -473,78 +479,36 @@ namespace PresetConverterProject.NIKontaktNKS
         public static bool ExtractArchive(string fileName, string prefix)
         {
             Nks nks = new Nks();
-            NksEntry rootEntry = new NksEntry();
-            rootEntry.Name = "";
-            rootEntry.Offset = 0;
-            rootEntry.Type = NksEntryType.NKS_ENT_DIRECTORY;
-
-            var r = NksOpen(fileName, nks);
-
-            return ExtractArchive(nks, rootEntry, prefix);
-        }
-
-        private static bool ExtractArchive(Nks nks, NksEntry dirEntry, string prefix)
-        {
-            var list = new List<NksEntry>();
-            bool isSuccessfull = true;
-
-            if (!NksListDirEntry(nks, list, dirEntry))
-                isSuccessfull = false;
-
-            if (!ExtractTraverseDirectories(nks, list, prefix))
-                isSuccessfull = false;
-
-            // extract files (both non-decrypted and decrypted) 
-            if (!ExtractTraverseFiles(nks, list, prefix))
-                isSuccessfull = false;
-
-            list.Clear();
-            return isSuccessfull;
-        }
-
-        private static bool ExtractTraverseDirectories(Nks nks, IList list, string prefix)
-        {
-            if (list == null)
-                return true;
-
-            bool isSuccessfull = true;
-
-            foreach (NksEntry entry in list)
+            if (NksOpen(fileName, nks))
             {
-                if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
-                    continue;
-
-                string prefix_buffer = Path.Join(prefix, entry.Name);
-
-                if (!ExtractArchive(nks, entry, prefix_buffer))
-                    isSuccessfull = false;
-            }
-
-            return isSuccessfull;
-        }
-
-        private static bool ExtractTraverseFiles(Nks nks, IList list, string prefix)
-        {
-            if (list == null)
-                return true;
-
-            foreach (NksEntry entry in list)
-            {
-                Log.Information(string.Format("Extracting {0, -30}\\{1}", prefix, entry));
-
-                if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
-                    continue;
-
-                if (!ExtractTraverseFile(nks, entry, prefix))
+                if (ListArchiveRecursive(nks, nks.RootEntry, 0))
                 {
-                    return false;
+                    // recursively extract the archive tree
+                    ExtractArchiveRecursive(nks, nks.RootEntry, prefix);
+
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
-        private static bool ExtractTraverseFile(Nks nks, NksEntry fileEntry, string prefix)
+        private static void ExtractArchiveRecursive(Nks nks, NksEntry entry, string prefix)
+        {
+            Log.Information(string.Format("Extracting {0,-100} {1,-18} {2}", Path.Join(prefix, entry.Name), entry.Type, entry.Offset));
+
+            ExtractNksEntry(nks, entry, prefix);
+
+            if (entry.Children != null)
+            {
+                foreach (NksEntry child in entry.Children)
+                {
+                    ExtractArchiveRecursive(nks, child, Path.Join(prefix, entry.Name));
+                }
+            }
+        }
+
+        private static bool ExtractNksEntry(Nks nks, NksEntry fileEntry, string prefix)
         {
             bool isSuccessfull = true;
             int extractedCount = 0;
@@ -573,10 +537,10 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         /// <summary>
-        /// Lists the contents of a directory in an archive. 
-        /// The entry must correspond to a directory and not a file..
+        /// Lists the contents of a directory in an archive and add to the passed list.
+        /// The entry must correspond to a directory and not a file.
         /// </summary>
-        private static bool NksListDirEntry(Nks nks, IList list, NksEntry entry)
+        private static bool NksAddDirEntriesToList(Nks nks, IList list, NksEntry entry)
         {
             NksDirectoryHeader header = new NksDirectoryHeader();
             var r = false;
@@ -590,10 +554,14 @@ namespace PresetConverterProject.NIKontaktNKS
             r = NksReadDirectoryHeader(nks.BinaryFile, header);
             if (!r) return false;
 
-            return ListDirectory(nks, list, header);
+            return NksAddDirEntriesToList(nks, list, header);
         }
 
-        private static bool ListDirectory(Nks nks, IList list, NksDirectoryHeader header)
+        /// <summary>
+        /// Lists the contents of a directory in an archive and add to the passed list.
+        /// The header must be a NksDirectoryHeader object
+        /// </summary>
+        private static bool NksAddDirEntriesToList(Nks nks, IList list, NksDirectoryHeader header)
         {
             long offset = nks.BinaryFile.Seek(0, SeekOrigin.Current);
             if (offset < 0)
@@ -631,7 +599,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     throw new IOException("Failed reading from stream");
                 }
 
-                // add to list    
+                // add entry to list    
                 var f = list.Add(entry);
                 if (f == -1)
                 {
@@ -653,21 +621,19 @@ namespace PresetConverterProject.NIKontaktNKS
         /// <returns>the size, or a negative value on error</returns>
         public static int NksFileSize(Nks nks, NksEntry entry)
         {
-            NksEncryptedFileHeader header = new NksEncryptedFileHeader();
-            var r = false;
-
             if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
                 throw new IOException("Failed reading from stream");
 
             UInt32 magic = nks.BinaryFile.ReadUInt32(); // read_u32_le
-
             switch (magic)
             {
                 case NKS_MAGIC_ENCRYPTED_FILE:
+                case NKS_MAGIC_FILE:
+                case NKS_MAGIC_CONTENT_FILE: // like tga, txt, xml, png, cache
                     break;
 
                 case NKS_MAGIC_DIRECTORY:
-                    throw new ArgumentException("Magic is a directory");
+                    throw new NotSupportedException("Magic is a directory");
 
                 default:
                     throw new NotSupportedException("Magic not supported " + magic);
@@ -676,10 +642,32 @@ namespace PresetConverterProject.NIKontaktNKS
             if (nks.BinaryFile.Seek(entry.Offset, SeekOrigin.Begin) < 0)
                 throw new IOException("Failed reading from stream");
 
-            r = NksReadEncryptedFileHeader(nks.BinaryFile, header);
-            if (!r) return -1;
+            if (magic == NKS_MAGIC_ENCRYPTED_FILE)
+            {
+                NksEncryptedFileHeader header = new NksEncryptedFileHeader();
+                if (NksReadEncryptedFileHeader(nks.BinaryFile, header))
+                {
+                    return (int)header.Size;
+                }
+            }
+            else if (magic == NKS_MAGIC_CONTENT_FILE)
+            {
+                NksEncryptedContentFileHeader header = new NksEncryptedContentFileHeader();
+                if (NksReadContentFileHeader(nks.BinaryFile, header))
+                {
+                    return (int)header.Size;
+                }
+            }
+            else
+            {
+                NksFileHeader header = new NksFileHeader();
+                if (NksReadFileHeader(nks.BinaryFile, header))
+                {
+                    return (int)header.Size;
+                }
+            }
 
-            return (int)header.Size;
+            return -1;
         }
 
         /// <summary>
@@ -687,8 +675,7 @@ namespace PresetConverterProject.NIKontaktNKS
         /// </summary>
         /// <param name="nks">the archive</param>
         /// <param name="entry">the entry corresponding to the file to extract in the archive</param>
-        /// <param name="outFile">the name of the file to extract to. The file will be
-        /// created.</param>
+        /// <param name="outFile">the name of the file to extract to. The file will be created.</param>
         /// <returns>true on success</returns>
         private static bool NksExtractFileEntry(Nks nks, NksEntry entry, string outFile)
         {
@@ -712,8 +699,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         /// <summary>
         /// Extracts a file from an archive. This function is similar to
-        /// NksExtractEntry, but accepts an output BinaryFile instead of a file
-        /// name.
+        /// NksExtractFileEntry, but accepts an output BinaryFile instead of a file name.
         /// </summary>
         /// <returns>true on success</returns>
         private static bool NksExtractFileEntryToBf(Nks nks, NksEntry entry, BinaryFile outbinaryFile)
@@ -1028,8 +1014,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 case NKS_MAGIC_CONTENT_FILE: // like tga, txt, xml, png, cache
                     return ScanContentFile(nks, name, indentCount);
 
-                case NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE:
-                    return ScanBundleFile(nks, name, indentCount);
+                case NKS_MAGIC_NKI:
+                    return ScanNKIFile(nks, name, indentCount);
 
                 default:
                     Log.Debug(GetIndentStrings(indentCount) + "[{0}] unknown 0x{1}:{2}", offset, magic.ToString("X"), name);
@@ -1113,7 +1099,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool ScanBundleFile(Nks nks, string name, int indentCount)
+        private static bool ScanNKIFile(Nks nks, string name, int indentCount)
         {
             NksBundleHeader header = new NksBundleHeader();
             long offset = -1;
@@ -1123,10 +1109,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
-            var r = NksReadBundleHeader(nks.BinaryFile, header);
+            var r = NksReadNKIHeader(nks.BinaryFile, header);
             if (!r) return false;
 
-            Log.Information(GetIndentStrings(indentCount++) + "[{0}] bundle_file", offset);
+            Log.Information(GetIndentStrings(indentCount++) + "[{0}] nki_file", offset);
 
             return ScanDirectory(nks, name, indentCount);
         }
@@ -1421,9 +1407,9 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic == (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE)) // 12 90 A8 7F = 0x7FA89012  = 2141753362
+            if (magic == (UInt32)(NKS_MAGIC_NKI)) // 12 90 A8 7F = 0x7FA89012  = 2141753362
             {
-                Log.Debug("Detected Magic 0x7FA89012 (NKI_AND_SAMPLES_BUNDLE). Skipping to where Directory is expected.");
+                Log.Debug("Detected Magic 0x7FA89012 (NKS_MAGIC_NKI) instead of 0x5E70AC54 (NKS_MAGIC_DIRECTORY). Skipping to where Directory is expected.");
                 bf.ReadBytes(218);
                 magic = bf.ReadUInt32(); // read_u32_le
             }
@@ -1456,11 +1442,11 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool NksReadBundleHeader(BinaryFile bf, NksBundleHeader header)
+        private static bool NksReadNKIHeader(BinaryFile bf, NksBundleHeader header)
         {
             UInt32 magic = bf.ReadUInt32(); // read_u32_le
 
-            if (magic != (UInt32)(NKS_MAGIC_NKI_AND_SAMPLES_BUNDLE)) // 12 90 A8 7F = 0x7FA89012  = 2141753362        
+            if (magic != (UInt32)(NKS_MAGIC_NKI)) // 12 90 A8 7F = 0x7FA89012  = 2141753362        
                 throw new IOException("Magic not as expected (0x7FA89012) but " + magic);
 
             if ((header.Unknown = bf.ReadBytes(218)).Length != 218)
