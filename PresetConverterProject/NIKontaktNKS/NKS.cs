@@ -383,37 +383,61 @@ namespace PresetConverterProject.NIKontaktNKS
 
             var r = NksOpen(fileName, nks);
 
-            return ListArchive(nks, rootEntry);
+            if (ListArchive(nks, rootEntry, 0))
+            {
+                // recursively print the archive tree
+                PrintArchiveTree(rootEntry);
+
+                return true;
+            }
+
+            return false;
         }
 
-        private static bool ListArchive(Nks nks, NksEntry dirEntry)
+        private static void PrintArchiveTree(NksEntry entry)
         {
-            var list = new ArrayList();
+            if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
+            {
+                Log.Information(string.Format("{0}/{1,-30} [{2}]", GetIndentStrings(entry.Level), entry.Name, entry.Children != null ? entry.Children.Count : 0));
+            }
+            else
+            {
+                Log.Information(string.Format("{0}/{1,-30}", GetIndentStrings(entry.Level), entry.Name));
+
+            }
+
+            if (entry.Children != null)
+            {
+                foreach (NksEntry child in entry.Children)
+                {
+                    PrintArchiveTree(child);
+                }
+            }
+        }
+
+        private static bool ListArchive(Nks nks, NksEntry dirEntry, int levelCount)
+        {
+            var list = new List<NksEntry>();
             bool isSuccessfull = true;
 
             if (!NksListDirEntry(nks, list, dirEntry))
                 isSuccessfull = false;
 
-            if (!ListTraverseDirectories(nks, list))
-                isSuccessfull = false;
-
-            foreach (NksEntry entry in list)
+            // if successfull - add the children list to the current node
+            if (isSuccessfull)
             {
-                if (entry.Type == NksEntryType.NKS_ENT_DIRECTORY)
-                {
-                    Log.Information(string.Format("/{0,-20}{1} [{2}]", dirEntry.Name.Length > 0 ? dirEntry.Name + "/" : "", entry, list.Count));
-                }
-                else
-                {
-                    Log.Information(string.Format("/{0,-20}{1}", dirEntry.Name.Length > 0 ? dirEntry.Name + "/" : "", entry));
-                }
+                // toList() copies the elements
+                dirEntry.Children = list.ToList();
             }
+
+            if (!ListTraverseDirectories(nks, list, levelCount + 1))
+                isSuccessfull = false;
 
             list.Clear();
             return isSuccessfull;
         }
 
-        private static bool ListTraverseDirectories(Nks nks, IList list)
+        private static bool ListTraverseDirectories(Nks nks, IList list, int levelCount)
         {
             if (list == null)
                 return true;
@@ -422,10 +446,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             foreach (NksEntry entry in list)
             {
+                // store the level
+                entry.Level = levelCount;
+
+                // skip files
                 if (entry.Type != NksEntryType.NKS_ENT_DIRECTORY)
                     continue;
 
-                if (!ListArchive(nks, entry))
+                // check directories
+                if (!ListArchive(nks, entry, levelCount))
                     isSuccessfull = false;
             }
 
@@ -452,7 +481,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private static bool ExtractArchive(Nks nks, NksEntry dirEntry, string prefix)
         {
-            var list = new ArrayList();
+            var list = new List<NksEntry>();
             bool isSuccessfull = true;
 
             if (!NksListDirEntry(nks, list, dirEntry))
@@ -1643,6 +1672,13 @@ namespace PresetConverterProject.NIKontaktNKS
         public string Name { get; set; }
         public NksEntryType Type { get; set; }
         public UInt32 Offset { get; set; }
+
+        public UInt32 Size { get; set; }
+
+        // added to support a recursive tree
+        public int Level { get; set; }
+        public IList<NksEntry> Children { get; set; }
+
 
         public override string ToString()
         {
