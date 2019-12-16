@@ -380,6 +380,15 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 if (ListArchiveRecursive(nks, nks.RootEntry, 0))
                 {
+                    if (!"".Equals(nks.RootEntry.SetId))
+                    {
+                        Log.Information(string.Format("Library is encrypted using snpid: {0}", nks.RootEntry.SetId));
+                    }
+                    else
+                    {
+                        Log.Information("Library is not encrypted");
+                    }
+
                     // recursively print the archive tree
                     PrintArchiveRecursive(nks, nks.RootEntry);
 
@@ -483,6 +492,15 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 if (ListArchiveRecursive(nks, nks.RootEntry, 0))
                 {
+                    if (!"".Equals(nks.RootEntry.SetId))
+                    {
+                        Log.Information(string.Format("Library is encrypted using snpid: {0}", nks.RootEntry.SetId));
+                    }
+                    else
+                    {
+                        Log.Information("Library is not encrypted");
+                    }
+
                     // recursively extract the archive tree
                     ExtractArchiveRecursive(nks, nks.RootEntry, prefix);
 
@@ -553,6 +571,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
             r = NksReadDirectoryHeader(nks.BinaryFile, header);
             if (!r) return false;
+
+            // add setId
+            entry.SetId = GetSetIdString(header);
 
             return NksAddDirEntriesToList(nks, list, header);
         }
@@ -1659,20 +1680,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class NksEntry
     {
-        public string Name { get; set; }
+        public String Name { get; set; }
         public NksEntryType Type { get; set; }
         public UInt32 Offset { get; set; }
-
-        public UInt32 Size { get; set; }
 
         // added to support a recursive tree
         public int Level { get; set; }
         public IList<NksEntry> Children { get; set; }
-
+        public String SetId { get; set; }
 
         public override string ToString()
         {
-            return string.Format("{0,-50} {1,-20} {2}", Name, Type, Offset);
+            return string.Format("{0}: '{1}' [{2}] #{3} ({4} elements)", Level, Name, Type, Offset, Children != null ? Children.Count : 0);
         }
     }
 
