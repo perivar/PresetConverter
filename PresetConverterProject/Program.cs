@@ -41,6 +41,7 @@ namespace PresetConverter
             var optionInputExtra = app.Option("-e|--extra <path>", "Extra information as used by the different converters. (E.g. for wav this is a path to an image)", CommandOptionType.SingleValue);
             var switchConvertKontakt6 = app.Option("-k6|--kontakt6", "Convert discovered Kontakt presets to Kontakt 6", CommandOptionType.NoValue);
             var switchList = app.Option("-l|--list", "List the content of archives", CommandOptionType.NoValue);
+            var switchVerbose = app.Option("-v|--verbose", "Output more verbose information", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
@@ -53,6 +54,7 @@ namespace PresetConverter
                     // check convert arguments
                     bool doConvertToKontakt6 = switchConvertKontakt6.HasValue();
                     bool doList = switchList.HasValue();
+                    bool doVerbose = switchVerbose.HasValue();
 
                     // Setup Logger
                     string errorLogFilePath = Path.Combine(outputDirectoryPath, "log-error.log");
@@ -104,7 +106,7 @@ namespace PresetConverter
                             case ".nkr":
                             case ".nki":
                             case ".nicnt":
-                                HandleNIKontaktFile(file, outputDirectoryPath, config, doList);
+                                HandleNIKontaktFile(file, outputDirectoryPath, config, doList, doVerbose);
                                 break;
                         }
                     }
@@ -1088,7 +1090,7 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleNIKontaktFile(string file, string outputDirectoryPath, IConfiguration config, bool doList)
+        private static void HandleNIKontaktFile(string file, string outputDirectoryPath, IConfiguration config, bool doList, bool doVerbose)
         {
             string extension = new FileInfo(file).Extension.ToLowerInvariant();
 
@@ -1189,14 +1191,29 @@ namespace PresetConverter
             }
             else
             {
-                // NKS.PrintRegistryLibraryInfo(Console.Out);
-                // NKS.PrintSettingsLibraryInfo(Console.Out);
                 try
                 {
                     if (doList)
                     {
-                        // NKS.ScanArchive(file);
                         NKS.ListArchive(file);
+                    }
+                    else if (doVerbose)
+                    {
+                        var memStream = new MemoryStream();
+                        var streamWriter = new StreamWriter(memStream);
+                        
+                        streamWriter.WriteLine("RegistryLibraryInfo:");
+                        NKS.PrintRegistryLibraryInfo(streamWriter);
+
+                        streamWriter.WriteLine("SettingsLibraryInfo:");
+                        NKS.PrintSettingsLibraryInfo(streamWriter);
+                        streamWriter.Flush();
+                        string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
+                        
+                        Log.Debug(libraryInfo);
+                        memStream.Close();
+
+                        NKS.ScanArchive(file);
                     }
                     else
                     {

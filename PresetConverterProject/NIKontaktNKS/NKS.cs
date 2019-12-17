@@ -71,10 +71,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     var id = entry.Id;
                     var name = entry.Name;
-                    var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
-                    var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
+                    var keyHex = StringUtils.ByteArrayToHexString(entry.GenKey.Key);
+                    var ivHEx = StringUtils.ByteArrayToHexString(entry.GenKey.IV);
 
-                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}\nIV: {3}", id, name, keyHex, ivHEx);
                 }
             }
         }
@@ -180,10 +180,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     var id = entry.Id;
                     var name = entry.Name;
-                    var keyHex = StringUtils.ToHexEditorString(entry.GenKey.Key);
-                    var ivHEx = StringUtils.ToHexEditorString(entry.GenKey.IV);
+                    var keyHex = StringUtils.ByteArrayToHexString(entry.GenKey.Key);
+                    var ivHEx = StringUtils.ByteArrayToHexString(entry.GenKey.IV);
 
-                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}IV: {3}", id, name, keyHex, ivHEx);
+                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}\nIV: {3}", id, name, keyHex, ivHEx);
                 }
             }
         }
