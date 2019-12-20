@@ -1101,6 +1101,7 @@ namespace PresetConverter
                 using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
                 {
                     UInt32 fileSize = bf.ReadUInt32();
+                    Log.Debug("fileSize: " + fileSize);
 
                     bf.Seek(350, SeekOrigin.Begin);
                     int snpidCount = bf.ReadInt32();
@@ -1199,19 +1200,19 @@ namespace PresetConverter
                     }
                     else if (doVerbose)
                     {
-                        var memStream = new MemoryStream();
-                        var streamWriter = new StreamWriter(memStream);
+                        // var memStream = new MemoryStream();
+                        // var streamWriter = new StreamWriter(memStream);
                         
-                        streamWriter.WriteLine("RegistryLibraryInfo:");
-                        NKS.PrintRegistryLibraryInfo(streamWriter);
+                        // streamWriter.WriteLine("RegistryLibraryInfo:");
+                        // NKS.PrintRegistryLibraryInfo(streamWriter);
 
-                        streamWriter.WriteLine("SettingsLibraryInfo:");
-                        NKS.PrintSettingsLibraryInfo(streamWriter);
-                        streamWriter.Flush();
-                        string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
+                        // streamWriter.WriteLine("SettingsLibraryInfo:");
+                        // NKS.PrintSettingsLibraryInfo(streamWriter);
+                        // streamWriter.Flush();
+                        // string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
                         
-                        Log.Debug(libraryInfo);
-                        memStream.Close();
+                        // Log.Debug(libraryInfo);
+                        // memStream.Close();
 
                         NKS.ScanArchive(file);
                     }
