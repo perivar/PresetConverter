@@ -259,11 +259,21 @@
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
                 "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",                
+                "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",                
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",                                
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",                                
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",                
                 "-o",
-                "C:\\Users\\perner\\My Projects\\Temp"
+                "C:\\Users\\perner\\My Projects\\Temp",
+                // "-l",
+                "-v"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
