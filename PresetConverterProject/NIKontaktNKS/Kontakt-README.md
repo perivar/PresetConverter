@@ -182,36 +182,40 @@ HU = C3CCA2803ABC14A68EAACC38EAA7E8EC
 
 File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (\? * "|: &gt; &lt;), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
 Each forbidden character is assigned a control sequence of characters:
-    \ [bslash]  backslash
-    ? [qmark]   question mark
-    * [star]    multiplication sign
-    "[quote]    double quote
-    | [pipe]    pipe
-    : [colon]   colon
-    <[less]     less sign
-    > [greater] greater sign
-    _ [space]   space (only at the end of the name)
-    . [dot]     dot (only at the end of the name)
+- \ [bslash]  backslash
+- ? [qmark]   question mark
+- * [star]    multiplication sign
+- "[quote]    double quote
+- | [pipe]    pipe
+- : [colon]   colon
+- <[less]     less sign
+- > [greater] greater sign
+- _ [space]   space (only at the end of the name)
+- . [dot]     dot (only at the end of the name)
 
 When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences (6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
 Example (7):
+```
     file name in the container; .PAResources | database | PAL | PAL.meta
     operation:                  unpacking [down arraw] [up arrow] packaging
     file name on disk           .PAResources [pipe] database [pipe] PAL [pipe] PAL.meta
-
+```
 
 There is some possibility that the file name (directory) of the container will contain the control sequences themselves. In order to block the conversion of the control sequence to the corresponding forbidden character during repacking, all opening angle brackets before the control sequence will be doubled, and the user will be warned that the names of the files on the disk and in the container are different.
 Example:
+```
     file name in                [more] [music] [less] [noise] .aif container
     operation:                  unpacking [down arraw] [up arrow] packaging
     disk file name              [more] [music] [[less] [noise] .aif
+```
 
 Thus, an even number of opening angle brackets in front of the control sequence shields it (blocks conversion to a forbidden character when packed), but each pair of these brackets ([[) will be replaced with a single ([).
 
 Example:
+```
     file name on disk package name in container
     [[[[[pipe]] organ [[[colon]] A#.aiff → [[[pipe]] organ [:] A#.aiff
-
+```
 
 Notes:
 6. It should be clear that Total commander will always display the “corrected” file name (the file name on the disk in the examples), regardless of where it is on the disk or in the container.
@@ -225,240 +229,240 @@ The directories on the disk with the attribute “hidden” after being packed i
 
 ## 1.20
 Added:
-Support for encrypted containers of the Kontakt 5.6.8 format
+- Support for encrypted containers of the Kontakt 5.6.8 format
 
 Keys for decrypting library containers:
-    Best Service The Orchestra
-    Big Fish Audio Sequence
-    Big Fish Audio Vintage Horns 2
-    Blinksonic AETONZ
-    Blinksonic RUIDOZ
-    Blinksonic SUBSTANZ
-    Blinksonic VOZ
-    Bluescreen Productions Berlin Blue Bass
-    Embertone The Joshua Bell Violin
-    In Session Audio Fluid Harmonics
-    In Session Audio Fluid Strike
-    Heavyocity BitRate II & MonoBoy
-    Heavyocity Calc-U-Synth
-    Heavyocity C-Tools
-    Heavyocity GP04 Vocalise 2
-    Heavyocity GRID II
-    Luftrum Lunaris
-    Native Instruments GmbH Middle East
-    Native Instruments GmbH Symphony Essentials Collection
-    Native Instruments GmbH Symphony Essentials Percussion
-    Native Instruments GmbH Symphony Series Collection
-    Native Instruments GmbH Symphony Series Percussion
-    Orchestral Tools Berlin Orchestra Inspire
-    Sample Logic Electro City
-    Sample Magic Klip
-    Secret Room Music STRIKEFORCE
-    Soniccouture The Canterbury Suitcase
-    Soundiron Ambius
-    Sound Yeti Collision FX
-    Spitfire Audio Spitfire Symphonic Strings Evolutions
-    Tonsturm WHOOSH
-    Tim Exile SLOO
-    Tim Exile SLOR
-    Versilian Studios Chamber Orchestra 2.6 Professional Edition
+- Best Service The Orchestra
+- Big Fish Audio Sequence
+- Big Fish Audio Vintage Horns 2
+- Blinksonic AETONZ
+- Blinksonic RUIDOZ
+- Blinksonic SUBSTANZ
+- Blinksonic VOZ
+- Bluescreen Productions Berlin Blue Bass
+- Embertone The Joshua Bell Violin
+- In Session Audio Fluid Harmonics
+- In Session Audio Fluid Strike
+- Heavyocity BitRate II & MonoBoy
+- Heavyocity Calc-U-Synth
+- Heavyocity C-Tools
+- Heavyocity GP04 Vocalise 2
+- Heavyocity GRID II
+- Luftrum Lunaris
+- Native Instruments GmbH Middle East
+- Native Instruments GmbH Symphony Essentials Collection
+- Native Instruments GmbH Symphony Essentials Percussion
+- Native Instruments GmbH Symphony Series Collection
+- Native Instruments GmbH Symphony Series Percussion
+- Orchestral Tools Berlin Orchestra Inspire
+- Sample Logic Electro City
+- Sample Magic Klip
+- Secret Room Music STRIKEFORCE
+- Soniccouture The Canterbury Suitcase
+- Soundiron Ambius
+- Sound Yeti Collision FX
+- Spitfire Audio Spitfire Symphonic Strings Evolutions
+- Tonsturm WHOOSH
+- Tim Exile SLOO
+- Tim Exile SLOR
+- Versilian Studios Chamber Orchestra 2.6 Professional Edition
 
 ## 1.18
 
 Fixed:
-After performing file operations with the nicnt container, the plugin automatically assigns it the wrong double extension (.xml.nicnt)
+- After performing file operations with the nicnt container, the plugin automatically assigns it the wrong double extension (.xml.nicnt)
 
 Added:
-Support for unencrypted containers of the new format (Kontakt 5.6.8)
+- Support for unencrypted containers of the new format (Kontakt 5.6.8)
 
 Keys for decrypting library containers:
-    ProjectSAM Swing More!
-    Heavyocity NOVO
-    Tovusound Edward Foleyart Instrument
-    Sonokinetic Espressivo
-    In Session Audio Riff Generation
-    Cinesamples CineBrass Twelve Horn Ensemble
-    Tru-Urban Kevin Keys by Kevin Randolph
-    Native Instruments GmbH Thrill
-    Soniccouture Electro Acoustic
-    Tonehammer Solo Frame Drums
-    Tonehammer Bowed Grand
-    Tonehammer Epic Frame Drum Ensemble
-    Spitfire Audio Spitfire British Wood
-    Spitfire Audio Bernard Herrmann Composer Toolkit
+- ProjectSAM Swing More!
+- Heavyocity NOVO
+- Tovusound Edward Foleyart Instrument
+- Sonokinetic Espressivo
+- In Session Audio Riff Generation
+- Cinesamples CineBrass Twelve Horn Ensemble
+- Tru-Urban Kevin Keys by Kevin Randolph
+- Native Instruments GmbH Thrill
+- Soniccouture Electro Acoustic
+- Tonehammer Solo Frame Drums
+- Tonehammer Bowed Grand
+- Tonehammer Epic Frame Drum Ensemble
+- Spitfire Audio Spitfire British Wood
+- Spitfire Audio Bernard Herrmann Composer Toolkit
 
 ## 1.17a
 
 Added:
 Keys for decrypting library containers:
-    Output ANALOG STRINGS
-    Output ANALOG STRINGS
-    Impact Soundworks Straight Ahead Jazz Horns
-    Sample Logic IMPAKT
-    Sample Modeling The Trumpet 3
-    Sample Modeling French Horn and Tuba 3
-    Heavyocity GP03 Scoring Guitars
-    Sample Logic Rhythmology
-    DAC Acoustic Services Indigisounds
-    Rattly and Raw Martin France Drums
-    C-Dub Whoop Triggerz Ultimate
-    Drumasonic drumasonic Xplosive
-    Realitone Hip Hop Creator
-    Wave Alchemy Revolution
-    Umlaut Audio uBEAT Hip Hop
-    Spitfire Audio Spitfire Symphonic Woodwinds
-    Soniccouture Ondioline
-    Tomahawk Sounds Big Hands Vol 1
-    Kirk Hunter Studios Virtuoso Ensembles
-    Fable Sounds Broadway Gig
-    Embertone Intimate String Chords
-    Best Service Chris Hein Orchestral Brass
-    Spitfire Audio Spitfire Symphonic Brass
-    JGR Production The Performer - The Voice of the Chrysler 300C
-    Heavyocity Master Sessions Ensemble Drums
-    Spitfire Audio The Grange
-    The Loop Loft Drum Direktor - From The Garage
-    Spitfire Audio Spitfire Chamber Strings
-    Heavyocity Master Sessions Ensemble Metals
-    Umlaut Audio uBEAT Elektro
-    Tovusound Edward Ultimate Suite
-    Heavyocity Master Sessions Ensemble Woods
-    Spitfire Audio Albion V
-    Spitfire Audio Spitfire Symphonic Strings
-    Room Sound Kurt Ballou Signature Series Drums
-    Native Instruments GmbH Reaktor Factory Selection R2
-    PREMIER Engineering Drum Tree
-    Audio Impressions 70 DVZ Strings
-    Spitfire Audio Albion IV
-    Best Service Chris Hein Orchestral Brass Compact
-    Spitfire Audio Fanshawe Vol 1
-    Soniccouture The Hammersmith
-    Native Instruments GmbH Kinetic Toys
-    Divergent Audio Group Invasors
-    Soundiron Voices of Rapture
-    DAC Acoustic Services Laventille Rhythm Section
-    Umlaut Audio uBEAT Hybrid
-    Native Instruments GmbH Symphony Essentials Brass Collection
-    Ethnaudio Strings Of Anatolia
-    Spitfire Audio Spitfire Masse
-    DAC Acoustic Services Soca Starter Pack - Volume 1
-    Best Service Chris Hein Winds Compact
-    Volkswagen AG Volkswagen Brand Instruments
-    e-Instruments Session Keys Electric S
-    Spitfire Audio Spitfire North 7 Vintage Keys
-    Native Instruments GmbH Symphony Essentials Woodwind Collection
-    Drumdrops Drumdrops Folk Rock Kits
-    Spitfire Audio London Contemporary Orchestra Strings
-    Get Good Drums Matt Halpern Signature pack
-    Big Fish Audio Vital Series Mallets
+- Output ANALOG STRINGS
+- Output ANALOG STRINGS
+- Impact Soundworks Straight Ahead Jazz Horns
+- Sample Logic IMPAKT
+- Sample Modeling The Trumpet 3
+- Sample Modeling French Horn and Tuba 3
+- Heavyocity GP03 Scoring Guitars
+- Sample Logic Rhythmology
+- DAC Acoustic Services Indigisounds
+- Rattly and Raw Martin France Drums
+- C-Dub Whoop Triggerz Ultimate
+- Drumasonic drumasonic Xplosive
+- Realitone Hip Hop Creator
+- Wave Alchemy Revolution
+- Umlaut Audio uBEAT Hip Hop
+- Spitfire Audio Spitfire Symphonic Woodwinds
+- Soniccouture Ondioline
+- Tomahawk Sounds Big Hands Vol 1
+- Kirk Hunter Studios Virtuoso Ensembles
+- Fable Sounds Broadway Gig
+- Embertone Intimate String Chords
+- Best Service Chris Hein Orchestral Brass
+- Spitfire Audio Spitfire Symphonic Brass
+- JGR Production The Performer - The Voice of the Chrysler 300C
+- Heavyocity Master Sessions Ensemble Drums
+- Spitfire Audio The Grange
+- The Loop Loft Drum Direktor - From The Garage
+- Spitfire Audio Spitfire Chamber Strings
+- Heavyocity Master Sessions Ensemble Metals
+- Umlaut Audio uBEAT Elektro
+- Tovusound Edward Ultimate Suite
+- Heavyocity Master Sessions Ensemble Woods
+- Spitfire Audio Albion V
+- Spitfire Audio Spitfire Symphonic Strings
+- Room Sound Kurt Ballou Signature Series Drums
+- Native Instruments GmbH Reaktor Factory Selection R2
+- PREMIER Engineering Drum Tree
+- Audio Impressions 70 DVZ Strings
+- Spitfire Audio Albion IV
+- Best Service Chris Hein Orchestral Brass Compact
+- Spitfire Audio Fanshawe Vol 1
+- Soniccouture The Hammersmith
+- Native Instruments GmbH Kinetic Toys
+- Divergent Audio Group Invasors
+- Soundiron Voices of Rapture
+- DAC Acoustic Services Laventille Rhythm Section
+- Umlaut Audio uBEAT Hybrid
+- Native Instruments GmbH Symphony Essentials Brass Collection
+- Ethnaudio Strings Of Anatolia
+- Spitfire Audio Spitfire Masse
+- DAC Acoustic Services Soca Starter Pack - Volume 1
+- Best Service Chris Hein Winds Compact
+- Volkswagen AG Volkswagen Brand Instruments
+- e-Instruments Session Keys Electric S
+- Spitfire Audio Spitfire North 7 Vintage Keys
+- Native Instruments GmbH Symphony Essentials Woodwind Collection
+- Drumdrops Drumdrops Folk Rock Kits
+- Spitfire Audio London Contemporary Orchestra Strings
+- Get Good Drums Matt Halpern Signature pack
+- Big Fish Audio Vital Series Mallets
 
 ## 1.17
 
 Fixed:
-The plugin extracts files from containers of only those libraries whose identifiers begin with a significant digit.
-The plugin crashes when extracting files whose names end with a period or a space.
+- The plugin extracts files from containers of only those libraries whose identifiers begin with a significant digit.
+- The plugin crashes when extracting files whose names end with a period or a space.
 
 Added:
-Support for Windows XP.
-Key database browser for decrypting containers with the ability to export and import records (implemented as a file system plugin and is accordingly available in the Total commander network environment).
-Decryption of containers of protected libraries without extracting files (launch in the plugin settings dialog: Alt + F5 -> nkx -> Settings ...)
+- Support for Windows XP.
+- Key database browser for decrypting containers with the ability to export and import records (implemented as a file system plugin and is accordingly available in the Total - commander network environment).
+- Decryption of containers of protected libraries without extracting files (launch in the plugin settings dialog: Alt + F5 -> nkx -> Settings ...)
 
 Keys for decrypting library containers:
-    Bechstein Digital Grand
-    Best Service Chris Hein - Solo Cello
-    Best Service Chris Hein - Solo ContraBass
-    Best Service Chris Hein - Solo Viola
-    Best Service Chris Hein Solo Violin
-    Best Service Ethno World 6 Instruments
-    Best Service Ethno World 6 Voices
-    Best Service Kwaya
-    Big Fish Audio Cyborg
-    Big Fish Audio Grindhouse
-    Cinematic Samples Cinematic Studio Piano
-    Cinematic Samples Cinematic Studio Strings
-    Cinematique Instruments Fabrique
-    Cinesamples Abbey Road Classic Upright Pianos
-    Cinesamples CineBrass Descant Horn
-    Cinesamples CinePerc
-    Cinesamples CineStrings Solo
-    Cinesamples Cinesymphony LITE
-    Cinesamples CineWinds CORE
-    Cinesamples CineWinds PRO
-    Cinesamples Rio Grooves
-    Embertone Fischer Viola
-    Embertone Leonid Bass
-    Ethnaudio Breath Of Anatolia
-    Evolution Series The World Percussion 2.0
-    Heavyocity Gravity
-    Heavyocity GP01 Natural Forces
-    Heavyocity GP02 Vocalise
-    Heavyocity Master Sessions Ethnic Drum Ensembles
-    Impakt Soundworks Shreddage Drums
-    Impakt Soundworks Super Audio Cart
-    Native Instruments GmbH Discovery Series: India
-    Native Instruments GmbH Kinetic Treats
-    Native Instruments GmbH Session Guitarist - Strummed Acoustic 2
-    Native Instruments GmbH Scarbee Classic EP-88s
-    Native Instruments GmbH Symphony Essentials Brass Ensemble
-    Native Instruments GmbH Symphony Essentials Brass Solo
-    Native Instruments GmbH Symphony Essentials String Ensemble
-    Native Instruments GmbH Symphony Essentials Woodwind Ensemble
-    Native Instruments GmbH Symphony Essentials Woodwind Solo
-    Native Instruments GmbH Symphony Series Woodwind Ensemble
-    Native Instruments GmbH Symphony Series Woodwind Solo
-    Orange Tree Samples Evolution Dracus
-    Orange Tree Samples Evolution Flatpick 6
-    Orange Tree Samples Evolution Jazz Archtop
-    Orange Tree Samples Evolution Mandolin
-    Orange Tree Samples Evolution Modern Nylon
-    Orange Tree Samples Evolution Sitardelic
-    Orange Tree Samples Evolution Steel Strings
-    Orange Tree Samples Evolution Stratosphere
-    Orange Tree Samples Evolution Strawberry
-    Orange Tree Samples Evolution Rick 12
-    Orchestral Tools Berlin Brass
-    Orchestral Tools Berlin Percussion
-    Orchestral Tools Metropolis Ark 1
-    Orchestral Tools Metropolis Ark 2
-    Output SUBSTANCE
-    ProjectSAM SWING!
-    Q Up Arts California Keys
-    Realitone Fingerpick
-    Realitone RealiDrums
-    Refractor Audio Transport
-    Sample Logic Bohemian
-    Sample Logic Cinematic Guitars Organic Atmospheres
-    Sample Logic CinemorphX
-    Sample Logic Cinematic Guitars Infinity
-    Sample Logic Cyclone
-    Sample Logic Gamelan
-    Synthepica Epica Bass
-    Soniccouture The Attic
-    Soniccouture Balinese Gamelan 2
-    Soniccouture Estey Reed Organ
-    Soniccouture Xbow Guitars
-    Sonicsmiths The Foundry
-    Sonokinetic Capriccio 
-    Sonokinetic Maximo
-    Sonokinetic Orchestral Series - Woodwinds Ensemble
-    Sonokinetic Ostinato
-    Sonokinetic Sotto
-    Sonokinetic Tutti
-    Sonokinetic Tutti Vox
-    Soundiron Mercury Elements Boys Choir
-    Soundiron Elysium Harp
-    Spitfire Audio Albion ONE
-    Spitfire Audio Hans Zimmer Piano
-    The Loop Loft Drum Direktor Cinematik
-    The Loop Loft Drum Direktor FNK-4
-    Umlaut Audio ARPS
-    Umlaut Audio PADS
-    Umlaut Audio uBEAT Bundle
-    Vir2 Aeris Hybrid Choir Designer
-    vi elements Core Kit
-    Wavesfactory Wavesfactory - Mercury
-    Wide Blue Sound Eclipse
-    Wide Blue Sound Orbit
+- Bechstein Digital Grand
+- Best Service Chris Hein - Solo Cello
+- Best Service Chris Hein - Solo ContraBass
+- Best Service Chris Hein - Solo Viola
+- Best Service Chris Hein Solo Violin
+- Best Service Ethno World 6 Instruments
+- Best Service Ethno World 6 Voices
+- Best Service Kwaya
+- Big Fish Audio Cyborg
+- Big Fish Audio Grindhouse
+- Cinematic Samples Cinematic Studio Piano
+- Cinematic Samples Cinematic Studio Strings
+- Cinematique Instruments Fabrique
+- Cinesamples Abbey Road Classic Upright Pianos
+- Cinesamples CineBrass Descant Horn
+- Cinesamples CinePerc
+- Cinesamples CineStrings Solo
+- Cinesamples Cinesymphony LITE
+- Cinesamples CineWinds CORE
+- Cinesamples CineWinds PRO
+- Cinesamples Rio Grooves
+- Embertone Fischer Viola
+- Embertone Leonid Bass
+- Ethnaudio Breath Of Anatolia
+- Evolution Series The World Percussion 2.0
+- Heavyocity Gravity
+- Heavyocity GP01 Natural Forces
+- Heavyocity GP02 Vocalise
+- Heavyocity Master Sessions Ethnic Drum Ensembles
+- Impakt Soundworks Shreddage Drums
+- Impakt Soundworks Super Audio Cart
+- Native Instruments GmbH Discovery Series: India
+- Native Instruments GmbH Kinetic Treats
+- Native Instruments GmbH Session Guitarist - Strummed Acoustic 2
+- Native Instruments GmbH Scarbee Classic EP-88s
+- Native Instruments GmbH Symphony Essentials Brass Ensemble
+- Native Instruments GmbH Symphony Essentials Brass Solo
+- Native Instruments GmbH Symphony Essentials String Ensemble
+- Native Instruments GmbH Symphony Essentials Woodwind Ensemble
+- Native Instruments GmbH Symphony Essentials Woodwind Solo
+- Native Instruments GmbH Symphony Series Woodwind Ensemble
+- Native Instruments GmbH Symphony Series Woodwind Solo
+- Orange Tree Samples Evolution Dracus
+- Orange Tree Samples Evolution Flatpick 6
+- Orange Tree Samples Evolution Jazz Archtop
+- Orange Tree Samples Evolution Mandolin
+- Orange Tree Samples Evolution Modern Nylon
+- Orange Tree Samples Evolution Sitardelic
+- Orange Tree Samples Evolution Steel Strings
+- Orange Tree Samples Evolution Stratosphere
+- Orange Tree Samples Evolution Strawberry
+- Orange Tree Samples Evolution Rick 12
+- Orchestral Tools Berlin Brass
+- Orchestral Tools Berlin Percussion
+- Orchestral Tools Metropolis Ark 1
+- Orchestral Tools Metropolis Ark 2
+- Output SUBSTANCE
+- ProjectSAM SWING!
+- Q Up Arts California Keys
+- Realitone Fingerpick
+- Realitone RealiDrums
+- Refractor Audio Transport
+- Sample Logic Bohemian
+- Sample Logic Cinematic Guitars Organic Atmospheres
+- Sample Logic CinemorphX
+- Sample Logic Cinematic Guitars Infinity
+- Sample Logic Cyclone
+- Sample Logic Gamelan
+- Synthepica Epica Bass
+- Soniccouture The Attic
+- Soniccouture Balinese Gamelan 2
+- Soniccouture Estey Reed Organ
+- Soniccouture Xbow Guitars
+- Sonicsmiths The Foundry
+- Sonokinetic Capriccio 
+- Sonokinetic Maximo
+- Sonokinetic Orchestral Series - Woodwinds Ensemble
+- Sonokinetic Ostinato
+- Sonokinetic Sotto
+- Sonokinetic Tutti
+- Sonokinetic Tutti Vox
+- Soundiron Mercury Elements Boys Choir
+- Soundiron Elysium Harp
+- Spitfire Audio Albion ONE
+- Spitfire Audio Hans Zimmer Piano
+- The Loop Loft Drum Direktor Cinematik
+- The Loop Loft Drum Direktor FNK-4
+- Umlaut Audio ARPS
+- Umlaut Audio PADS
+- Umlaut Audio uBEAT Bundle
+- Vir2 Aeris Hybrid Choir Designer
+- vi elements Core Kit
+- Wavesfactory Wavesfactory - Mercury
+- Wide Blue Sound Eclipse
+- Wide Blue Sound Orbit
 
 ## 1.10
 
@@ -469,11 +473,11 @@ Expansion of functionality:
 Added plugin settings dialog (available via file packaging dialog - standard Alt + F5 shortcut).
 
 Added keys to decrypt library containers:
-    Sonic Faction Archetype
-    Native Instruments GmbH Una Corda
-    Native Instruments GmbH Symphony Series Brass Ensemble
-    Native Instruments GmbH Symphony Series String Ensemble
-    Impact Soundworks Shreddage Bass 2
+- Sonic Faction Archetype
+- Native Instruments GmbH Una Corda
+- Native Instruments GmbH Symphony Series Brass Ensemble
+- Native Instruments GmbH Symphony Series String Ensemble
+- Impact Soundworks Shreddage Bass 2
 
 ## 1.05
 
@@ -482,19 +486,19 @@ Fixed errors in extracting library registration data from *.nicnt and * _info.nk
 - the plugin does not find the registration data available in the info-container.
 
 Added keys to decrypt library containers:
-    Big Fish Audio Vintage Rhythm Section
-    Big Fish Audio Ambient Black
-    Tonehammer Plucked Grand Piano
-    Output EXHALE
-    Soniccouture Box of Tricks
-    Native Instruments GmbH Symphony Series Brass Solo
+- Big Fish Audio Vintage Rhythm Section
+- Big Fish Audio Ambient Black
+- Tonehammer Plucked Grand Piano
+- Output EXHALE
+- Soniccouture Box of Tricks
+- Native Instruments GmbH Symphony Series Brass Solo
 
 ## 1.04
 
 Fixed a bug causing the plug-in to freeze: when opening fake containers smaller than 4 bytes, the reading progress window does not close.
 
 Added keys to decrypt containers:
-    Prominy Hummingbird
+- Prominy Hummingbird
 
 ## 1.03
 
