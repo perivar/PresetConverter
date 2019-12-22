@@ -1,18 +1,18 @@
 # inNKX - archival (wcx) plugin for Total Commander
 
-Posted by: Unavowed
-Version: 1.21 (August 2017)
-Bit: 32bit, 64bit
-Language: Russian only
-System requirements: Windows XP +, Total commander 7.50+ (with full Unicode support)
-Description:
-Development of the NKS & NKX Archive Unpacker project in the Total Commander shell.
-The plugin allows you to work with NI Kontakt containers (*.nks, *.nkx, *.nkr, *.nicnt) (1) as with archives.
-Supported:
-- view the contents of containers;
-- extract, delete, add new files (existing containers);
-- creation of new containers;
-- testing (checking the file structure and file extraction capabilities).
+- Posted by: Unavowed
+- Version: 1.21 (August 2017)
+- Bit: 32bit, 64bit
+- Language: Russian only
+- System requirements: Windows XP +, Total commander 7.50+ (with full Unicode support)
+- Description:
+- Development of the NKS & NKX Archive Unpacker project in the Total Commander shell.
+- The plugin allows you to work with NI Kontakt containers (*.nks, *.nkx, *.nkr, *.nicnt) (1) as with archives.
+- Supported:
+  - view the contents of containers;
+  - extract, delete, add new files (existing containers);
+  - creation of new containers;
+  - testing (checking the file structure and file extraction capabilities).
   
 ## Types of containers
 
@@ -39,10 +39,10 @@ Kontakt searches for service files and reverberation pulses only in certain dire
 
 ```
 [Resources]
-    | __ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
-    | __ [pictures] (Image directory: png, tga) (2)
-    | __ [scripts] (script directory: txt)
-    | __ [data] (directory for presets: nka)
+    |__ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
+    |__ [pictures] (Image directory: png, tga) (2)
+    |__ [scripts] (script directory: txt)
+    |__ [data] (directory for presets: nka)
 ```
 
 Notes:
@@ -76,13 +76,12 @@ Kontakt imposes certain restrictions on the contents of the nicnt-containers, wh
 
 The presence of other files in the container root directory, except for these 2 files and the [Resources] directory is not allowed. It is also not allowed to delete the above files (although they can be replaced and edited) and the presence of subdirectories in the [Resources] directory.
 All these features of nicnt-containers are controlled by the plugin and all incorrect operations performed with the container will be stopped or skipped with the user being notified of errors.
-```
-    [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints \ Product \ Name in the text of the [Library name] .xml itself.
-    This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints \ Product \ Name parameter).
-```
+
+- [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints\Product\Name in the text of the [Library name].xml itself.
+- This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints\Product\Name parameter).
 
 In the ContentVersion.txt file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
-major.minor. [build]
+major.minor.[build]
 
 eg,
 1.0.0
