@@ -1,37 +1,42 @@
-# inNKX - archiver (wcx) plugin for Total Commander
+# inNKX - archival (wcx) plugin for Total Commander
+
 Posted by: Unavowed
-Version: 1.10 (February 2016)
-Digit capacity: 32bit, 64bit
+Version: 1.21 (August 2017)
+Bit: 32bit, 64bit
 Language: Russian only
-System requirements: Windows 7+, Total commander 7.50+ (with full Unicode support)
+System requirements: Windows XP +, Total commander 7.50+ (with full Unicode support)
 Description:
-Development of the project NKS & NKX Archive Unpacker in the Total Commander shell.
-The plugin allows you to work with NI Kontakt containers (* .nks, * .nkx, * .nkr, * .nicnt) (1) as with archives.
-Supported by:
+Development of the NKS & NKX Archive Unpacker project in the Total Commander shell.
+The plugin allows you to work with NI Kontakt containers (*.nks, *.nkx, *.nkr, *.nicnt) (1) as with archives.
+Supported:
 - view the contents of containers;
 - extract, delete, add new files (existing containers);
-- the creation of new containers;
-- testing (checking the file structure and the ability to extract files).
+- creation of new containers;
+- testing (checking the file structure and file extraction capabilities).
+  
+## Types of containers
 
-
-## Types of containers:
 The contents of the containers NI Kontakt is divided into 3 groups:
-1. files with extensions * .wav, * .aif (* .aiff), * .ncw - samples;
-2. files with the extensions * .nki, * .nkm, * .nkb, * .nkg, * .nkp - patches;
-3. files with the extensions * .nka, * .png, * .tga, * .txt, * .xml, * .db, * .cache, * .meta - service file types.
+
+1. files with extensions *.wav, *.aif (*.aiff), *.ncw - samples;
+2. files with the extensions *.nki, *.nkm, *.nkb, *.nkg, *.nkp - patches;
+3. files with the extensions *.nka, *.png, *.tga, *.txt, *.xml, *.db, *.cache, *.meta - service file types.
 
 Each type of container is designed to store certain types of files.
 
-## Base containers (nks, nkx).
+## Base containers (nks, nkx)
+
 Intended mainly for storing audio material (samples). Kontakt does not impose any restrictions on the content and structure of the base containers:
 may contain subdirectories and files of all three types (samples, patches, service files).
 Unlike nks-containers, the file table of nkx-containers is written in Unicode-format and file names are not limited to 128 characters.
 Samples and addresses of their placement in the containers of proprietary libraries are always encrypted, patches and service files, as a rule, are not encrypted.
 
-## Resource Containers (nkr).
+## Resource Containers (nkr)
+
 They are intended mainly for storing service files, although their structure is no different from basic (nkx) containers. Resource container files are sometimes encrypted.
 
 Kontakt searches for service files and reverberation pulses only in certain directories of an nkr-container with fixed names:
+
 ```
 [Resources]
     | __ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
@@ -41,6 +46,7 @@ Kontakt searches for service files and reverberation pulses only in certain dire
 ```
 
 Notes:
+
 1. Monolithic patches nki, nkm, nkb, nkg are also supported (open with the Ctrl + PageDown key combination).
 2. Each image file must be accompanied by the same txt-file of image settings.
 
@@ -49,28 +55,31 @@ That is, Kontakt searches for reverberation pulses only in Resources \ ir_sample
 The inNKX plugin treats resource containers (nkr) as nkx containers with a different extension and reserves the right for the user to determine their contents.
 
 
-## Monolithic patches (nki, nkm, nkb, nkg).
+## Monolithic patches (nki, nkm, nkb, nkg)
+
 Containers of this type are created by the user, so the files in them are not encrypted. The monolithic container is designed to safely store the patch and its associated samples and service files from the point of view of the integrity of references to samples, since everything is stored in one file and samples cannot be lost.
 
-Monolithic patches created in the 4th version Contact are basic (nkx) containers with a different extension and work with them is no different from working with nkx containers, except that you can enter them as archives only by using the Ctrl key combination + PageDown. Such monoliths contain one patch (for example, nki) in the root directory of the container and files associated with it (can be decomposed into subdirectories). Deleting a patch file from the container (nki, nkm, ...) will lead to its inoperability (Kontakt will not be able to download it), however such a container can be used as a base one (after changing the extension to nkx).
+Monolithic patches created in the 4th version Kontakt are basic (nkx) containers with a different extension and work with them is no different from working with nkx containers, except that you can enter them as archives only by using the Ctrl key combination + PageDown. Such monoliths contain one patch (for example, nki) in the root directory of the container and files associated with it (can be decomposed into subdirectories). Deleting a patch file from the container (nki, nkm, ...) will lead to its inoperability (Kontakt will not be able to download it), however such a container can be used as a base one (after changing the extension to nkx).
 
-Monolithic patches created in version 5 Contact are an independent type of container. Unlike the previous ones, such monoliths cannot contain subdirectories, and the patch name is fixed (tool name: patch.nki, multitool: patch.nkm, etc.)
+Monolithic patches created in version 5 Kontakt are an independent type of container. Unlike the previous ones, such monoliths cannot contain subdirectories, and the patch name is fixed (tool name: patch.nki, multitool: patch.nkm, etc.)
 
 
-## Registration containers (nicnt).
+## Registration containers (nicnt)
+
 Intended to store service files required for registering branded libraries on end-user systems.
 Kontakt imposes certain restrictions on the contents of the nicnt-containers, which should have the following file structure:
-
+```
     [Resources] directory with required resource files for registration
     [Library name] .xml main xml file with library registration data
     ContentVersion.txt text file with version of library content
-
+```
 
 The presence of other files in the container root directory, except for these 2 files and the [Resources] directory is not allowed. It is also not allowed to delete the above files (although they can be replaced and edited) and the presence of subdirectories in the [Resources] directory.
 All these features of nicnt-containers are controlled by the plugin and all incorrect operations performed with the container will be stopped or skipped with the user being notified of errors.
- 
+```
     [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints \ Product \ Name in the text of the [Library name] .xml itself.
     This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints \ Product \ Name parameter).
+```
 
 In the ContentVersion.txt file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
 major.minor. [build]
@@ -82,6 +91,7 @@ or
 
 In any of the following ANSI, UTF-8, UTF-16 LE encodings.
 Any supported files (samples, patches, service files) without subdirectories can be added to the [Resources] directory, but Kontakt will only read files with fixed names from this directory:
+
 - .LibBrowser.png image bookmark library in the browser Kontakt
 - .db.cache is the preinstalled file to import the contents of the library into the Kontakt database.
 
@@ -90,25 +100,27 @@ Thus, to create a new nicnt-container, you must first prepare:
 
 1. the main xml-file with the correct registration data of the new library with approximately the following (minimal) content (the red highlights the parameters that must be unique, do not coincide with other libraries):
 ```xml
-<? xml version = "1.0" encoding = "UTF-8" standalone = "no"?>
-<ProductHints spec = "1.0.16">
-  <Product version = "1">
-    <Name> NewLibrary </Name>
-    <Type> Content </Type>
-    <Relevance>
-      <Application nativeContent = "true"> kontakt </Application>
-    </Relevance>
-    <PoweredBy> Kontakt </PoweredBy>
-    <Visibility> 1 </Visibility>
-    <Company> My Company </Company>
-    <SNPID> 999 </SNPID>
-    <RegKey> NewLibrary </RegKey>
-    <ProductSpecific>
-      <Visibility type = "Number"> 3 </Visibility>
-    </ProductSpecific>
-  </Product>
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<ProductHints spec="1.0.16">
+  <Product version="1">
+    <Name>**NewLibrary**</Name>
+    <Type>Content</Type>
+    <Relevance>
+      <Application nativeContent="true">kontakt</Application>
+    </Relevance>
+    <PoweredBy>Kontakt</PoweredBy>
+    <Visibility>1</Visibility>
+    <Company>My Company</Company>
+    <SNPID>**9BF**</SNPID>
+    <RegKey>**NewLibrary**</RegKey>
+    <ProductSpecific>
+      <Visibility type="Number">3</Visibility>
+    </ProductSpecific>
+  </Product>
 </ProductHints>
+
 ```
+
 2. text file ContentVersion.txt (optional, will be added to the container automatically with the default content version)
 
 3. The [Resources] directory (optional, an empty [Resources] directory will be automatically added to the container)
@@ -117,14 +129,16 @@ After creating the container, you can open it, edit the ContentVersion.txt, NewL
 
 The plugin guarantees the correct file structure of the nicnt-container, but its performance is no less determined by the correctness of the registration xml-data.
 
-## Adding files to containers:
+## Adding files to containers
+
 The plugin allows you to add all 3 groups of file types (samples, patches and service files).
 Files with other extensions are skipped (not packaged) with the notification of the user about the missing files.
 If necessary, you can add other file types to the group of service files in the plugin settings dialog (available through the Total Commander file packaging dialog).
 Encryption of files added to containers is not supported due to the absence of any need for this.
 
 
-# Extract files from encrypted containers:
+# Extract files from encrypted containers
+
 inNKX can decrypt and extract files from encrypted containers without question. The search for the decryption key is performed automatically in the following order:
 1. Sobsvennaya/Local Storage (built-in) key database.
 2. Custom key database: the nklibs_info.userdb file in the plugin directory (3) (more about it later).
@@ -142,10 +156,12 @@ Notes:
 4. The plugin’s built-in database contains 316 entries, for a complete list, see the end of this document.
 5. nklibs_info.userdb is a regular ini-file, each section of which contains registration data of one of the libraries.
 
-### Section Name:
+### Section Name
+
 SNPID - library identifier.
 
-### Section parameters:
+### Section parameters
+
 - RegKey is a unique library name (more precisely, the name of the registry subkey HKEY_LOCAL_MACHINE \ SOFTWARE \ Native Instruments \ <RegKey> \ for storing the key);
 - JDX - key;
 - HU - initialization vector.
@@ -162,18 +178,20 @@ JDX = E338FA9D6B8D760002CAF80B683FE5A5BD1CF9A644292E3166B8DF44FAD92D8D
 HU = C3CCA2803ABC14A68EAACC38EAA7E8EC
 ```
 
+# UNIX file names
 
-# UNIX file names:
 File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (\? * "|: &gt; &lt;), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
 Each forbidden character is assigned a control sequence of characters:
-    \ [bslash]
-    ? [qmark]
-    * [star]
-    "[quote]
-    | [pipe]
-    : [colon]
-    <[less]
-    > [greater]
+    \ [bslash]  backslash
+    ? [qmark]   question mark
+    * [star]    multiplication sign
+    "[quote]    double quote
+    | [pipe]    pipe
+    : [colon]   colon
+    <[less]     less sign
+    > [greater] greater sign
+    _ [space]   space (only at the end of the name)
+    . [dot]     dot (only at the end of the name)
 
 When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences (6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
 Example (7):
@@ -192,7 +210,7 @@ Thus, an even number of opening angle brackets in front of the control sequence 
 
 Example:
     file name on disk package name in container
-    [[[[[pipe]] organ [[[colon]] A # .aiff → [[[pipe]] organ [:] A # .aiff
+    [[[[[pipe]] organ [[[colon]] A#.aiff → [[[pipe]] organ [:] A#.aiff
 
 
 Notes:
@@ -203,40 +221,283 @@ Hidden directories:
 The directories on the disk with the attribute “hidden” after being packed into the container will be hidden for the Kontakt browser, and vice versa, the directories in the container that are hidden for the Kontakt browser will have the attribute “hidden” after unpacking to disk. In order to hide the entire contents of the newly created container for the Kontakt browser (hide the container root directory), the packaged files and directories must be located in the directory with the “hidden” attribute.
 
 
-## Version history:
+## Version history
+
+## 1.20
+Added:
+Support for encrypted containers of the Kontakt 5.6.8 format
+
+Keys for decrypting library containers:
+    Best Service The Orchestra
+    Big Fish Audio Sequence
+    Big Fish Audio Vintage Horns 2
+    Blinksonic AETONZ
+    Blinksonic RUIDOZ
+    Blinksonic SUBSTANZ
+    Blinksonic VOZ
+    Bluescreen Productions Berlin Blue Bass
+    Embertone The Joshua Bell Violin
+    In Session Audio Fluid Harmonics
+    In Session Audio Fluid Strike
+    Heavyocity BitRate II & MonoBoy
+    Heavyocity Calc-U-Synth
+    Heavyocity C-Tools
+    Heavyocity GP04 Vocalise 2
+    Heavyocity GRID II
+    Luftrum Lunaris
+    Native Instruments GmbH Middle East
+    Native Instruments GmbH Symphony Essentials Collection
+    Native Instruments GmbH Symphony Essentials Percussion
+    Native Instruments GmbH Symphony Series Collection
+    Native Instruments GmbH Symphony Series Percussion
+    Orchestral Tools Berlin Orchestra Inspire
+    Sample Logic Electro City
+    Sample Magic Klip
+    Secret Room Music STRIKEFORCE
+    Soniccouture The Canterbury Suitcase
+    Soundiron Ambius
+    Sound Yeti Collision FX
+    Spitfire Audio Spitfire Symphonic Strings Evolutions
+    Tonsturm WHOOSH
+    Tim Exile SLOO
+    Tim Exile SLOR
+    Versilian Studios Chamber Orchestra 2.6 Professional Edition
+
+## 1.18
+
+Fixed:
+After performing file operations with the nicnt container, the plugin automatically assigns it the wrong double extension (.xml.nicnt)
+
+Added:
+Support for unencrypted containers of the new format (Kontakt 5.6.8)
+
+Keys for decrypting library containers:
+    ProjectSAM Swing More!
+    Heavyocity NOVO
+    Tovusound Edward Foleyart Instrument
+    Sonokinetic Espressivo
+    In Session Audio Riff Generation
+    Cinesamples CineBrass Twelve Horn Ensemble
+    Tru-Urban Kevin Keys by Kevin Randolph
+    Native Instruments GmbH Thrill
+    Soniccouture Electro Acoustic
+    Tonehammer Solo Frame Drums
+    Tonehammer Bowed Grand
+    Tonehammer Epic Frame Drum Ensemble
+    Spitfire Audio Spitfire British Wood
+    Spitfire Audio Bernard Herrmann Composer Toolkit
+
+## 1.17a
+
+Added:
+Keys for decrypting library containers:
+    Output ANALOG STRINGS
+    Output ANALOG STRINGS
+    Impact Soundworks Straight Ahead Jazz Horns
+    Sample Logic IMPAKT
+    Sample Modeling The Trumpet 3
+    Sample Modeling French Horn and Tuba 3
+    Heavyocity GP03 Scoring Guitars
+    Sample Logic Rhythmology
+    DAC Acoustic Services Indigisounds
+    Rattly and Raw Martin France Drums
+    C-Dub Whoop Triggerz Ultimate
+    Drumasonic drumasonic Xplosive
+    Realitone Hip Hop Creator
+    Wave Alchemy Revolution
+    Umlaut Audio uBEAT Hip Hop
+    Spitfire Audio Spitfire Symphonic Woodwinds
+    Soniccouture Ondioline
+    Tomahawk Sounds Big Hands Vol 1
+    Kirk Hunter Studios Virtuoso Ensembles
+    Fable Sounds Broadway Gig
+    Embertone Intimate String Chords
+    Best Service Chris Hein Orchestral Brass
+    Spitfire Audio Spitfire Symphonic Brass
+    JGR Production The Performer - The Voice of the Chrysler 300C
+    Heavyocity Master Sessions Ensemble Drums
+    Spitfire Audio The Grange
+    The Loop Loft Drum Direktor - From The Garage
+    Spitfire Audio Spitfire Chamber Strings
+    Heavyocity Master Sessions Ensemble Metals
+    Umlaut Audio uBEAT Elektro
+    Tovusound Edward Ultimate Suite
+    Heavyocity Master Sessions Ensemble Woods
+    Spitfire Audio Albion V
+    Spitfire Audio Spitfire Symphonic Strings
+    Room Sound Kurt Ballou Signature Series Drums
+    Native Instruments GmbH Reaktor Factory Selection R2
+    PREMIER Engineering Drum Tree
+    Audio Impressions 70 DVZ Strings
+    Spitfire Audio Albion IV
+    Best Service Chris Hein Orchestral Brass Compact
+    Spitfire Audio Fanshawe Vol 1
+    Soniccouture The Hammersmith
+    Native Instruments GmbH Kinetic Toys
+    Divergent Audio Group Invasors
+    Soundiron Voices of Rapture
+    DAC Acoustic Services Laventille Rhythm Section
+    Umlaut Audio uBEAT Hybrid
+    Native Instruments GmbH Symphony Essentials Brass Collection
+    Ethnaudio Strings Of Anatolia
+    Spitfire Audio Spitfire Masse
+    DAC Acoustic Services Soca Starter Pack - Volume 1
+    Best Service Chris Hein Winds Compact
+    Volkswagen AG Volkswagen Brand Instruments
+    e-Instruments Session Keys Electric S
+    Spitfire Audio Spitfire North 7 Vintage Keys
+    Native Instruments GmbH Symphony Essentials Woodwind Collection
+    Drumdrops Drumdrops Folk Rock Kits
+    Spitfire Audio London Contemporary Orchestra Strings
+    Get Good Drums Matt Halpern Signature pack
+    Big Fish Audio Vital Series Mallets
+
+## 1.17
+
+Fixed:
+The plugin extracts files from containers of only those libraries whose identifiers begin with a significant digit.
+The plugin crashes when extracting files whose names end with a period or a space.
+
+Added:
+Support for Windows XP.
+Key database browser for decrypting containers with the ability to export and import records (implemented as a file system plugin and is accordingly available in the Total commander network environment).
+Decryption of containers of protected libraries without extracting files (launch in the plugin settings dialog: Alt + F5 -> nkx -> Settings ...)
+
+Keys for decrypting library containers:
+    Bechstein Digital Grand
+    Best Service Chris Hein - Solo Cello
+    Best Service Chris Hein - Solo ContraBass
+    Best Service Chris Hein - Solo Viola
+    Best Service Chris Hein Solo Violin
+    Best Service Ethno World 6 Instruments
+    Best Service Ethno World 6 Voices
+    Best Service Kwaya
+    Big Fish Audio Cyborg
+    Big Fish Audio Grindhouse
+    Cinematic Samples Cinematic Studio Piano
+    Cinematic Samples Cinematic Studio Strings
+    Cinematique Instruments Fabrique
+    Cinesamples Abbey Road Classic Upright Pianos
+    Cinesamples CineBrass Descant Horn
+    Cinesamples CinePerc
+    Cinesamples CineStrings Solo
+    Cinesamples Cinesymphony LITE
+    Cinesamples CineWinds CORE
+    Cinesamples CineWinds PRO
+    Cinesamples Rio Grooves
+    Embertone Fischer Viola
+    Embertone Leonid Bass
+    Ethnaudio Breath Of Anatolia
+    Evolution Series The World Percussion 2.0
+    Heavyocity Gravity
+    Heavyocity GP01 Natural Forces
+    Heavyocity GP02 Vocalise
+    Heavyocity Master Sessions Ethnic Drum Ensembles
+    Impakt Soundworks Shreddage Drums
+    Impakt Soundworks Super Audio Cart
+    Native Instruments GmbH Discovery Series: India
+    Native Instruments GmbH Kinetic Treats
+    Native Instruments GmbH Session Guitarist - Strummed Acoustic 2
+    Native Instruments GmbH Scarbee Classic EP-88s
+    Native Instruments GmbH Symphony Essentials Brass Ensemble
+    Native Instruments GmbH Symphony Essentials Brass Solo
+    Native Instruments GmbH Symphony Essentials String Ensemble
+    Native Instruments GmbH Symphony Essentials Woodwind Ensemble
+    Native Instruments GmbH Symphony Essentials Woodwind Solo
+    Native Instruments GmbH Symphony Series Woodwind Ensemble
+    Native Instruments GmbH Symphony Series Woodwind Solo
+    Orange Tree Samples Evolution Dracus
+    Orange Tree Samples Evolution Flatpick 6
+    Orange Tree Samples Evolution Jazz Archtop
+    Orange Tree Samples Evolution Mandolin
+    Orange Tree Samples Evolution Modern Nylon
+    Orange Tree Samples Evolution Sitardelic
+    Orange Tree Samples Evolution Steel Strings
+    Orange Tree Samples Evolution Stratosphere
+    Orange Tree Samples Evolution Strawberry
+    Orange Tree Samples Evolution Rick 12
+    Orchestral Tools Berlin Brass
+    Orchestral Tools Berlin Percussion
+    Orchestral Tools Metropolis Ark 1
+    Orchestral Tools Metropolis Ark 2
+    Output SUBSTANCE
+    ProjectSAM SWING!
+    Q Up Arts California Keys
+    Realitone Fingerpick
+    Realitone RealiDrums
+    Refractor Audio Transport
+    Sample Logic Bohemian
+    Sample Logic Cinematic Guitars Organic Atmospheres
+    Sample Logic CinemorphX
+    Sample Logic Cinematic Guitars Infinity
+    Sample Logic Cyclone
+    Sample Logic Gamelan
+    Synthepica Epica Bass
+    Soniccouture The Attic
+    Soniccouture Balinese Gamelan 2
+    Soniccouture Estey Reed Organ
+    Soniccouture Xbow Guitars
+    Sonicsmiths The Foundry
+    Sonokinetic Capriccio 
+    Sonokinetic Maximo
+    Sonokinetic Orchestral Series - Woodwinds Ensemble
+    Sonokinetic Ostinato
+    Sonokinetic Sotto
+    Sonokinetic Tutti
+    Sonokinetic Tutti Vox
+    Soundiron Mercury Elements Boys Choir
+    Soundiron Elysium Harp
+    Spitfire Audio Albion ONE
+    Spitfire Audio Hans Zimmer Piano
+    The Loop Loft Drum Direktor Cinematik
+    The Loop Loft Drum Direktor FNK-4
+    Umlaut Audio ARPS
+    Umlaut Audio PADS
+    Umlaut Audio uBEAT Bundle
+    Vir2 Aeris Hybrid Choir Designer
+    vi elements Core Kit
+    Wavesfactory Wavesfactory - Mercury
+    Wide Blue Sound Eclipse
+    Wide Blue Sound Orbit
+
 ## 1.10
+
 Expansion of functionality:
-- added support for monolithic patches (nki, nkm, nkb, nkg), created in NI Kontakt 5th version;
+- Added support for monolithic patches (nki, nkm, nkb, nkg), created in NI Kontakt 5th version;
 - Added support for nicnt-containers.
 
 Added plugin settings dialog (available via file packaging dialog - standard Alt + F5 shortcut).
 
 Added keys to decrypt library containers:
-Sonic faction archetype
-Native Instruments GmbH Una Corda
-Native Instruments GmbH Symphony Series Brass Ensemble
-Native Instruments GmbH Symphony Series String Ensemble
-Impact Soundworks Shreddage Bass 2
+    Sonic Faction Archetype
+    Native Instruments GmbH Una Corda
+    Native Instruments GmbH Symphony Series Brass Ensemble
+    Native Instruments GmbH Symphony Series String Ensemble
+    Impact Soundworks Shreddage Bass 2
 
 ## 1.05
-Fixed errors in extracting library registration data from * .nicnt and * _info.nkx containers:
-- the plugin does not find * .nicnt and * _info.nkx files in the root directory of the logical drive;
+
+Fixed errors in extracting library registration data from *.nicnt and * _info.nkx containers:
+- the plugin does not find *.nicnt and * _info.nkx files in the root directory of the logical drive;
 - the plugin does not find the registration data available in the info-container.
 
 Added keys to decrypt library containers:
-Big Fish Audio Vintage Rhythm Section
-Big Fish Audio Ambient Black
-Tonehammer Plucked Grand Piano
-Output EXHALE
-SonicCouture - Box of Tricks
-Native Instruments GmbH Symphony Series Brass Solo
+    Big Fish Audio Vintage Rhythm Section
+    Big Fish Audio Ambient Black
+    Tonehammer Plucked Grand Piano
+    Output EXHALE
+    Soniccouture Box of Tricks
+    Native Instruments GmbH Symphony Series Brass Solo
 
 ## 1.04
+
 Fixed a bug causing the plug-in to freeze: when opening fake containers smaller than 4 bytes, the reading progress window does not close.
 
-Added keys to decrypt containers Prominy Hummingbird library
+Added keys to decrypt containers:
+    Prominy Hummingbird
 
 ## 1.03
+
 First release.
 
 
