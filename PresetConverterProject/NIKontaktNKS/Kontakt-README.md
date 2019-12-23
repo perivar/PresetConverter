@@ -5,9 +5,11 @@
 - Bit: 32bit, 64bit
 - Language: Russian only
 - System requirements: Windows XP +, Total commander 7.50+ (with full Unicode support)
-- Description:
-- Development of the NKS & NKX Archive Unpacker project in the Total Commander shell.
-- The plugin allows you to work with NI Kontakt containers (*.nks, *.nkx, *.nkr, *.nicnt) (1) as with archives.
+
+Description:
+
+- NKS & NKX Archive Unpacker project in the Total Commander shell.
+- The plugin allows you to work with NI Kontakt containers (`*.nks, *.nkx, *.nkr, *.nicnt`) as with archives [Link][1].
 - Supported:
   - view the contents of containers;
   - extract, delete, add new files (existing containers);
@@ -18,9 +20,9 @@
 
 The contents of the containers NI Kontakt is divided into 3 groups:
 
-1. files with extensions *.wav, *.aif (*.aiff), *.ncw - samples;
-2. files with the extensions *.nki, *.nkm, *.nkb, *.nkg, *.nkp - patches;
-3. files with the extensions *.nka, *.png, *.tga, *.txt, *.xml, *.db, *.cache, *.meta - service file types.
+1. files with extensions `*.wav, *.aif (*.aiff), *.ncw` - samples;
+2. files with the extensions `*.nki, *.nkm, *.nkb, *.nkg, *.nkp` - patches;
+3. files with the extensions `*.nka, *.png, *.tga, *.txt, *.xml, *.db, *.cache, *.meta` - service file types.
 
 Each type of container is designed to store certain types of files.
 
@@ -40,20 +42,19 @@ Kontakt searches for service files and reverberation pulses only in certain dire
 ```
 [Resources]
     |__ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
-    |__ [pictures] (Image directory: png, tga) (2)
+    |__ [pictures] (Image directory: png, tga) [Link][2]
     |__ [scripts] (script directory: txt)
     |__ [data] (directory for presets: nka)
 ```
 
-Notes:
+## Notes
 
-1. Monolithic patches nki, nkm, nkb, nkg are also supported (open with the Ctrl + PageDown key combination).
-2. Each image file must be accompanied by the same txt-file of image settings.
+[1]: Monolithic patches nki, nkm, nkb, nkg are also supported (open with the `Ctrl + PageDown` key combination).
 
+[2]: Each image file must be accompanied by the same txt-file of image settings.
 
-That is, Kontakt searches for reverberation pulses only in Resources \ ir_samples \ (subdirectories are not scanned), images only in Resources \ pictures \ (subdirectories are not scanned), etc.
+That is, Kontakt searches for reverberation pulses only in `Resources\ir_samples\` (subdirectories are not scanned), images only in `Resources\pictures\` (subdirectories are not scanned), etc.
 The inNKX plugin treats resource containers (nkr) as nkx containers with a different extension and reserves the right for the user to determine their contents.
-
 
 ## Monolithic patches (nki, nkm, nkb, nkg)
 
@@ -63,41 +64,40 @@ Monolithic patches created in the 4th version Kontakt are basic (nkx) containers
 
 Monolithic patches created in version 5 Kontakt are an independent type of container. Unlike the previous ones, such monoliths cannot contain subdirectories, and the patch name is fixed (tool name: patch.nki, multitool: patch.nkm, etc.)
 
-
 ## Registration containers (nicnt)
 
 Intended to store service files required for registering branded libraries on end-user systems.
 Kontakt imposes certain restrictions on the contents of the nicnt-containers, which should have the following file structure:
-```
-    [Resources] directory with required resource files for registration
-    [Library name] .xml main xml file with library registration data
-    ContentVersion.txt text file with version of library content
-```
 
-The presence of other files in the container root directory, except for these 2 files and the [Resources] directory is not allowed. It is also not allowed to delete the above files (although they can be replaced and edited) and the presence of subdirectories in the [Resources] directory.
+- `[Resources]` directory with required resource files for registration
+- `[Library name].xml` main xml file with library registration data
+- `ContentVersion.txt` text file with version of library content
+
+The presence of other files in the container root directory, except for these 2 files and the `[Resources]` directory is not allowed. It is also not allowed to delete the above files (although they can be replaced and edited) and the presence of subdirectories in the `[Resources]` directory.
 All these features of nicnt-containers are controlled by the plugin and all incorrect operations performed with the container will be stopped or skipped with the user being notified of errors.
 
-- [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints\Product\Name in the text of the [Library name].xml itself.
+- [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints\Product\Name in the text of the `[Library name].xml` itself.
 - This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints\Product\Name parameter).
 
-In the ContentVersion.txt file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
+In the `ContentVersion.txt` file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
 major.minor.[build]
 
-eg,
-1.0.0
+eg:
+`1.0.0`
 or
-2.1
+`2.1`
 
 In any of the following ANSI, UTF-8, UTF-16 LE encodings.
 Any supported files (samples, patches, service files) without subdirectories can be added to the [Resources] directory, but Kontakt will only read files with fixed names from this directory:
 
-- .LibBrowser.png image bookmark library in the browser Kontakt
-- .db.cache is the preinstalled file to import the contents of the library into the Kontakt database.
+- `.LibBrowser.png` image bookmark library in the browser Kontakt
+- `.db.cache` is the preinstalled file to import the contents of the library into the Kontakt database.
 
 You can find out the fixed names of other [Resources] catalog files and examine their contents using the example of recently issued nicnt containers of proprietary libraries.
 Thus, to create a new nicnt-container, you must first prepare:
 
-1. the main xml-file with the correct registration data of the new library with approximately the following (minimal) content (the red highlights the parameters that must be unique, do not coincide with other libraries):
+1. the main xml-file with the correct registration data of the new library with approximately the following (minimal) content (the ** highlights the parameters that must be unique, do not coincide with other libraries):
+   
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <ProductHints spec="1.0.16">
@@ -120,11 +120,11 @@ Thus, to create a new nicnt-container, you must first prepare:
 
 ```
 
-2. text file ContentVersion.txt (optional, will be added to the container automatically with the default content version)
+1. text file `ContentVersion.txt` (optional, will be added to the container automatically with the default content version)
 
-3. The [Resources] directory (optional, an empty [Resources] directory will be automatically added to the container)
-Select the prepared files on the Total commander panel, call the packaging dialog (Alt + F5), select the “nicnt” item in the dropdown menu “Archiver” and pack the files into the NewLibrary.nicnt archive.
-After creating the container, you can open it, edit the ContentVersion.txt, NewLibrary.xml files, add and remove files from the [Resources] directory, etc.
+2. The `[Resources]` directory (optional, an empty `[Resources]` directory will be automatically added to the container)
+Select the prepared files on the Total commander panel, call the packaging dialog (`Alt + F5`), select the “nicnt” item in the dropdown menu “Archiver” and pack the files into the `NewLibrary.nicnt` archive.
+After creating the container, you can open it, edit the `ContentVersion.txt`, `NewLibrary.xml` files, add and remove files from the `[Resources]` directory, etc.
 
 The plugin guarantees the correct file structure of the nicnt-container, but its performance is no less determined by the correctness of the registration xml-data.
 
@@ -135,35 +135,40 @@ Files with other extensions are skipped (not packaged) with the notification of 
 If necessary, you can add other file types to the group of service files in the plugin settings dialog (available through the Total Commander file packaging dialog).
 Encryption of files added to containers is not supported due to the absence of any need for this.
 
-
 # Extract files from encrypted containers
 
 inNKX can decrypt and extract files from encrypted containers without question. The search for the decryption key is performed automatically in the following order:
-1. Sobsvennaya/Local Storage (built-in) key database.
-2. Custom key database: the nklibs_info.userdb file in the plugin directory (3) (more about it later).
-3. Registry (HKEY_LOCAL_MACHINE \ SOFTWARE \ Native Instruments \ [Library name] \).
-4. Service Center catalog (% Program Files% \ Common Files \ Native Instruments \ Service Center \ [Library name] .xml).
-5. Library catalog ([Library name] .nicnt or [Library name] _info.nkx). It is assumed that the target container is in the library (usually in the Samples directory), and the nicnt or _info.nkx file is in the same directory as the container or one or more levels higher.
+
+1. Local Storage (built-in) key database.
+2. Custom key database: the `nklibs_info.userdb` file in the plugin directory [Link][3] (more about it later).
+3. Registry (`HKEY_LOCAL_MACHINE\SOFTWARE\Native Instruments\[Library name]\`).
+4. Service Center catalog (`%Program Files%\Common Files\Native Instruments\Service Center\[Library name].xml`).
+5. Library catalog (`[Library name].nicnt` or `[Library name]_info.nkx`). It is assumed that the target container is in the library (usually in the Samples directory), and the `nicnt` or `_info.nkx` file is in the same directory as the container or one or more levels higher.
+
 In this way, the following container files will be decrypted and extracted:
-- library available in the plug-in embedded database (4);
+
+- library available in the plug-in embedded database [Link][4];
 - a registered library (successfully added to the bookmarks of the NI Kontakt browser via the Add Library);
-- a library that can be registered (equipped with a working .nicnt or _info.nkx registration file).
-All keys found in the registry, the Service Center catalog and library catalogs (paragraphs 3,4,5), but not in the plugin’s built-in database are stored in the nklibs_info.userdb (5) user database.
+- a library that can be registered (equipped with a working `.nicnt` or `_info.nkx` registration file).
+All keys found in the registry, the Service Center catalog and library catalogs (paragraphs 3,4,5), but not in the plugin’s built-in database are stored in the `nklibs_info.userdb` [Link][5] user database.
 
-Notes:
-3. If the nklibs_info.userdb file in the plug-in directory is not writable, then the user key database is transferred to the Total Commander root directory:% COMMANDER_PATH% \ nklibs_info.userdb.
-4. The plugin’s built-in database contains 316 entries, for a complete list, see the end of this document.
-5. nklibs_info.userdb is a regular ini-file, each section of which contains registration data of one of the libraries.
+## Notes
 
-### Section Name
+[3]: If the `nklibs_info.userdb` file in the plug-in directory is not writable, then the user key database is transferred to the Total Commander root directory: `%COMMANDER_PATH%\nklibs_info.userdb`.
+
+[4]: The plugin’s built-in database contains 316 entries, for a complete list, see the end of this document.
+
+[5]: `nklibs_info.userdb` is a regular ini-file, each section of which contains registration data of one of the libraries.
+
+## Section Name
 
 SNPID - library identifier.
 
 ### Section parameters
 
-- RegKey is a unique library name (more precisely, the name of the registry subkey HKEY_LOCAL_MACHINE \ SOFTWARE \ Native Instruments \ <RegKey> \ for storing the key);
-- JDX - key;
-- HU - initialization vector.
+- RegKey is a unique library name (more precisely, the name of the registry subkey `HKEY_LOCAL_MACHINE\SOFTWARE\Native Instruments\<RegKey>\` for storing the key);
+- `JDX` - key;
+- `HU` - initialization vector.
 
 SNPID, RegKey, JDX, HU can be found in the nicnt or _info.nkx file and make an entry about the library in the user database by direct editing nklibs_info.userdb (in a text editor).
 
@@ -179,48 +184,51 @@ HU = C3CCA2803ABC14A68EAACC38EAA7E8EC
 
 # UNIX file names
 
-File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (\? * "|: &gt; &lt;), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
+File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (`? * " | : < >`), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
 Each forbidden character is assigned a control sequence of characters:
-- \ [bslash]  backslash
-- ? [qmark]   question mark
-- * [star]    multiplication sign
-- "[quote]    double quote
-- | [pipe]    pipe
-- : [colon]   colon
-- <[less]     less sign
-- > [greater] greater sign
-- _ [space]   space (only at the end of the name)
-- . [dot]     dot (only at the end of the name)
 
-When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences (6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
-Example (7):
+- `\ [bslash]`  backslash
+- `? [qmark]`   question mark
+- `* [star]`    multiplication sign
+- `" [quote]`    double quote
+- `| [pipe]`    pipe
+- `: [colon]`   colon
+- `< [less]`     less sign
+- `> [greater]` greater sign
+- `_ [space]`   space (only at the end of the name)
+- `. [dot]`     dot (only at the end of the name)
+
+When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences [Link][6]. When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
+Example [Link][7]:
 ```
-    file name in the container; .PAResources | database | PAL | PAL.meta
-    operation:                  unpacking [down arraw] [up arrow] packaging
-    file name on disk           .PAResources [pipe] database [pipe] PAL [pipe] PAL.meta
+    file name in the container; .PAResources|database|PAL|PAL.meta
+    operation:                  unpacking [down arrow] [up arrow] packaging
+    file name on disk           .PAResources[pipe]database[pipe]PAL[pipe]PAL.meta
 ```
 
 There is some possibility that the file name (directory) of the container will contain the control sequences themselves. In order to block the conversion of the control sequence to the corresponding forbidden character during repacking, all opening angle brackets before the control sequence will be doubled, and the user will be warned that the names of the files on the disk and in the container are different.
 Example:
 ```
-    file name in                [more] [music] [less] [noise] .aif container
-    operation:                  unpacking [down arraw] [up arrow] packaging
-    disk file name              [more] [music] [[less] [noise] .aif
+    file name in                [more][music][less][noise].aif container
+    operation:                  unpacking [down arrow] [up arrow] packaging
+    disk file name              [more][music][[less][noise].aif
 ```
 
-Thus, an even number of opening angle brackets in front of the control sequence shields it (blocks conversion to a forbidden character when packed), but each pair of these brackets ([[) will be replaced with a single ([).
+Thus, an even number of opening angle brackets in front of the control sequence shields it (blocks conversion to a forbidden character when packed), but each pair of these brackets (`[[`) will be replaced with a single (`[`).
 
 Example:
 ```
-    file name on disk package name in container
-    [[[[[pipe]] organ [[[colon]] A#.aiff → [[[pipe]] organ [:] A#.aiff
+    file name on disk                     package name in container
+    [[[[[pipe]]organ[[[colon]]A#.aiff   → [[[pipe]]organ[:]A#.aiff
 ```
 
-Notes:
-6. It should be clear that Total commander will always display the “corrected” file name (the file name on the disk in the examples), regardless of where it is on the disk or in the container.
-7. As an example, the name of one of the files in the container Una Corda.nicnt (Native Instruments GmbH Una Corda) is taken.
+## Notes
 
-Hidden directories:
+[6]: It should be clear that Total commander will always display the “corrected” file name (the file name on the disk in the examples), regardless of where it is on the disk or in the container.
+
+[7]: As an example, the name of one of the files in the container `Una Corda.nicnt` (`Native Instruments GmbH Una Corda`) is taken.
+
+**Hidden directories:**
 The directories on the disk with the attribute “hidden” after being packed into the container will be hidden for the Kontakt browser, and vice versa, the directories in the container that are hidden for the Kontakt browser will have the attribute “hidden” after unpacking to disk. In order to hide the entire contents of the newly created container for the Kontakt browser (hide the container root directory), the packaged files and directories must be located in the directory with the “hidden” attribute.
 
 
