@@ -9,7 +9,7 @@
 Description:
 
 - NKS & NKX Archive Unpacker project in the Total Commander shell.
-- The plugin allows you to work with NI Kontakt containers (`*.nks, *.nkx, *.nkr, *.nicnt`) as with archives [Link][1].
+- The plugin allows you to work with NI Kontakt containers (`*.nks, *.nkx, *.nkr, *.nicnt`) as with archives [#1](#note-1).
 - Supported:
   - view the contents of containers;
   - extract, delete, add new files (existing containers);
@@ -42,16 +42,20 @@ Kontakt searches for service files and reverberation pulses only in certain dire
 ```
 [Resources]
     |__ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
-    |__ [pictures] (Image directory: png, tga) [Link][2]
+    |__ [pictures] (Image directory: png, tga) [#2](#note-2)
     |__ [scripts] (script directory: txt)
     |__ [data] (directory for presets: nka)
 ```
 
 ## Notes
 
-[1]: Monolithic patches nki, nkm, nkb, nkg are also supported (open with the `Ctrl + PageDown` key combination).
+### Note 1
 
-[2]: Each image file must be accompanied by the same txt-file of image settings.
+Monolithic patches nki, nkm, nkb, nkg are also supported (open with the `Ctrl + PageDown` key combination).
+
+### Note 2
+
+Each image file must be accompanied by the same txt-file of image settings.
 
 That is, Kontakt searches for reverberation pulses only in `Resources\ir_samples\` (subdirectories are not scanned), images only in `Resources\pictures\` (subdirectories are not scanned), etc.
 The inNKX plugin treats resource containers (nkr) as nkx containers with a different extension and reserves the right for the user to determine their contents.
@@ -140,25 +144,31 @@ Encryption of files added to containers is not supported due to the absence of a
 inNKX can decrypt and extract files from encrypted containers without question. The search for the decryption key is performed automatically in the following order:
 
 1. Local Storage (built-in) key database.
-2. Custom key database: the `nklibs_info.userdb` file in the plugin directory [Link][3] (more about it later).
+2. Custom key database: the `nklibs_info.userdb` file in the plugin directory [#3](#note-3) (more about it later).
 3. Registry (`HKEY_LOCAL_MACHINE\SOFTWARE\Native Instruments\[Library name]\`).
 4. Service Center catalog (`%Program Files%\Common Files\Native Instruments\Service Center\[Library name].xml`).
 5. Library catalog (`[Library name].nicnt` or `[Library name]_info.nkx`). It is assumed that the target container is in the library (usually in the Samples directory), and the `nicnt` or `_info.nkx` file is in the same directory as the container or one or more levels higher.
 
 In this way, the following container files will be decrypted and extracted:
 
-- library available in the plug-in embedded database [Link][4];
+- library available in the plug-in embedded database [#4](#note-4);
 - a registered library (successfully added to the bookmarks of the NI Kontakt browser via the Add Library);
 - a library that can be registered (equipped with a working `.nicnt` or `_info.nkx` registration file).
-All keys found in the registry, the Service Center catalog and library catalogs (paragraphs 3,4,5), but not in the plugin’s built-in database are stored in the `nklibs_info.userdb` [Link][5] user database.
+All keys found in the registry, the Service Center catalog and library catalogs (paragraphs 3,4,5), but not in the plugin’s built-in database are stored in the `nklibs_info.userdb` [#5](#note-5) user database.
 
 ## Notes
 
-[3]: If the `nklibs_info.userdb` file in the plug-in directory is not writable, then the user key database is transferred to the Total Commander root directory: `%COMMANDER_PATH%\nklibs_info.userdb`.
+### Note 3
 
-[4]: The plugin’s built-in database contains 316 entries, for a complete list, see the end of this document.
+If the `nklibs_info.userdb` file in the plug-in directory is not writable, then the user key database is transferred to the Total Commander root directory: `%COMMANDER_PATH%\nklibs_info.userdb`.
 
-[5]: `nklibs_info.userdb` is a regular ini-file, each section of which contains registration data of one of the libraries.
+### Note 4
+
+The plugin’s built-in database contains 316 entries, for a complete list, see the end of this document.
+
+### Note 5
+
+`nklibs_info.userdb` is a regular ini-file, each section of which contains registration data of one of the libraries.
 
 ## Section Name
 
@@ -198,8 +208,8 @@ Each forbidden character is assigned a control sequence of characters:
 - `_ [space]`   space (only at the end of the name)
 - `. [dot]`     dot (only at the end of the name)
 
-When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences [Link][6]. When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
-Example [Link][7]:
+When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences [#6](#note-6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
+Example [#7](#note-7):
 ```
     file name in the container; .PAResources|database|PAL|PAL.meta
     operation:                  unpacking [down arrow] [up arrow] packaging
@@ -224,15 +234,19 @@ Example:
 
 ## Notes
 
-[6]: It should be clear that Total commander will always display the “corrected” file name (the file name on the disk in the examples), regardless of where it is on the disk or in the container.
+### Note 6 
 
-[7]: As an example, the name of one of the files in the container `Una Corda.nicnt` (`Native Instruments GmbH Una Corda`) is taken.
+It should be clear that Total commander will always display the “corrected” file name (the file name on the disk in the examples), regardless of where it is on the disk or in the container.
+
+### Note 7
+
+As an example, the name of one of the files in the container `Una Corda.nicnt` (`Native Instruments GmbH Una Corda`) is taken.
 
 **Hidden directories:**
 The directories on the disk with the attribute “hidden” after being packed into the container will be hidden for the Kontakt browser, and vice versa, the directories in the container that are hidden for the Kontakt browser will have the attribute “hidden” after unpacking to disk. In order to hide the entire contents of the newly created container for the Kontakt browser (hide the container root directory), the packaged files and directories must be located in the directory with the “hidden” attribute.
 
 
-## Version history
+# Version history
 
 ## 1.20
 Added:
