@@ -1269,8 +1269,7 @@ namespace PresetConverter
                                 {
                                     var resource = new NICNTResource();
 
-                                    long curPos = bf.Position;
-                                    Log.Information("--------- " + curPos);
+                                    Log.Information("--------- Index: " + bf.Position);
 
                                     long resCounter = bf.ReadInt64();
                                     Log.Information("Resource Counter: " + resCounter);
@@ -1278,14 +1277,12 @@ namespace PresetConverter
 
                                     bf.ReadBytes(16);
 
-                                    int resUnknown = bf.ReadInt16();
-                                    if (doVerbose) Log.Debug("Resource Unknown: " + resUnknown);
-
-                                    string resName = bf.ReadString(128 * 2, Encoding.Unicode).TrimEnd('\0');
+                                    string resName = bf.ReadString(600, Encoding.Unicode).TrimEnd('\0');
                                     Log.Information("Resource Name: " + resName);
                                     resource.Name = resName;
 
-                                    bf.ReadBytes(350);
+                                    long resUnknown = bf.ReadInt64();
+                                    if (doVerbose) Log.Debug("Resource Unknown: " + resUnknown);
 
                                     long resIndex = bf.ReadInt64();
                                     Log.Information("Resource Index: " + resIndex);
@@ -1304,7 +1301,8 @@ namespace PresetConverter
                                     lastIndex = resIndex;
                                     resourceList.Add(resource);
                                 }
-                                Log.Information("---------");
+                                Log.Information("--------- Index: " + bf.Position);
+
 
                                 var delimiter2 = bf.ReadBytes(8);
                                 if (doVerbose) Log.Debug("Delimiter2: " + StringUtils.ByteArrayToHexString(delimiter2)); // F1 F1 F1 F1 F1 F1 F1 F1
