@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using CommonUtils;
 using Serilog;
 
@@ -153,15 +154,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
                                 foreach (var res in resourceList)
                                 {
-                                    string fixedName = FromUnixFileNames(res.Name);
-                                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", fixedName, bf.Position, res.Length));
+                                    string escapedFileName = FromUnixFileNames(res.Name);
+                                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", escapedFileName, bf.Position, res.Length));
 
                                     res.Data = bf.ReadBytes((int)res.Length);
 
                                     // if not only listing, save files
                                     if (!doList)
                                     {
-                                        string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName, "Resources", fixedName);
+                                        string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName, "Resources", escapedFileName);
                                         BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
 
                                         outBinaryFile.Write(res.Data);
@@ -207,12 +208,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
         /// <summary>
         /// Convert from unix filenames to a filename that can be stored on windows
-        /// i.e. convert | to [pipe], etc.
         /// </summary>
         /// <param name="fileName">unix filename</param>
         /// <returns>a windows supported unix filename</returns>
         public static string FromUnixFileNames(string fileName)
         {
+            return StringUtils.EscapeHex(fileName);
+
             // \ [bslash]
             // ? [qmark]
             // * [star]
@@ -224,39 +226,71 @@ namespace PresetConverterProject.NIKontaktNKS
             // _ [space] (only at the end of the name)
             // . [dot] (only at the end of the name)
 
-            fileName = fileName
-                .Replace("\\", "[bslash]")
-                .Replace("?", "[qmark]")
-                .Replace("*", "[star]")
-                .Replace("\"", "[quote]")
-                .Replace("|", "[pipe]")
-                .Replace(":", "[colon]")
-                .Replace("<", "[less]")
-                .Replace(">", "[greater]");
+            // fileName = fileName
+            //     // replace illegal characters with control sequences
+            //     .Replace("\\", "[bslash]")
+            //     .Replace("?", "[qmark]")
+            //     .Replace("*", "[star]")
+            //     .Replace("\"", "[quote]")
+            //     .Replace("|", "[pipe]")
+            //     .Replace(":", "[colon]")
+            //     .Replace("<", "[less]")
+            //     .Replace(">", "[greater]");
 
-            while (fileName.EndsWith(" "))
-            {
-                fileName = fileName.Replace(" ", "[space]");
-            }
+            // while (fileName.EndsWith(" "))
+            // {
+            //     fileName = fileName.Replace(" ", "[space]");
+            // }
 
-            while (fileName.EndsWith("."))
-            {
-                fileName = fileName.Replace(".", "[dot]");
-            }
+            // while (fileName.EndsWith("."))
+            // {
+            //     fileName = fileName.Replace(".", "[dot]");
+            // }
 
-            return fileName;
+            // return fileName;
         }
 
         /// <summary>
         /// Convert from windows filename with unix patterns back to unix filename
-        /// i.e. convert from [pipe] to |, etc.
         /// </summary>
         /// <param name="fileName">windows supported unix filename</param>
         /// <returns>a unix filename</returns>
         public static string ToUnixFileName(string fileName)
         {
-            return fileName;
-        }
+            return StringUtils.UnescapeHex(fileName);
 
+            // \ [bslash]
+            // ? [qmark]
+            // * [star]
+            // " [quote]
+            // | [pipe]
+            // : [colon]
+            // < [less]
+            // > [greater]
+            // _ [space] (only at the end of the name)
+            // . [dot] (only at the end of the name)
+
+            // fileName = fileName
+            //     .Replace("[bslash]", "\\")
+            //     .Replace("[qmark]", "?")
+            //     .Replace("[star]", "*")
+            //     .Replace("[quote]", "\"")
+            //     .Replace("[pipe]", "|")
+            //     .Replace("[colon]", ":")
+            //     .Replace("[less]", "<")
+            //     .Replace("[greater]", ">");
+
+            // while (fileName.EndsWith("[space]"))
+            // {
+            //     fileName = fileName.Replace("[space]", " ");
+            // }
+
+            // while (fileName.EndsWith("[dot]"))
+            // {
+            //     fileName = fileName.Replace("[dot]", ".");
+            // }
+
+            // return fileName;
+        }
     }
 }

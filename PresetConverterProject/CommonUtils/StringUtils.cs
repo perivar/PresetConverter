@@ -299,6 +299,103 @@ namespace CommonUtils
             return Regex.Replace(name, invalidReStr, "_");
         }
 
+        #region Escape and Unescape filepath methods        
+        static readonly string invalidChars = @"""\/?:<>*|";
+        static readonly string escapeChar = "%";
+
+        static readonly Regex escaper = new Regex(
+            "[" + Regex.Escape(escapeChar + invalidChars) + "]",
+            RegexOptions.Compiled);
+
+        static readonly Regex unescaper = new Regex(
+            Regex.Escape(escapeChar) + "([0-9A-Z]{4})",
+            RegexOptions.Compiled);
+
+        /// <summary>
+        /// Replaces any forbidden character with a % followed by its 16-bit representation in hex
+        /// </summary>
+        /// <see>https://stackoverflow.com/questions/15087444/c-sharp-file-path-encoding-and-decoding</see>
+        /// <param name="path">file path</param>
+        /// <returns>the path with forbidden characters replaced with a % followed by its 16-bit representations in hex</returns>
+        public static string EscapeHex(string path)
+        {
+            return escaper.Replace(path,
+                m => escapeChar + ((short)(m.Value[0])).ToString("X4"));
+        }
+
+        /// <summary>
+        /// Replaces any 16-bit representation in hex back to characters that are forbidden in windows file paths
+        /// </summary>
+        /// <see>https://stackoverflow.com/questions/15087444/c-sharp-file-path-encoding-and-decoding</see>
+        /// <param name="path">path with forbidden characters replaced with a % followed by its 16-bit representations in hex</param>
+        /// <returns>the path with forbidden characters</returns>
+        public static string UnescapeHex(string path)
+        {
+            return unescaper.Replace(path,
+                m => ((char)Convert.ToInt16(m.Groups[1].Value, 16)).ToString());
+        }
+
+        private static Dictionary<string, string> EncodeMapping()
+        {
+            // Following characters are invalid for windows file and folder names.
+            // \/:*?"<>|
+
+            Dictionary<string, string> dic = new Dictionary<string, string>();
+
+            // use fullwidth character types
+            // https://jrgraphix.net/r/Unicode/FF00-FFEF
+            dic.Add(@"\", "＼");    // FF3C
+            dic.Add("/", "／");     // FF0F
+            dic.Add(":", "：");     // FF1A
+            dic.Add("*", "＊");     // FF0A
+            dic.Add("?", "？");     // FF1F
+            dic.Add(@"""", "＂");   // FF02
+            dic.Add("<", "＜");     // FF1C
+            dic.Add(">", "＞");     // FF1E
+            dic.Add("|", "｜");     // FF5C
+
+            return dic;
+        }
+
+        /// <summary>
+        /// Replaces any forbidden character with allowed representative characters
+        /// </summary>
+        /// <see>https://stackoverflow.com/questions/309485/c-sharp-sanitize-file-name</see>
+        /// <param name="path">file path</param>
+        /// <returns>the path with forbidden characters replaced with allowed representative characters</returns>
+        public static string EscapeRepresentative(string path)
+        {
+            foreach (KeyValuePair<string, string> replace in EncodeMapping())
+            {
+                path = path.Replace(replace.Key, replace.Value);
+            }
+
+            // handle dot at the end
+            if (path.EndsWith(".")) path = path.Substring(0, path.Length - 1) + "．";
+
+            return path;
+        }
+
+        /// <summary>
+        /// Replaces representative characters back to characters that are forbidden in windows file paths
+        /// </summary>
+        /// <see>https://stackoverflow.com/questions/309485/c-sharp-sanitize-file-name</see>
+        /// <param name="path">path with forbidden characters replaced with representative characters</param>
+        /// <returns>the path with forbidden characters</returns>
+        public static string UnescapeRepresentative(string path)
+        {
+            foreach (KeyValuePair<string, string> replace in EncodeMapping())
+            {
+                path = path.Replace(replace.Value, replace.Key);
+            }
+
+            // handle dot at the end
+            if (path.EndsWith("．")) path = path.Substring(0, path.Length - 1) + ".";
+
+            return path;
+        }
+        #endregion        
+
         private static readonly string[] _headerEncodingTable = new string[] {
             "%00", "%01", "%02", "%03", "%04", "%05", "%06", "%07",
             "%08", "%09", "%0a", "%0b", "%0c", "%0d", "%0e", "%0f",
