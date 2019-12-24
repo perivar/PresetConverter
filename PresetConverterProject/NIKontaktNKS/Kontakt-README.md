@@ -81,7 +81,7 @@ The presence of other files in the container root directory, except for these 2 
 All these features of nicnt-containers are controlled by the plugin and all incorrect operations performed with the container will be stopped or skipped with the user being notified of errors.
 
 - [Library name] is the conditional name of the library, for each library it is its own, unique and must match the parameter ProductHints\Product\Name in the text of the `[Library name].xml` itself.
-- This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the ProductHints\Product\Name parameter).
+- This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the `ProductHints\Product\Name` parameter).
 
 In the `ContentVersion.txt` file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
 major.minor.[build]
@@ -92,12 +92,12 @@ or
 `2.1`
 
 In any of the following ANSI, UTF-8, UTF-16 LE encodings.
-Any supported files (samples, patches, service files) without subdirectories can be added to the [Resources] directory, but Kontakt will only read files with fixed names from this directory:
+Any supported files (samples, patches, service files) without subdirectories can be added to the `[Resources]` directory, but Kontakt will only read files with fixed names from this directory:
 
 - `.LibBrowser.png` image bookmark library in the browser Kontakt
 - `.db.cache` is the preinstalled file to import the contents of the library into the Kontakt database.
 
-You can find out the fixed names of other [Resources] catalog files and examine their contents using the example of recently issued nicnt containers of proprietary libraries.
+You can find out the fixed names of other `[Resources]` catalog files and examine their contents using the example of recently issued nicnt containers of proprietary libraries.
 Thus, to create a new nicnt-container, you must first prepare:
 
 1. the main xml-file with the correct registration data of the new library with approximately the following (minimal) content (the ** highlights the parameters that must be unique, do not coincide with other libraries):
@@ -182,9 +182,9 @@ SNPID - library identifier.
 
 SNPID, RegKey, JDX, HU can be found in the nicnt or _info.nkx file and make an entry about the library in the user database by direct editing nklibs_info.userdb (in a text editor).
 
-**Attention!** Errors entering SNPID, JDX and HU will lead to incorrect decryption of container files, so direct editing is not recommended: when extracting files from a container, registration information will be read and saved in the user database automatically if the nicnt or _info.nkx file is in the same container catalog or one or more levels above.
+**Attention!** Errors entering `SNPID`, `JDX` and `HU` will lead to incorrect decryption of container files, so direct editing is not recommended: when extracting files from a container, registration information will be read and saved in the user database automatically if the nicnt or _info.nkx file is in the same container catalog or one or more levels above.
 
-An example of the section of the ini-file nklibs_info.userdb:
+An example of the section of the ini-file `nklibs_info.userdb`:
 ```
 [324]
 RegKey = Kontakt Factory Library
@@ -210,6 +210,7 @@ Each forbidden character is assigned a control sequence of characters:
 
 When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences [#6](#note-6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
 Example [#7](#note-7):
+
 ```
     file name in the container; .PAResources|database|PAL|PAL.meta
     operation:                  unpacking [down arrow] [up arrow] packaging
@@ -218,6 +219,7 @@ Example [#7](#note-7):
 
 There is some possibility that the file name (directory) of the container will contain the control sequences themselves. In order to block the conversion of the control sequence to the corresponding forbidden character during repacking, all opening angle brackets before the control sequence will be doubled, and the user will be warned that the names of the files on the disk and in the container are different.
 Example:
+
 ```
     file name in                [more][music][less][noise].aif container
     operation:                  unpacking [down arrow] [up arrow] packaging
@@ -227,6 +229,7 @@ Example:
 Thus, an even number of opening angle brackets in front of the control sequence shields it (blocks conversion to a forbidden character when packed), but each pair of these brackets (`[[`) will be replaced with a single (`[`).
 
 Example:
+
 ```
     file name on disk                     package name in container
     [[[[[pipe]]organ[[[colon]]A#.aiff   → [[[pipe]]organ[:]A#.aiff
@@ -234,7 +237,7 @@ Example:
 
 ## Notes
 
-### Note 6 
+### Note 6
 
 It should be clear that Total commander will always display the “corrected” file name (the file name on the disk in the examples), regardless of where it is on the disk or in the container.
 
@@ -249,10 +252,13 @@ The directories on the disk with the attribute “hidden” after being packed i
 # Version history
 
 ## 1.20
+
 Added:
+
 - Support for encrypted containers of the Kontakt 5.6.8 format
 
 Keys for decrypting library containers:
+
 - Best Service The Orchestra
 - Big Fish Audio Sequence
 - Big Fish Audio Vintage Horns 2
@@ -291,12 +297,15 @@ Keys for decrypting library containers:
 ## 1.18
 
 Fixed:
+
 - After performing file operations with the nicnt container, the plugin automatically assigns it the wrong double extension (.xml.nicnt)
 
 Added:
+
 - Support for unencrypted containers of the new format (Kontakt 5.6.8)
 
 Keys for decrypting library containers:
+
 - ProjectSAM Swing More!
 - Heavyocity NOVO
 - Tovusound Edward Foleyart Instrument
@@ -316,6 +325,7 @@ Keys for decrypting library containers:
 
 Added:
 Keys for decrypting library containers:
+
 - Output ANALOG STRINGS
 - Output ANALOG STRINGS
 - Impact Soundworks Straight Ahead Jazz Horns
@@ -380,15 +390,18 @@ Keys for decrypting library containers:
 ## 1.17
 
 Fixed:
+
 - The plugin extracts files from containers of only those libraries whose identifiers begin with a significant digit.
 - The plugin crashes when extracting files whose names end with a period or a space.
 
 Added:
+
 - Support for Windows XP.
 - Key database browser for decrypting containers with the ability to export and import records (implemented as a file system plugin and is accordingly available in the Total - commander network environment).
 - Decryption of containers of protected libraries without extracting files (launch in the plugin settings dialog: Alt + F5 -> nkx -> Settings ...)
 
 Keys for decrypting library containers:
+
 - Bechstein Digital Grand
 - Best Service Chris Hein - Solo Cello
 - Best Service Chris Hein - Solo ContraBass
@@ -488,12 +501,14 @@ Keys for decrypting library containers:
 ## 1.10
 
 Expansion of functionality:
+
 - Added support for monolithic patches (nki, nkm, nkb, nkg), created in NI Kontakt 5th version;
 - Added support for nicnt-containers.
 
 Added plugin settings dialog (available via file packaging dialog - standard Alt + F5 shortcut).
 
 Added keys to decrypt library containers:
+
 - Sonic Faction Archetype
 - Native Instruments GmbH Una Corda
 - Native Instruments GmbH Symphony Series Brass Ensemble
@@ -502,11 +517,13 @@ Added keys to decrypt library containers:
 
 ## 1.05
 
-Fixed errors in extracting library registration data from *.nicnt and * _info.nkx containers:
-- the plugin does not find *.nicnt and * _info.nkx files in the root directory of the logical drive;
+Fixed errors in extracting library registration data from `*.nicnt` and `* _info.nkx` containers:
+
+- the plugin does not find `*.nicnt` and `* _info.nkx` files in the root directory of the logical drive;
 - the plugin does not find the registration data available in the info-container.
 
 Added keys to decrypt library containers:
+
 - Big Fish Audio Vintage Rhythm Section
 - Big Fish Audio Ambient Black
 - Tonehammer Plucked Grand Piano
@@ -519,15 +536,17 @@ Added keys to decrypt library containers:
 Fixed a bug causing the plug-in to freeze: when opening fake containers smaller than 4 bytes, the reading progress window does not close.
 
 Added keys to decrypt containers:
+
 - Prominy Hummingbird
 
 ## 1.03
 
 First release.
 
+## Plugin's built-in database (complete list of keys to decrypt files)
 
-# Plugin's built-in database (complete list of keys to decrypt files):
-## SNPID (key identifier) ​​RegKey (unique library name)
+### SNPID (key identifier) ​​RegKey (unique library name)
+
 13. Keyboard Collection
 14. [not known]
 101. Stradivari Solo Violin

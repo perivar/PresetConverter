@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Reflection;
+using System.IO.Compression;
 
 namespace CommonUtils
 {
@@ -179,6 +180,22 @@ namespace CommonUtils
             else
             {
                 return null; // is a nothing 
+            }
+        }
+
+        /// <summary>
+        /// Create Directory if it doesn't already exist
+        /// </summary>
+        /// <param name="filePath">directory path</param>
+        public static void CreateDirectoryIfNotExist(string filePath)
+        {
+            try
+            {
+                Directory.CreateDirectory(filePath);
+            }
+            catch (Exception)
+            {
+                // handle them here
             }
         }
 
@@ -469,6 +486,36 @@ namespace CommonUtils
             return Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
         }
 
+        /// <summary>
+        /// Decompress gzipped byte array
+        /// </summary>
+        /// <param name="gzip">gzipped byte array</param>
+        /// <returns>decompressed bytes</returns>
+        public static byte[] Decompress(byte[] gzip)
+        {
+            // Create a GZIP stream with decompression mode.
+            // ... Then create a buffer and write into while reading from the GZIP stream.
+            using (GZipStream stream = new GZipStream(new MemoryStream(gzip),
+                CompressionMode.Decompress))
+            {
+                const int size = 4096;
+                byte[] buffer = new byte[size];
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    int count = 0;
+                    do
+                    {
+                        count = stream.Read(buffer, 0, size);
+                        if (count > 0)
+                        {
+                            memory.Write(buffer, 0, count);
+                        }
+                    }
+                    while (count > 0);
+                    return memory.ToArray();
+                }
+            }
+        }
     }
 }
 

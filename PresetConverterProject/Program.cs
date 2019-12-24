@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 using CommonUtils;
@@ -22,9 +23,6 @@ namespace PresetConverter
 {
     class Program
     {
-        static readonly byte[] NKS_NICNT_MTD = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x4D, 0x54, 0x44, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC MTD  /\
-        static readonly byte[] NKS_NICNT_TOC = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x54, 0x4F, 0x43, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC TOC  /\
-
         static void Main(string[] args)
         {
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -176,7 +174,7 @@ namespace PresetConverter
         private static void HandleAbletonLiveProject(string file, string outputDirectoryPath)
         {
             var bytes = File.ReadAllBytes(file);
-            var decompressed = Decompress(bytes);
+            var decompressed = IOUtils.Decompress(bytes);
             var str = Encoding.UTF8.GetString(decompressed);
             var docXelement = XElement.Parse(str);
 
@@ -207,7 +205,7 @@ namespace PresetConverter
                         var eq = new AbletonEq8(xelement);
                         var steinbergFrequency = eq.ToSteinbergFrequency();
                         outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
                         steinbergFrequency.Write(outputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -218,7 +216,7 @@ namespace PresetConverter
                         var compressor = new AbletonCompressor(xelement);
                         var steinbergCompressor = compressor.ToSteinbergCompressor();
                         outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
                         steinbergCompressor.Write(outputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -229,7 +227,7 @@ namespace PresetConverter
                         var glueCompressor = new AbletonGlueCompressor(xelement);
                         var wavesSSLComp = glueCompressor.ToWavesSSLComp();
                         outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
                         wavesSSLComp.Write(outputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -250,7 +248,7 @@ namespace PresetConverter
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
         {
             var bytes = File.ReadAllBytes(file);
-            var decompressed = Decompress(bytes);
+            var decompressed = IOUtils.Decompress(bytes);
             var str = Encoding.UTF8.GetString(decompressed);
             var xelement = XElement.Parse(str);
 
@@ -266,7 +264,7 @@ namespace PresetConverter
                     var eq = new AbletonEq8(xelement);
                     var steinbergFrequency = eq.ToSteinbergFrequency();
                     outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
                     steinbergFrequency.Write(outputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -277,7 +275,7 @@ namespace PresetConverter
                     var compressor = new AbletonCompressor(xelement);
                     var steinbergCompressor = compressor.ToSteinbergCompressor();
                     outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
                     steinbergCompressor.Write(outputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -288,7 +286,7 @@ namespace PresetConverter
                     var glueCompressor = new AbletonGlueCompressor(xelement);
                     var wavesSSLComp = glueCompressor.ToWavesSSLComp();
                     outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
                     wavesSSLComp.Write(outputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -677,7 +675,7 @@ namespace PresetConverter
 
                         // save the Play presets as .vstpreset files
                         string playOutputFilePath = Path.Combine(outputDirectoryPath, "Play", fileNameNoExtension);
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Play"));
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Play"));
                         play.Write(playOutputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -731,7 +729,7 @@ namespace PresetConverter
 
             // save the kontakt presets as .vstpreset files
             string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, origPluginName, fileNameNoExtension);
-            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, origPluginName));
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, origPluginName));
             kontakt.Write(kontaktOutputFilePath + ".vstpreset");
 
             // also save as Kontakt NKI preset file
@@ -799,7 +797,7 @@ namespace PresetConverter
                 {
                     // output the vstpreset
                     string wavesSSLCompOutputFilePath = Path.Combine(outputDirectoryPath, "Waves", fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves"));
                     vstPreset.Write(wavesSSLCompOutputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -809,7 +807,7 @@ namespace PresetConverter
                 {
                     // output the vstpreset
                     string wavesSSLChannelOutputFilePath = Path.Combine(outputDirectoryPath, "Waves", fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves"));
                     vstPreset.Write(wavesSSLChannelOutputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -819,7 +817,7 @@ namespace PresetConverter
                     var wavesSSLChannel = vstPreset as WavesSSLChannel;
                     var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
                     string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
                     uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
 
                     // and dump the UAD SSL Channel info as well
@@ -832,7 +830,7 @@ namespace PresetConverter
                 {
                     // output the vstpreset
                     string reverenceOutputFilePath = Path.Combine(outputDirectoryPath, "REVerence", fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "REVerence"));
                     vstPreset.Write(reverenceOutputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -856,7 +854,7 @@ namespace PresetConverter
                 {
                     // output the vstpreset
                     string presetOutputFilePath = Path.Combine(outputDirectoryPath, vstPreset.PlugInName, fileNameNoExtension);
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
                     vstPreset.Write(presetOutputFilePath + ".vstpreset");
 
                     // and dump the text info as well
@@ -893,7 +891,7 @@ namespace PresetConverter
 
                         // save the kontakt presets as .vstpreset files
                         string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, "Kontakt 5", fileNameNoExtension + ".vstpreset");
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Kontakt 5"));
                         vstPreset.Write(kontaktOutputFilePath);
 
                         // and dump the text info as well
@@ -906,7 +904,7 @@ namespace PresetConverter
                     {
                         // output the vstpreset
                         string presetOutputFilePath = Path.Combine(outputDirectoryPath, vstPreset.PlugInName, fileNameNoExtension);
-                        CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
                         vstPreset.Write(presetOutputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -951,7 +949,7 @@ namespace PresetConverter
         {
             // output the vstpreset
             string fabFilterOutputFilePath = Path.Combine(outputDirectoryPath, pluginName, fileNameNoExtension);
-            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
             preset.Write(fabFilterOutputFilePath + ".vstpreset");
 
             // and dump the text info as well
@@ -963,7 +961,7 @@ namespace PresetConverter
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();
             string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".vstpreset");
-            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
             steinbergFrequency.Write(frequencyOutputFilePath);
 
             // and dump the steinberg frequency info as well
@@ -975,7 +973,7 @@ namespace PresetConverter
         {
             // output the vstpreset
             string fabFilterOutputFilePath = Path.Combine(outputDirectoryPath, pluginName, fileNameNoExtension);
-            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
             preset.Write(fabFilterOutputFilePath + ".vstpreset");
 
             // and dump the text info as well
@@ -987,7 +985,7 @@ namespace PresetConverter
             // convert to steinberg Frequency format
             var steinbergFrequency = preset.ToSteinbergFrequency();
             string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".vstpreset");
-            CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
             steinbergFrequency.Write(frequencyOutputFilePath);
 
             // and dump the steinberg frequency info as well
@@ -1007,7 +1005,7 @@ namespace PresetConverter
                 // convert to UAD SSL Channel
                 var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
                 string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
-                CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
+                IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
                 uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
 
                 // and dump the UAD SSL Channel info as well
@@ -1101,269 +1099,11 @@ namespace PresetConverter
 
             if (extension == ".nki")
             {
-                using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
-                {
-                    UInt32 fileSize = bf.ReadUInt32();
-                    Log.Debug("fileSize: " + fileSize);
-
-                    bf.Seek(350, SeekOrigin.Begin);
-                    int snpidCount = bf.ReadInt32();
-                    string snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
-
-                    // snpid cannot have more than 4 characters (?!)
-                    if (snpidCount > 4)
-                    {
-                        snpidCount = 0;
-                        snpid = "";
-                        bf.Seek(355, SeekOrigin.Begin);
-                    }
-                    else
-                    {
-                        bf.ReadBytes(25);
-                    }
-                    Log.Debug("snpid: " + snpid);
-
-                    int versionCount = bf.ReadInt32();
-                    string version = bf.ReadString(versionCount * 2, Encoding.Unicode);
-                    Log.Debug("version: " + version);
-
-                    bf.ReadBytes(122);
-                    int presetNameCount = bf.ReadInt32();
-                    string presetName = bf.ReadString(presetNameCount * 2, Encoding.Unicode);
-                    int presetNameRest = bf.ReadInt32();
-                    Log.Debug("presetName: " + presetName);
-
-                    int companyNameCount = bf.ReadInt32();
-                    string companyName = bf.ReadString(companyNameCount * 2, Encoding.Unicode);
-                    int companyNameRest = bf.ReadInt32();
-                    Log.Debug("companyName: " + companyName);
-
-                    bf.ReadBytes(40);
-
-                    int libraryNameCount = bf.ReadInt32();
-                    string libraryName = bf.ReadString(libraryNameCount * 2, Encoding.Unicode);
-                    int libraryNameRest = bf.ReadInt32();
-                    Log.Debug("libraryName: " + libraryName);
-
-                    int typeCount = bf.ReadInt32();
-                    if (typeCount != 0)
-                    {
-                        string type = bf.ReadString(typeCount * 2, Encoding.Unicode);
-                        int typeRest = bf.ReadInt32();
-                        Log.Debug("type: " + type);
-                    }
-
-                    int number = bf.ReadInt32();
-
-                    for (int i = 0; i < number * 2; i++)
-                    {
-                        int sCount = bf.ReadInt32();
-                        string s = bf.ReadString(sCount * 2, Encoding.Unicode);
-                        Log.Debug(s);
-                    }
-
-                    bf.ReadBytes(249);
-
-                    UInt32 chunkSize = bf.ReadUInt32();
-                    Log.Debug("chunkSize: " + chunkSize);
-
-                    string outputFileName = Path.GetFileNameWithoutExtension(file);
-                    string outputFilePath = Path.Combine(outputDirectoryPath, "NKI_CONTENT", outputFileName + ".bin");
-                    CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "NKI_CONTENT"));
-
-                    var nks = new Nks();
-                    nks.BinaryFile = bf;
-                    nks.SetKeys = new Dictionary<String, NksSetKey>();
-
-                    NksEncryptedFileHeader header = new NksEncryptedFileHeader();
-
-                    header.SetId = snpid.ToUpper();
-                    header.KeyIndex = 0x100;
-                    header.Size = chunkSize;
-
-                    BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
-
-                    if (snpid == "")
-                    {
-                        if (!doList) NKS.ExtractFileEntryToBf(nks, header, outBinaryFile);
-                    }
-                    else
-                    {
-                        if (!doList) NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
-                    }
-
-                    outBinaryFile.Close();
-                }
+                NKI.Parse(file, outputDirectoryPath, doList, doVerbose);
             }
             else if (extension == ".nicnt")
             {
-                using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
-                {
-                    var header = bf.ReadBytes(16);
-                    if (header.SequenceEqual(NKS_NICNT_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
-                    {
-                        bf.Seek(66, SeekOrigin.Begin);
-                        string version = bf.ReadString(3 * 2, Encoding.Unicode);
-                        Log.Information("Version: " + version);
-
-                        bf.Seek(132, SeekOrigin.Begin);
-                        int unknown1 = bf.ReadInt32();
-                        if (doVerbose) Log.Debug("Unknown1: " + unknown1);
-
-                        bf.Seek(144, SeekOrigin.Begin);
-
-                        int startOffset = bf.ReadInt32();
-                        Log.Information("Start Offset: " + startOffset);
-
-                        int unknown3 = bf.ReadInt32();
-                        if (doVerbose) Log.Debug("Unknown3: " + unknown3);
-
-                        bf.Seek(256, SeekOrigin.Begin);
-
-                        string productHintsXml = bf.ReadStringNull();
-                        if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
-
-                        // the Data is an icon stored as Base64 String
-                        // https://codebeautify.org/base64-to-image-converter
-
-                        bf.Seek(startOffset + 256, SeekOrigin.Begin);
-                        var header2 = bf.ReadBytes(16);
-                        if (header2.SequenceEqual(NKS_NICNT_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
-                        {
-                            bf.ReadBytes(116);
-
-                            long unknown4 = bf.ReadInt64();
-                            if (doVerbose) Log.Debug("Unknown4: " + unknown4);
-
-                            bf.ReadBytes(4);
-
-                            long unknown5 = bf.ReadInt64();
-                            if (doVerbose) Log.Debug("Unknown5: " + unknown5);
-
-                            bf.ReadBytes(104);
-
-                            long unknown6 = bf.ReadInt64();
-                            if (doVerbose) Log.Debug("Unknown6: " + unknown6);
-
-                            var delimiter1 = bf.ReadBytes(8);
-                            if (doVerbose) Log.Debug("Delimiter1: " + StringUtils.ByteArrayToHexString(delimiter1)); // F0 F0 F0 F0 F0 F0 F0 F0
-                            if (!delimiter1.SequenceEqual(new byte[] { 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0 }))
-                            {
-                                Log.Error("Delimiter1 not as expected 'F0 F0 F0 F0 F0 F0 F0 F0' but got " + StringUtils.ToHexAndAsciiString(delimiter1));
-                            }
-
-                            long totalResourceCount = bf.ReadInt64();
-                            Log.Information("Total Resource Count: " + totalResourceCount);
-
-                            long totalResourceLength = bf.ReadInt64();
-                            Log.Information("Total Resource Length: " + totalResourceLength);
-
-                            var resourceList = new List<NICNTResource>();
-                            var header3 = bf.ReadBytes(16);
-                            if (header3.SequenceEqual(NKS_NICNT_TOC)) // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
-                            {
-                                bf.ReadBytes(600);
-
-                                long lastIndex = 0;
-                                for (int i = 0; i < totalResourceCount; i++)
-                                {
-                                    var resource = new NICNTResource();
-
-                                    Log.Information("--------- Index: " + bf.Position);
-
-                                    long resCounter = bf.ReadInt64();
-                                    Log.Information("Resource Counter: " + resCounter);
-                                    resource.Count = resCounter;
-
-                                    bf.ReadBytes(16);
-
-                                    string resName = bf.ReadString(600, Encoding.Unicode).TrimEnd('\0');
-                                    Log.Information("Resource Name: " + resName);
-                                    resource.Name = resName;
-
-                                    long resUnknown = bf.ReadInt64();
-                                    if (doVerbose) Log.Debug("Resource Unknown: " + resUnknown);
-
-                                    long resIndex = bf.ReadInt64();
-                                    Log.Information("Resource Index: " + resIndex);
-                                    resource.Index = resIndex;
-
-                                    if (lastIndex > 0)
-                                    {
-                                        resource.Length = resIndex - lastIndex;
-                                    }
-                                    else
-                                    {
-                                        resource.Length = resIndex;
-                                    }
-                                    Log.Information("Resource Length: " + resource.Length);
-
-                                    lastIndex = resIndex;
-                                    resourceList.Add(resource);
-                                }
-                                Log.Information("--------- Index: " + bf.Position);
-
-
-                                var delimiter2 = bf.ReadBytes(8);
-                                if (doVerbose) Log.Debug("Delimiter2: " + StringUtils.ByteArrayToHexString(delimiter2)); // F1 F1 F1 F1 F1 F1 F1 F1
-
-                                if (!delimiter2.SequenceEqual(new byte[] { 0xF1, 0xF1, 0xF1, 0xF1, 0xF1, 0xF1, 0xF1, 0xF1 }))
-                                {
-                                    Log.Error("Delimiter2 not as expected 'F1 F1 F1 F1 F1 F1 F1 F1' but got " + StringUtils.ToHexAndAsciiString(delimiter2));
-                                }
-
-                                long unknown13 = bf.ReadInt64();
-                                if (doVerbose) Log.Debug("Unknown13: " + unknown13);
-
-                                long unknown14 = bf.ReadInt64();
-                                if (doVerbose) Log.Debug("Unknown14: " + unknown14);
-
-                                var header4 = bf.ReadBytes(16);
-                                if (header4.SequenceEqual(NKS_NICNT_TOC)) // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
-                                {
-                                    bf.ReadBytes(592);
-
-                                    string outputFileName = Path.GetFileNameWithoutExtension(file);
-                                    if (!doList) CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, outputFileName));
-
-                                    foreach (var res in resourceList)
-                                    {
-                                        long curPos = bf.Position;
-                                        Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", res.Name, curPos, res.Length));
-
-                                        res.Data = bf.ReadBytes((int)res.Length);
-
-                                        // if not only listing, save files
-                                        if (!doList)
-                                        {
-                                            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName, StringUtils.MakeValidFileName(res.Name));
-                                            BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
-
-                                            outBinaryFile.Write(res.Data);
-                                            outBinaryFile.Close();
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    Log.Error("Header4 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header4));
-                                }
-                            }
-                            else
-                            {
-                                Log.Error("Header3 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header3));
-                            }
-                        }
-                        else
-                        {
-                            Log.Error("Header2 not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header2));
-                        }
-                    }
-                    else
-                    {
-                        Log.Error("Header not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header));
-                    }
-                }
+                NICNT.Parse(file, outputDirectoryPath, doList, doVerbose);
             }
             else
             {
@@ -1400,54 +1140,6 @@ namespace PresetConverter
                 catch (System.Exception e)
                 {
                     Log.Error("Error processing {0} ({1})...", file, e);
-                }
-            }
-        }
-
-        class NICNTResource
-        {
-            public long Count { get; set; }
-            public string Name { get; set; }
-            public long Length { get; set; }
-            public byte[] Data { get; set; }
-            public long Index { get; set; }
-            public long RealIndex { get; set; }
-        }
-
-        private static void CreateDirectoryIfNotExist(string filePath)
-        {
-            try
-            {
-                Directory.CreateDirectory(filePath);
-            }
-            catch (Exception)
-            {
-                // handle them here
-            }
-        }
-
-        private static byte[] Decompress(byte[] gzip)
-        {
-            // Create a GZIP stream with decompression mode.
-            // ... Then create a buffer and write into while reading from the GZIP stream.
-            using (GZipStream stream = new GZipStream(new MemoryStream(gzip),
-                CompressionMode.Decompress))
-            {
-                const int size = 4096;
-                byte[] buffer = new byte[size];
-                using (MemoryStream memory = new MemoryStream())
-                {
-                    int count = 0;
-                    do
-                    {
-                        count = stream.Read(buffer, 0, size);
-                        if (count > 0)
-                        {
-                            memory.Write(buffer, 0, count);
-                        }
-                    }
-                    while (count > 0);
-                    return memory.ToArray();
                 }
             }
         }
