@@ -42,10 +42,12 @@ Kontakt searches for service files and reverberation pulses only in certain dire
 ```
 [Resources]
     |__ [ir_samples] (directory for reverb pulses: wav, aif / aiff, ncw)
-    |__ [pictures] (Image directory: png, tga) [#2](#note-2)
+    |__ [pictures] (Image directory: png, tga)
     |__ [scripts] (script directory: txt)
     |__ [data] (directory for presets: nka)
 ```
+
+For `[pictures]` see note [#2](#note-2)
 
 ## Notes
 
@@ -84,7 +86,7 @@ All these features of nicnt-containers are controlled by the plugin and all inco
 - This nuance is also controlled by the plugin: when adding a correct xml file with library registration data to the container root directory, the file will be renamed in the container (if the file name on the disk does not match the `ProductHints\Product\Name` parameter).
 
 In the `ContentVersion.txt` file, only the line with the version of the content (set of samples) of the library in the standard format should be written:
-major.minor.[build]
+`major.minor.[build]`
 
 eg:
 `1.0.0`
@@ -180,7 +182,7 @@ SNPID - library identifier.
 - `JDX` - key;
 - `HU` - initialization vector.
 
-SNPID, RegKey, JDX, HU can be found in the nicnt or _info.nkx file and make an entry about the library in the user database by direct editing nklibs_info.userdb (in a text editor).
+`SNPID`, `RegKey`, `JDX`, `HU` can be found in the `nicnt` or `_info.nkx` file and make an entry about the library in the user database by direct editing `nklibs_info.userdb` (in a text editor).
 
 **Attention!** Errors entering `SNPID`, `JDX` and `HU` will lead to incorrect decryption of container files, so direct editing is not recommended: when extracting files from a container, registration information will be read and saved in the user database automatically if the nicnt or _info.nkx file is in the same container catalog or one or more levels above.
 
@@ -194,7 +196,7 @@ HU = C3CCA2803ABC14A68EAACC38EAA7E8EC
 
 # UNIX file names
 
-File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files (`? * " | : < >`), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
+File and directory names in containers created on systems running Mac OS may contain forbidden characters for naming Windows files ( `? * " | : < >` ), Therefore files with such names cannot be extracted. InNKX solves this problem using escape sequences prohibited characters.
 Each forbidden character is assigned a control sequence of characters:
 
 - `\ [bslash]`  backslash
@@ -211,29 +213,29 @@ Each forbidden character is assigned a control sequence of characters:
 When reading files and directories of a container in Total commander, names are transferred in which all forbidden characters are replaced with their control sequences [#6](#note-6). When extracting to disk, the user will be warned that the file names on the disk and in the container are different. When packing a file or directory whose name contains control sequences, the reverse transformation will be performed.
 Example [#7](#note-7):
 
-```
-    file name in the container; .PAResources|database|PAL|PAL.meta
-    operation:                  unpacking [down arrow] [up arrow] packaging
-    file name on disk           .PAResources[pipe]database[pipe]PAL[pipe]PAL.meta
-```
+<pre>
+    file name in the container:   .PAResources<span style="color:red"><b>|</b></span>database<span style="color:red"><b>|</b></span>PAL<span style="color:red"><b>|</b></span>PAL.meta
+    operation:                    [unpacking ↓]        [↑ packaging]
+    file name on disk:            .PAResources<span style="color:red"><b>[pipe]</b></span>database<span style="color:red"><b>[pipe]</b></span>PAL<span style="color:red"><b>[pipe]</b></span>PAL.meta
+</pre>
 
 There is some possibility that the file name (directory) of the container will contain the control sequences themselves. In order to block the conversion of the control sequence to the corresponding forbidden character during repacking, all opening angle brackets before the control sequence will be doubled, and the user will be warned that the names of the files on the disk and in the container are different.
 Example:
 
-```
-    file name in                [more][music][less][noise].aif container
-    operation:                  unpacking [down arrow] [up arrow] packaging
-    disk file name              [more][music][[less][noise].aif
-```
+<pre>
+    file name in container:       [more][music][less][noise].aif 
+    operation:                    [unpacking ↓]        [↑ packaging]
+    disk file name:               [more][music]<span style="color:red"><b>[</b></span>[less][noise].aif
+</pre>
 
 Thus, an even number of opening angle brackets in front of the control sequence shields it (blocks conversion to a forbidden character when packed), but each pair of these brackets (`[[`) will be replaced with a single (`[`).
 
 Example:
 
-```
-    file name on disk                     package name in container
-    [[[[[pipe]]organ[[[colon]]A#.aiff   → [[[pipe]]organ[:]A#.aiff
-```
+<pre>
+    file name on disk:                        package name in container:
+    <span style="color:red"><b>[</b></span>[<span style="color:red"><b>[</b></span>[pipe]]organ<span style="color:red"><b>[</b></span>[<span style="color:red"><b>[colon]</b></span>]A#.aiff   →      [[pipe]]organ[<span style="color:red"><b>:</b></span>]A#.aiff
+</pre>
 
 ## Notes
 
