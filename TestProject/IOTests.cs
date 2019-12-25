@@ -40,7 +40,6 @@ namespace TestProject
             Assert.Equal("[[pipe]]organ[:]A#.aiff", unixName3);
         }
 
-
         [Fact]
         public void TestEscapeRepresentative()
         {

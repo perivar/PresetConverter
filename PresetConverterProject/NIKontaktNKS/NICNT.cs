@@ -206,6 +206,18 @@ namespace PresetConverterProject.NIKontaktNKS
             public long RealIndex { get; set; }
         }
 
+        // replacement map
+        static Dictionary<string, string> entityReplacements = new Dictionary<string, string> {
+                { "\\", "[bslash]" },
+                { "?", "[qmark]" },
+                { "*", "[star]" },
+                { "\"", "[quote]" },
+                { "|", "[pipe]" },
+                { ":", "[colon]" },
+                { "<", "[less]" },
+                { ">", "[greater]" }
+             };
+
         /// <summary>
         /// Convert from unix filenames to a filename that can be stored on windows
         /// i.e. convert | to [pipe], etc.
@@ -214,7 +226,16 @@ namespace PresetConverterProject.NIKontaktNKS
         /// <returns>a windows supported unix filename</returns>
         public static string FromUnixFileNames(string fileName)
         {
-            // return StringUtils.EscapeHex(fileName);
+            // \ [bslash]
+            // ? [qmark]
+            // * [star]
+            // " [quote]
+            // | [pipe]
+            // : [colon]
+            // < [less]
+            // > [greater]
+            // _ [space] (only at the end of the name)
+            // . [dot] (only at the end of the name)
 
             // https://stackoverflow.com/questions/33830658/regex-that-considers-custom-escape-characters-in-the-string-not-in-the-pattern
             // %(?<!%%)\{*([0-9a-zA-Z_\/]+)\}*
@@ -238,128 +259,36 @@ namespace PresetConverterProject.NIKontaktNKS
             // (\?\?)*      any number of question mark pairs
             // \?           a single question mark
 
-            // \ [bslash]
-            // ? [qmark]
-            // * [star]
-            // " [quote]
-            // | [pipe]
-            // : [colon]
-            // < [less]
-            // > [greater]
-            // _ [space] (only at the end of the name)
-            // . [dot] (only at the end of the name)
-
-            // var matchesWithoutEscape = Regex.Matches(fileName, replaceControlWithoutEscape);
-            // if (matchesWithoutEscape.Count > 0)
-            // {
-            //     foreach (Match m in matchesWithoutEscape)
-            //     {
-            //         Console.WriteLine("'{0}' found at index {1}.", m.Value, m.Index);
-
-            //         // We only one index 1 and over since 0 is actually the entire string
-            //         for (var i = 1; i < m.Groups.Count; i++)
-            //         {
-            //             Console.WriteLine("Group: {0}, Value: {1}", i, m.Groups[i].Value);
-            //         }
-
-            //         switch (m.Groups[1].Value)
-            //         {
-            //             case "\\":
-            //                 fileName = m.Replace(fileName, "[bslash]");
-            //                 break;
-            //             case "?":
-            //                 fileName = m.Replace(fileName, "[qmark]");
-            //                 break;
-            //             case "*":
-            //                 fileName = m.Replace(fileName, "[star]");
-            //                 break;
-            //             case "\"":
-            //                 fileName = m.Replace(fileName, "[quote]");
-            //                 break;
-            //             case "|":
-            //                 fileName = m.Replace(fileName, "[pipe]");
-            //                 break;
-            //             case ":":
-            //                 fileName = m.Replace(fileName, "[colon]");
-            //                 break;
-            //             case "<":
-            //                 fileName = m.Replace(fileName, "[less]");
-            //                 break;
-            //             case ">":
-            //                 fileName = m.Replace(fileName, "[greater]");
-            //                 break;
-            //             default:
-            //                 break;
-            //         }
-            //     }
-            // }
-
             // https://www.wipfli.com/insights/blogs/connect-microsoft-dynamics-365-blog/c-regex-multiple-replacements
-            var entityReplacements = new Dictionary<string, string> {
-                { "\\", "[bslash]" },
-                { "?", "[qmark]" },
-                { "*", "[star]" },
-                { "\"", "[quote]" },
-                { "|", "[pipe]" },
-                { ":", "[colon]" },
-                { "<", "[less]" },
-                { ">", "[greater]" }
-             };
+            // using Regex.Replace MatchEvaluator delegate
 
-            // then escape all control sequences 
+            // escape all control sequences 
             // match even number of [ in front of a control character
             const string replaceControlSequencesEven = @"(?<!\[)(\[\[)*(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
             fileName = Regex.Replace(fileName, replaceControlSequencesEven,
                 m => m.Groups[1].Value + m.Value // m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
             );
 
+            // escape all control sequences 
             // match odd number of [ in front of a control character
             const string replaceControlSequencesOdd = @"(?<!\[)(\[)(?:\[\[)*(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
             fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
                 m => m.Groups[1].Value + m.Value //  + entityReplacements[m.Groups[2].Value]
             );
 
-            // then replace all control characters that does start with an character [
-            // remember to add another [
+            // replace all control characters that does start with an character [
+            // Note! remember to add another [
             const string replaceControlWithEscape = @"(\[+)([""\/?:<>*|])";
             fileName = Regex.Replace(fileName, replaceControlWithEscape,
-                m => m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
+                m => m.Groups[1].Value + m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
             );
 
-            // first replace all control characters that doesn't start with an escape character [
+            // replace all control characters that doesn't start with an escape character [
             const string replaceControlWithoutEscape = @"((?!\[).)([\?*""|:<>])";
             fileName = Regex.Replace(fileName, replaceControlWithoutEscape,
+                // have to add the letter before the escape character as well
                 m => m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
             );
-
-            // check if we have unescaped control sequences
-            // const string pattern = @"(?<!\[)(?:\[\[)*(\[(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\])";
-
-            // Let's break up the lookbehind
-            // (?<!\[)                          # not preceded by a [
-            // (?:\[\[)*                        # any number of [ pairs
-            // \[(bslash|qmark)\]               # a single [ followed by a control sequence ending with a ]
-
-            // fileName = fileName
-            // // escape existing control sequences with another [
-            // .Replace("[bslash]", "[[bslash]")
-            // .Replace("[qmark]", "[[qmark]")
-            // .Replace("[star]", "[[star]")
-            // .Replace("[quote]", "[[quote]")
-            // .Replace("[pipe]", "[[pipe]")
-            // .Replace("[colon]", "[[colon]")
-            // .Replace("[less]", "[[less]")
-            // .Replace("[greater]", "[[greater]")
-
-            // replace illegal characters with control sequences
-            // .Replace("\\", "[bslash]")
-            //                 .Replace("?", "[qmark]")
-            //                 .Replace("*", "[star]")
-            //                 .Replace("\"", "[quote]")
-            //                 .Replace("|", "[pipe]")
-            //                 .Replace(":", "[colon]")
-            //                 .Replace("<", "[less]")
-            //                 .Replace(">", "[greater]");
 
             while (fileName.EndsWith(" "))
             {
@@ -382,8 +311,6 @@ namespace PresetConverterProject.NIKontaktNKS
         /// <returns>a unix filename</returns>
         public static string ToUnixFileName(string fileName)
         {
-            return StringUtils.UnescapeHex(fileName);
-
             // \ [bslash]
             // ? [qmark]
             // * [star]
@@ -395,55 +322,30 @@ namespace PresetConverterProject.NIKontaktNKS
             // _ [space] (only at the end of the name)
             // . [dot] (only at the end of the name)
 
-            // check if we have unescaped control sequences
-            const string pattern = @"(?<!\[)(?:\[\[)*(\[(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\])";
-
-            // Let's break up the lookbehind
-            // (?<!\[)                          # not preceded by a [
-            // (?:\[\[)*                        # any number of [ pairs
-            // \[(bslash|qmark)\]               # a single [ followed by a control sequence ending with a ]
-
-            var matches = Regex.Matches(fileName, pattern);
-            if (matches.Count > 0)
-            {
-                foreach (Match m in matches)
+            // replace all control sequences 
+            // match odd number of [ in front of a control character
+            const string replaceControlSequencesOdd = @"(?<!\[)(\[(?:\[\[)*)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
+            fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
+                m =>
                 {
-                    Console.WriteLine("'{0}' found at index {1}.", m.Value, m.Index);
-
-                    // We only one index 1 and over since 0 is actually the entire string
-                    for (var i = 1; i < m.Groups.Count; i++)
-                    {
-                        Console.WriteLine("Group: {0}, Value: {1}", i, m.Groups[i].Value);
-                    }
-
-                    if (m.Groups.Count > 2)
-                    {
-                        // convert back
-                        switch (m.Groups[2].Value)
-                        {
-                            case "\\":
-                                fileName = fileName.Replace("[bslash]", "\\");
-                                break;
-                            case "?":
-                                fileName = fileName.Replace("[qmark]", "?");
-                                break;
-
-                            default:
-                                break;
-                        }
-                    }
+                    var val = "[" + m.Groups[2].Value + "]";
+                    var entity = entityReplacements.FirstOrDefault(x => x.Value == val);
+                    var prefix = (m.Groups[1].Value.Length >= 3 ? new String('[', (m.Groups[1].Value.Length - 2)) : "");
+                    return prefix + entity.Key;
                 }
-            }
+            );
 
-            fileName = fileName
-                .Replace("[bslash]", "\\")
-                .Replace("[qmark]", "?")
-                .Replace("[star]", "*")
-                .Replace("[quote]", "\"")
-                .Replace("[pipe]", "|")
-                .Replace("[colon]", ":")
-                .Replace("[less]", "<")
-                .Replace("[greater]", ">");
+            // replace all control sequences 
+            // match even number of [ in front of a control character
+            // each pair of these brackets ([[) will be replaced with a single ([).
+            const string replaceControlSequencesEven = @"(?<!\[)((\[\[)*)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
+            fileName = Regex.Replace(fileName, replaceControlSequencesEven,
+                m =>
+                {
+                    var prefix = (m.Groups[1].Value.Length >= 4 ? new String('[', (m.Groups[1].Value.Length / 2)) : "[");
+                    return prefix + m.Groups[3].Value + "]";
+                }
+            );
 
             while (fileName.EndsWith("[space]"))
             {
