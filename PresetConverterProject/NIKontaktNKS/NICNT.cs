@@ -266,17 +266,17 @@ namespace PresetConverterProject.NIKontaktNKS
             // match even number of [ in front of a control character
             const string replaceControlSequencesEven = @"(?<!\[)(\[\[)*(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
             fileName = Regex.Replace(fileName, replaceControlSequencesEven,
-                m => m.Groups[1].Value + m.Value // m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
+                m => m.Groups[1].Value + m.Value
             );
 
             // escape all control sequences 
             // match odd number of [ in front of a control character
             const string replaceControlSequencesOdd = @"(?<!\[)(\[)(?:\[\[)*(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
             fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
-                m => m.Groups[1].Value + m.Value //  + entityReplacements[m.Groups[2].Value]
+                m => m.Groups[1].Value + m.Value
             );
 
-            // replace all control characters that does start with an character [
+            // replace all control characters that does start with a character [
             // Note! remember to add another [
             const string replaceControlWithEscape = @"(\[+)([""\/?:<>*|])";
             fileName = Regex.Replace(fileName, replaceControlWithEscape,
