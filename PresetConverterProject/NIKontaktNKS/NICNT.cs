@@ -14,7 +14,7 @@ namespace PresetConverterProject.NIKontaktNKS
         static readonly byte[] NKS_NICNT_MTD = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x4D, 0x54, 0x44, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC MTD  /\
         static readonly byte[] NKS_NICNT_TOC = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x54, 0x4F, 0x43, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC TOC  /\
 
-        public static void Parse(string file, string outputDirectoryPath, bool doList, bool doVerbose)
+        public static void Unpack(string file, string outputDirectoryPath, bool doList, bool doVerbose)
         {
             using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
             {
@@ -192,6 +192,114 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
+        // TODO: copied from SteinbergREVerence, where should this go?
+        private static void WritePaddedUnicodeString(BinaryFile bf, string text, int totalCount)
+        {
+            int count = bf.WriteStringNull(text, Encoding.Unicode);
+            int remaining = totalCount - count;
+            var bytes = new byte[remaining];
+            bf.Write(bytes);
+        }
+
+        public static void Pack(string inputDirectoryPath, string outputFilePath, bool doList, bool doVerbose)
+        {
+            using (BinaryFile bf = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true))
+            {
+                bf.Write(NKS_NICNT_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
+                bf.Write(new byte[50]); // 50 zero bytes
+
+                string version = "1.0";
+                WritePaddedUnicodeString(bf, version, 66); // zero padded string
+
+                Int32 unknown1 = 1;
+                bf.Write(unknown1);
+
+                bf.Write(new byte[8]); // 8 zero bytes
+
+                Int32 startOffset = 512000;
+                bf.Write(startOffset);
+
+                Int32 unknown3 = 512000;
+                bf.Write(unknown3);
+
+                bf.Write(new byte[104]); // 104 zero bytes
+
+                string productHintsXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no"" ?><ProductHints spec=""1.0.16""></ProductHints>";
+                bf.Write(productHintsXml);
+
+                bf.Write(new byte[startOffset + 256 - bf.Position]); // 512000 + 256 zero bytes - current pos
+
+                bf.Write(NKS_NICNT_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
+                bf.Write(new byte[116]); // 116 zero bytes
+
+                Int64 unknown4 = 2;
+                bf.Write(unknown4);
+
+                bf.Write(new byte[4]); // 4 zero bytes
+
+                Int64 unknown5 = 1;
+                bf.Write(unknown5);
+
+                bf.Write(new byte[104]); // 104 zero bytes
+
+                Int64 unknown6 = 1;
+                bf.Write(unknown6);
+
+                // write delimiter
+                bf.Write(StringUtils.HexStringToByteArray("F0F0F0F0F0F0F0F0"));
+
+                var resourceList = new List<NICNTResource>();
+
+                Int64 totalResourceCount = resourceList.Count;
+                bf.Write(totalResourceCount);
+
+                Int64 totalResourceLength = 0; // sum of bytes in the resourceList
+                bf.Write(totalResourceLength);
+
+                bf.Write(NKS_NICNT_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
+
+                bf.Write(new byte[600]); // 600 zero bytes
+
+                for (int i = 0; i < totalResourceCount; i++)
+                {
+                    var res = resourceList[i];
+
+                    Int64 resCounter = i + 1;
+                    bf.Write(resCounter);
+
+                    bf.Write(new byte[16]); // 16 zero bytes
+
+                    WritePaddedUnicodeString(bf, res.Name, 600); // zero padded string    
+
+                    Int64 resUnknown = 0;
+                    bf.Write(resUnknown);
+
+                    Int64 resIndex = 0; // aggregated index
+                    bf.Write(resIndex);
+                }
+
+                // write delimiter
+                bf.Write(StringUtils.HexStringToByteArray("F1F1F1F1F1F1F1F1"));
+
+                Int64 unknown13 = 1;
+                bf.Write(unknown13);
+
+                Int64 unknown14 = 1;
+                bf.Write(unknown14);
+
+                bf.Write(NKS_NICNT_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
+
+                bf.Write(new byte[592]); // 592 zero bytes
+
+                foreach (var res in resourceList)
+                {
+                    string unescapedFileName = ToUnixFileName(res.Name);
+                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", unescapedFileName, bf.Position, res.Length));
+
+                    bf.Write(res.Data);
+                }
+            }
+        }
 
         /// <summary>
         /// Class to store a NICNT resource

@@ -274,7 +274,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT",
+            "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT unpack",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -301,6 +301,27 @@
                 "C:\\Users\\perner\\My Projects\\Temp",
                 // "-l",
                 // "-v"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT pack",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
+            "args": [
+                "-i",
+                "C:\\Users\\perner\\My Projects\\Temp\\Spitfire HARP",
+                "-o",
+                "C:\\Users\\perner\\My Projects\\Temp\\Spitfire HARP.nicnt",
+                "-p",
+                "-v"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
