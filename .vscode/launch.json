@@ -217,9 +217,9 @@
             "console": "internalConsole",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
-        },
+        },        
         {
-            "name": ".NET Core Launch (LAPTOP) NI Kontakt Spitfire nkx",
+            "name": ".NET Core Launch (LAPTOP) NI Kontakt Spitfire NKX",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -238,7 +238,28 @@
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\SymphonicWoods_Alto Flute003.nkx",                
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
-                "-v"
+                // "-v"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },        
+        {
+            "name": ".NET Core Launch (LAPTOP) NI Kontakt NKX",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
+            "args": [
+                "-i",
+                "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Whole Woodwinds Swells Samples.nkx",
+                "-o",
+                "C:\\Users\\perner\\My Projects\\Temp",
+                "-l",
+                // "-v"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

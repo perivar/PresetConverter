@@ -119,7 +119,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                 switch (key)
                                 {
                                     case "Name":
-                                        libDesc.Name = value.ToUpper();
+                                        libDesc.Name = value; // .ToUpper();
                                         break;
                                     case "SNPID":
                                         libDesc.Id = value.ToUpper();
@@ -252,7 +252,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         libDesc = new NksLibraryDesc();
                         libDesc.Id = id.ToString();
-                        libDesc.Name = name.ToUpper();
+                        libDesc.Name = name; // .ToUpper();
 
                         var jdx = key.GetValue("JDX");
                         if (jdx != null)
@@ -1518,7 +1518,7 @@ namespace PresetConverterProject.NIKontaktNKS
             var r = NksRead0100EntryHeader(bf, hdr);
             if (!r) return false;
 
-            entry.Name = hdr.Name.ToUpper();
+            entry.Name = hdr.Name; // .ToUpper();
             entry.Offset = hdr.Offset;
             entry.Type = TypeHintToEntryType(hdr.Type);
 
@@ -1532,7 +1532,7 @@ namespace PresetConverterProject.NIKontaktNKS
             var r = NksRead0110EntryHeader(bf, hdr);
             if (!r) return false;
 
-            entry.Name = hdr.Name.ToUpper();
+            entry.Name = hdr.Name; // .ToUpper();
             entry.Offset = hdr.Offset;
             entry.Type = TypeHintToEntryType(hdr.Type);
 
