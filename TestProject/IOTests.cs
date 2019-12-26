@@ -25,6 +25,9 @@ namespace TestProject
 
             string windowsUnixName3 = NICNT.FromUnixFileNames("[[pipe]]organ[:]A#.aiff");
             Assert.Equal("[[[[pipe]]organ[[[colon]]A#.aiff", windowsUnixName3);
+
+            string windowsUnixName4 = NICNT.FromUnixFileNames("pipeorgan:A#.aiff");
+            Assert.Equal("pipeorgan[colon]A#.aiff", windowsUnixName4);
         }
 
         [Fact]
@@ -38,6 +41,9 @@ namespace TestProject
 
             string unixName3 = NICNT.ToUnixFileName("[[[[pipe]]organ[[[colon]]A#.aiff");
             Assert.Equal("[[pipe]]organ[:]A#.aiff", unixName3);
+
+            string unixName4 = NICNT.ToUnixFileName("pipeorgan[colon]A#.aiff");
+            Assert.Equal("pipeorgan:A#.aiff", unixName4);
         }
 
         [Fact]

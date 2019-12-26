@@ -237,57 +237,72 @@ namespace PresetConverterProject.NIKontaktNKS
             // _ [space] (only at the end of the name)
             // . [dot] (only at the end of the name)
 
-            // https://stackoverflow.com/questions/33830658/regex-that-considers-custom-escape-characters-in-the-string-not-in-the-pattern
-            // %(?<!%%)\{*([0-9a-zA-Z_\/]+)\}*
+            // Regexp background information - test using https://regex101.com/
+            // ----------------------------------------------------------------------------------------------------------------
+            // https://stackoverflow.com/questions/8113104/what-is-regex-for-odd-length-series-of-a-known-character-in-a-string
+            // (?<!A)(?:AA)*A(?!A)        
+            //   (?<!A)     # asserts that it should not be preceded by an 'A' 
+            //   (?:AA)*A   # matches an odd number of 'A's 
+            //   (?!A)      # asserts it should not be followed by an 'A'.
 
             // https://stackoverflow.com/questions/28113962/regular-expression-to-match-unescaped-characters-only
             // (?<!\\)(?:(\\\\)*)[*]
 
             // https://stackoverflow.com/questions/816915/match-uneven-number-of-escape-symbols
-            // (?<!\\)    # not preceded by a backslash
-            // (?:\\\\)*  # zero or more escaped backslashes
-            // \\ \n      # single backslash and linefeed
-
-            // fixed regexp
-            // (?<!\[)(?:\[\[)*\[([0-9a-zA-Z_\/:]+)\]
+            // (?<!\\)(?:\\\\)*\\ \n
+            //   (?<!\\)    # not preceded by a backslash
+            //   (?:\\\\)*  # zero or more escaped backslashes
+            //   \\ \n      # single backslash and linefeed
 
             // https://stackoverflow.com/questions/22375138/regex-in-c-sharp-expression-in-negative-lookbehind
-            // The regex you are looking for is (?<=(^|[^?])(\?\?)*\?)
-
-            // Let's break the lookbehind (I changed it to positive) down:
-            // (^|[^?])     not a question mark (possibly also start of string, i.e. nothing)
-            // (\?\?)*      any number of question mark pairs
-            // \?           a single question mark
+            // (?<=(^|[^?])(\?\?)*\?)
+            //    (^|[^?])   # not a question mark (possibly also start of string, i.e. nothing)
+            //    (\?\?)*    # any number of question mark pairs
+            //    \?         # a single question mark
 
             // https://www.wipfli.com/insights/blogs/connect-microsoft-dynamics-365-blog/c-regex-multiple-replacements
-            // using Regex.Replace MatchEvaluator delegate
+            // using Regex.Replace MatchEvaluator delegate to perform multiple replacements
 
             // escape all control sequences 
             // match even number of [ in front of a control character
-            const string replaceControlSequencesEven = @"(?<!\[)(\[\[)*(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
+            const string replaceControlSequencesEven = @"(?<!\[)(\[\[)+(?!\[)(?:bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
+            // (?<!\[)               # asserts that it should not be preceded by a '['
+            // (\[\[)+               # matches an even number of '['s (at least one pair)
+            // (?!\[)                # asserts it should not be followed by an '['
+            // (?:bslash|qmark|...)  # non-caputuring group that only matches a control sequence  
             fileName = Regex.Replace(fileName, replaceControlSequencesEven,
+                // add the first group to effectively double the found '['s, which will escape them  
                 m => m.Groups[1].Value + m.Value
             );
 
             // escape all control sequences 
             // match odd number of [ in front of a control character
-            const string replaceControlSequencesOdd = @"(?<!\[)(\[)(?:\[\[)*(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
+            const string replaceControlSequencesOdd = @"(?<!\[)((?:\[\[)*\[)(?!\[)(?:bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
+            // (?<!\[)               # asserts that it should not be preceded by a '['
+            // ((?:\[\[)*\[)         # matches a odd number of '['s (at least one)
+            // (?!\[)                # asserts it should not be followed by an '['
+            // (?:bslash|qmark|...)  # non-caputuring group that only matches a control sequence  
             fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
-                m => m.Groups[1].Value + m.Value
+                // escape every odd number of '[' with another '[', which makes them even - meaning this regexp must come after the even check!
+                m => "[" + m.Value
             );
 
             // replace all control characters that does start with a character [
             // Note! remember to add another [
-            const string replaceControlWithEscape = @"(\[+)([""\/?:<>*|])";
+            const string replaceControlWithEscape = @"(\[+)([\?*""|:<>])";
+            // (\[+)                 # match at least one '['
+            // ([\?*""|:<>])         # match the control character
             fileName = Regex.Replace(fileName, replaceControlWithEscape,
+                // double the first group match to effectively double the found '['s, which will escape them  
                 m => m.Groups[1].Value + m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
             );
 
             // replace all control characters that doesn't start with an escape character [
-            const string replaceControlWithoutEscape = @"((?!\[).)([\?*""|:<>])";
+            const string replaceControlWithoutEscape = @"(?<!\[)[\?*""|:<>]";
+            // (?<!\[)               # asserts that it should not be preceded by a '['
+            // [\?*""|:<>]           # match the control character
             fileName = Regex.Replace(fileName, replaceControlWithoutEscape,
-                // have to add the letter before the escape character as well
-                m => m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
+                m => entityReplacements[m.Value]
             );
 
             while (fileName.EndsWith(" "))
@@ -324,12 +339,17 @@ namespace PresetConverterProject.NIKontaktNKS
 
             // replace all control sequences 
             // match odd number of [ in front of a control character
-            const string replaceControlSequencesOdd = @"(?<!\[)(\[(?:\[\[)*)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
+            const string replaceControlSequencesOdd = @"(?<!\[)((?:\[\[)*\[)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
+            // (?<!\[)               # asserts that it should not be preceded by a '['
+            // ((?:\[\[)*\[)         # matches a odd number of '['s (at least one)
+            // (?!\[)                # asserts it should not be followed by an '['
+            // (bslash|qmark|...)    # matches any control sequence  
             fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
                 m =>
                 {
                     var val = "[" + m.Groups[2].Value + "]";
                     var entity = entityReplacements.FirstOrDefault(x => x.Value == val);
+                    // if the number of brackets are 3 - reduce them by two
                     var prefix = (m.Groups[1].Value.Length >= 3 ? new String('[', (m.Groups[1].Value.Length - 2)) : "");
                     return prefix + entity.Key;
                 }
@@ -338,12 +358,16 @@ namespace PresetConverterProject.NIKontaktNKS
             // replace all control sequences 
             // match even number of [ in front of a control character
             // each pair of these brackets ([[) will be replaced with a single ([).
-            const string replaceControlSequencesEven = @"(?<!\[)((\[\[)*)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
+            const string replaceControlSequencesEven = @"(?<!\[)((?:\[\[)+)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
+            // (?<!\[)               # asserts that it should not be preceded by a '['
+            // ((?:\[\[)+)           # matches an even number of '['s (at least one pair)
+            // (?!\[)                # asserts it should not be followed by an '['
+            // (bslash|qmark|...)    # matches any control sequence  
             fileName = Regex.Replace(fileName, replaceControlSequencesEven,
                 m =>
                 {
                     var prefix = (m.Groups[1].Value.Length >= 4 ? new String('[', (m.Groups[1].Value.Length / 2)) : "[");
-                    return prefix + m.Groups[3].Value + "]";
+                    return prefix + m.Groups[2].Value + "]";
                 }
             );
 
