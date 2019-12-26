@@ -344,6 +344,7 @@ namespace PresetConverterProject.NIKontaktNKS
             // ((?:\[\[)*\[)         # matches a odd number of '['s (at least one)
             // (?!\[)                # asserts it should not be followed by an '['
             // (bslash|qmark|...)    # matches any control sequence  
+            // \]                    # asserts that it needs to end with a ']'
             fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
                 m =>
                 {
@@ -363,6 +364,7 @@ namespace PresetConverterProject.NIKontaktNKS
             // ((?:\[\[)+)           # matches an even number of '['s (at least one pair)
             // (?!\[)                # asserts it should not be followed by an '['
             // (bslash|qmark|...)    # matches any control sequence  
+            // \]                    # asserts that it needs to end with a ']'
             fileName = Regex.Replace(fileName, replaceControlSequencesEven,
                 m =>
                 {
