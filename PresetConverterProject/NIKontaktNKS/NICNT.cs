@@ -14,9 +14,9 @@ namespace PresetConverterProject.NIKontaktNKS
         static readonly byte[] NKS_NICNT_MTD = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x4D, 0x54, 0x44, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC MTD  /\
         static readonly byte[] NKS_NICNT_TOC = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x54, 0x4F, 0x43, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC TOC  /\
 
-        public static void Unpack(string file, string outputDirectoryPath, bool doList, bool doVerbose)
+        public static void Unpack(string inputFilePath, string outputDirectoryPath, bool doList, bool doVerbose)
         {
-            using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
+            using (BinaryFile bf = new BinaryFile(inputFilePath, BinaryFile.ByteOrder.LittleEndian, false))
             {
                 var header = bf.ReadBytes(16);
                 if (header.SequenceEqual(NKS_NICNT_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
@@ -25,7 +25,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     string version = bf.ReadString(3 * 2, Encoding.Unicode);
                     Log.Information("Version: " + version);
 
-                    string outputFileName = Path.GetFileNameWithoutExtension(file);
+                    string outputFileName = Path.GetFileNameWithoutExtension(inputFilePath);
                     if (!doList) IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, outputFileName));
 
                     // Save version in ContentVersion.txt 
@@ -192,24 +192,45 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        // TODO: copied from SteinbergREVerence, where should this go?
-        private static void WritePaddedUnicodeString(BinaryFile bf, string text, int totalCount)
-        {
-            int count = bf.WriteStringNull(text, Encoding.Unicode);
-            int remaining = totalCount - count;
-            var bytes = new byte[remaining];
-            bf.Write(bytes);
-        }
-
         public static void Pack(string inputDirectoryPath, string outputFilePath, bool doList, bool doVerbose)
         {
+            // read the ContentVersion.txt file
+            string version = IOUtils.ReadTextFromFile(Path.Combine(inputDirectoryPath, "ContentVersion.txt"));
+            if (doVerbose) Log.Debug("Version: " + version);
+
+            // read the [LibraryName].xml file (should have the same name as the input directory)
+            string productHintsXmlFileName = Path.GetFileNameWithoutExtension(inputDirectoryPath) + ".xml";
+            string productHintsXml = IOUtils.ReadTextFromFile(Path.Combine(inputDirectoryPath, productHintsXmlFileName));
+            if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
+
+            // read the files in the resources directory
+            var resourceList = new List<NICNTResource>();
+            var resourcesFilePaths = Directory.GetFiles(Path.Combine(inputDirectoryPath, "Resources"), "*.*", SearchOption.AllDirectories);
+            int counter = 1;
+            foreach (var filePath in resourcesFilePaths)
+            {
+                var res = new NICNTResource();
+
+                string name = Path.GetFileName(filePath);
+                string unescapedFileName = ToUnixFileName(name);
+                res.Name = unescapedFileName;
+
+                var bytes = File.ReadAllBytes(filePath);
+                res.Data = bytes;
+                res.Length = bytes.Length;
+
+                res.Count = counter;
+
+                resourceList.Add(res);
+                counter++;
+            }
+
             using (BinaryFile bf = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true))
             {
                 bf.Write(NKS_NICNT_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
                 bf.Write(new byte[50]); // 50 zero bytes
 
-                string version = "1.0";
-                WritePaddedUnicodeString(bf, version, 66); // zero padded string
+                bf.WriteStringPadded(version, 66, Encoding.Unicode); // zero padded string
 
                 Int32 unknown1 = 1;
                 bf.Write(unknown1);
@@ -224,7 +245,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 bf.Write(new byte[104]); // 104 zero bytes
 
-                string productHintsXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no"" ?><ProductHints spec=""1.0.16""></ProductHints>";
                 bf.Write(productHintsXml);
 
                 bf.Write(new byte[startOffset + 256 - bf.Position]); // 512000 + 256 zero bytes - current pos
@@ -248,8 +268,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 // write delimiter
                 bf.Write(StringUtils.HexStringToByteArray("F0F0F0F0F0F0F0F0"));
 
-                var resourceList = new List<NICNTResource>();
-
                 Int64 totalResourceCount = resourceList.Count;
                 bf.Write(totalResourceCount);
 
@@ -260,22 +278,22 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 bf.Write(new byte[600]); // 600 zero bytes
 
-                for (int i = 0; i < totalResourceCount; i++)
+                Int64 resCounter = 1;
+                foreach (var res in resourceList)
                 {
-                    var res = resourceList[i];
-
-                    Int64 resCounter = i + 1;
                     bf.Write(resCounter);
 
                     bf.Write(new byte[16]); // 16 zero bytes
 
-                    WritePaddedUnicodeString(bf, res.Name, 600); // zero padded string    
+                    bf.WriteStringPadded(res.Name, 600, Encoding.Unicode); // zero padded string    
 
                     Int64 resUnknown = 0;
                     bf.Write(resUnknown);
 
                     Int64 resIndex = 0; // aggregated index
                     bf.Write(resIndex);
+
+                    resCounter++;
                 }
 
                 // write delimiter
@@ -293,9 +311,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 foreach (var res in resourceList)
                 {
-                    string unescapedFileName = ToUnixFileName(res.Name);
-                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", unescapedFileName, bf.Position, res.Length));
-
+                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", res.Name, bf.Position, res.Length));
                     bf.Write(res.Data);
                 }
             }

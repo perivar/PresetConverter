@@ -129,7 +129,7 @@ namespace PresetConverter
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
                 // write 1024 bytes
-                WritePaddedUnicodeString(bf, WavFilePath1, 1024);
+                bf.WriteStringPadded(WavFilePath1, 1024, Encoding.Unicode);
 
                 // write wave count
                 bf.Write((UInt32)wavCount);
@@ -140,10 +140,10 @@ namespace PresetConverter
                     bf.Write((UInt32)0);
 
                     // write 1024 bytes
-                    WritePaddedUnicodeString(bf, WavFilePath2, 1024);
+                    bf.WriteStringPadded(WavFilePath2, 1024, Encoding.Unicode);
 
                     // write 1024 bytes
-                    WritePaddedUnicodeString(bf, WavFileName, 1024);
+                    bf.WriteStringPadded(WavFileName, 1024, Encoding.Unicode);
 
                     // write image count
                     bf.Write((UInt32)imageCount);
@@ -152,7 +152,7 @@ namespace PresetConverter
                     for (int i = 0; i < imageCount; i++)
                     {
                         // write 1024 bytes
-                        WritePaddedUnicodeString(bf, Images[i], 1024);
+                        bf.WriteStringPadded(Images[i], 1024, Encoding.Unicode);
                     }
 
                     // write parameter count
@@ -196,14 +196,6 @@ namespace PresetConverter
             }
 
             this.CompChunkData = memStream.ToArray();
-        }
-
-        private void WritePaddedUnicodeString(BinaryFile bf, string text, int totalCount)
-        {
-            int count = bf.WriteStringNull(text, Encoding.Unicode);
-            int remaining = totalCount - count;
-            var bytes = new byte[remaining];
-            bf.Write(bytes);
         }
     }
 }

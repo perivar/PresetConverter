@@ -604,6 +604,17 @@ namespace CommonUtils
 
             return contentBytes.Length + endBytes.Length;
         }
+
+        public int WriteStringPadded(string text, int totalCount, Encoding encoding)
+        {
+            int count = WriteStringNull(text, encoding);
+            int remaining = totalCount - count;
+            var bytes = new byte[remaining];
+            binaryWriter.Write(bytes);
+
+            return totalCount;
+        }
+
         #endregion
 
         #region Close Method
