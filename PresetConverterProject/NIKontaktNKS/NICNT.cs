@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using CommonUtils;
 using Serilog;
 
@@ -84,7 +85,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         Log.Information("Total Resource Count: " + totalResourceCount);
 
                         long totalResourceLength = bf.ReadInt64();
-                        Log.Information("Total Resource Length: " + totalResourceLength);
+                        Log.Information("Total Resource Byte Length: " + totalResourceLength);
 
                         var resourceList = new List<NICNTResource>();
                         var header3 = bf.ReadBytes(16);
@@ -92,7 +93,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         {
                             bf.ReadBytes(600);
 
-                            long lastIndex = 0;
+                            long lastEndIndex = 0;
                             for (int i = 0; i < totalResourceCount; i++)
                             {
                                 var resource = new NICNTResource();
@@ -112,21 +113,23 @@ namespace PresetConverterProject.NIKontaktNKS
                                 long resUnknown = bf.ReadInt64();
                                 if (doVerbose) Log.Debug("Resource Unknown: " + resUnknown);
 
-                                long resIndex = bf.ReadInt64();
-                                Log.Information("Resource Index: " + resIndex);
-                                resource.Index = resIndex;
+                                long resEndIndex = bf.ReadInt64();
+                                Log.Information("Resource End Index: " + resEndIndex);
+                                resource.EndIndex = resEndIndex;
 
-                                if (lastIndex > 0)
+                                // store calculated length
+                                if (lastEndIndex > 0)
                                 {
-                                    resource.Length = resIndex - lastIndex;
+                                    resource.Length = resEndIndex - lastEndIndex;
                                 }
                                 else
                                 {
-                                    resource.Length = resIndex;
+                                    // for the very first entry the end index is the same as the byte length
+                                    resource.Length = resEndIndex;
                                 }
-                                Log.Information("Resource Length: " + resource.Length);
+                                Log.Information("Calculated Resource Byte Length: " + resource.Length);
 
-                                lastIndex = resIndex;
+                                lastEndIndex = resEndIndex;
                                 resourceList.Add(resource);
                             }
                             Log.Information("-------- Index: " + bf.Position + " --------");
@@ -192,37 +195,108 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Pack(string inputDirectoryPath, string outputFilePath, bool doList, bool doVerbose)
+        public static void Pack(string inputDirectoryPath, string outputDirectoryPath, bool doList, bool doVerbose)
         {
+            Log.Information("Packing directory {0} ...", inputDirectoryPath);
+
+            string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryPath) + ".nicnt";
+            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
+            Log.Information("Packing into file {0} ...", outputFilePath);
+
             // read the ContentVersion.txt file
-            string version = IOUtils.ReadTextFromFile(Path.Combine(inputDirectoryPath, "ContentVersion.txt"));
-            if (doVerbose) Log.Debug("Version: " + version);
+            string contentVersionPath = Path.Combine(inputDirectoryPath, "ContentVersion.txt");
+            string version = "1.0";
+            if (File.Exists(contentVersionPath))
+            {
+                version = IOUtils.ReadTextFromFile(contentVersionPath);
+                if (doVerbose) Log.Debug("Read version: '" + version + "' from ContentVersion.txt");
+            }
+            else
+            {
+                if (doVerbose) Log.Information("No ContentVersion.txt file found - using default version: '" + version + "'");
+            }
 
             // read the [LibraryName].xml file (should have the same name as the input directory)
             string productHintsXmlFileName = Path.GetFileNameWithoutExtension(inputDirectoryPath) + ".xml";
-            string productHintsXml = IOUtils.ReadTextFromFile(Path.Combine(inputDirectoryPath, productHintsXmlFileName));
-            if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
+            string productHintsXmlFilePath = Path.Combine(inputDirectoryPath, productHintsXmlFileName);
+            string productHintsXml = "";
+            if (File.Exists(productHintsXmlFilePath))
+            {
+                productHintsXml = IOUtils.ReadTextFromFile(productHintsXmlFilePath);
+                if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
+            }
+            else
+            {
+                Log.Error("Mandatory ProductHints XML file not found at: " + productHintsXmlFilePath);
+                return;
+            }
 
             // read the files in the resources directory
             var resourceList = new List<NICNTResource>();
-            var resourcesFilePaths = Directory.GetFiles(Path.Combine(inputDirectoryPath, "Resources"), "*.*", SearchOption.AllDirectories);
-            int counter = 1;
-            foreach (var filePath in resourcesFilePaths)
+            string resourcesDirectoryPath = Path.Combine(inputDirectoryPath, "Resources");
+            if (Directory.Exists(resourcesDirectoryPath))
             {
+                var resourcesFilePaths = Directory.GetFiles(resourcesDirectoryPath, "*.*", SearchOption.AllDirectories);
+                int counter = 1;
+                foreach (var filePath in resourcesFilePaths)
+                {
+                    var res = new NICNTResource();
+
+                    string name = Path.GetFileName(filePath);
+                    string unescapedFileName = ToUnixFileName(name);
+                    res.Name = unescapedFileName;
+
+                    var bytes = File.ReadAllBytes(filePath);
+                    res.Data = bytes;
+                    res.Length = bytes.Length;
+
+                    res.Count = counter;
+
+                    resourceList.Add(res);
+                    counter++;
+                }
+
+                if (resourceList.Count > 0)
+                {
+                    if (doVerbose) Log.Debug("Added " + resourceList.Count + " files found in the Resources directory.");
+                }
+                else
+                {
+                    if (doVerbose) Log.Information("No files in the Resource directory found!");
+                }
+            }
+            else
+            {
+                if (doVerbose) Log.Information("No Resources directory found!");
+            }
+
+            // check for mandatory .db.cache
+            if (!resourceList.Any(m => m.Name.ToLower() == ".db.cache"))
+            {
+                XmlDocument xml = new XmlDocument();
+                // Adding the XmlDeclaration (version encoding and standalone) is not necessary as it is added using the XmlWriterSettings
+                // XmlNode docNode = xml.CreateXmlDeclaration("1.0", "UTF-8", "no");
+                // xml.AppendChild(docNode);
+                XmlElement root = xml.CreateElement("soundinfos");
+                root.SetAttribute("version", "110");
+                xml.AppendChild(root);
+
+                XmlElement all = xml.CreateElement("all");
+                root.AppendChild(all);
+
+                // format the xml string
+                string xmlString = BeautifyXml(xml);
+
                 var res = new NICNTResource();
-
-                string name = Path.GetFileName(filePath);
-                string unescapedFileName = ToUnixFileName(name);
-                res.Name = unescapedFileName;
-
-                var bytes = File.ReadAllBytes(filePath);
+                res.Name = ".db.cache";
+                var bytes = Encoding.UTF8.GetBytes(xmlString);
                 res.Data = bytes;
                 res.Length = bytes.Length;
-
-                res.Count = counter;
+                // res.EndIndex is calculated during the write resource operation later 
+                res.Count = 1;
 
                 resourceList.Add(res);
-                counter++;
+                if (doVerbose) Log.Information("No .db.cache found - using default .db.cache:\n" + xml.OuterXml);
             }
 
             using (BinaryFile bf = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true))
@@ -240,7 +314,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 Int32 startOffset = 512000;
                 bf.Write(startOffset);
 
-                Int32 unknown3 = 512000;
+                Int32 unknown3 = startOffset;
                 bf.Write(unknown3);
 
                 bf.Write(new byte[104]); // 104 zero bytes
@@ -271,7 +345,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 Int64 totalResourceCount = resourceList.Count;
                 bf.Write(totalResourceCount);
 
-                Int64 totalResourceLength = 0; // sum of bytes in the resourceList
+                Int64 totalResourceLength = resourceList.Sum(item => item.Length); // sum of bytes in the resourceList
                 bf.Write(totalResourceLength);
 
                 bf.Write(NKS_NICNT_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
@@ -279,6 +353,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 bf.Write(new byte[600]); // 600 zero bytes
 
                 Int64 resCounter = 1;
+                Int64 lastEndIndex = 0;
                 foreach (var res in resourceList)
                 {
                     bf.Write(resCounter);
@@ -290,19 +365,20 @@ namespace PresetConverterProject.NIKontaktNKS
                     Int64 resUnknown = 0;
                     bf.Write(resUnknown);
 
-                    Int64 resIndex = 0; // aggregated index
-                    bf.Write(resIndex);
+                    Int64 resEndIndex = lastEndIndex + res.Length; // aggregated end index
+                    bf.Write(resEndIndex);
 
+                    lastEndIndex = resEndIndex;
                     resCounter++;
                 }
 
                 // write delimiter
                 bf.Write(StringUtils.HexStringToByteArray("F1F1F1F1F1F1F1F1"));
 
-                Int64 unknown13 = 1;
+                Int64 unknown13 = 0;
                 bf.Write(unknown13);
 
-                Int64 unknown14 = 1;
+                Int64 unknown14 = 0;
                 bf.Write(unknown14);
 
                 bf.Write(NKS_NICNT_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
@@ -318,6 +394,43 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         /// <summary>
+        /// Return the XmlDocument as a formatted Xml Section
+        /// </summary>
+        /// <param name="doc">XmlDocument</param>
+        /// <returns>a formatted Xml Section</returns>
+        private static string BeautifyXml(XmlDocument doc)
+        {
+            StringBuilder sb = new StringBuilder();
+            StringWriterWithEncoding stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true, // when using false, the xml declaration and encoding is added (<?xml version="1.0" encoding="utf-8"?>)
+                Indent = true,
+                IndentChars = "  ",
+                NewLineChars = "\r\n",
+                NewLineHandling = NewLineHandling.Replace
+            };
+            using (XmlWriter writer = XmlWriter.Create(stringWriter, settings))
+            {
+                // writer.WriteStartDocument(false); // when using OmitXmlDeclaration = false, add the standalone="no" property to the xml declaration
+
+                // write custom xml declaration to duplicate the original NICNT xml format
+                writer.WriteRaw("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\r\n");
+
+                doc.Save(writer);
+            }
+
+            // add \r \n at the end (0D 0A)
+            sb.Append("\r\n");
+
+            // ugly way to remove whitespace in self closing tags when writing xml document
+            sb.Replace(" />", "/>");
+
+            return sb.ToString();
+        }
+
+
+        /// <summary>
         /// Class to store a NICNT resource
         /// </summary>
         class NICNTResource
@@ -326,7 +439,7 @@ namespace PresetConverterProject.NIKontaktNKS
             public string Name { get; set; }
             public long Length { get; set; }
             public byte[] Data { get; set; }
-            public long Index { get; set; }
+            public long EndIndex { get; set; }
             public long RealIndex { get; set; }
         }
 

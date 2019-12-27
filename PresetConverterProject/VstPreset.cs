@@ -1371,8 +1371,7 @@ namespace PresetConverter
         public void InitInfoXml()
         {
             XmlDocument xml = new XmlDocument();
-            // Adding the XmlDeclaration (version and utf-8) is not necessary as it is added  
-            // using the XmlWriterSettings
+            // Adding the XmlDeclaration (version and encoding) is not necessary as it is added using the XmlWriterSettings
             // XmlNode docNode = xml.CreateXmlDeclaration("1.0", "utf-8", null);
             // xml.AppendChild(docNode);
             XmlElement root = xml.CreateElement("MetaInfo");
@@ -1424,7 +1423,7 @@ namespace PresetConverter
             StringWriterWithEncoding stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
             XmlWriterSettings settings = new XmlWriterSettings
             {
-                OmitXmlDeclaration = false,
+                OmitXmlDeclaration = false, // when using false, the xml declaration and encoding is added (<?xml version="1.0" encoding="utf-8"?>)
                 Indent = true,
                 IndentChars = "\t",
                 NewLineChars = "\r\n",

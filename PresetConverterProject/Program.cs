@@ -39,19 +39,19 @@ namespace PresetConverter
             app.HelpOption();
             var optionInputDirectoryOrFilePath = app.Option("-i|--input <path>", "The Input directory or file", CommandOptionType.MultipleValue);
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
-            var optionExtraDirectoryOrFilePath = app.Option("-e|--extra <path>", "Extra information as used by the different converters. (E.g. for wav this is an image-path, for packing this is the output file-path)", CommandOptionType.SingleValue);
+            var optionExtraInformation = app.Option("-e|--extra <path-or-type>", "Extra information as used by the different converters. (E.g. for wav this is an image-path, for packing this is the type)", CommandOptionType.SingleValue);
             var switchConvertKontakt6 = app.Option("-k6|--kontakt6", "Convert discovered Kontakt presets to Kontakt 6", CommandOptionType.NoValue);
             var switchList = app.Option("-l|--list", "List the content of archives", CommandOptionType.NoValue);
             var switchVerbose = app.Option("-v|--verbose", "Output more verbose information", CommandOptionType.NoValue);
-            var switchPack = app.Option("-p|--pack", "Pack the input directory into the file given by the extra path", CommandOptionType.NoValue);
+            var switchPack = app.Option("-p|--pack", "Pack the input directory into a file using the directory as filename with the --extra option as extension", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
                 if (optionInputDirectoryOrFilePath.HasValue()
                 && optionOutputDirectory.HasValue())
                 {
-                    string outputDirectory = optionOutputDirectory.Value();
-                    string extraDirectoryOrFilePath = optionExtraDirectoryOrFilePath.Value();
+                    string outputDirectoryPath = optionOutputDirectory.Value();
+                    string extraInformation = optionExtraInformation.Value();
 
                     // check convert arguments
                     bool doConvertToKontakt6 = switchConvertKontakt6.HasValue();
@@ -60,8 +60,8 @@ namespace PresetConverter
                     bool doPack = switchPack.HasValue();
 
                     // Setup Logger to use the outputDirectory
-                    string errorLogFilePath = Path.Combine(outputDirectory, "log-error.log");
-                    string verboseLogFilePath = Path.Combine(outputDirectory, "log-verbose.log");
+                    string errorLogFilePath = Path.Combine(outputDirectoryPath, "log-error.log");
+                    string verboseLogFilePath = Path.Combine(outputDirectoryPath, "log-verbose.log");
                     var logConfig = new LoggerConfiguration()
                         .WriteTo.File(verboseLogFilePath)
                         .WriteTo.Console(LogEventLevel.Information)
@@ -73,45 +73,45 @@ namespace PresetConverter
                     if (!doPack)
                     {
                         var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt" };
-                        var files = HandleMultipleInputPaths(optionInputDirectoryOrFilePath, extensions);
+                        var filePaths = HandleMultipleInputPaths(optionInputDirectoryOrFilePath, extensions);
 
-                        foreach (var file in files)
+                        foreach (var inputFilePath in filePaths)
                         {
-                            Log.Information("Processing {0} ...", file);
+                            Log.Information("Processing {0} ...", inputFilePath);
 
-                            string extension = new FileInfo(file).Extension.ToLowerInvariant();
+                            string extension = new FileInfo(inputFilePath).Extension.ToLowerInvariant();
                             switch (extension)
                             {
                                 case ".als":
-                                    HandleAbletonLiveProject(file, outputDirectory);
+                                    HandleAbletonLiveProject(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".adv":
-                                    HandleAbletonLivePreset(file, outputDirectory);
+                                    HandleAbletonLivePreset(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".vstpreset":
-                                    HandleSteinbergVstPreset(file, outputDirectory);
+                                    HandleSteinbergVstPreset(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".xps":
-                                    HandleWavesXpsPreset(file, outputDirectory);
+                                    HandleWavesXpsPreset(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".wav":
-                                    HandleWaveFile(file, outputDirectory, extraDirectoryOrFilePath);
+                                    HandleWaveFile(inputFilePath, outputDirectoryPath, extraInformation);
                                     break;
                                 case ".sdir":
-                                    HandleSDIRFile(file, outputDirectory);
+                                    HandleSDIRFile(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".cpr":
-                                    HandleCubaseProjectFile(file, outputDirectory, config, doConvertToKontakt6);
+                                    HandleCubaseProjectFile(inputFilePath, outputDirectoryPath, config, doConvertToKontakt6);
                                     break;
                                 case ".ffp":
-                                    HandleFabfilterPresetFile(file, outputDirectory);
+                                    HandleFabfilterPresetFile(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".nkx":
                                 case ".nks":
                                 case ".nkr":
                                 case ".nki":
                                 case ".nicnt":
-                                    HandleNIKontaktFile(file, outputDirectory, config, doList, doVerbose, doPack);
+                                    HandleNIKontaktFile(inputFilePath, outputDirectoryPath, extension, config, doList, doVerbose, doPack);
                                     break;
                             }
                         }
@@ -119,23 +119,27 @@ namespace PresetConverter
                     else
                     {
                         // pack an input directory
+                        if (extraInformation == null)
+                        {
+                            Console.Error.WriteLine("Please provide packing type using the --extra information!");
+                            app.ShowHelp();
+                            return 0;
+                        }
 
-                        // check extension
-                        string extensionDir = new FileInfo(extraDirectoryOrFilePath).Extension.ToLowerInvariant();
-                        switch (extensionDir)
+                        // check packing type
+                        string packingType = extraInformation.ToLowerInvariant();
+                        switch (packingType)
                         {
                             case ".nicnt":
+                            case "nicnt":
                                 foreach (var inputDirectoryOrFilePath in optionInputDirectoryOrFilePath.Values)
                                 {
                                     // check if input is a filepath or a directory
                                     var isDirectory = IOUtils.IsDirectory(inputDirectoryOrFilePath);
-                                    if (isDirectory.HasValue)
+                                    if (isDirectory.HasValue && isDirectory.Value)
                                     {
-                                        if (isDirectory.Value)
-                                        {
-                                            // directory
-                                            HandleNIKontaktFile(inputDirectoryOrFilePath, extraDirectoryOrFilePath, config, doList, doVerbose, doPack);
-                                        }
+                                        // directory
+                                        HandleNIKontaktFile(inputDirectoryOrFilePath, outputDirectoryPath, ".nicnt", config, doList, doVerbose, doPack);
                                     }
                                 }
                                 break;
@@ -1121,33 +1125,23 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleNIKontaktFile(string inputDirectoryOrFilePath, string outputDirectoryOrFilePath, IConfiguration config, bool doList, bool doVerbose, bool doPack)
+        private static void HandleNIKontaktFile(string inputDirectoryOrFilePath, string outputDirectory, string extension, IConfiguration config, bool doList, bool doVerbose, bool doPack)
         {
-            string extension = "";
-            if (doPack)
-            {
-                extension = new FileInfo(outputDirectoryOrFilePath).Extension.ToLowerInvariant();
-            }
-            else
-            {
-                extension = new FileInfo(inputDirectoryOrFilePath).Extension.ToLowerInvariant();
-            }
-
             NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
 
             if (extension == ".nki")
             {
-                NKI.Parse(inputDirectoryOrFilePath, outputDirectoryOrFilePath, doList, doVerbose);
+                NKI.Parse(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
             }
             else if (extension == ".nicnt")
             {
                 if (doPack)
                 {
-                    NICNT.Pack(inputDirectoryOrFilePath, outputDirectoryOrFilePath, doList, doVerbose);
+                    NICNT.Pack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
                 }
                 else
                 {
-                    NICNT.Unpack(inputDirectoryOrFilePath, outputDirectoryOrFilePath, doList, doVerbose);
+                    NICNT.Unpack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
                 }
             }
             else
@@ -1178,7 +1172,7 @@ namespace PresetConverter
                     }
                     else
                     {
-                        NKS.ExtractArchive(inputDirectoryOrFilePath, outputDirectoryOrFilePath);
+                        NKS.ExtractArchive(inputDirectoryOrFilePath, outputDirectory);
 
                     }
                 }
