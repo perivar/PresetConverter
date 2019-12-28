@@ -1,5 +1,10 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Serialization;
+using CommonUtils;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -55,7 +60,7 @@ namespace PresetConverterProject.NIKontaktNKS
     }
 
     [XmlRoot(ElementName = "Icon")]
-    public class Icon
+    public class IconElement
     {
         [XmlElement(ElementName = "Data")]
         public string Data { get; set; }
@@ -100,7 +105,7 @@ namespace PresetConverterProject.NIKontaktNKS
         [XmlElement(ElementName = "RegKey")]
         public string RegKey { get; set; }
         [XmlElement(ElementName = "Icon")]
-        public Icon Icon { get; set; }
+        public IconElement Icon { get; set; }
         [XmlElement(ElementName = "ProductSpecific")]
         public ProductSpecific ProductSpecific { get; set; }
         [XmlAttribute(AttributeName = "version")]
@@ -114,5 +119,92 @@ namespace PresetConverterProject.NIKontaktNKS
         public Product Product { get; set; }
         [XmlAttribute(AttributeName = "spec")]
         public string Spec { get; set; }
+    }
+
+    public static class ProductHintsFactory
+    {
+        public static ProductHints Read(string filePath)
+        {
+            ProductHints productHints = null;
+
+            // read xml into model
+            var serializer = new XmlSerializer(typeof(ProductHints));
+            using (var reader = XmlReader.Create(filePath))
+            {
+                productHints = (ProductHints)serializer.Deserialize(reader);
+            }
+
+            return productHints;
+        }
+
+        public static ProductHints ReadFromString(string objectData)
+        {
+            ProductHints productHints = null;
+
+            // read xml into model
+            var serializer = new XmlSerializer(typeof(ProductHints));
+            using (TextReader reader = new StringReader(objectData))
+            {
+                productHints = (ProductHints)serializer.Deserialize(reader);
+            }
+
+            return productHints;
+        }
+
+        public static void Write(ProductHints productHints, string filePath)
+        {
+            string xmlString = ToString(productHints);
+
+            if (xmlString != null)
+            {
+                // write to file
+                var xmlBytes = Encoding.UTF8.GetBytes(xmlString);
+                BinaryFile.ByteArrayToFile(filePath, xmlBytes);
+            }
+        }
+
+        public static string ToString(ProductHints productHints)
+        {
+            if (productHints == null) return null;
+
+            // write to xml file
+            var serializer = new XmlSerializer(productHints.GetType());
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add("", ""); // don't add xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+
+            StringBuilder sb = new StringBuilder();
+            StringWriterWithEncoding stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true, // when using false, the xml declaration and encoding is added (<?xml version="1.0" encoding="utf-8"?>)
+                Indent = true,
+                IndentChars = "  ",
+                NewLineChars = "\n",
+                NewLineHandling = NewLineHandling.Replace
+            };
+            using (XmlWriter writer = XmlWriter.Create(stringWriter, settings))
+            {
+                // writer.WriteStartDocument(false); // when using OmitXmlDeclaration = false, add the standalone="no" property to the xml declaration
+
+                // write custom xml declaration to duplicate the original xml format
+                writer.WriteRaw("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\r\n");
+
+                serializer.Serialize(writer, productHints, ns);
+            }
+
+            // add an extra \n at the end (0A)
+            sb.Append("\n");
+
+            // ugly way to remove whitespace in self closing tags when writing xml document
+            sb.Replace(" />", "/>");
+
+            string xmlString = sb.ToString();
+
+            // ugly way to add an extra newline after <ProductHints spec="1.0.16"> and before </ProductHints>
+            xmlString = Regex.Replace(xmlString, @"(\<ProductHints.*?\>\n)", "$1\n", RegexOptions.IgnoreCase);
+            xmlString = Regex.Replace(xmlString, @"(\n\</ProductHints\>)", "\n$1", RegexOptions.IgnoreCase);
+
+            return xmlString;
+        }
     }
 }

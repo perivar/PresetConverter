@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -53,8 +54,25 @@ namespace PresetConverterProject.NIKontaktNKS
                     // Save productHints as xml 
                     if (!doList) IOUtils.WriteTextToFile(Path.Combine(outputDirectoryPath, outputFileName, outputFileName + ".xml"), productHintsXml);
 
-                    // the Data is an icon stored as Base64 String
-                    // https://codebeautify.org/base64-to-image-converter
+                    // get the product hints as an object
+                    var productHints = ProductHintsFactory.ReadFromString(productHintsXml);
+
+                    if (productHints != null)
+                    {
+                        if (productHints.Product.Icon.Data != null)
+                        {
+                            // the Data is an icon stored as Base64 String
+                            // https://codebeautify.org/base64-to-image-converter
+
+                            string base64String = productHints.Product.Icon.Data;
+                            Bitmap icon = null;
+                            using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(base64String)))
+                            {
+                                icon = new Bitmap(ms);
+                            }
+                            icon.Save(Path.Combine(outputDirectoryPath, outputFileName, outputFileName + "-icon.png"));
+                        }
+                    }
 
                     bf.Seek(startOffset + 256, SeekOrigin.Begin);
                     var header2 = bf.ReadBytes(16);
@@ -205,7 +223,8 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             Log.Information("Packing directory {0} ...", inputDirectoryPath);
 
-            string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryPath) + ".nicnt";
+            string libraryName = Path.GetFileNameWithoutExtension(inputDirectoryPath);
+            string outputFileName = libraryName + ".nicnt";
             string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
             Log.Information("Packing into file {0} ...", outputFilePath);
 
@@ -219,11 +238,11 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else
             {
-                if (doVerbose) Log.Information("No ContentVersion.txt file found - using default version: '" + version + "'");
+                Log.Information("No ContentVersion.txt file found - using default version: '" + version + "'");
             }
 
             // read the [LibraryName].xml file (should have the same name as the input directory)
-            string productHintsXmlFileName = Path.GetFileNameWithoutExtension(inputDirectoryPath) + ".xml";
+            string productHintsXmlFileName = libraryName + ".xml";
             string productHintsXmlFilePath = Path.Combine(inputDirectoryPath, productHintsXmlFileName);
             string productHintsXml = "";
             ProductHints productHints = null;
@@ -232,18 +251,22 @@ namespace PresetConverterProject.NIKontaktNKS
                 productHintsXml = IOUtils.ReadTextFromFile(productHintsXmlFilePath);
                 if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
 
-                // parse xml to model
-                var serializer = new XmlSerializer(typeof(ProductHints));
-                using (var reader = new StreamReader(productHintsXmlFilePath))
-                {
-                    productHints = (ProductHints)serializer.Deserialize(reader);
-                }
+                // get the product hints as an object
+                productHints = ProductHintsFactory.Read(productHintsXmlFilePath);
 
-                // output the xml to file
-                var serializer2 = new XmlSerializer(productHints.GetType());
-                using (var writer = new StreamWriter(Path.Combine(inputDirectoryPath, Path.GetFileNameWithoutExtension(inputDirectoryPath) + "-dump.xml")))
+                // check that the directory name is the same as the Name and RegKey in the xml file
+                if (productHints.Product.Name != productHints.Product.RegKey || libraryName != productHints.Product.Name)
                 {
-                    serializer2.Serialize(writer, productHints);
+                    Log.Error(productHintsXmlFileName + " had incorrect values! Updating ...");
+
+                    // change into the library name
+                    productHints.Product.Name = libraryName;
+                    productHints.Product.RegKey = libraryName;
+                    productHintsXml = ProductHintsFactory.ToString(productHints);
+
+                    // and overwrite
+                    var xmlBytes = Encoding.UTF8.GetBytes(productHintsXml);
+                    BinaryFile.ByteArrayToFile(productHintsXmlFilePath, xmlBytes);
                 }
             }
             else

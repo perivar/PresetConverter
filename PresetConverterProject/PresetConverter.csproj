@@ -10,13 +10,13 @@
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0"/>
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.6.0"/>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.1"/>
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0"/>
   </ItemGroup>
-
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)"/>
+    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(OutDir)"/>
   </Target>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)"/>
   </Target>
-</Project> 
+</Project>
