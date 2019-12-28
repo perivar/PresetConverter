@@ -157,15 +157,20 @@ namespace PresetConverterProject.NIKontaktNKS
 
                                 foreach (var res in resourceList)
                                 {
+                                    // convert the unix filename to a windows supported filename
                                     string escapedFileName = FromUnixFileNames(res.Name);
-                                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", escapedFileName, bf.Position, res.Length));
+
+                                    // and add the counter in front
+                                    string escapedFileNameWithNumber = string.Format("{0:D3}{1}", res.Count, escapedFileName);
+
+                                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", escapedFileNameWithNumber, bf.Position, res.Length));
 
                                     res.Data = bf.ReadBytes((int)res.Length);
 
                                     // if not only listing, save files
                                     if (!doList)
                                     {
-                                        string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName, "Resources", escapedFileName);
+                                        string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName, "Resources", escapedFileNameWithNumber);
                                         BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
 
                                         outBinaryFile.Write(res.Data);
@@ -243,7 +248,12 @@ namespace PresetConverterProject.NIKontaktNKS
                     var res = new NICNTResource();
 
                     string name = Path.GetFileName(filePath);
-                    string unescapedFileName = ToUnixFileName(name);
+
+                    // remove the counter in front
+                    string escapedFileNameWithNumber = Regex.Replace(name, @"^\d{3}(.*?)$", "$1", RegexOptions.IgnoreCase);
+
+                    // convert the windows supported unix filename to the original unix filename 
+                    string unescapedFileName = ToUnixFileName(escapedFileNameWithNumber);
                     res.Name = unescapedFileName;
 
                     var bytes = File.ReadAllBytes(filePath);
@@ -293,7 +303,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 res.Data = bytes;
                 res.Length = bytes.Length;
                 // res.EndIndex is calculated during the write resource operation later 
-                res.Count = 1;
+                res.Count = resourceList.Count + 1;
 
                 resourceList.Add(res);
                 if (doVerbose) Log.Information("No .db.cache found - using default .db.cache:\n" + xml.OuterXml);
