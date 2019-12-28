@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Xml.Serialization;
 using CommonUtils;
 using Serilog;
 
@@ -225,10 +226,25 @@ namespace PresetConverterProject.NIKontaktNKS
             string productHintsXmlFileName = Path.GetFileNameWithoutExtension(inputDirectoryPath) + ".xml";
             string productHintsXmlFilePath = Path.Combine(inputDirectoryPath, productHintsXmlFileName);
             string productHintsXml = "";
+            ProductHints productHints = null;
             if (File.Exists(productHintsXmlFilePath))
             {
                 productHintsXml = IOUtils.ReadTextFromFile(productHintsXmlFilePath);
                 if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
+
+                // parse xml to model
+                var serializer = new XmlSerializer(typeof(ProductHints));
+                using (var reader = new StreamReader(productHintsXmlFilePath))
+                {
+                    productHints = (ProductHints)serializer.Deserialize(reader);
+                }
+
+                // output the xml to file
+                var serializer2 = new XmlSerializer(productHints.GetType());
+                using (var writer = new StreamWriter(Path.Combine(inputDirectoryPath, Path.GetFileNameWithoutExtension(inputDirectoryPath) + "-dump.xml")))
+                {
+                    serializer2.Serialize(writer, productHints);
+                }
             }
             else
             {
