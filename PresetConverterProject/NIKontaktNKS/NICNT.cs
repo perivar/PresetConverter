@@ -25,7 +25,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (header.SequenceEqual(NKS_NICNT_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
                 {
                     bf.Seek(66, SeekOrigin.Begin);
-                    string version = bf.ReadString(3 * 2, Encoding.Unicode);
+                    string version = bf.ReadString(66, Encoding.Unicode).TrimEnd('\0');
                     Log.Information("Version: " + version);
 
                     string outputFileName = Path.GetFileNameWithoutExtension(inputFilePath);
@@ -34,7 +34,6 @@ namespace PresetConverterProject.NIKontaktNKS
                     // Save version in ContentVersion.txt 
                     if (!doList) IOUtils.WriteTextToFile(Path.Combine(outputDirectoryPath, outputFileName, "ContentVersion.txt"), version);
 
-                    bf.Seek(132, SeekOrigin.Begin);
                     int unknown1 = bf.ReadInt32();
                     if (doVerbose) Log.Debug("Unknown1: " + unknown1);
 
