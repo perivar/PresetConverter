@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -5,6 +6,8 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using CommonUtils;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -62,8 +65,45 @@ namespace PresetConverterProject.NIKontaktNKS
     [XmlRoot(ElementName = "Icon")]
     public class IconElement
     {
+        // the Data is an icon stored as Base64 String
+        // https://codebeautify.org/base64-to-image-converter
         [XmlElement(ElementName = "Data")]
-        public string Data { get; set; }
+        public string Data
+        {
+            get
+            {
+                string base64String = null;
+                if (ImageBytes != null)
+                {
+                    base64String = Convert.ToBase64String(ImageBytes);
+                }
+                return base64String;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    Image = null;
+                    ImageFormat = null;
+                }
+                else
+                {
+                    ImageBytes = Convert.FromBase64String(value);
+                }
+            }
+        }
+
+        // store the image bytes in order to conserve the actual bytes
+        // otherwise the image encoding and decoding will change the bytes, probably due to other meta-information lost
+        [XmlIgnore]
+        public byte[] ImageBytes { get; set; }
+
+        [XmlIgnore]
+        public IImageFormat ImageFormat { get; set; }
+
+        [XmlIgnore]
+        public Image Image { get; set; }
+
         [XmlText]
         public string Text { get; set; }
     }
@@ -205,6 +245,55 @@ namespace PresetConverterProject.NIKontaktNKS
             xmlString = Regex.Replace(xmlString, @"(\n\</ProductHints\>)", "\n$1", RegexOptions.IgnoreCase);
 
             return xmlString;
+        }
+
+        /// <summary>
+        /// Update the ImageBytes byte array in the ProductHints object using the stored Image and Imageformat
+        /// </summary>
+        /// <param name="productHints">product hints object</param>
+        public static void UpdateImageBytesFromImage(ProductHints productHints)
+        {
+            if (productHints != null)
+            {
+                var image = productHints.Product.Icon.Image;
+                var imageFormat = productHints.Product.Icon.ImageFormat;
+                if (image != null && imageFormat != null)
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        image.Save(ms, imageFormat);
+
+                        // store image bytes
+                        productHints.Product.Icon.ImageBytes = ms.ToArray();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update the Image and Imageformat in the ProductHints object using the stored ImageBytes
+        /// </summary>
+        /// <param name="productHints">product hints object</param>
+        public static void UpdateImageFromImageBytes(ProductHints productHints)
+        {
+            if (productHints != null)
+            {
+                var imageBytes = productHints.Product.Icon.ImageBytes;
+                if (imageBytes != null)
+                {
+                    using (var ms = new MemoryStream(imageBytes))
+                    {
+                        IImageFormat imageFormat = null;
+                        var image = Image.Load(ms, out imageFormat);
+
+                        // store format
+                        productHints.Product.Icon.ImageFormat = imageFormat;
+
+                        // store image
+                        productHints.Product.Icon.Image = image;
+                    }
+                }
+            }
         }
     }
 }

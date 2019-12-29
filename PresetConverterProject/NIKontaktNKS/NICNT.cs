@@ -9,7 +9,6 @@ using CommonUtils;
 using Serilog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Formats;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -58,31 +57,28 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     // get the product hints as an object
                     var productHints = ProductHintsFactory.ReadFromString(productHintsXml);
-                    if (productHints != null)
+                    if (productHints != null && productHints.Product.Icon.ImageBytes != null)
                     {
-                        if (productHints.Product.Icon.Data != null)
+                        ProductHintsFactory.UpdateImageFromImageBytes(productHints);
+
+                        var image = productHints.Product.Icon.Image;
+                        var imageFormat = productHints.Product.Icon.ImageFormat;
+                        if (image != null && imageFormat != null)
                         {
-                            // the Data is an icon stored as Base64 String
-                            // https://codebeautify.org/base64-to-image-converter
+                            Log.Information(string.Format("Found Icon in ProductHints Xml in {0} format. (Dimensions: {1} x {2}, Width: {1} pixels, Height: {2} pixels, Bit depth: {3} bpp)", imageFormat.Name, image.Width, image.Height, image.PixelType.BitsPerPixel));
 
-                            string base64String = productHints.Product.Icon.Data;
+                            // save icon to file
+                            var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
+                            var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
 
-                            Image icon = null;
-                            IImageFormat imageFormat = null;
-                            using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(base64String)))
-                            {
-                                icon = Image.Load(ms, out imageFormat);
-                            }
-                            if (imageFormat != null && icon != null)
-                            {
-                                Log.Information(string.Format("Found Icon in ProductHints Xml in {0} format. (Dimensions: {1} x {2}, Width: {1} pixels, Height: {2} pixels, Bit depth: {3} bpp)", imageFormat.Name, icon.Width, icon.Height, icon.PixelType.BitsPerPixel));
-                                var imageEncoder = icon.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
-                                var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
-                                var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
+                            if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
 
-                                if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
-                                icon.Save(iconFilePath, imageEncoder);
-                            }
+                            // save using ImageSharp
+                            // var imageEncoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
+                            // image.Save(iconFilePath, imageEncoder);
+
+                            // save using image bytes
+                            BinaryFile.ByteArrayToFile(iconFilePath, productHints.Product.Icon.ImageBytes);
                         }
                     }
 
@@ -270,6 +266,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 // get the productHints as string
                 productHintsXml = ProductHintsFactory.ToString(productHints);
 
+                // test output
+                // var xmlBytesTest = Encoding.UTF8.GetBytes(productHintsXml);
+                // BinaryFile.ByteArrayToFile(Path.Combine(inputDirectoryPath, libraryName + "-test.xml"), xmlBytesTest);
+
                 // check that the directory name is the same as the Name and RegKey in the xml file
                 if (productHints.Product.Name != productHints.Product.RegKey || libraryName != productHints.Product.Name)
                 {
@@ -278,6 +278,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     // change into the library name
                     productHints.Product.Name = libraryName;
                     productHints.Product.RegKey = libraryName;
+
+                    // update the productHints as string
                     productHintsXml = ProductHintsFactory.ToString(productHints);
 
                     // and overwrite
