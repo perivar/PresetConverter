@@ -300,7 +300,7 @@
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
                 // "-l",
-                "-v"
+                // "-v"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -323,13 +323,15 @@
                 "-i",
                 "C:\\Users\\perner\\My Projects\\Temp\\Spitfire Symphonic Woodwinds",          
                 "-i",
-                "C:\\Users\\perner\\My Projects\\Temp\\Spitfire Symphonic Strings",                                      
+                "C:\\Users\\perner\\My Projects\\Temp\\Spitfire Symphonic Strings",   
+                "-i",
+                "C:\\Users\\perner\\My Projects\\Temp\\CineStrings CORE",                                                      
                 "-e",
                 "nicnt",
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
                 "-p",
-                "-v"
+                // "-v"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

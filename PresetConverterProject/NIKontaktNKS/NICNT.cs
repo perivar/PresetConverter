@@ -50,6 +50,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     bf.Seek(256, SeekOrigin.Begin);
 
                     string productHintsXml = bf.ReadStringNull();
+                    Log.Information(string.Format("Read ProductHints Xml with length {0} characters.", productHintsXml.Length));
                     if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
 
                     // Save productHints as xml 
@@ -57,7 +58,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     // get the product hints as an object
                     var productHints = ProductHintsFactory.ReadFromString(productHintsXml);
-
                     if (productHints != null)
                     {
                         if (productHints.Product.Icon.Data != null)
@@ -72,15 +72,17 @@ namespace PresetConverterProject.NIKontaktNKS
                             using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(base64String)))
                             {
                                 icon = Image.Load(ms, out imageFormat);
-                                if (doVerbose) Log.Debug("Found Icon with format: " + imageFormat.Name);
-
                             }
-                            var imageEncoder = icon.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
-                            var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
-                            var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
-                            if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
+                            if (imageFormat != null && icon != null)
+                            {
+                                Log.Information(string.Format("Found Icon in ProductHints Xml in {0} format. (Dimensions: {1} x {2}, Width: {1} pixels, Height: {2} pixels, Bit depth: {3} bpp)", imageFormat.Name, icon.Width, icon.Height, icon.PixelType.BitsPerPixel));
+                                var imageEncoder = icon.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
+                                var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
+                                var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
 
-                            icon.Save(iconFilePath, imageEncoder);
+                                if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
+                                icon.Save(iconFilePath, imageEncoder);
+                            }
                         }
                     }
 
@@ -259,15 +261,19 @@ namespace PresetConverterProject.NIKontaktNKS
             if (File.Exists(productHintsXmlFilePath))
             {
                 productHintsXml = IOUtils.ReadTextFromFile(productHintsXmlFilePath);
+                Log.Information(string.Format("Found ProductHints Xml with length {0} characters.", productHintsXml.Length));
                 if (doVerbose) Log.Debug("ProductHints Xml:\n" + productHintsXml);
 
                 // get the product hints as an object
-                productHints = ProductHintsFactory.Read(productHintsXmlFilePath);
+                productHints = ProductHintsFactory.ReadFromString(productHintsXml);
+
+                // get the productHints as string
+                productHintsXml = ProductHintsFactory.ToString(productHints);
 
                 // check that the directory name is the same as the Name and RegKey in the xml file
                 if (productHints.Product.Name != productHints.Product.RegKey || libraryName != productHints.Product.Name)
                 {
-                    Log.Error(productHintsXmlFileName + " had incorrect values! Updating ...");
+                    Log.Error(string.Format("Fixing '{0}' due to incorrect values! (Library-Name: '{1}', Xml-Name: '{2}', Xml-RegKey: '{3}')", productHintsXmlFileName, libraryName, productHints.Product.Name, productHints.Product.RegKey));
 
                     // change into the library name
                     productHints.Product.Name = libraryName;
