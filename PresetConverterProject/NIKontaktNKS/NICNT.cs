@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using System.Xml.Serialization;
 using CommonUtils;
 using Serilog;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Formats;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -65,12 +66,21 @@ namespace PresetConverterProject.NIKontaktNKS
                             // https://codebeautify.org/base64-to-image-converter
 
                             string base64String = productHints.Product.Icon.Data;
-                            Bitmap icon = null;
+
+                            Image icon = null;
+                            IImageFormat imageFormat = null;
                             using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(base64String)))
                             {
-                                icon = new Bitmap(ms);
+                                icon = Image.Load(ms, out imageFormat);
+                                if (doVerbose) Log.Debug("Found Icon with format: " + imageFormat.Name);
+
                             }
-                            icon.Save(Path.Combine(outputDirectoryPath, outputFileName, outputFileName + "-icon.png"));
+                            var imageEncoder = icon.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
+                            var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
+                            var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
+                            if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
+
+                            icon.Save(iconFilePath, imageEncoder);
                         }
                     }
 
