@@ -663,7 +663,9 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
-            "args": [
+            "args": [                
+                "-i",
+                "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Metropolis Ark 3.nicnt",
                 "-i",
                 "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
                 "-i",

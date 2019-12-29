@@ -56,7 +56,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     // get the product hints as an object
                     var productHints = ProductHintsFactory.ReadFromString(productHintsXml);
-                    if (productHints != null && productHints.Product.Icon.ImageBytes != null)
+                    if (productHints != null && productHints.Product.Icon != null && productHints.Product.Icon.ImageBytes != null)
                     {
                         ProductHintsFactory.UpdateImageFromImageBytes(productHints);
 
