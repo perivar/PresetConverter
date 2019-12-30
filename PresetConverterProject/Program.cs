@@ -25,6 +25,9 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
+            // WCXUtils.CallPlugin();
+            // return;
+
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             IConfiguration config = new ConfigurationBuilder()
