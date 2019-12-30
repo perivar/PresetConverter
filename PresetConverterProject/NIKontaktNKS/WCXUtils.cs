@@ -6,32 +6,95 @@ using CommonUtils;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
-    // https://studiofreya.com/2016/02/16/how-to-dynamically-load-native-dlls-from-csharp/
+    #region Help Sources
+    // https://www.silabs.com/content/usergenerated/asi/cloud/attachments/siliconlabs/en/community/groups/interface/knowledge-base/jcr:content/content/primary/blog/executing_c_dll_func-u4Wl/Creating%20a%20C%23%20Module%20From%20a%20DLL%20Header%20File.pdf
     // https://riptutorial.com/csharp/example/17244/dynamic-loading-and-unloading-of-unmanaged-dlls
+    // https://stackoverflow.com/questions/13834153/how-to-call-unmanaged-dll-to-populate-struct-in-c-sharp-using-a-pointer
+    // https://www.daniweb.com/programming/software-development/threads/406891/marshalling-c-structures-from-a-dynamically-loaded-dll
 
-
-    // https://gist.githubusercontent.com/b0urb4k1/da912b4e047583fdb56af9fe37c3047d/raw/b74c06b206f01ee7d0bf76bddef0e0d0f5a50813/Functionpointer%2520in%2520C%2523
-    // 
-    // Header file:
-    // extern "C" __declspec(dllexport) int MultiplyByTen(int numberToMultiply);
-    // 
-    // Source code file:
-    // #include "DynamicDLLToCall.h"
-    // 
-    // int MultiplyByTen(int numberToMultiply)
+    // https://stackoverflow.com/questions/17020464/c-sharp-calling-c-dll-function-which-returns-a-struct
+    // [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    // public struct FVersionInfo
     // {
-    // int returnValue = numberToMultiply * 10;
-    // return returnValue;
-    // } 
+    //     public IntPtr Version;
+    //     public IntPtr Build_No;
+    //     public IntPtr Build_Type;
+    //     public IntPtr Build_Date;
+    //     public IntPtr Build_Info;
+    //     public IntPtr Comment;
+    // }
+    // So i passed the Marshal.GetDelegateForFunctionPointer without any problems.
     // 
-    // As you can probably infer from the function name, an int is passed into this function and it will return the number passed in multiplied by ten. Told you it would be simple.
+    // I changed my using code to:
     // 
-    // Now comes the more interesting part, actually calling this dll dynamically from your C# source code. There are two Win32 functions that are going to help us do this:
+    // GF.FVersionInfo vi = new GF.FVersionInfo();
+    // vi = gf.GetVersion();
     // 
-    // 1) LoadLibrary – returns a IntPtr to the dll in question
-    // 2) GetProcAddress – obtain the address of an exported function within the previously loaded dll
+    // After that, i could access the strings for example with
+    // string MyVersion = Marshal.PtrToStringAnsi(VersionInfos.Version);
+
+    // https://studiofreya.com/2016/02/16/how-to-dynamically-load-native-dlls-from-csharp/
+    // Delegate with function signature for the GetVersion function:
+    // uint32_t GetVersion(char * buffer, uint32_t length)
     // 
-    // The rest is rather simple. We use LoadLibrary and GetProcAddress to get the address of the function within the dll we want to call, and then we use the GetDelegateForFunctionPointer static method within the Marshal class to assign this address to a C# delegate that we define. Take a look at the following C# code:
+    // [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    // [return: MarshalAs(UnmanagedType.U4)]
+    // delegate UInt32 GetVersionDelegate(
+    //    [OutAttribute][InAttribute] StringBuilder versionString,
+    //    [OutAttribute] UInt32 length);
+
+    // https://stackoverflow.com/questions/2224164/help-me-convert-c-structure-into-c-sharp
+    // #define QUE_ADDR_BUF_LENGTH 50
+    // #define QUE_POST_BUF_LENGTH 11
+
+    // typedef struct
+    // {
+    // const WCHAR *streetAddress;
+    // const WCHAR *city;
+    // const WCHAR *state;
+    // const WCHAR *country;
+    // const WCHAR *postalCode;
+    // } QueSelectAddressType;
+    // 
+    // typedef struct
+    // {
+    // WCHAR   streetAddress[QUE_ADDR_BUF_LENGTH + 1];
+    // WCHAR   city[QUE_ADDR_BUF_LENGTH + 1];
+    // WCHAR   state[QUE_ADDR_BUF_LENGTH + 1];
+    // WCHAR   country[QUE_ADDR_BUF_LENGTH + 1];
+    // WCHAR   postalCode[QUE_POST_BUF_LENGTH + 1];
+    // } QueAddressType;
+
+    // [StructLayout(LayoutKind.Sequential)]
+    // public struct QueSelectAddressType
+    // {
+    //     [MarshalAsAttribute(UnmanagedType.LPWStr)]
+    //     public string streetAddress;
+    //     [MarshalAsAttribute(UnmanagedType.LPWStr)]
+    //     public string city;
+    //     [MarshalAsAttribute(UnmanagedType.LPWStr)]
+    //     public string state;
+    //     [MarshalAsAttribute(UnmanagedType.LPWStr)]
+    //     public string country;
+    //     [MarshalAsAttribute(UnmanagedType.LPWStr)]
+    //     public string postalCode;
+    // };
+
+    // [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
+    // public struct QueAddressType
+    // {
+    //     [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
+    //     public string streetAddress;
+    //     [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
+    //     public string city;
+    //     [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
+    //     public string state;
+    //     [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
+    //     public string country;
+    //     [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 12)]
+    //     public string postalCode;
+    // };
+    #endregion
 
     public static class NativeMethods
     {
@@ -62,148 +125,92 @@ namespace PresetConverterProject.NIKontaktNKS
         }
     }
 
-    // https://stackoverflow.com/questions/13834153/how-to-call-unmanaged-dll-to-populate-struct-in-c-sharp-using-a-pointer
-    // https://stackoverflow.com/questions/32229536/porting-c-structure-into-c-sharp-from-an-unmanaged-dll
-    // https://stackoverflow.com/questions/17020464/c-sharp-calling-c-dll-function-which-returns-a-struct
-    // https://www.daniweb.com/programming/software-development/threads/406891/marshalling-c-structures-from-a-dynamically-loaded-dll
+    #region Structs
 
+    // https://docs.microsoft.com/en-us/dotnet/framework/interop/default-marshaling-for-strings
+    // Ansi: [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    // char *  f1;                      => [MarshalAs(UnmanagedType.LPStr)] public string f1;
+    // char    f2[256];                 => [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)] public string f2;
 
-    // Delegate with function signature for the GetVersion function
-    // uint32_t GetVersion(char * buffer, uint32_t length)
-    // [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    // [return: MarshalAs(UnmanagedType.U4)]
-    // delegate UInt32 GetVersionDelegate(
-    //     [OutAttribute][InAttribute] StringBuilder versionString,
-    //     [OutAttribute] UInt32 length);
+    // Unicode: [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    // WCHAR * f1;                      => [MarshalAs(UnmanagedType.LPWStr)] public string f1;
+    // WCHAR   f2[256];                 => [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)] public string f2;
+    // BSTR    f3;                      => [MarshalAs(UnmanagedType.BStr)] public string f3;
 
-    // https://stackoverflow.com/questions/2224164/help-me-convert-c-structure-into-c-sharp
-    // #define QUE_ADDR_BUF_LENGTH 50
-    // #define QUE_POST_BUF_LENGTH 11
-
-    // typedef struct
-    // {
-    // const WCHAR *streetAddress;
-    // const WCHAR *city;
-    // const WCHAR *state;
-    // const WCHAR *country;
-    // const WCHAR *postalCode;
-    // } QueSelectAddressType;
-    // 
-    // typedef struct
-    // {
-    // WCHAR   streetAddress[QUE_ADDR_BUF_LENGTH + 1];
-    // WCHAR   city[QUE_ADDR_BUF_LENGTH + 1];
-    // WCHAR   state[QUE_ADDR_BUF_LENGTH + 1];
-    // WCHAR   country[QUE_ADDR_BUF_LENGTH + 1];
-    // WCHAR   postalCode[QUE_POST_BUF_LENGTH + 1];
-    // } QueAddressType;
-
-
-    // [StructLayout(LayoutKind.Sequential)]
-    // public struct QueSelectAddressType
-    // {
-    //      [MarshalAsAttribute(UnmanagedType.LPWStr)]
-    //      public string streetAddress;
-    //      [MarshalAsAttribute(UnmanagedType.LPWStr)]
-    //      public string city;
-    //      [MarshalAsAttribute(UnmanagedType.LPWStr)]
-    //      public string state;
-    //      [MarshalAsAttribute(UnmanagedType.LPWStr)]
-    //      public string country;
-    //      [MarshalAsAttribute(UnmanagedType.LPWStr)]
-    //      public string postalCode;
-    // };
-
-    // [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]
-    // public struct QueAddressType
-    // {
-    //      [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
-    //      public string streetAddress;
-    //      [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
-    //      public string city;
-    //      [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
-    //      public string state;
-    //      [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 51)]
-    //      public string country;
-    //      [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 12)]
-    //      public string postalCode;
-    // };
+    // Auto: [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    // TCHAR * f1;                      => [MarshalAs(UnmanagedType.LPTStr)] public string f1;
+    // TCHAR   f2[256];                 => [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)] public string f2;
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)] // charset is Ansi not Unicode
     public struct tHeaderData
     {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-        public string ArcName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-        public string FileName;
-        [MarshalAs(UnmanagedType.U4)]
-        public int Flags;
-        [MarshalAs(UnmanagedType.U4)]
-        public int PackSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int UnpSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int HostOS;
-        [MarshalAs(UnmanagedType.U4)]
-        public int FileCRC;
-        [MarshalAs(UnmanagedType.U4)]
-        public int FileTime;
-        [MarshalAs(UnmanagedType.U4)]
-        public int UnpVer;
-        [MarshalAs(UnmanagedType.U4)]
-        public int Method;
-        [MarshalAs(UnmanagedType.U4)]
-        public int FileAttr;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-        public string CmtBuf;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtBufSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtState;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string ArcName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string FileName;
+        [MarshalAs(UnmanagedType.U4)] public int Flags;
+        [MarshalAs(UnmanagedType.U4)] public int PackSize;
+        [MarshalAs(UnmanagedType.U4)] public int UnpSize;
+        [MarshalAs(UnmanagedType.U4)] public int HostOS;
+        [MarshalAs(UnmanagedType.U4)] public int FileCRC;
+        [MarshalAs(UnmanagedType.U4)] public int FileTime;
+        [MarshalAs(UnmanagedType.U4)] public int UnpVer;
+        [MarshalAs(UnmanagedType.U4)] public int Method;
+        [MarshalAs(UnmanagedType.U4)] public int FileAttr;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string CmtBuf;
+        [MarshalAs(UnmanagedType.U4)] public int CmtBufSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtState;
+    }
+
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct tHeaderDataEx
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)] public string ArcName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)] public string FileName;
+        [MarshalAs(UnmanagedType.U4)] public int Flags;
+        [MarshalAs(UnmanagedType.U4)] public uint PackSize;
+        [MarshalAs(UnmanagedType.U4)] public uint PackSizeHigh;
+        [MarshalAs(UnmanagedType.U4)] public uint UnpSize;
+        [MarshalAs(UnmanagedType.U4)] public uint UnpSizeHigh;
+        [MarshalAs(UnmanagedType.U4)] public int HostOS;
+        [MarshalAs(UnmanagedType.U4)] public int FileCRC;
+        [MarshalAs(UnmanagedType.U4)] public int FileTime;
+        [MarshalAs(UnmanagedType.U4)] public int UnpVer;
+        [MarshalAs(UnmanagedType.U4)] public int Method;
+        [MarshalAs(UnmanagedType.U4)] public int FileAttr;
+        [MarshalAs(UnmanagedType.LPStr)] public string CmtBuf;
+        [MarshalAs(UnmanagedType.U4)] public int CmtBufSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtState;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)] public string Reserved;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct tOpenArchiveData
     {
-        [MarshalAsAttribute(UnmanagedType.LPStr)]
-        public string ArcName;
-        [MarshalAs(UnmanagedType.U4)]
-        public int OpenMode;
-        [MarshalAs(UnmanagedType.U4)]
-        public int OpenResult;
-        [MarshalAsAttribute(UnmanagedType.LPStr)]
-        public string CmtBuf;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtBufSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtState;
+        [MarshalAs(UnmanagedType.LPStr)] public string ArcName;
+        [MarshalAs(UnmanagedType.U4)] public int OpenMode;
+        [MarshalAs(UnmanagedType.U4)] public int OpenResult;
+        [MarshalAs(UnmanagedType.LPStr)] public string CmtBuf;
+        [MarshalAs(UnmanagedType.U4)] public int CmtBufSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtState;
     };
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct tOpenArchiveDataW
     {
-        [MarshalAsAttribute(UnmanagedType.LPWStr)]
-        public string ArcName;
-        [MarshalAs(UnmanagedType.U4)]
-        public int OpenMode;
-        [MarshalAs(UnmanagedType.U4)]
-        public int OpenResult;
-        [MarshalAsAttribute(UnmanagedType.LPWStr)]
-        public string CmtBuf;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtBufSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtSize;
-        [MarshalAs(UnmanagedType.U4)]
-        public int CmtState;
+        [MarshalAs(UnmanagedType.LPWStr)] public string ArcName;
+        [MarshalAs(UnmanagedType.U4)] public int OpenMode;
+        [MarshalAs(UnmanagedType.U4)] public int OpenResult;
+        [MarshalAs(UnmanagedType.LPWStr)] public string CmtBuf;
+        [MarshalAs(UnmanagedType.U4)] public int CmtBufSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtSize;
+        [MarshalAs(UnmanagedType.U4)] public int CmtState;
     };
+    #endregion
 
-    // https://www.silabs.com/content/usergenerated/asi/cloud/attachments/siliconlabs/en/community/groups/interface/knowledge-base/jcr:content/content/primary/blog/executing_c_dll_func-u4Wl/Creating%20a%20C%23%20Module%20From%20a%20DLL%20Header%20File.pdf
-
+    #region Delegates
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     delegate IntPtr OpenArchiveDelegate([In, Out] ref tOpenArchiveData ArchiveData);
 
@@ -216,104 +223,154 @@ namespace PresetConverterProject.NIKontaktNKS
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    delegate int ReadHeaderDelegate([In] IntPtr hArcData, [In, Out] ref tHeaderData HeaderData);
+    delegate int ReadHeaderDelegate(IntPtr hArcData, [In, Out] ref tHeaderData HeaderData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U4)]
+    delegate int ReadHeaderDelegateEx(IntPtr hArcData, [In, Out] ref tHeaderDataEx HeaderData);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U4)]
+    delegate int ReadHeaderDelegateExW(IntPtr hArcData, [In, Out] ref tHeaderDataEx HeaderData);
 
     // Add a [MarshalAs(UnmanagedType.LPWStr)] attribute to the parameter in your delegate declaration in order for String to get converted into wchar_t* :
-    //      delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] string foo)
-    // To pass a modifiable string, give a StringBuilder. You need to explicitly reserve space for the unmanaged function to work with :
-    //      delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] StringBuilder foo)
+    //     delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] string foo)
+    // To pass a modifiable string, give a StringBuilder. You need to explicitly reserve space for the unmanaged function to work with:
+    //     delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] StringBuilder foo)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    delegate int ProcessFileDelegate([In] IntPtr hArcData, [In] UInt32 Operation, [In, Out, MarshalAs(UnmanagedType.LPStr)] ref StringBuilder DestPath, [In, Out, MarshalAs(UnmanagedType.LPStr)] ref StringBuilder DestName);
+    delegate int ProcessFileDelegate(IntPtr hArcData, UInt32 Operation, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestName);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    delegate int ProcessFileDelegateW([In] IntPtr hArcData, [In] UInt32 Operation, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestName);
+    delegate int ProcessFileDelegateW(IntPtr hArcData, UInt32 Operation, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestName);
+
+
+    // delegates with call back methods
+    // typedef void (__stdcall *SetChangeVolProcW)(_In_ HANDLE hArcData, _In_ tChangeVolProcW pChangeVolProc);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    delegate void SetChangeVolProcW(IntPtr hArcData, IntPtr pChangeVolProc);
+
+    // typedef void (__stdcall *SetProcessDataProcW)(_In_ HANDLE hArcData, _In_ tProcessDataProcW pProcessDataProc);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    delegate void SetProcessDataProcW(IntPtr hArcData, IntPtr pProcessDataProc);
+
+    #endregion
 
     public static class WCXUtils
     {
+        #region Enums        
         // https://github.com/thpatch/thtk/blob/master/contrib/wcxhead.h
 
         // Error codes returned to calling application
-        public const int E_SUCCESS = 0; // Success
-        public const int E_END_ARCHIVE = 10; // No more files in archive
-        public const int E_NO_MEMORY = 11; // Not enough memory
-        public const int E_BAD_DATA = 12; // Data is bad
-        public const int E_BAD_ARCHIVE = 13; // CRC error in archive data
-        public const int E_UNKNOWN_FORMAT = 14; // Archive format unknown
-        public const int E_EOPEN = 15; // Cannot open existing file
-        public const int E_ECREATE = 16; // Cannot create file
-        public const int E_ECLOSE = 17; // Error closing file
-        public const int E_EREAD = 18; // Error reading from file
-        public const int E_EWRITE = 19; // Error writing to file
-        public const int E_SMALL_BUF = 20; // Buffer too small
-        public const int E_EABORTED = 21; // Function aborted by user
-        public const int E_NO_FILES = 22; // No files found
-        public const int E_TOO_MANY_FILES = 23; // Too many files to pack
-        public const int E_NOT_SUPPORTED = 24; // Function not supported
-        public const int E_HANDLED = -32769;   // Handled error
-        public const int E_UNKNOWN = 32768;   // Unknown error
+        public enum ErrorCodes
+        {
+            Success = 0, // Success
+            NoMoreFilesInArchive = 10, // No more files in archive
+            NotEnoughMemory = 11, // Not enough memory
+            DataIsBad = 12, // Data is bad
+            CrcErrorInArchiveData = 13, // CRC error in archive data
+            ArchiveFormatUnknown = 14, // Archive format unknown
+            CannotOpenExistingFile = 15, // Cannot open existing file
+            CannotCreateFile = 16, // Cannot create file
+            ErrorClosingFile = 17, // Error closing file
+            ErrorReadingFromFile = 18, // Error reading from file
+            ErrorWritingToFile = 19, // Error writing to file
+            BufferTooSmall = 20, // Buffer too small
+            FunctionAbortedByUser = 21, // Function aborted by user
+            NoFilesFound = 22, // No files found
+            TooManyFilesToPack = 23, // Too many files to pack
+            FunctionNotSupported = 24, // Function not supported
+            HandledError = -32769,   // Handled error
+            UnknownError = 32768,   // Unknown error
+        }
 
         // Unpacking flags
-        public const int PK_OM_LIST = 0;
-        public const int PK_OM_EXTRACT = 1;
+        public enum UnpackingFlags
+        {
+            PK_OM_LIST = 0,
+            PK_OM_EXTRACT = 1
+        }
 
         // Flags for ProcessFile
-        public const int PK_SKIP = 0; // Skip file (no unpacking)
-        public const int PK_TEST = 1; // Test file integrity
-        public const int PK_EXTRACT = 2; // Extract file to disk
+        public enum ProcessFileFlags
+        {
+            PK_SKIP = 0, // Skip file (no unpacking)
+            PK_TEST = 1, // Test file integrity
+            PK_EXTRACT = 2 // Extract file to disk
+        }
 
         // Flags passed through ChangeVolProc
-        public const int PK_VOL_ASK = 0; // Ask user for location of next volume
-        public const int PK_VOL_NOTIFY = 1; // Notify app that next volume will be unpacked
+        public enum ChangeVolProcFlags
+        {
+            PK_VOL_ASK = 0, // Ask user for location of next volume
+            PK_VOL_NOTIFY = 1 // Notify app that next volume will be unpacked
+        }
 
         // Packing flags
 
         // For PackFiles
-        public const int PK_PACK_MOVE_FILES = 1; // Delete original after packing
-        public const int PK_PACK_SAVE_PATHS = 2; // Save path names of files
-        public const int PK_PACK_ENCRYPT = 4; // Ask user for password, then encrypt
+        public enum PackFilesFlags
+        {
+            PK_PACK_MOVE_FILES = 1, // Delete original after packing
+            PK_PACK_SAVE_PATHS = 2, // Save path names of files
+            PK_PACK_ENCRYPT = 4 // Ask user for password, then encrypt
+        }
 
         // Returned by GetPackCaps
-        public const int PK_CAPS_NEW = 1; // Can create new archives
-        public const int PK_CAPS_MODIFY = 2; // Can modify exisiting archives
-        public const int PK_CAPS_MULTIPLE = 4; // Archive can contain multiple files
-        public const int PK_CAPS_DELETE = 8; // Can delete files
-        public const int PK_CAPS_OPTIONS = 16; // Supports the options dialogbox
-        public const int PK_CAPS_MEMPACK = 32; // Supports packing in memory
-        public const int PK_CAPS_BY_CONTENT = 64; // Detect archive type by content
-        public const int PK_CAPS_SEARCHTEXT = 128; // Allow searching for text in archives
+        public enum PackCapsFlags
+        {
+            PK_CAPS_NEW = 1, // Can create new archives
+            PK_CAPS_MODIFY = 2, // Can modify exisiting archives
+            PK_CAPS_MULTIPLE = 4, // Archive can contain multiple files
+            PK_CAPS_DELETE = 8, // Can delete files
+            PK_CAPS_OPTIONS = 16, // Supports the options dialogbox
+            PK_CAPS_MEMPACK = 32, // Supports packing in memory
+            PK_CAPS_BY_CONTENT = 64, // Detect archive type by content
+            PK_CAPS_SEARCHTEXT = 128, // Allow searching for text in archives, created with this plugin
+            PK_CAPS_HIDE = 256, // Show as normal files (hide packer icon) open with Ctrl+PgDn, not Enter 
+            PK_CAPS_ENCRYPT = 512 // Plugin supports PK_PACK_ENCRYPT option 
+        }
 
-        // created with this plugin
-        public const int PK_CAPS_HIDE = 256; //  Show as normal files (hide packer icon) open with Ctrl+PgDn, not Enter 
-        public const int PK_CAPS_ENCRYPT = 512; //  Plugin supports PK_PACK_ENCRYPT option 
-        public const int BACKGROUND_UNPACK = 1; //  Which operations are thread-safe? 
+        public const int BACKGROUND_UNPACK = 1; // Which operations are thread-safe? 
         public const int BACKGROUND_PACK = 2;
-        public const int BACKGROUND_MEMPACK = 4; //  For tar.pluginext in background 
+        public const int BACKGROUND_MEMPACK = 4; // For tar.pluginext in background 
 
         // Flags for packing in memory
         public const int MEM_OPTIONS_WANTHEADERS = 1; // Return archive headers with packed data
 
         // Errors returned by PackToMem
-        public const int MEMPACK_OK = 0; // Function call finished OK, but there is more data
-        public const int MEMPACK_DONE = 1; // Function call finished OK, there is no more data
+        public enum PackToMemErrors
+        {
+            MEMPACK_OK = 0, // Function call finished OK, but there is more data
+            MEMPACK_DONE = 1 // Function call finished OK, there is no more data
+        }
 
         // Flags for PkCryptProc callback
-        public const int PK_CRYPT_SAVE_PASSWORD = 1;
-        public const int PK_CRYPT_LOAD_PASSWORD = 2;
-        public const int PK_CRYPT_LOAD_PASSWORD_NO_UI = 3; //  Load password only if master password has already been entered!
-        public const int PK_CRYPT_COPY_PASSWORD = 4; //  Copy encrypted password to new archive name
-        public const int PK_CRYPT_MOVE_PASSWORD = 5; //  Move password when renaming an archive
-        public const int PK_CRYPT_DELETE_PASSWORD = 6; //  Delete password
-        public const int PK_CRYPTOPT_MASTERPASS_SET = 1;   // The user already has a master password defined
+        public enum PkCryptProcFlags
+        {
+            PK_CRYPT_SAVE_PASSWORD = 1,
+            PK_CRYPT_LOAD_PASSWORD = 2,
+            PK_CRYPT_LOAD_PASSWORD_NO_UI = 3, // Load password only if master password has already been entered!
+            PK_CRYPT_COPY_PASSWORD = 4, // Copy encrypted password to new archive name
+            PK_CRYPT_MOVE_PASSWORD = 5, // Move password when renaming an archive
+            PK_CRYPT_DELETE_PASSWORD = 6, // Delete password
+            PK_CRYPTOPT_MASTERPASS_SET = 1   // The user already has a master password defined
+        }
 
-        public const int TODO_FLIST = 0;
-        public const int TODO_LIST = 1;
-        public const int TODO_TEST = 2;
-        public const int TODO_EXTRACT = 3;
+        public enum TodoOperations
+        {
+            TODO_FLIST = 0, // list plgin functions
+            TODO_LIST = 1, // list archive contents
+            TODO_TEST = 2, // test archive contents
+            TODO_EXTRACT = 3, // extract archive contents
+        }
+        #endregion
 
         public static bool CallPlugin()
         {
+            const bool DEBUG = false;
+
             // string wcxPath = @"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\inNKX.x64.dll";
             // string wcxPath = @"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\inNKX.wcx64";
             string wcxPath = @"C:\Users\perner\Downloads\wcx_7zip\7zip.wcx64";
@@ -324,7 +381,7 @@ namespace PresetConverterProject.NIKontaktNKS
             string archiveName = @"C:\Users\perner\Downloads\ClipExample.7z";
 
             // what to do?
-            var openTodo = TODO_EXTRACT;
+            var openTodo = TodoOperations.TODO_LIST;
 
             // load library
             IntPtr fModuleHandle = NativeMethods.LoadLibrary(wcxPath);
@@ -337,7 +394,14 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else
             {
-                Console.Out.WriteLine("WCX module loaded {0} at {1}", wcxFileName, fModuleHandle);
+                if (DEBUG)
+                {
+                    Console.Out.WriteLine("WCX module loaded '{0}' at {1}.", wcxFileName, fModuleHandle);
+                }
+                else
+                {
+                    Console.Out.WriteLine("WCX module loaded '{0}'.", wcxFileName);
+                }
             }
 
             // mandatory functions
@@ -380,7 +444,7 @@ namespace PresetConverterProject.NIKontaktNKS
             IntPtr pExtensionInitialize = NativeMethods.GetProcAddress(fModuleHandle, "ExtensionInitialize");
             IntPtr pExtensionFinalize = NativeMethods.GetProcAddress(fModuleHandle, "ExtensionFinalize");
 
-            if (openTodo == TODO_FLIST)
+            if (openTodo == TodoOperations.TODO_FLIST)
             {
                 Console.Out.WriteLine("Exported WCX functions in {0}:", wcxFileName);
                 Console.Out.WriteLine("Checking mandatory functions ..");
@@ -391,6 +455,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (pReadHeaderEx != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ReadHeaderEx", pReadHeaderEx); }
                 if (pProcessFile != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ProcessFile", pProcessFile); }
                 if (pCloseArchive != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "CloseArchive", pCloseArchive); }
+
+                // Unicode
                 if (pOpenArchiveW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "OpenArchiveW", pOpenArchiveW); }
                 if (pReadHeaderExW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ReadHeaderExW", pReadHeaderExW); }
                 if (pProcessFileW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ProcessFileW", pProcessFileW); }
@@ -440,15 +506,15 @@ namespace PresetConverterProject.NIKontaktNKS
                     int f = 0;
 
                     Console.Out.Write("PackerCaps: {0} = ", pc);
-                    if ((pc & PK_CAPS_NEW) != 0) { Console.Out.Write("{0} PK_CAPS_NEW", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_MODIFY) != 0) { Console.Out.Write("{0} PK_CAPS_MODIFY", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_MULTIPLE) != 0) { Console.Out.Write("{0} PK_CAPS_MULTIPLE", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_DELETE) != 0) { Console.Out.Write("{0} PK_CAPS_DELETE", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_OPTIONS) != 0) { Console.Out.Write("{0} PK_CAPS_OPTIONS", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_MEMPACK) != 0) { Console.Out.Write("{0} PK_CAPS_MEMPACK", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_BY_CONTENT) != 0) { Console.Out.Write("{0} PK_CAPS_BY_CONTENT", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_SEARCHTEXT) != 0) { Console.Out.Write("{0} PK_CAPS_SEARCHTEXT", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & PK_CAPS_HIDE) != 0) { Console.Out.Write("{0} PK_CAPS_HIDE", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_NEW) != 0) { Console.Out.Write("{0} PK_CAPS_NEW", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_MODIFY) != 0) { Console.Out.Write("{0} PK_CAPS_MODIFY", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_MULTIPLE) != 0) { Console.Out.Write("{0} PK_CAPS_MULTIPLE", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_DELETE) != 0) { Console.Out.Write("{0} PK_CAPS_DELETE", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_OPTIONS) != 0) { Console.Out.Write("{0} PK_CAPS_OPTIONS", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_MEMPACK) != 0) { Console.Out.Write("{0} PK_CAPS_MEMPACK", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_BY_CONTENT) != 0) { Console.Out.Write("{0} PK_CAPS_BY_CONTENT", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_SEARCHTEXT) != 0) { Console.Out.Write("{0} PK_CAPS_SEARCHTEXT", f == 1 ? " |" : ""); f = 1; }
+                    if ((pc & (int)PackCapsFlags.PK_CAPS_HIDE) != 0) { Console.Out.Write("{0} PK_CAPS_HIDE", f == 1 ? " |" : ""); f = 1; }
                     Console.Out.WriteLine();
                 }
 
@@ -475,33 +541,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
-            // OpenArchiveDelegate OpenArchive = null;
-            // if (pOpenArchive != IntPtr.Zero)
-            // {
-            //     OpenArchive = (OpenArchiveDelegate)Marshal.GetDelegateForFunctionPointer(
-            //             pOpenArchive,
-            //             typeof(OpenArchiveDelegate));
-            // }
-
-            // if (OpenArchive != null)
-            // {
-            //     tOpenArchiveData arcd = new tOpenArchiveData();
-            //     arcd.ArcName = archiveName;
-            //     arcd.OpenMode = PK_OM_LIST;
-
-            //     IntPtr arch = OpenArchive(ref arcd);
-            //     if (arch == IntPtr.Zero)
-            //     {
-            //         int error = Marshal.GetLastWin32Error();
-            //         string message = string.Format("OpenArchive failed with error {0}", error);
-            //         Console.Error.WriteLine(message);
-            //     }
-            //     else
-            //     {
-            //         Console.Out.WriteLine("OpenArchive: Successfully opened archive at {0}", arch);
-            //     }
-            // }
-
             OpenArchiveDelegateW OpenArchiveW = null;
             if (pOpenArchiveW != IntPtr.Zero)
             {
@@ -514,7 +553,22 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 var arcdW = new tOpenArchiveDataW();
                 arcdW.ArcName = archiveName;
-                arcdW.OpenMode = PK_OM_LIST;
+
+                switch (openTodo)
+                {
+                    case TodoOperations.TODO_LIST:
+                        arcdW.OpenMode = (int)UnpackingFlags.PK_OM_LIST;
+                        break;
+
+                    case TodoOperations.TODO_TEST:
+                    case TodoOperations.TODO_EXTRACT:
+                        arcdW.OpenMode = (int)UnpackingFlags.PK_OM_EXTRACT;
+                        break;
+
+                    default:
+                        Console.Error.WriteLine("Unknown TODO: {0}", openTodo);
+                        return false;
+                }
 
                 IntPtr archW = OpenArchiveW(ref arcdW);
                 if (archW == IntPtr.Zero)
@@ -525,9 +579,54 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
                 else
                 {
-                    Console.Out.WriteLine("OpenArchiveW: Successfully opened archive at {0}", archW);
+                    if (DEBUG) Console.Out.WriteLine("OpenArchiveW: Successfully opened archive at {0}", archW);
+
+                    // add callback methods
+                    // if (pSetChangeVolProcW != IntPtr.Zero) SetChangeVolProcW(archW, ChangeVol);
+                    // if (pSetProcessDataProcW != IntPtr.Zero) SetProcessDataProcW(archW, ProcessData);
+
+                    switch (openTodo)
+                    {
+                        case TodoOperations.TODO_LIST:
+                            Console.Out.WriteLine("List of files in {0}", archiveName);
+                            Console.Out.WriteLine(" Length    YYYY/MM/DD HH:MM:SS   Attr   Name");
+                            Console.Out.WriteLine("---------  ---------- --------  ------  ------------");
+                            break;
+
+                        case TodoOperations.TODO_TEST:
+                            Console.Out.WriteLine("Testing files in {0}", archiveName);
+                            Console.Out.WriteLine("--------");
+                            break;
+
+                        case TodoOperations.TODO_EXTRACT:
+                            Console.Out.WriteLine("Extracting files from {0} to {1}", archiveName, outputDirectoryPath);
+                            Console.Out.WriteLine("--------");
+                            break;
+
+                        default:
+                            Console.Error.WriteLine("Unknown TODO: {0}", openTodo);
+                            return false;
+                    }
 
                     // main loop
+
+                    // ReadHeaderEx is always called instead of ReadHeader if it is present.
+                    ReadHeaderDelegateExW ReadHeaderExW = null;
+                    if (pReadHeaderExW != IntPtr.Zero)
+                    {
+                        ReadHeaderExW = (ReadHeaderDelegateExW)Marshal.GetDelegateForFunctionPointer(
+                                pReadHeaderExW,
+                                typeof(ReadHeaderDelegateExW));
+                    }
+
+                    ReadHeaderDelegateEx ReadHeaderEx = null;
+                    if (pReadHeaderEx != IntPtr.Zero)
+                    {
+                        ReadHeaderEx = (ReadHeaderDelegateEx)Marshal.GetDelegateForFunctionPointer(
+                                pReadHeaderEx,
+                                typeof(ReadHeaderDelegateEx));
+                    }
+
                     ReadHeaderDelegate ReadHeader = null;
                     if (pReadHeader != IntPtr.Zero)
                     {
@@ -544,12 +643,15 @@ namespace PresetConverterProject.NIKontaktNKS
                                 typeof(ProcessFileDelegateW));
                     }
 
-                    if (ReadHeader != null && ProcessFileW != null)
+                    // if (ReadHeader != null && ProcessFileW != null) // sometimes works also in x64
+                    if (ReadHeaderExW != null && ProcessFileW != null)
                     {
-                        var hdrd = new tHeaderData();
+                        // var hdrd = new tHeaderData();
+                        var hdrd = new tHeaderDataEx();
 
                         int rc = -1;
-                        while ((rc = ReadHeader(archW, ref hdrd)) == 0)
+                        // while ((rc = ReadHeader(archW, ref hdrd)) == 0)
+                        while ((rc = ReadHeaderExW(archW, ref hdrd)) == 0)
                         {
                             StringBuilder destPath = new StringBuilder(260);
                             StringBuilder destName = new StringBuilder(260);
@@ -557,8 +659,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
                             switch (openTodo)
                             {
-                                case TODO_LIST:
-                                    Console.Out.WriteLine("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2} {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
+                                case TodoOperations.TODO_LIST:
+                                    Console.Out.WriteLine("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
                                         ((hdrd.FileTime >> 25 & 0x7f) + 1980), hdrd.FileTime >> 21 & 0x0f, hdrd.FileTime >> 16 & 0x1f,
                                         hdrd.FileTime >> 11 & 0x1f, hdrd.FileTime >> 5 & 0x3f, (hdrd.FileTime & 0x1F) * 2,
                                         (hdrd.FileAttr & 0x01) != 0 ? 'r' : '-',
@@ -568,22 +670,24 @@ namespace PresetConverterProject.NIKontaktNKS
                                         (hdrd.FileAttr & 0x10) != 0 ? 'd' : '-',
                                         (hdrd.FileAttr & 0x20) != 0 ? 'a' : '-');
 
-                                    pfrc = ProcessFileW(archW, PK_SKIP, null, null);
+                                    pfrc = ProcessFileW(archW, (UInt32)ProcessFileFlags.PK_SKIP, null, null);
                                     if (pfrc != 0)
                                     {
-                                        Console.Error.WriteLine(" - ERROR: {0}\n", pfrc);
+                                        var errorString = (ErrorCodes)pfrc;
+                                        Console.Error.WriteLine(" - ERROR: {0}: {1}\n", pfrc, errorString);
                                         return false;
                                     }
 
                                     break;
-                                case TODO_TEST:
+                                case TodoOperations.TODO_TEST:
                                     if ((hdrd.FileAttr & 0x10) == 0)
                                     {
                                         Console.Out.Write("{0}", hdrd.FileName);
-                                        pfrc = ProcessFileW(archW, PK_TEST, null, null);
+                                        pfrc = ProcessFileW(archW, (UInt32)ProcessFileFlags.PK_TEST, null, null);
                                         if (pfrc != 0)
                                         {
-                                            Console.Error.WriteLine(" - ERROR: {0}\n", pfrc);
+                                            var errorString = (ErrorCodes)pfrc;
+                                            Console.Error.WriteLine(" - ERROR: {0}: {1}\n", pfrc, errorString);
                                             return false;
                                         }
                                         else
@@ -593,11 +697,11 @@ namespace PresetConverterProject.NIKontaktNKS
                                     }
                                     else
                                     {
-                                        pfrc = ProcessFileW(archW, PK_SKIP, null, null);
+                                        pfrc = ProcessFileW(archW, (UInt32)ProcessFileFlags.PK_SKIP, null, null);
                                     }
                                     break;
 
-                                case TODO_EXTRACT:
+                                case TodoOperations.TODO_EXTRACT:
                                     if ((hdrd.FileAttr & 0x10) == 0)
                                     {
                                         string outputFilePath = Path.Combine(outputDirectoryPath, hdrd.FileName);
@@ -605,10 +709,11 @@ namespace PresetConverterProject.NIKontaktNKS
                                         destName.Append(outputFilePath);
 
                                         Console.Out.Write("{0}", outputFilePath);
-                                        pfrc = ProcessFileW(archW, PK_EXTRACT, null, destName);
+                                        pfrc = ProcessFileW(archW, (UInt32)ProcessFileFlags.PK_EXTRACT, null, destName);
                                         if (pfrc != 0)
                                         {
-                                            Console.Error.WriteLine(" - ERROR: {0}\n", pfrc);
+                                            var errorString = (ErrorCodes)pfrc;
+                                            Console.Error.WriteLine(" - ERROR: {0}: {1}\n", pfrc, errorString);
                                             return false;
                                         }
                                         else
@@ -618,7 +723,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                     }
                                     else
                                     {
-                                        pfrc = ProcessFileW(archW, PK_SKIP, null, null);
+                                        pfrc = ProcessFileW(archW, (UInt32)ProcessFileFlags.PK_SKIP, null, null);
                                     }
                                     break;
 
