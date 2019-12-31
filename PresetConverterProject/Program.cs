@@ -1147,7 +1147,15 @@ namespace PresetConverter
                 {
                     if (doWCX)
                     {
-                        WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_EXTRACT);
+                        if (doList)
+                        {
+                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_LIST);
+                        }
+                        else
+                        {
+                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_EXTRACT);
+
+                        }
                     }
                     else
                     {

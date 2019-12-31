@@ -299,7 +299,7 @@
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",                
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
-                "--wcx"
+                "--wcx",
                 // "-l",
                 // "-v"
             ],

@@ -728,7 +728,7 @@ namespace PresetConverterProject.NIKontaktNKS
                             switch (openTodo)
                             {
                                 case TodoOperations.TODO_LIST:
-                                    Log.Information("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
+                                    Log.Information(string.Format("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
                                         ((hdrd.FileTime >> 25 & 0x7f) + 1980), hdrd.FileTime >> 21 & 0x0f, hdrd.FileTime >> 16 & 0x1f,
                                         hdrd.FileTime >> 11 & 0x1f, hdrd.FileTime >> 5 & 0x3f, (hdrd.FileTime & 0x1F) * 2,
                                         (hdrd.FileAttr & 0x01) != 0 ? 'r' : '-', // Read-only file
@@ -736,7 +736,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                         (hdrd.FileAttr & 0x04) != 0 ? 's' : '-', // System file
                                         (hdrd.FileAttr & 0x08) != 0 ? 'v' : '-', // Volume ID file
                                         (hdrd.FileAttr & 0x10) != 0 ? 'd' : '-', // Directory
-                                        (hdrd.FileAttr & 0x20) != 0 ? 'a' : '-'); // Archive file
+                                        (hdrd.FileAttr & 0x20) != 0 ? 'a' : '-')); // Archive file
 
                                     // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
                                     pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
