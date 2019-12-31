@@ -299,6 +299,7 @@
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",                
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
+                "--wcx"
                 // "-l",
                 // "-v"
             ],
@@ -354,7 +355,8 @@
                 "-i",
                 "C:\\Users\\perner\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Orchestral Brass Classic_info.nkx",
                 "-o",
-                "C:\\Users\\perner\\My Projects\\Temp"
+                "C:\\Users\\perner\\My Projects\\Temp",
+                "--wcx"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

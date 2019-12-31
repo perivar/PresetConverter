@@ -25,9 +25,6 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
-            // WCXUtils.CallPlugin();
-            // return;
-
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             IConfiguration config = new ConfigurationBuilder()
@@ -47,6 +44,7 @@ namespace PresetConverter
             var switchList = app.Option("-l|--list", "List the content of archives", CommandOptionType.NoValue);
             var switchVerbose = app.Option("-v|--verbose", "Output more verbose information", CommandOptionType.NoValue);
             var switchPack = app.Option("-p|--pack", "Pack the input directory into a file using the directory as filename with the --extra option as extension", CommandOptionType.NoValue);
+            var switchWCX = app.Option("--wcx", "Use the included wcx plugin for reading Kontakt files", CommandOptionType.NoValue);
 
             app.OnExecute(() =>
             {
@@ -61,6 +59,7 @@ namespace PresetConverter
                     bool doList = switchList.HasValue();
                     bool doVerbose = switchVerbose.HasValue();
                     bool doPack = switchPack.HasValue();
+                    bool doWCX = switchWCX.HasValue();
 
                     // Setup Logger to use the outputDirectory
                     string errorLogFilePath = Path.Combine(outputDirectoryPath, "log-error.log");
@@ -114,7 +113,7 @@ namespace PresetConverter
                                 case ".nkr":
                                 case ".nki":
                                 case ".nicnt":
-                                    HandleNIKontaktFile(inputFilePath, outputDirectoryPath, extension, config, doList, doVerbose, doPack);
+                                    HandleNIKontaktFile(inputFilePath, outputDirectoryPath, extension, config, doList, doVerbose, doPack, doWCX);
                                     break;
                             }
                         }
@@ -142,7 +141,7 @@ namespace PresetConverter
                                     if (isDirectory.HasValue && isDirectory.Value)
                                     {
                                         // directory
-                                        HandleNIKontaktFile(inputDirectoryOrFilePath, outputDirectoryPath, ".nicnt", config, doList, doVerbose, doPack);
+                                        HandleNIKontaktFile(inputDirectoryOrFilePath, outputDirectoryPath, ".nicnt", config, doList, doVerbose, doPack, doWCX);
                                     }
                                 }
                                 break;
@@ -1128,9 +1127,11 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleNIKontaktFile(string inputDirectoryOrFilePath, string outputDirectory, string extension, IConfiguration config, bool doList, bool doVerbose, bool doPack)
+        private static void HandleNIKontaktFile(string inputDirectoryOrFilePath, string outputDirectory, string extension, IConfiguration config, bool doList, bool doVerbose, bool doPack, bool doWCX)
         {
             NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
+            var appExecutionPath = IOUtils.GetApplicationExecutionPath();
+            var wcxPluginPath = Path.Combine(appExecutionPath, "WCXPlugins", "nkx.wcx64");
 
             if (extension == ".nki")
             {
@@ -1144,7 +1145,14 @@ namespace PresetConverter
                 }
                 else
                 {
-                    NICNT.Unpack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
+                    if (doWCX)
+                    {
+                        WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_EXTRACT);
+                    }
+                    else
+                    {
+                        NICNT.Unpack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
+                    }
                 }
             }
             else
@@ -1153,7 +1161,14 @@ namespace PresetConverter
                 {
                     if (doList)
                     {
-                        NKS.ListArchive(inputDirectoryOrFilePath);
+                        if (doWCX)
+                        {
+                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_LIST);
+                        }
+                        else
+                        {
+                            NKS.ListArchive(inputDirectoryOrFilePath);
+                        }
                     }
                     else if (doVerbose)
                     {
@@ -1171,12 +1186,25 @@ namespace PresetConverter
                         // Log.Debug(libraryInfo);
                         // memStream.Close();
 
-                        NKS.ScanArchive(inputDirectoryOrFilePath);
+                        if (doWCX)
+                        {
+                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_FLIST);
+                        }
+                        else
+                        {
+                            NKS.ScanArchive(inputDirectoryOrFilePath);
+                        }
                     }
                     else
                     {
-                        NKS.ExtractArchive(inputDirectoryOrFilePath, outputDirectory);
-
+                        if (doWCX)
+                        {
+                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_EXTRACT);
+                        }
+                        else
+                        {
+                            NKS.ExtractArchive(inputDirectoryOrFilePath, outputDirectory);
+                        }
                     }
                 }
                 catch (System.Exception e)

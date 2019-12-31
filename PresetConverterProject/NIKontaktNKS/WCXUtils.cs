@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using CommonUtils;
+using Serilog;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -107,21 +108,23 @@ namespace PresetConverterProject.NIKontaktNKS
         [DllImport("kernel32", SetLastError = true)]
         public static extern bool FreeLibrary(IntPtr module);
 
-        public static string GetLibraryPathname(string filename)
+        public static string GetLibraryPathName(string filePath)
         {
             // If 64-bit process, load 64-bit DLL
             bool is64bit = System.Environment.Is64BitProcess;
 
-            string prefix = "Win32";
+            // default is 32 bit
+            // like 7zip.wcx
+            string suffix = "";
 
             if (is64bit)
             {
-                prefix = "x64";
+                // the 64 bit version is 7zip.wcx64
+                suffix = "64";
             }
 
-            var lib1 = prefix + @"\" + filename;
-
-            return lib1;
+            var libPath = filePath + suffix;
+            return libPath;
         }
     }
 
@@ -293,7 +296,7 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         // Unpacking flags
-        public enum UnpackingFlags
+        public enum OpenArchiveFlags
         {
             PK_OM_LIST = 0,
             PK_OM_EXTRACT = 1
@@ -396,12 +399,12 @@ namespace PresetConverterProject.NIKontaktNKS
                     break;
 
                 case (int)ChangeVolProcFlags.PK_VOL_NOTIFY:
-                    Console.Out.WriteLine("Processing next volume/diskette");
+                    Log.Information("Processing next volume/diskette");
                     rc = 1;
                     break;
 
                 default:
-                    Console.Error.WriteLine("Unknown ChangeVolProc mode: " + Mode);
+                    Log.Error("Unknown ChangeVolProc mode: " + Mode);
                     rc = 0;
                     break;
             }
@@ -415,23 +418,9 @@ namespace PresetConverterProject.NIKontaktNKS
             return 1;
         }
 
-        public static bool CallPlugin()
+        public static bool Call64BitWCXPlugin(string wcxPath, string archiveName, string outputDirectoryPath, TodoOperations openTodo)
         {
             const bool DEBUG = false;
-
-            string wcxPath = @"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\inNKX.wcx64";
-            // string wcxPath = @"C:\Users\perner\Downloads\wcx_7zip\7zip.wcx64";
-
-            string outputDirectoryPath = @"C:\Users\perner\My Projects\Temp";
-
-            string archiveName = @"C:\Users\perner\Amazon Drive\Documents\My Projects\Native Instruments GmbH\Instruments\LA Scoring Strings_info.nkx";
-            // string archiveName = @"C:\Users\perner\Downloads\ClipExample.7z";
-            // string archiveName = @"C:\Users\perner\Amazon Drive\Documents\My Projects\Native Instruments GmbH\Instruments\Spitfire Symphonic Woodwinds.nicnt";
-
-            // what to do?
-            var openTodo = TodoOperations.TODO_EXTRACT;
-
-            // -----------------------------------------------
 
             // store filename
             string wcxFileName = Path.GetFileName(wcxPath);
@@ -442,18 +431,18 @@ namespace PresetConverterProject.NIKontaktNKS
             // error handling
             if (fModuleHandle == IntPtr.Zero)
             {
-                Console.Error.WriteLine("Failed opening {0}", wcxPath);
+                Log.Error("Failed opening {0}", wcxPath);
                 return false;
             }
             else
             {
                 if (DEBUG)
                 {
-                    Console.Out.WriteLine("WCX module loaded '{0}' at {1}.", wcxFileName, fModuleHandle);
+                    Log.Debug("WCX module loaded '{0}' at {1}.", wcxFileName, fModuleHandle);
                 }
                 else
                 {
-                    Console.Out.WriteLine("WCX module loaded '{0}'.", wcxFileName);
+                    Log.Information("WCX module loaded '{0}'.", wcxFileName);
                 }
             }
 
@@ -499,52 +488,52 @@ namespace PresetConverterProject.NIKontaktNKS
 
             if (openTodo == TodoOperations.TODO_FLIST)
             {
-                Console.Out.WriteLine("Exported WCX functions in {0}:", wcxFileName);
-                Console.Out.WriteLine("Checking mandatory functions ..");
+                Log.Information("Exported WCX functions in {0}:", wcxFileName);
+                Log.Information("Checking mandatory functions ..");
 
                 // mandatory functions
-                if (pOpenArchive != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "OpenArchive", pOpenArchive); }
-                if (pReadHeader != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ReadHeader", pReadHeader); }
-                if (pReadHeaderEx != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ReadHeaderEx", pReadHeaderEx); }
-                if (pProcessFile != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ProcessFile", pProcessFile); }
-                if (pCloseArchive != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "CloseArchive", pCloseArchive); }
+                if (pOpenArchive != IntPtr.Zero) { Log.Information("{0} found at {1}", "OpenArchive", pOpenArchive); }
+                if (pReadHeader != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeader", pReadHeader); }
+                if (pReadHeaderEx != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeaderEx", pReadHeaderEx); }
+                if (pProcessFile != IntPtr.Zero) { Log.Information("{0} found at {1}", "ProcessFile", pProcessFile); }
+                if (pCloseArchive != IntPtr.Zero) { Log.Information("{0} found at {1}", "CloseArchive", pCloseArchive); }
 
                 // Unicode
-                if (pOpenArchiveW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "OpenArchiveW", pOpenArchiveW); }
-                if (pReadHeaderExW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ReadHeaderExW", pReadHeaderExW); }
-                if (pProcessFileW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ProcessFileW", pProcessFileW); }
+                if (pOpenArchiveW != IntPtr.Zero) { Log.Information("{0} found at {1}", "OpenArchiveW", pOpenArchiveW); }
+                if (pReadHeaderExW != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeaderExW", pReadHeaderExW); }
+                if (pProcessFileW != IntPtr.Zero) { Log.Information("{0} found at {1}", "ProcessFileW", pProcessFileW); }
 
                 // Optional functions
-                Console.Out.WriteLine();
-                Console.Out.WriteLine("Checking optional functions ...");
-                if (pPackFiles != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "PackFiles", pPackFiles); }
-                if (pDeleteFiles != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "DeleteFiles", pDeleteFiles); }
-                if (pGetPackerCaps != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "GetPackerCaps", pGetPackerCaps); }
-                if (pConfigurePacker != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ConfigurePacker", pConfigurePacker); }
-                if (pSetChangeVolProc != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "SetChangeVolProc", pSetChangeVolProc); }
-                if (pSetProcessDataProc != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "SetProcessDataProc", pSetProcessDataProc); }
-                if (pStartMemPack != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "StartMemPack", pStartMemPack); }
-                if (pPackToMem != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "PackToMem", pPackToMem); }
-                if (pDoneMemPack != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "DoneMemPack", pDoneMemPack); }
-                if (pCanYouHandleThisFile != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "CanYouHandleThisFile", pCanYouHandleThisFile); }
-                if (pPackSetDefaultParams != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "PackSetDefaultParams", pPackSetDefaultParams); }
-                if (pPkSetCryptCallback != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "PkSetCryptCallback", pPkSetCryptCallback); }
-                if (pGetBackgroundFlags != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "GetBackgroundFlags", pGetBackgroundFlags); }
+                Log.Information("\n");
+                Log.Information("Checking optional functions ...");
+                if (pPackFiles != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackFiles", pPackFiles); }
+                if (pDeleteFiles != IntPtr.Zero) { Log.Information("{0} found at {1}", "DeleteFiles", pDeleteFiles); }
+                if (pGetPackerCaps != IntPtr.Zero) { Log.Information("{0} found at {1}", "GetPackerCaps", pGetPackerCaps); }
+                if (pConfigurePacker != IntPtr.Zero) { Log.Information("{0} found at {1}", "ConfigurePacker", pConfigurePacker); }
+                if (pSetChangeVolProc != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetChangeVolProc", pSetChangeVolProc); }
+                if (pSetProcessDataProc != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetProcessDataProc", pSetProcessDataProc); }
+                if (pStartMemPack != IntPtr.Zero) { Log.Information("{0} found at {1}", "StartMemPack", pStartMemPack); }
+                if (pPackToMem != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackToMem", pPackToMem); }
+                if (pDoneMemPack != IntPtr.Zero) { Log.Information("{0} found at {1}", "DoneMemPack", pDoneMemPack); }
+                if (pCanYouHandleThisFile != IntPtr.Zero) { Log.Information("{0} found at {1}", "CanYouHandleThisFile", pCanYouHandleThisFile); }
+                if (pPackSetDefaultParams != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackSetDefaultParams", pPackSetDefaultParams); }
+                if (pPkSetCryptCallback != IntPtr.Zero) { Log.Information("{0} found at {1}", "PkSetCryptCallback", pPkSetCryptCallback); }
+                if (pGetBackgroundFlags != IntPtr.Zero) { Log.Information("{0} found at {1}", "GetBackgroundFlags", pGetBackgroundFlags); }
 
                 // Unicode
-                if (pSetChangeVolProcW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "SetChangeVolProcW", pSetChangeVolProcW); }
-                if (pSetProcessDataProcW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "SetProcessDataProcW", pSetProcessDataProcW); }
-                if (pPackFilesW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "PackFilesW", pPackFilesW); }
-                if (pDeleteFilesW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "DeleteFilesW", pDeleteFilesW); }
-                if (pStartMemPackW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "StartMemPackW", pStartMemPackW); }
-                if (pCanYouHandleThisFileW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "CanYouHandleThisFileW", pCanYouHandleThisFileW); }
-                if (pPkSetCryptCallbackW != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "PkSetCryptCallbackW", pPkSetCryptCallbackW); }
+                if (pSetChangeVolProcW != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetChangeVolProcW", pSetChangeVolProcW); }
+                if (pSetProcessDataProcW != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetProcessDataProcW", pSetProcessDataProcW); }
+                if (pPackFilesW != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackFilesW", pPackFilesW); }
+                if (pDeleteFilesW != IntPtr.Zero) { Log.Information("{0} found at {1}", "DeleteFilesW", pDeleteFilesW); }
+                if (pStartMemPackW != IntPtr.Zero) { Log.Information("{0} found at {1}", "StartMemPackW", pStartMemPackW); }
+                if (pCanYouHandleThisFileW != IntPtr.Zero) { Log.Information("{0} found at {1}", "CanYouHandleThisFileW", pCanYouHandleThisFileW); }
+                if (pPkSetCryptCallbackW != IntPtr.Zero) { Log.Information("{0} found at {1}", "PkSetCryptCallbackW", pPkSetCryptCallbackW); }
 
                 // Extension API
-                if (pExtensionInitialize != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ExtensionInitialize", pExtensionInitialize); }
-                if (pExtensionFinalize != IntPtr.Zero) { Console.Out.WriteLine("{0} found at {1}", "ExtensionFinalize", pExtensionFinalize); }
+                if (pExtensionInitialize != IntPtr.Zero) { Log.Information("{0} found at {1}", "ExtensionInitialize", pExtensionInitialize); }
+                if (pExtensionFinalize != IntPtr.Zero) { Log.Information("{0} found at {1}", "ExtensionFinalize", pExtensionFinalize); }
 
-                Console.Out.WriteLine();
+                Log.Information("\n");
                 GetPackerCapsDelegate GetPackerCaps = null;
                 if (pGetPackerCaps != IntPtr.Zero)
                 {
@@ -568,7 +557,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     if ((pc & (int)PackCapsFlags.PK_CAPS_BY_CONTENT) != 0) { Console.Out.Write("{0} PK_CAPS_BY_CONTENT", f == 1 ? " |" : ""); f = 1; }
                     if ((pc & (int)PackCapsFlags.PK_CAPS_SEARCHTEXT) != 0) { Console.Out.Write("{0} PK_CAPS_SEARCHTEXT", f == 1 ? " |" : ""); f = 1; }
                     if ((pc & (int)PackCapsFlags.PK_CAPS_HIDE) != 0) { Console.Out.Write("{0} PK_CAPS_HIDE", f == 1 ? " |" : ""); f = 1; }
-                    Console.Out.WriteLine();
+                    Log.Information("\n");
                 }
 
                 return true;
@@ -590,7 +579,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 pReadHeaderExW = IntPtr.Zero;
                 pProcessFileW = IntPtr.Zero;
                 pCloseArchive = IntPtr.Zero;
-                Console.Error.WriteLine("Missing mandatory functions!");
+                Log.Error("Missing mandatory functions!");
                 return false;
             }
 
@@ -610,16 +599,16 @@ namespace PresetConverterProject.NIKontaktNKS
                 switch (openTodo)
                 {
                     case TodoOperations.TODO_LIST:
-                        arcdW.OpenMode = (int)UnpackingFlags.PK_OM_LIST;
+                        arcdW.OpenMode = (int)OpenArchiveFlags.PK_OM_LIST;
                         break;
 
                     case TodoOperations.TODO_TEST:
                     case TodoOperations.TODO_EXTRACT:
-                        arcdW.OpenMode = (int)UnpackingFlags.PK_OM_EXTRACT;
+                        arcdW.OpenMode = (int)OpenArchiveFlags.PK_OM_EXTRACT;
                         break;
 
                     default:
-                        Console.Error.WriteLine("Unknown TODO: {0}", openTodo);
+                        Log.Error("Unknown TODO: {0}", openTodo);
                         return false;
                 }
 
@@ -628,11 +617,11 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     int error = Marshal.GetLastWin32Error();
                     string message = string.Format("OpenArchiveW failed with error {0}", error);
-                    Console.Error.WriteLine(message);
+                    Log.Error(message);
                 }
                 else
                 {
-                    if (DEBUG) Console.Out.WriteLine("OpenArchiveW: Successfully opened archive at {0}", archW);
+                    if (DEBUG) Log.Information("OpenArchiveW: Successfully opened archive at {0}", archW);
                     // Span<byte> byteArray = new Span<byte>(arcdW.ToPointer(), ptrLength);
 
                     // add callback methods
@@ -663,23 +652,23 @@ namespace PresetConverterProject.NIKontaktNKS
                     switch (openTodo)
                     {
                         case TodoOperations.TODO_LIST:
-                            Console.Out.WriteLine("List of files in {0}", archiveName);
-                            Console.Out.WriteLine(" Length    YYYY/MM/DD HH:MM:SS   Attr   Name");
-                            Console.Out.WriteLine("---------  ---------- --------  ------  ------------");
+                            Log.Information("List of files in {0}", archiveName);
+                            Log.Information(" Length    YYYY/MM/DD HH:MM:SS   Attr   Name");
+                            Log.Information("---------  ---------- --------  ------  ------------");
                             break;
 
                         case TodoOperations.TODO_TEST:
-                            Console.Out.WriteLine("Testing files in {0}", archiveName);
-                            Console.Out.WriteLine("--------");
+                            Log.Information("Testing files in {0}", archiveName);
+                            Log.Information("--------");
                             break;
 
                         case TodoOperations.TODO_EXTRACT:
-                            Console.Out.WriteLine("Extracting files from {0} to {1}", archiveName, outputDirectoryPath);
-                            Console.Out.WriteLine("--------");
+                            Log.Information("Extracting files from {0} to {1}", archiveName, outputDirectoryPath);
+                            Log.Information("--------");
                             break;
 
                         default:
-                            Console.Error.WriteLine("Unknown TODO: {0}", openTodo);
+                            Log.Error("Unknown TODO: {0}", openTodo);
                             return false;
                     }
 
@@ -739,7 +728,7 @@ namespace PresetConverterProject.NIKontaktNKS
                             switch (openTodo)
                             {
                                 case TodoOperations.TODO_LIST:
-                                    Console.Out.WriteLine("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
+                                    Log.Information("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
                                         ((hdrd.FileTime >> 25 & 0x7f) + 1980), hdrd.FileTime >> 21 & 0x0f, hdrd.FileTime >> 16 & 0x1f,
                                         hdrd.FileTime >> 11 & 0x1f, hdrd.FileTime >> 5 & 0x3f, (hdrd.FileTime & 0x1F) * 2,
                                         (hdrd.FileAttr & 0x01) != 0 ? 'r' : '-', // Read-only file
@@ -754,7 +743,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                     if (pfrc != 0)
                                     {
                                         var errorString = (ErrorCodes)pfrc;
-                                        Console.Error.WriteLine(" - ERROR: {0}: {1}\n", pfrc, errorString);
+                                            Log.Error("{0} - ERROR: {1}: {2}", hdrd.FileName, pfrc, errorString);
                                         return false;
                                     }
 
@@ -762,18 +751,17 @@ namespace PresetConverterProject.NIKontaktNKS
                                 case TodoOperations.TODO_TEST:
                                     if ((hdrd.FileAttr & 0x10) == 0)
                                     {
-                                        Console.Out.Write("{0}", hdrd.FileName);
                                         // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, IntPtr.Zero, IntPtr.Zero);
                                         pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, null, null);
                                         if (pfrc != 0)
                                         {
                                             var errorString = (ErrorCodes)pfrc;
-                                            Console.Error.WriteLine(" - ERROR: {0}: {1}\n", pfrc, errorString);
+                                            Log.Error("{0} - ERROR: {1}: {2}", hdrd.FileName, pfrc, errorString);
                                             return false;
                                         }
                                         else
                                         {
-                                            Console.Out.Write(" - OK\n");
+                                            Log.Information("{0} - OK", hdrd.FileName);
                                         }
                                     }
                                     else
@@ -790,8 +778,6 @@ namespace PresetConverterProject.NIKontaktNKS
                                         IOUtils.CreateDirectoryIfNotExist(Path.GetDirectoryName(outputFilePath));
                                         destName.Append(outputFilePath);
 
-                                        Console.Out.Write("{0}", outputFilePath);
-
                                         // from string to Ptr
                                         // IntPtr destPathPtr = IntPtr.Zero;
                                         // IntPtr destNamePtr = Marshal.StringToHGlobalUni(outputFilePath);
@@ -806,12 +792,12 @@ namespace PresetConverterProject.NIKontaktNKS
                                         if (pfrc != 0)
                                         {
                                             var errorString = (ErrorCodes)pfrc;
-                                            Console.Error.WriteLine(" - ERROR: {0}: {1}\n", pfrc, errorString);
+                                            Log.Error("{0} - ERROR: {1}: {2}", outputFilePath, pfrc, errorString);
                                             return false;
                                         }
                                         else
                                         {
-                                            Console.Out.Write(" - OK\n");
+                                            Log.Information("{0} - OK", outputFilePath);
                                         }
                                     }
                                     else
@@ -822,7 +808,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                     break;
 
                                 default:
-                                    Console.Error.WriteLine("Unknown TODO: {0}", openTodo);
+                                    Log.Error("Unknown TODO: {0}", openTodo);
                                     return false;
                             }
                         }
