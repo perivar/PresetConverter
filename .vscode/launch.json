@@ -334,6 +334,8 @@
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
                 "-p",
+                "--wcx",
+                // "-l",
                 // "-v"
             ],
             "cwd": "${workspaceFolder}",

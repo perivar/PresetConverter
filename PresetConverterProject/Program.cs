@@ -1129,95 +1129,95 @@ namespace PresetConverter
 
         private static void HandleNIKontaktFile(string inputDirectoryOrFilePath, string outputDirectory, string extension, IConfiguration config, bool doList, bool doVerbose, bool doPack, bool doWCX)
         {
-            NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
-            var appExecutionPath = IOUtils.GetApplicationExecutionPath();
-            var wcxPluginPath = Path.Combine(appExecutionPath, "WCXPlugins", "nkx.wcx64");
+            // check if we are using a wcx plugin
+            if (doWCX)
+            {
+                var appExecutionPath = IOUtils.GetApplicationExecutionPath();
+                var wcxPluginPath = Path.Combine(appExecutionPath, "WCXPlugins", "nkx.wcx64");
 
-            if (extension == ".nki")
-            {
-                NKI.Parse(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
-            }
-            else if (extension == ".nicnt")
-            {
-                if (doPack)
+                if (doVerbose)
                 {
-                    NICNT.Pack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
+                    WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_FLIST);
+                }
+                else if (doList)
+                {
+                    WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_LIST);
                 }
                 else
                 {
-                    if (doWCX)
+                    if (doPack)
                     {
-                        if (doList)
+                        WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_PACK);
+                    }
+                    else
+                    {
+                        if (!IOUtils.IsDirectory(inputDirectoryOrFilePath).Value)
                         {
-                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_LIST);
+                            // if this is a file, make sure to append the file (without extension) to the output path
+                            string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryOrFilePath);
+                            outputDirectory = Path.Combine(outputDirectory, outputFileName);
                         }
-                        else
-                        {
-                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_EXTRACT);
+                        WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_UNPACK);
+                    }
+                }
+            }
+            else
+            {
+                // use internal methods 
 
-                        }
+                // read the library info (keys and ids etc.)
+                NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
+
+                if (extension == ".nki")
+                {
+                    NKI.Unpack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
+                }
+                else if (extension == ".nicnt")
+                {
+                    if (doPack)
+                    {
+                        NICNT.Pack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
                     }
                     else
                     {
                         NICNT.Unpack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
                     }
                 }
-            }
-            else
-            {
-                try
+                else
                 {
-                    if (doList)
+                    try
                     {
-                        if (doWCX)
+                        if (doVerbose)
                         {
-                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_LIST);
+                            // var memStream = new MemoryStream();
+                            // var streamWriter = new StreamWriter(memStream);
+
+                            // streamWriter.WriteLine("RegistryLibraryInfo:");
+                            // NKS.PrintRegistryLibraryInfo(streamWriter);
+
+                            // streamWriter.WriteLine("SettingsLibraryInfo:");
+                            // NKS.PrintSettingsLibraryInfo(streamWriter);
+                            // streamWriter.Flush();
+                            // string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
+
+                            // Log.Debug(libraryInfo);
+                            // memStream.Close();
+
+                            NKS.Scan(inputDirectoryOrFilePath);
+                        }
+                        else if (doList)
+                        {
+                            NKS.List(inputDirectoryOrFilePath);
                         }
                         else
                         {
-                            NKS.ListArchive(inputDirectoryOrFilePath);
+                            NKS.Unpack(inputDirectoryOrFilePath, outputDirectory);
                         }
                     }
-                    else if (doVerbose)
+                    catch (System.Exception e)
                     {
-                        // var memStream = new MemoryStream();
-                        // var streamWriter = new StreamWriter(memStream);
-
-                        // streamWriter.WriteLine("RegistryLibraryInfo:");
-                        // NKS.PrintRegistryLibraryInfo(streamWriter);
-
-                        // streamWriter.WriteLine("SettingsLibraryInfo:");
-                        // NKS.PrintSettingsLibraryInfo(streamWriter);
-                        // streamWriter.Flush();
-                        // string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
-
-                        // Log.Debug(libraryInfo);
-                        // memStream.Close();
-
-                        if (doWCX)
-                        {
-                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_FLIST);
-                        }
-                        else
-                        {
-                            NKS.ScanArchive(inputDirectoryOrFilePath);
-                        }
+                        Log.Error("Error processing {0} ({1})...", inputDirectoryOrFilePath, e);
                     }
-                    else
-                    {
-                        if (doWCX)
-                        {
-                            WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_EXTRACT);
-                        }
-                        else
-                        {
-                            NKS.ExtractArchive(inputDirectoryOrFilePath, outputDirectory);
-                        }
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Log.Error("Error processing {0} ({1})...", inputDirectoryOrFilePath, e);
                 }
             }
         }

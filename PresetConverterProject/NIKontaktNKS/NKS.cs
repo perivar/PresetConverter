@@ -373,7 +373,7 @@ namespace PresetConverterProject.NIKontaktNKS
         /// List all files in the NKS file archive.
         /// </summary>
         /// <param name="fileName">file to list</param>
-        public static bool ListArchive(string fileName)
+        public static bool List(string fileName)
         {
             Nks nks = new Nks();
             if (NksOpen(fileName, nks))
@@ -485,7 +485,7 @@ namespace PresetConverterProject.NIKontaktNKS
         /// </summary>
         /// <param name="fileName">file to extract from</param>
         /// <param name="prefix">directory path to use</param>
-        public static bool ExtractArchive(string fileName, string prefix)
+        public static bool Unpack(string fileName, string prefix)
         {
             Nks nks = new Nks();
             if (NksOpen(fileName, nks))
@@ -987,7 +987,7 @@ namespace PresetConverterProject.NIKontaktNKS
         /// Scan all files in the NKS file archive.
         /// </summary>
         /// <param name="fileName">file to scan</param>
-        public static void ScanArchive(string fileName)
+        public static void Scan(string fileName)
         {
             Nks nks = new Nks();
             var r = NksOpen(fileName, nks);

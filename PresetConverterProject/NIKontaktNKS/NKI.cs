@@ -9,7 +9,7 @@ namespace PresetConverterProject.NIKontaktNKS
 {
     public static class NKI
     {
-        public static void Parse(string file, string outputDirectoryPath, bool doList, bool doVerbose)
+        public static void Unpack(string file, string outputDirectoryPath, bool doList, bool doVerbose)
         {
             using (BinaryFile bf = new BinaryFile(file, BinaryFile.ByteOrder.LittleEndian, false))
             {

@@ -99,14 +99,16 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public static class NativeMethods
     {
-        [DllImport("kernel32", SetLastError = true)]
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern IntPtr LoadLibrary(string fileName);
 
-        [DllImport("kernel32", SetLastError = true)]
+        // [DllImport("kernel32", SetLastError = true)]
+        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr module, string procedureName);
 
         [DllImport("kernel32", SetLastError = true)]
-        public static extern bool FreeLibrary(IntPtr module);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool FreeLibrary(IntPtr hModule);
 
         public static string GetLibraryPathName(string filePath)
         {
@@ -250,6 +252,10 @@ namespace PresetConverterProject.NIKontaktNKS
     // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] string DestPath, [MarshalAs(UnmanagedType.LPWStr)] string DestName);
     // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, IntPtr DestPath, IntPtr DestName);
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U4)]
+    delegate int PackFilesDelegateW([MarshalAs(UnmanagedType.LPWStr)] string PackedFile, [MarshalAs(UnmanagedType.LPWStr)] string SubPath, [MarshalAs(UnmanagedType.LPWStr)] string SrcPath, [MarshalAs(UnmanagedType.LPWStr)] string AddList, int Flags);
+
 
     // delegates with call back methods
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -264,6 +270,7 @@ namespace PresetConverterProject.NIKontaktNKS
     delegate void SetProcessDataProcDelegateW(IntPtr hArcData, tProcessDataProcW pProcessDataProc);
 
     #endregion
+
 
     // Most of this is ported from the work by Oleg Bondar <hobo-mts@mail.ru>,
     // wcxtest-0.23
@@ -373,7 +380,8 @@ namespace PresetConverterProject.NIKontaktNKS
             TODO_FLIST = 0, // list plgin functions
             TODO_LIST = 1, // list archive contents
             TODO_TEST = 2, // test archive contents
-            TODO_EXTRACT = 3, // extract archive contents
+            TODO_UNPACK = 3, // extract archive contents,
+            TODO_PACK = 4 // pack files into archive
         }
         #endregion
 
@@ -421,403 +429,490 @@ namespace PresetConverterProject.NIKontaktNKS
         public static bool Call64BitWCXPlugin(string wcxPath, string archiveName, string outputDirectoryPath, TodoOperations openTodo)
         {
             const bool DEBUG = false;
+            IntPtr fModuleHandle = IntPtr.Zero;
 
             // store filename
             string wcxFileName = Path.GetFileName(wcxPath);
 
-            // load library
-            IntPtr fModuleHandle = NativeMethods.LoadLibrary(wcxPath);
+            try
+            {
+                // load library
+                fModuleHandle = NativeMethods.LoadLibrary(wcxPath);
 
-            // error handling
-            if (fModuleHandle == IntPtr.Zero)
-            {
-                Log.Error("Failed opening {0}", wcxPath);
-                return false;
-            }
-            else
-            {
-                if (DEBUG)
+                // error handling
+                if (fModuleHandle == IntPtr.Zero)
                 {
-                    Log.Debug("WCX module loaded '{0}' at {1}.", wcxFileName, fModuleHandle);
+                    Log.Error("Failed opening {0}", wcxPath);
+                    return false;
                 }
                 else
                 {
-                    Log.Information("WCX module loaded '{0}'.", wcxFileName);
+                    if (DEBUG)
+                    {
+                        Log.Debug("WCX module loaded '{0}' at {1}.", wcxFileName, fModuleHandle);
+                    }
+                    else
+                    {
+                        Log.Information("WCX module loaded '{0}'.", wcxFileName);
+                    }
                 }
-            }
-
-            // mandatory functions
-            IntPtr pOpenArchive = NativeMethods.GetProcAddress(fModuleHandle, "OpenArchive");
-            IntPtr pReadHeader = NativeMethods.GetProcAddress(fModuleHandle, "ReadHeader");
-            IntPtr pReadHeaderEx = NativeMethods.GetProcAddress(fModuleHandle, "ReadHeaderEx");
-            IntPtr pProcessFile = NativeMethods.GetProcAddress(fModuleHandle, "ProcessFile");
-            IntPtr pCloseArchive = NativeMethods.GetProcAddress(fModuleHandle, "CloseArchive");
-
-            // Unicode
-            IntPtr pOpenArchiveW = NativeMethods.GetProcAddress(fModuleHandle, "OpenArchiveW");
-            IntPtr pReadHeaderExW = NativeMethods.GetProcAddress(fModuleHandle, "ReadHeaderExW");
-            IntPtr pProcessFileW = NativeMethods.GetProcAddress(fModuleHandle, "ProcessFileW");
-
-            // Optional functions
-            IntPtr pPackFiles = NativeMethods.GetProcAddress(fModuleHandle, "PackFiles");
-            IntPtr pDeleteFiles = NativeMethods.GetProcAddress(fModuleHandle, "DeleteFiles");
-            IntPtr pGetPackerCaps = NativeMethods.GetProcAddress(fModuleHandle, "GetPackerCaps");
-            IntPtr pConfigurePacker = NativeMethods.GetProcAddress(fModuleHandle, "ConfigurePacker");
-            IntPtr pSetChangeVolProc = NativeMethods.GetProcAddress(fModuleHandle, "SetChangeVolProc");
-            IntPtr pSetProcessDataProc = NativeMethods.GetProcAddress(fModuleHandle, "SetProcessDataProc");
-            IntPtr pStartMemPack = NativeMethods.GetProcAddress(fModuleHandle, "StartMemPack");
-            IntPtr pPackToMem = NativeMethods.GetProcAddress(fModuleHandle, "PackToMem");
-            IntPtr pDoneMemPack = NativeMethods.GetProcAddress(fModuleHandle, "DoneMemPack");
-            IntPtr pCanYouHandleThisFile = NativeMethods.GetProcAddress(fModuleHandle, "CanYouHandleThisFile");
-            IntPtr pPackSetDefaultParams = NativeMethods.GetProcAddress(fModuleHandle, "PackSetDefaultParams");
-            IntPtr pPkSetCryptCallback = NativeMethods.GetProcAddress(fModuleHandle, "PkSetCryptCallback");
-            IntPtr pGetBackgroundFlags = NativeMethods.GetProcAddress(fModuleHandle, "GetBackgroundFlags");
-
-            // Unicode
-            IntPtr pSetChangeVolProcW = NativeMethods.GetProcAddress(fModuleHandle, "SetChangeVolProcW");
-            IntPtr pSetProcessDataProcW = NativeMethods.GetProcAddress(fModuleHandle, "SetProcessDataProcW");
-            IntPtr pPackFilesW = NativeMethods.GetProcAddress(fModuleHandle, "PackFilesW");
-            IntPtr pDeleteFilesW = NativeMethods.GetProcAddress(fModuleHandle, "DeleteFilesW");
-            IntPtr pStartMemPackW = NativeMethods.GetProcAddress(fModuleHandle, "StartMemPackW");
-            IntPtr pCanYouHandleThisFileW = NativeMethods.GetProcAddress(fModuleHandle, "CanYouHandleThisFileW");
-            IntPtr pPkSetCryptCallbackW = NativeMethods.GetProcAddress(fModuleHandle, "PkSetCryptCallbackW");
-
-            // Extension API
-            IntPtr pExtensionInitialize = NativeMethods.GetProcAddress(fModuleHandle, "ExtensionInitialize");
-            IntPtr pExtensionFinalize = NativeMethods.GetProcAddress(fModuleHandle, "ExtensionFinalize");
-
-            if (openTodo == TodoOperations.TODO_FLIST)
-            {
-                Log.Information("Exported WCX functions in {0}:", wcxFileName);
-                Log.Information("Checking mandatory functions ..");
 
                 // mandatory functions
-                if (pOpenArchive != IntPtr.Zero) { Log.Information("{0} found at {1}", "OpenArchive", pOpenArchive); }
-                if (pReadHeader != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeader", pReadHeader); }
-                if (pReadHeaderEx != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeaderEx", pReadHeaderEx); }
-                if (pProcessFile != IntPtr.Zero) { Log.Information("{0} found at {1}", "ProcessFile", pProcessFile); }
-                if (pCloseArchive != IntPtr.Zero) { Log.Information("{0} found at {1}", "CloseArchive", pCloseArchive); }
+                IntPtr pOpenArchive = NativeMethods.GetProcAddress(fModuleHandle, "OpenArchive");
+                IntPtr pReadHeader = NativeMethods.GetProcAddress(fModuleHandle, "ReadHeader");
+                IntPtr pReadHeaderEx = NativeMethods.GetProcAddress(fModuleHandle, "ReadHeaderEx");
+                IntPtr pProcessFile = NativeMethods.GetProcAddress(fModuleHandle, "ProcessFile");
+                IntPtr pCloseArchive = NativeMethods.GetProcAddress(fModuleHandle, "CloseArchive");
 
                 // Unicode
-                if (pOpenArchiveW != IntPtr.Zero) { Log.Information("{0} found at {1}", "OpenArchiveW", pOpenArchiveW); }
-                if (pReadHeaderExW != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeaderExW", pReadHeaderExW); }
-                if (pProcessFileW != IntPtr.Zero) { Log.Information("{0} found at {1}", "ProcessFileW", pProcessFileW); }
+                IntPtr pOpenArchiveW = NativeMethods.GetProcAddress(fModuleHandle, "OpenArchiveW");
+                IntPtr pReadHeaderExW = NativeMethods.GetProcAddress(fModuleHandle, "ReadHeaderExW");
+                IntPtr pProcessFileW = NativeMethods.GetProcAddress(fModuleHandle, "ProcessFileW");
 
                 // Optional functions
-                Log.Information("\n");
-                Log.Information("Checking optional functions ...");
-                if (pPackFiles != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackFiles", pPackFiles); }
-                if (pDeleteFiles != IntPtr.Zero) { Log.Information("{0} found at {1}", "DeleteFiles", pDeleteFiles); }
-                if (pGetPackerCaps != IntPtr.Zero) { Log.Information("{0} found at {1}", "GetPackerCaps", pGetPackerCaps); }
-                if (pConfigurePacker != IntPtr.Zero) { Log.Information("{0} found at {1}", "ConfigurePacker", pConfigurePacker); }
-                if (pSetChangeVolProc != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetChangeVolProc", pSetChangeVolProc); }
-                if (pSetProcessDataProc != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetProcessDataProc", pSetProcessDataProc); }
-                if (pStartMemPack != IntPtr.Zero) { Log.Information("{0} found at {1}", "StartMemPack", pStartMemPack); }
-                if (pPackToMem != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackToMem", pPackToMem); }
-                if (pDoneMemPack != IntPtr.Zero) { Log.Information("{0} found at {1}", "DoneMemPack", pDoneMemPack); }
-                if (pCanYouHandleThisFile != IntPtr.Zero) { Log.Information("{0} found at {1}", "CanYouHandleThisFile", pCanYouHandleThisFile); }
-                if (pPackSetDefaultParams != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackSetDefaultParams", pPackSetDefaultParams); }
-                if (pPkSetCryptCallback != IntPtr.Zero) { Log.Information("{0} found at {1}", "PkSetCryptCallback", pPkSetCryptCallback); }
-                if (pGetBackgroundFlags != IntPtr.Zero) { Log.Information("{0} found at {1}", "GetBackgroundFlags", pGetBackgroundFlags); }
+                IntPtr pPackFiles = NativeMethods.GetProcAddress(fModuleHandle, "PackFiles");
+                IntPtr pDeleteFiles = NativeMethods.GetProcAddress(fModuleHandle, "DeleteFiles");
+                IntPtr pGetPackerCaps = NativeMethods.GetProcAddress(fModuleHandle, "GetPackerCaps");
+                IntPtr pConfigurePacker = NativeMethods.GetProcAddress(fModuleHandle, "ConfigurePacker");
+                IntPtr pSetChangeVolProc = NativeMethods.GetProcAddress(fModuleHandle, "SetChangeVolProc");
+                IntPtr pSetProcessDataProc = NativeMethods.GetProcAddress(fModuleHandle, "SetProcessDataProc");
+                IntPtr pStartMemPack = NativeMethods.GetProcAddress(fModuleHandle, "StartMemPack");
+                IntPtr pPackToMem = NativeMethods.GetProcAddress(fModuleHandle, "PackToMem");
+                IntPtr pDoneMemPack = NativeMethods.GetProcAddress(fModuleHandle, "DoneMemPack");
+                IntPtr pCanYouHandleThisFile = NativeMethods.GetProcAddress(fModuleHandle, "CanYouHandleThisFile");
+                IntPtr pPackSetDefaultParams = NativeMethods.GetProcAddress(fModuleHandle, "PackSetDefaultParams");
+                IntPtr pPkSetCryptCallback = NativeMethods.GetProcAddress(fModuleHandle, "PkSetCryptCallback");
+                IntPtr pGetBackgroundFlags = NativeMethods.GetProcAddress(fModuleHandle, "GetBackgroundFlags");
 
                 // Unicode
-                if (pSetChangeVolProcW != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetChangeVolProcW", pSetChangeVolProcW); }
-                if (pSetProcessDataProcW != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetProcessDataProcW", pSetProcessDataProcW); }
-                if (pPackFilesW != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackFilesW", pPackFilesW); }
-                if (pDeleteFilesW != IntPtr.Zero) { Log.Information("{0} found at {1}", "DeleteFilesW", pDeleteFilesW); }
-                if (pStartMemPackW != IntPtr.Zero) { Log.Information("{0} found at {1}", "StartMemPackW", pStartMemPackW); }
-                if (pCanYouHandleThisFileW != IntPtr.Zero) { Log.Information("{0} found at {1}", "CanYouHandleThisFileW", pCanYouHandleThisFileW); }
-                if (pPkSetCryptCallbackW != IntPtr.Zero) { Log.Information("{0} found at {1}", "PkSetCryptCallbackW", pPkSetCryptCallbackW); }
+                IntPtr pSetChangeVolProcW = NativeMethods.GetProcAddress(fModuleHandle, "SetChangeVolProcW");
+                IntPtr pSetProcessDataProcW = NativeMethods.GetProcAddress(fModuleHandle, "SetProcessDataProcW");
+                IntPtr pPackFilesW = NativeMethods.GetProcAddress(fModuleHandle, "PackFilesW");
+                IntPtr pDeleteFilesW = NativeMethods.GetProcAddress(fModuleHandle, "DeleteFilesW");
+                IntPtr pStartMemPackW = NativeMethods.GetProcAddress(fModuleHandle, "StartMemPackW");
+                IntPtr pCanYouHandleThisFileW = NativeMethods.GetProcAddress(fModuleHandle, "CanYouHandleThisFileW");
+                IntPtr pPkSetCryptCallbackW = NativeMethods.GetProcAddress(fModuleHandle, "PkSetCryptCallbackW");
 
                 // Extension API
-                if (pExtensionInitialize != IntPtr.Zero) { Log.Information("{0} found at {1}", "ExtensionInitialize", pExtensionInitialize); }
-                if (pExtensionFinalize != IntPtr.Zero) { Log.Information("{0} found at {1}", "ExtensionFinalize", pExtensionFinalize); }
+                IntPtr pExtensionInitialize = NativeMethods.GetProcAddress(fModuleHandle, "ExtensionInitialize");
+                IntPtr pExtensionFinalize = NativeMethods.GetProcAddress(fModuleHandle, "ExtensionFinalize");
 
-                Log.Information("\n");
-                GetPackerCapsDelegate GetPackerCaps = null;
-                if (pGetPackerCaps != IntPtr.Zero)
+                if (openTodo == TodoOperations.TODO_FLIST)
                 {
-                    GetPackerCaps = (GetPackerCapsDelegate)Marshal.GetDelegateForFunctionPointer(
-                            pGetPackerCaps,
-                            typeof(GetPackerCapsDelegate));
+                    Log.Information("Exported WCX functions in {0}:", wcxFileName);
+                    Log.Information("Checking mandatory functions ..");
+
+                    // mandatory functions
+                    if (pOpenArchive != IntPtr.Zero) { Log.Information("{0} found at {1}", "OpenArchive", pOpenArchive); }
+                    if (pReadHeader != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeader", pReadHeader); }
+                    if (pReadHeaderEx != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeaderEx", pReadHeaderEx); }
+                    if (pProcessFile != IntPtr.Zero) { Log.Information("{0} found at {1}", "ProcessFile", pProcessFile); }
+                    if (pCloseArchive != IntPtr.Zero) { Log.Information("{0} found at {1}", "CloseArchive", pCloseArchive); }
+
+                    // Unicode
+                    if (pOpenArchiveW != IntPtr.Zero) { Log.Information("{0} found at {1}", "OpenArchiveW", pOpenArchiveW); }
+                    if (pReadHeaderExW != IntPtr.Zero) { Log.Information("{0} found at {1}", "ReadHeaderExW", pReadHeaderExW); }
+                    if (pProcessFileW != IntPtr.Zero) { Log.Information("{0} found at {1}", "ProcessFileW", pProcessFileW); }
+
+                    // Optional functions
+                    Log.Information("-------------------------------");
+                    Log.Information("Checking optional functions ...");
+                    if (pPackFiles != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackFiles", pPackFiles); }
+                    if (pDeleteFiles != IntPtr.Zero) { Log.Information("{0} found at {1}", "DeleteFiles", pDeleteFiles); }
+                    if (pGetPackerCaps != IntPtr.Zero) { Log.Information("{0} found at {1}", "GetPackerCaps", pGetPackerCaps); }
+                    if (pConfigurePacker != IntPtr.Zero) { Log.Information("{0} found at {1}", "ConfigurePacker", pConfigurePacker); }
+                    if (pSetChangeVolProc != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetChangeVolProc", pSetChangeVolProc); }
+                    if (pSetProcessDataProc != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetProcessDataProc", pSetProcessDataProc); }
+                    if (pStartMemPack != IntPtr.Zero) { Log.Information("{0} found at {1}", "StartMemPack", pStartMemPack); }
+                    if (pPackToMem != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackToMem", pPackToMem); }
+                    if (pDoneMemPack != IntPtr.Zero) { Log.Information("{0} found at {1}", "DoneMemPack", pDoneMemPack); }
+                    if (pCanYouHandleThisFile != IntPtr.Zero) { Log.Information("{0} found at {1}", "CanYouHandleThisFile", pCanYouHandleThisFile); }
+                    if (pPackSetDefaultParams != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackSetDefaultParams", pPackSetDefaultParams); }
+                    if (pPkSetCryptCallback != IntPtr.Zero) { Log.Information("{0} found at {1}", "PkSetCryptCallback", pPkSetCryptCallback); }
+                    if (pGetBackgroundFlags != IntPtr.Zero) { Log.Information("{0} found at {1}", "GetBackgroundFlags", pGetBackgroundFlags); }
+
+                    // Unicode
+                    if (pSetChangeVolProcW != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetChangeVolProcW", pSetChangeVolProcW); }
+                    if (pSetProcessDataProcW != IntPtr.Zero) { Log.Information("{0} found at {1}", "SetProcessDataProcW", pSetProcessDataProcW); }
+                    if (pPackFilesW != IntPtr.Zero) { Log.Information("{0} found at {1}", "PackFilesW", pPackFilesW); }
+                    if (pDeleteFilesW != IntPtr.Zero) { Log.Information("{0} found at {1}", "DeleteFilesW", pDeleteFilesW); }
+                    if (pStartMemPackW != IntPtr.Zero) { Log.Information("{0} found at {1}", "StartMemPackW", pStartMemPackW); }
+                    if (pCanYouHandleThisFileW != IntPtr.Zero) { Log.Information("{0} found at {1}", "CanYouHandleThisFileW", pCanYouHandleThisFileW); }
+                    if (pPkSetCryptCallbackW != IntPtr.Zero) { Log.Information("{0} found at {1}", "PkSetCryptCallbackW", pPkSetCryptCallbackW); }
+
+                    // Extension API
+                    if (pExtensionInitialize != IntPtr.Zero) { Log.Information("{0} found at {1}", "ExtensionInitialize", pExtensionInitialize); }
+                    if (pExtensionFinalize != IntPtr.Zero) { Log.Information("{0} found at {1}", "ExtensionFinalize", pExtensionFinalize); }
+
+                    Log.Information("-------------------------------");
+                    GetPackerCapsDelegate GetPackerCaps = null;
+                    if (pGetPackerCaps != IntPtr.Zero)
+                    {
+                        GetPackerCaps = (GetPackerCapsDelegate)Marshal.GetDelegateForFunctionPointer(
+                                pGetPackerCaps,
+                                typeof(GetPackerCapsDelegate));
+                    }
+
+                    if (GetPackerCaps != null)
+                    {
+                        int pc = GetPackerCaps();
+                        int f = 0;
+
+                        using (var writer = new StringWriter())
+                        {
+                            writer.Write("PackerCaps: {0} = ", pc);
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_NEW) != 0) { writer.Write("{0} PK_CAPS_NEW", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_MODIFY) != 0) { writer.Write("{0} PK_CAPS_MODIFY", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_MULTIPLE) != 0) { writer.Write("{0} PK_CAPS_MULTIPLE", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_DELETE) != 0) { writer.Write("{0} PK_CAPS_DELETE", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_OPTIONS) != 0) { writer.Write("{0} PK_CAPS_OPTIONS", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_MEMPACK) != 0) { writer.Write("{0} PK_CAPS_MEMPACK", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_BY_CONTENT) != 0) { writer.Write("{0} PK_CAPS_BY_CONTENT", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_SEARCHTEXT) != 0) { writer.Write("{0} PK_CAPS_SEARCHTEXT", f == 1 ? " |" : ""); f = 1; }
+                            if ((pc & (int)PackCapsFlags.PK_CAPS_HIDE) != 0) { writer.Write("{0} PK_CAPS_HIDE", f == 1 ? " |" : ""); f = 1; }
+
+                            Log.Information(writer.ToString());
+                        }
+                    }
+
+                    GetPackerCaps = null;
+                    return true;
                 }
 
-                if (GetPackerCaps != null)
-                {
-                    int pc = GetPackerCaps();
-                    int f = 0;
 
-                    Console.Out.Write("PackerCaps: {0} = ", pc);
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_NEW) != 0) { Console.Out.Write("{0} PK_CAPS_NEW", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_MODIFY) != 0) { Console.Out.Write("{0} PK_CAPS_MODIFY", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_MULTIPLE) != 0) { Console.Out.Write("{0} PK_CAPS_MULTIPLE", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_DELETE) != 0) { Console.Out.Write("{0} PK_CAPS_DELETE", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_OPTIONS) != 0) { Console.Out.Write("{0} PK_CAPS_OPTIONS", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_MEMPACK) != 0) { Console.Out.Write("{0} PK_CAPS_MEMPACK", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_BY_CONTENT) != 0) { Console.Out.Write("{0} PK_CAPS_BY_CONTENT", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_SEARCHTEXT) != 0) { Console.Out.Write("{0} PK_CAPS_SEARCHTEXT", f == 1 ? " |" : ""); f = 1; }
-                    if ((pc & (int)PackCapsFlags.PK_CAPS_HIDE) != 0) { Console.Out.Write("{0} PK_CAPS_HIDE", f == 1 ? " |" : ""); f = 1; }
-                    Log.Information("\n");
+                // check that the mandatory methods are in place
+                bool Result = (pOpenArchive != IntPtr.Zero) && (pReadHeader != IntPtr.Zero) && (pProcessFile != IntPtr.Zero);
+                if (!Result)
+                {
+                    pOpenArchive = IntPtr.Zero;
+                    pReadHeader = IntPtr.Zero;
+                    pProcessFile = IntPtr.Zero;
+                    Result = (pOpenArchiveW != IntPtr.Zero) && (pReadHeaderExW != IntPtr.Zero) && (pProcessFileW != IntPtr.Zero);
                 }
 
-                return true;
-            }
-
-            // check that the mandatory methods are in place
-            bool Result = (pOpenArchive != IntPtr.Zero) && (pReadHeader != IntPtr.Zero) && (pProcessFile != IntPtr.Zero);
-            if (!Result)
-            {
-                pOpenArchive = IntPtr.Zero;
-                pReadHeader = IntPtr.Zero;
-                pProcessFile = IntPtr.Zero;
-                Result = (pOpenArchiveW != IntPtr.Zero) && (pReadHeaderExW != IntPtr.Zero) && (pProcessFileW != IntPtr.Zero);
-            }
-
-            if (!Result || pCloseArchive == IntPtr.Zero)
-            {
-                pOpenArchiveW = IntPtr.Zero;
-                pReadHeaderExW = IntPtr.Zero;
-                pProcessFileW = IntPtr.Zero;
-                pCloseArchive = IntPtr.Zero;
-                Log.Error("Missing mandatory functions!");
-                return false;
-            }
-
-            OpenArchiveDelegateW OpenArchiveW = null;
-            if (pOpenArchiveW != IntPtr.Zero)
-            {
-                OpenArchiveW = (OpenArchiveDelegateW)Marshal.GetDelegateForFunctionPointer(
-                        pOpenArchiveW,
-                        typeof(OpenArchiveDelegateW));
-            }
-
-            if (OpenArchiveW != null)
-            {
-                var arcdW = new tOpenArchiveDataW();
-                arcdW.ArcName = archiveName;
-
-                switch (openTodo)
+                if (!Result || pCloseArchive == IntPtr.Zero)
                 {
-                    case TodoOperations.TODO_LIST:
-                        arcdW.OpenMode = (int)OpenArchiveFlags.PK_OM_LIST;
-                        break;
-
-                    case TodoOperations.TODO_TEST:
-                    case TodoOperations.TODO_EXTRACT:
-                        arcdW.OpenMode = (int)OpenArchiveFlags.PK_OM_EXTRACT;
-                        break;
-
-                    default:
-                        Log.Error("Unknown TODO: {0}", openTodo);
-                        return false;
+                    pOpenArchiveW = IntPtr.Zero;
+                    pReadHeaderExW = IntPtr.Zero;
+                    pProcessFileW = IntPtr.Zero;
+                    pCloseArchive = IntPtr.Zero;
+                    Log.Error("Missing mandatory functions (OpenArchive, ReadHeader or ProcessFile)!");
+                    return false;
                 }
 
-                IntPtr archW = OpenArchiveW(ref arcdW);
-                if (archW == IntPtr.Zero)
+                if (openTodo == TodoOperations.TODO_PACK)
                 {
-                    int error = Marshal.GetLastWin32Error();
-                    string message = string.Format("OpenArchiveW failed with error {0}", error);
-                    Log.Error(message);
+                    // PackFiles unicode version
+                    PackFilesDelegateW PackFilesW = null;
+                    if (pPackFilesW != IntPtr.Zero)
+                    {
+                        PackFilesW = (PackFilesDelegateW)Marshal.GetDelegateForFunctionPointer(
+                                pPackFilesW,
+                                typeof(PackFilesDelegateW));
+                    }
+
+                    if (PackFilesW != null)
+                    {
+                        string libraryName = Path.GetFileNameWithoutExtension(archiveName);
+                        string outputFileName = libraryName + ".nicnt";
+                        string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
+                        Log.Information("Packing into file {0} ...", outputFilePath);
+
+                        // string resourcesDirectoryPath = Path.Combine(archiveName, "Resources");
+                        // if (Directory.Exists(resourcesDirectoryPath))
+                        // {
+                        //     var resourcesFilePaths = Directory.GetFiles(resourcesDirectoryPath, "*.*", SearchOption.AllDirectories);
+                        // }
+
+                        string subPath = null;
+                        string srcPath = archiveName;
+
+                        // add list
+                        string addList = Path.DirectorySeparatorChar + libraryName + ".xml" + "\0\0";
+                        // Encoding encoding = Encoding.UTF8;
+                        // var contentBytes = encoding.GetBytes(addToList);
+                        // var endBytes = encoding.GetBytes("\0");
+
+                        // string addList = null;
+                        // using (var ms = new MemoryStream())
+                        // {
+                        //     ms.Write(contentBytes);
+                        //     ms.Write(endBytes);
+                        //     addList = encoding.GetString(ms.ToArray());
+                        // }
+
+                        int result = PackFilesW(outputFilePath, subPath, srcPath, addList, (int)PackFilesFlags.PK_PACK_SAVE_PATHS);
+                    }
                 }
                 else
                 {
-                    if (DEBUG) Log.Information("OpenArchiveW: Successfully opened archive at {0}", archW);
-                    // Span<byte> byteArray = new Span<byte>(arcdW.ToPointer(), ptrLength);
+                    // open an archive and process its
 
-                    // add callback methods
-                    SetChangeVolProcDelegateW SetChangeVolProcW = null;
-                    if (pSetChangeVolProcW != IntPtr.Zero)
+                    OpenArchiveDelegateW OpenArchiveW = null;
+                    if (pOpenArchiveW != IntPtr.Zero)
                     {
-                        SetChangeVolProcW = (SetChangeVolProcDelegateW)Marshal.GetDelegateForFunctionPointer(
-                                pSetChangeVolProcW,
-                                typeof(SetChangeVolProcDelegateW));
+                        OpenArchiveW = (OpenArchiveDelegateW)Marshal.GetDelegateForFunctionPointer(
+                                pOpenArchiveW,
+                                typeof(OpenArchiveDelegateW));
                     }
 
-                    SetProcessDataProcDelegateW SetProcessDataProcW = null;
-                    if (pSetProcessDataProcW != IntPtr.Zero)
+                    if (OpenArchiveW != null)
                     {
-                        SetProcessDataProcW = (SetProcessDataProcDelegateW)Marshal.GetDelegateForFunctionPointer(
-                                pSetProcessDataProcW,
-                                typeof(SetProcessDataProcDelegateW));
-                    }
+                        var arcdW = new tOpenArchiveDataW();
+                        arcdW.ArcName = archiveName;
 
-                    tChangeVolProcW pChangeVolProc = new tChangeVolProcW(ChangeVol);
-                    tProcessDataProcW pProcessDataProc = new tProcessDataProcW(ProcessData);
-
-                    if (SetChangeVolProcW != null) SetChangeVolProcW(archW, pChangeVolProc);
-                    if (SetProcessDataProcW != null) SetProcessDataProcW(archW, pProcessDataProc);
-
-
-                    // output header
-                    switch (openTodo)
-                    {
-                        case TodoOperations.TODO_LIST:
-                            Log.Information("List of files in {0}", archiveName);
-                            Log.Information(" Length    YYYY/MM/DD HH:MM:SS   Attr   Name");
-                            Log.Information("---------  ---------- --------  ------  ------------");
-                            break;
-
-                        case TodoOperations.TODO_TEST:
-                            Log.Information("Testing files in {0}", archiveName);
-                            Log.Information("--------");
-                            break;
-
-                        case TodoOperations.TODO_EXTRACT:
-                            Log.Information("Extracting files from {0} to {1}", archiveName, outputDirectoryPath);
-                            Log.Information("--------");
-                            break;
-
-                        default:
-                            Log.Error("Unknown TODO: {0}", openTodo);
-                            return false;
-                    }
-
-
-                    // ------------ Main loop
-
-                    // ReadHeader methods
-                    // ReadHeaderEx is always called instead of ReadHeader if present.            
-                    ReadHeaderDelegateEx ReadHeaderEx = null;
-                    if (pReadHeaderEx != IntPtr.Zero)
-                    {
-                        ReadHeaderEx = (ReadHeaderDelegateEx)Marshal.GetDelegateForFunctionPointer(
-                                pReadHeaderEx,
-                                typeof(ReadHeaderDelegateEx));
-                    }
-
-                    // ReadHeaderEx unicode version
-                    ReadHeaderDelegateExW ReadHeaderExW = null;
-                    if (pReadHeaderExW != IntPtr.Zero)
-                    {
-                        ReadHeaderExW = (ReadHeaderDelegateExW)Marshal.GetDelegateForFunctionPointer(
-                                pReadHeaderExW,
-                                typeof(ReadHeaderDelegateExW));
-                    }
-
-                    // standard ReadHeader ansi version
-                    ReadHeaderDelegate ReadHeader = null;
-                    if (pReadHeader != IntPtr.Zero)
-                    {
-                        ReadHeader = (ReadHeaderDelegate)Marshal.GetDelegateForFunctionPointer(
-                                pReadHeader,
-                                typeof(ReadHeaderDelegate));
-                    }
-
-                    // ProcessFile unicode method
-                    ProcessFileDelegateW ProcessFileW = null;
-                    if (pProcessFileW != IntPtr.Zero)
-                    {
-                        ProcessFileW = (ProcessFileDelegateW)Marshal.GetDelegateForFunctionPointer(
-                                pProcessFileW,
-                                typeof(ProcessFileDelegateW));
-                    }
-
-                    if (ProcessFileW != null && ReadHeaderExW != null)
-                    {
-                        // var hdrd = new tHeaderData(); // used by ReadHeader
-                        var hdrd = new tHeaderDataExW(); // used by ReadHeaderExW
-
-                        int rc = -1;
-                        // while ((rc = ReadHeader(archW, ref hdrd)) == 0)
-                        while ((rc = ReadHeaderExW(archW, ref hdrd)) == 0)
+                        switch (openTodo)
                         {
-                            StringBuilder destPath = new StringBuilder(260);
-                            StringBuilder destName = new StringBuilder(260);
-                            int pfrc = -1;
+                            case TodoOperations.TODO_LIST:
+                            case TodoOperations.TODO_PACK:
+                                arcdW.OpenMode = (int)OpenArchiveFlags.PK_OM_LIST;
+                                break;
 
+                            case TodoOperations.TODO_TEST:
+                            case TodoOperations.TODO_UNPACK:
+                                arcdW.OpenMode = (int)OpenArchiveFlags.PK_OM_EXTRACT;
+                                break;
+
+                            default:
+                                Log.Error("Unknown TODO: {0}", openTodo);
+                                return false;
+                        }
+
+                        IntPtr archW = OpenArchiveW(ref arcdW);
+                        if (archW == IntPtr.Zero)
+                        {
+                            int error = Marshal.GetLastWin32Error();
+                            string message = string.Format("OpenArchiveW failed with error {0}", error);
+                            Log.Error(message);
+                            return false;
+                        }
+                        else
+                        {
+                            if (DEBUG) Log.Information("OpenArchiveW: Successfully opened archive at {0}", archW);
+                            // Span<byte> byteArray = new Span<byte>(arcdW.ToPointer(), ptrLength);
+
+                            // add callback methods
+                            SetChangeVolProcDelegateW SetChangeVolProcW = null;
+                            if (pSetChangeVolProcW != IntPtr.Zero)
+                            {
+                                SetChangeVolProcW = (SetChangeVolProcDelegateW)Marshal.GetDelegateForFunctionPointer(
+                                        pSetChangeVolProcW,
+                                        typeof(SetChangeVolProcDelegateW));
+                            }
+
+                            SetProcessDataProcDelegateW SetProcessDataProcW = null;
+                            if (pSetProcessDataProcW != IntPtr.Zero)
+                            {
+                                SetProcessDataProcW = (SetProcessDataProcDelegateW)Marshal.GetDelegateForFunctionPointer(
+                                        pSetProcessDataProcW,
+                                        typeof(SetProcessDataProcDelegateW));
+                            }
+
+                            tChangeVolProcW pChangeVolProc = new tChangeVolProcW(ChangeVol);
+                            tProcessDataProcW pProcessDataProc = new tProcessDataProcW(ProcessData);
+
+                            if (SetChangeVolProcW != null) SetChangeVolProcW(archW, pChangeVolProc);
+                            if (SetProcessDataProcW != null) SetProcessDataProcW(archW, pProcessDataProc);
+
+
+                            // output header
                             switch (openTodo)
                             {
                                 case TodoOperations.TODO_LIST:
-                                    Log.Information(string.Format("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
-                                        ((hdrd.FileTime >> 25 & 0x7f) + 1980), hdrd.FileTime >> 21 & 0x0f, hdrd.FileTime >> 16 & 0x1f,
-                                        hdrd.FileTime >> 11 & 0x1f, hdrd.FileTime >> 5 & 0x3f, (hdrd.FileTime & 0x1F) * 2,
-                                        (hdrd.FileAttr & 0x01) != 0 ? 'r' : '-', // Read-only file
-                                        (hdrd.FileAttr & 0x02) != 0 ? 'h' : '-', // Hidden file
-                                        (hdrd.FileAttr & 0x04) != 0 ? 's' : '-', // System file
-                                        (hdrd.FileAttr & 0x08) != 0 ? 'v' : '-', // Volume ID file
-                                        (hdrd.FileAttr & 0x10) != 0 ? 'd' : '-', // Directory
-                                        (hdrd.FileAttr & 0x20) != 0 ? 'a' : '-')); // Archive file
-
-                                    // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
-                                    pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
-                                    if (pfrc != 0)
-                                    {
-                                        var errorString = (ErrorCodes)pfrc;
-                                            Log.Error("{0} - ERROR: {1}: {2}", hdrd.FileName, pfrc, errorString);
-                                        return false;
-                                    }
-
+                                    Log.Information("List of files in {0}", archiveName);
+                                    Log.Information(" Length    YYYY/MM/DD HH:MM:SS   Attr   Name");
+                                    Log.Information("---------  ---------- --------  ------  ------------");
                                     break;
+
                                 case TodoOperations.TODO_TEST:
-                                    if ((hdrd.FileAttr & 0x10) == 0)
-                                    {
-                                        // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, IntPtr.Zero, IntPtr.Zero);
-                                        pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, null, null);
-                                        if (pfrc != 0)
-                                        {
-                                            var errorString = (ErrorCodes)pfrc;
-                                            Log.Error("{0} - ERROR: {1}: {2}", hdrd.FileName, pfrc, errorString);
-                                            return false;
-                                        }
-                                        else
-                                        {
-                                            Log.Information("{0} - OK", hdrd.FileName);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
-                                        pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
-                                    }
+                                    Log.Information("Testing files in {0}", archiveName);
                                     break;
 
-                                case TodoOperations.TODO_EXTRACT:
-                                    if ((hdrd.FileAttr & 0x10) == 0)
-                                    {
-                                        string outputFilePath = Path.Combine(outputDirectoryPath, hdrd.FileName);
-                                        IOUtils.CreateDirectoryIfNotExist(Path.GetDirectoryName(outputFilePath));
-                                        destName.Append(outputFilePath);
-
-                                        // from string to Ptr
-                                        // IntPtr destPathPtr = IntPtr.Zero;
-                                        // IntPtr destNamePtr = Marshal.StringToHGlobalUni(outputFilePath);
-
-                                        pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, null, destName);
-                                        // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, destPathPtr, destNamePtr);
-
-                                        // remember to unallocate the string
-                                        // Marshal.FreeHGlobal(destPathPtr);
-                                        // Marshal.FreeHGlobal(destNamePtr);
-
-                                        if (pfrc != 0)
-                                        {
-                                            var errorString = (ErrorCodes)pfrc;
-                                            Log.Error("{0} - ERROR: {1}: {2}", outputFilePath, pfrc, errorString);
-                                            return false;
-                                        }
-                                        else
-                                        {
-                                            Log.Information("{0} - OK", outputFilePath);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
-                                        pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
-                                    }
+                                case TodoOperations.TODO_UNPACK:
+                                    Log.Information("Unpacking files from {0} to {1}", archiveName, outputDirectoryPath);
                                     break;
 
                                 default:
                                     Log.Error("Unknown TODO: {0}", openTodo);
                                     return false;
                             }
+
+
+                            // ------------ Main loop --------------
+
+                            // ReadHeader methods
+                            // ReadHeaderEx is always called instead of ReadHeader if present.            
+                            // ReadHeaderDelegateEx ReadHeaderEx = null;
+                            // if (pReadHeaderEx != IntPtr.Zero)
+                            // {
+                            //     ReadHeaderEx = (ReadHeaderDelegateEx)Marshal.GetDelegateForFunctionPointer(
+                            //             pReadHeaderEx,
+                            //             typeof(ReadHeaderDelegateEx));
+                            // }
+
+                            // ReadHeaderEx unicode version
+                            ReadHeaderDelegateExW ReadHeaderExW = null;
+                            if (pReadHeaderExW != IntPtr.Zero)
+                            {
+                                ReadHeaderExW = (ReadHeaderDelegateExW)Marshal.GetDelegateForFunctionPointer(
+                                        pReadHeaderExW,
+                                        typeof(ReadHeaderDelegateExW));
+                            }
+
+                            // standard ReadHeader ansi version
+                            // ReadHeaderDelegate ReadHeader = null;
+                            // if (pReadHeader != IntPtr.Zero)
+                            // {
+                            //     ReadHeader = (ReadHeaderDelegate)Marshal.GetDelegateForFunctionPointer(
+                            //             pReadHeader,
+                            //             typeof(ReadHeaderDelegate));
+                            // }
+
+                            // ProcessFile unicode method
+                            ProcessFileDelegateW ProcessFileW = null;
+                            if (pProcessFileW != IntPtr.Zero)
+                            {
+                                ProcessFileW = (ProcessFileDelegateW)Marshal.GetDelegateForFunctionPointer(
+                                        pProcessFileW,
+                                        typeof(ProcessFileDelegateW));
+                            }
+
+                            if (ProcessFileW != null && ReadHeaderExW != null)
+                            {
+                                // var hdrd = new tHeaderData(); // used by ReadHeader
+                                var hdrd = new tHeaderDataExW(); // used by ReadHeaderExW
+
+                                int rc = -1;
+                                // while ((rc = ReadHeader(archW, ref hdrd)) == 0)
+                                while ((rc = ReadHeaderExW(archW, ref hdrd)) == 0)
+                                {
+                                    StringBuilder destPath = new StringBuilder(260);
+                                    StringBuilder destName = new StringBuilder(260);
+                                    int pfrc = -1;
+
+                                    switch (openTodo)
+                                    {
+                                        case TodoOperations.TODO_LIST:
+                                            Log.Information(string.Format("{1:D9}  {2:D4}/{3:D2}/{4:D2} {5:D2}:{6:D2}:{7:D2}  {8}{9}{10}{11}{12}{13}  {0}", hdrd.FileName, hdrd.UnpSize,
+                                                ((hdrd.FileTime >> 25 & 0x7f) + 1980), hdrd.FileTime >> 21 & 0x0f, hdrd.FileTime >> 16 & 0x1f,
+                                                hdrd.FileTime >> 11 & 0x1f, hdrd.FileTime >> 5 & 0x3f, (hdrd.FileTime & 0x1F) * 2,
+                                                (hdrd.FileAttr & 0x01) != 0 ? 'r' : '-', // Read-only file
+                                                (hdrd.FileAttr & 0x02) != 0 ? 'h' : '-', // Hidden file
+                                                (hdrd.FileAttr & 0x04) != 0 ? 's' : '-', // System file
+                                                (hdrd.FileAttr & 0x08) != 0 ? 'v' : '-', // Volume ID file
+                                                (hdrd.FileAttr & 0x10) != 0 ? 'd' : '-', // Directory
+                                                (hdrd.FileAttr & 0x20) != 0 ? 'a' : '-')); // Archive file
+
+                                            // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
+                                            pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
+                                            if (pfrc != 0)
+                                            {
+                                                var errorString = (ErrorCodes)pfrc;
+                                                Log.Error("{0} - ERROR: {1}: {2}", hdrd.FileName, pfrc, errorString);
+                                                return false;
+                                            }
+
+                                            break;
+                                        case TodoOperations.TODO_TEST:
+                                            if ((hdrd.FileAttr & 0x10) == 0)
+                                            {
+                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, IntPtr.Zero, IntPtr.Zero);
+                                                pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, null, null);
+                                                if (pfrc != 0)
+                                                {
+                                                    var errorString = (ErrorCodes)pfrc;
+                                                    Log.Error("{0} - ERROR: {1}: {2}", hdrd.FileName, pfrc, errorString);
+                                                    return false;
+                                                }
+                                                else
+                                                {
+                                                    Log.Information("{0} - OK", hdrd.FileName);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
+                                                pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
+                                            }
+                                            break;
+
+                                        case TodoOperations.TODO_UNPACK:
+                                            if ((hdrd.FileAttr & 0x10) == 0)
+                                            {
+                                                string outputFilePath = Path.Combine(outputDirectoryPath, hdrd.FileName);
+                                                IOUtils.CreateDirectoryIfNotExist(Path.GetDirectoryName(outputFilePath));
+                                                destName.Append(outputFilePath);
+
+                                                // from string to Ptr
+                                                // IntPtr destPathPtr = IntPtr.Zero;
+                                                // IntPtr destNamePtr = Marshal.StringToHGlobalUni(outputFilePath);
+
+                                                pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, null, destName);
+                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, destPathPtr, destNamePtr);
+
+                                                // remember to unallocate the string
+                                                // Marshal.FreeHGlobal(destPathPtr);
+                                                // Marshal.FreeHGlobal(destNamePtr);
+
+                                                if (pfrc != 0)
+                                                {
+                                                    var errorString = (ErrorCodes)pfrc;
+                                                    Log.Error("{0} - ERROR: {1}: {2}", outputFilePath, pfrc, errorString);
+                                                    return false;
+                                                }
+                                                else
+                                                {
+                                                    Log.Information("{0} - OK", outputFilePath);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
+                                                pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
+                                            }
+                                            break;
+
+                                        default:
+                                            Log.Error("Unknown TODO: {0}", openTodo);
+                                            return false;
+                                    }
+                                }
+                            }
+
+                            OpenArchiveW = null;
+                            ReadHeaderExW = null;
+                            ProcessFileW = null;
+
+                            SetChangeVolProcW = null;
+                            SetProcessDataProcW = null;
                         }
                     }
                 }
             }
+            finally
+            {
+                Log.Information("WCX module finished --------------------------------");
 
-            bool result = NativeMethods.FreeLibrary(fModuleHandle);
-            return result;
+                if (fModuleHandle != IntPtr.Zero)
+                {
+                    // for some reason the unloading of the wcx causes this to crash!
+
+                    // if (!NativeMethods.FreeLibrary(fModuleHandle))
+                    // {
+                    //     int error = Marshal.GetLastWin32Error();
+                    //     string message = string.Format("FreeLibrary failed with error {0}", error);
+                    //     Log.Error(message);
+                    // }
+                    // else
+                    // {
+                    //     Log.Information("WCX module unloaded '{0}'.", wcxFileName);
+                    // }
+
+                    fModuleHandle = IntPtr.Zero;
+                }
+            }
+
+            return true;
         }
     }
 }
