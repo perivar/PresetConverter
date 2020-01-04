@@ -12,11 +12,12 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.1"/>
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007"/>
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0007"/>
+    <PackageReference Include="Vestris.ResourceLib" Version="2.1.0"/>
   </ItemGroup>
   <ItemGroup>
     <Content Include="WCXPlugins\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>  
+    </Content>
   </ItemGroup>
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
     <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)"/>

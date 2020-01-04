@@ -25,6 +25,8 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
+            // ResourceExtractor.ExtractAll(@"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\inNKX.x32.dll", @"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\Resources");
+            // return;
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             IConfiguration config = new ConfigurationBuilder()
