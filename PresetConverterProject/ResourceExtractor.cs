@@ -56,7 +56,7 @@ namespace PresetConverter
             {
                 resources.Load(filename);
 
-                var destinationTextFilePath = Path.Combine(destinationDirectoryPath, "strings-resources.txt");
+                var destinationTextFilePath = Path.Combine(destinationDirectoryPath, "RT_STRINGS.TXT");
                 File.Delete(destinationTextFilePath); // ensure we are always starting with a clean string file
 
                 foreach (var resource in resources)
@@ -84,7 +84,7 @@ namespace PresetConverter
                                 UInt32 height_ = (UInt32)icon.Height;
 
                                 // and save each icon as a independent icon file
-                                using (var outputStream = new FileStream(string.Format("{0}_{1}.ico", destinationFilePath, counter), FileMode.OpenOrCreate))
+                                using (var outputStream = new FileStream(string.Format("{0}_{1}.ICO", destinationFilePath, counter), FileMode.OpenOrCreate))
                                 {
                                     using (var iconWriter = new BinaryWriter(outputStream))
                                     {
@@ -166,7 +166,7 @@ namespace PresetConverter
                             }
 
                             // and save as one single icon file
-                            using (var outputStream = new FileStream(destinationFilePath + ".ico", FileMode.OpenOrCreate))
+                            using (var outputStream = new FileStream(destinationFilePath + ".ICO", FileMode.OpenOrCreate))
                             {
                                 using (var iconWriter = new BinaryWriter(outputStream))
                                 {
