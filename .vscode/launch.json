@@ -374,8 +374,14 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
             "args": [
+                // "-i",
+                // "C:\\Users\\perner\\Downloads\\TotalCommander.Plugins.[DEV][VST]\\[inNKX]\\inNKX.x32.dll",
+                // "-i",
+                // "C:\\Windows\\System32\\imageres.dll",
                 "-i",
-                "C:\\Users\\perner\\Downloads\\TotalCommander.Plugins.[DEV][VST]\\[inNKX]\\inNKX.x32.dll",
+                "C:\\Windows\\System32\\shell32.dll",
+                // "-i",
+                // "C:\\Windows\\System32\\pifmgr.dll",                
                 "-o",
                 "C:\\Users\\perner\\My Projects\\Temp",
                 // "-l",

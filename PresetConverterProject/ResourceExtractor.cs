@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using CommonUtils;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using Vestris.ResourceLib;
 
 namespace PresetConverter
@@ -73,144 +76,27 @@ namespace PresetConverter
                         case "RT_VERSION": // Version 
                             break;
                         case "RT_GROUP_ICON":
+
+                            var iconGroup = new IconGroup();
                             var icondirectoryResource = resource as IconDirectoryResource;
-                            int counter = 0;
                             foreach (var icon in icondirectoryResource.Icons)
                             {
-                                // read icon resource header info from the data
-                                counter++;
-                                var bytes_ = icon.Image.Data;
-                                UInt32 width_ = (UInt32)icon.Width;
-                                UInt32 height_ = (UInt32)icon.Height;
-
-                                // and save each icon as a independent icon file
-                                using (var outputStream = new FileStream(string.Format("{0}_{1}.ICO", destinationFilePath, counter), FileMode.OpenOrCreate))
-                                {
-                                    using (var iconWriter = new BinaryWriter(outputStream))
-                                    {
-                                        // 0-1 reserved, 0
-                                        iconWriter.Write((byte)0);
-                                        iconWriter.Write((byte)0);
-
-                                        // 2-3 image type, 1 = icon, 2 = cursor
-                                        iconWriter.Write((short)1);
-
-                                        // 4-5 number of images
-                                        iconWriter.Write((short)1);
-
-                                        // image entry 1
-                                        // 0 image width
-                                        iconWriter.Write((byte)width_);
-                                        // 1 image height
-                                        iconWriter.Write((byte)height_);
-
-                                        // 2 number of colors
-                                        iconWriter.Write((byte)0);
-
-                                        // 3 reserved
-                                        iconWriter.Write((byte)0);
-
-                                        // 4-5 color planes
-                                        iconWriter.Write((short)0);
-
-                                        // 6-7 bits per pixel
-                                        iconWriter.Write((short)32);
-
-                                        // 8-11 size of image data
-                                        iconWriter.Write((int)bytes_.Length);
-
-                                        // 12-15 offset of image data
-                                        iconWriter.Write((int)(6 + 16));
-
-                                        // write image data
-                                        // png data must contain the whole png data file
-                                        iconWriter.Write(bytes_);
-                                    }
-                                }
-
+                                var iconElement = new IconElement(icon.Image.Data);
+                                iconGroup.Icons.Add(iconElement);
                             }
+
+                            iconGroup.Save(destinationFilePath + ".ICO");
                             isAlreadyWritten = true;
                             break;
                         case "RT_ICON": // Icon 
 
+                            var iconSingle = new IconGroup();
                             var bytes = resource.WriteAndGetBytes();
+                            var iconElementSingle = new IconElement(bytes);
+                            iconSingle.Icons.Add(iconElementSingle);
 
-                            // read icon resource header info from the byte stream
-                            UInt32 size = 0;
-                            UInt32 width = 0;
-                            UInt32 height = 0;
-                            UInt16 planes = 0;
-                            UInt16 bitCount = 0;
-                            UInt32 compression = 0;
-                            UInt32 sizeImage = 0;
-                            UInt32 XpelsPerMet = 0;
-                            UInt32 YpelsPerMet = 0;
-                            UInt32 clrUsed = 0;
-                            UInt32 clrImportant = 0;
-                            using (var inputStream = new MemoryStream(bytes))
-                            {
-                                using (var iconReader = new BinaryReader(inputStream))
-                                {
-                                    size = iconReader.ReadUInt32();
-                                    width = iconReader.ReadUInt32();
-                                    height = iconReader.ReadUInt32();
-                                    planes = iconReader.ReadUInt16();
-                                    bitCount = iconReader.ReadUInt16();
-                                    compression = iconReader.ReadUInt32();
-                                    sizeImage = iconReader.ReadUInt32();
-                                    XpelsPerMet = iconReader.ReadUInt32();
-                                    YpelsPerMet = iconReader.ReadUInt32();
-                                    clrUsed = iconReader.ReadUInt32();
-                                    clrImportant = iconReader.ReadUInt32();
-                                }
-                            }
-
-                            // and save as one single icon file
-                            using (var outputStream = new FileStream(destinationFilePath + ".ICO", FileMode.OpenOrCreate))
-                            {
-                                using (var iconWriter = new BinaryWriter(outputStream))
-                                {
-                                    // 0-1 reserved, 0
-                                    iconWriter.Write((byte)0);
-                                    iconWriter.Write((byte)0);
-
-                                    // 2-3 image type, 1 = icon, 2 = cursor
-                                    iconWriter.Write((short)1);
-
-                                    // 4-5 number of images
-                                    iconWriter.Write((short)1);
-
-                                    // image entry 1
-                                    // 0 image width
-                                    iconWriter.Write((byte)width);
-                                    // 1 image height
-                                    iconWriter.Write((byte)height);
-
-                                    // 2 number of colors
-                                    iconWriter.Write((byte)0);
-
-                                    // 3 reserved
-                                    iconWriter.Write((byte)0);
-
-                                    // 4-5 color planes
-                                    iconWriter.Write((short)0);
-
-                                    // 6-7 bits per pixel
-                                    iconWriter.Write((short)32);
-
-                                    // 8-11 size of image data
-                                    iconWriter.Write((int)bytes.Length);
-
-                                    // 12-15 offset of image data
-                                    iconWriter.Write((int)(6 + 16));
-
-                                    // write image data
-                                    // png data must contain the whole png data file
-                                    iconWriter.Write(bytes);
-                                }
-                            }
+                            iconSingle.Save(destinationFilePath + ".ICO");
                             isAlreadyWritten = true;
-
                             break;
                         case "RT_MENU": // Menu 
                             break;
@@ -252,6 +138,210 @@ namespace PresetConverter
                         }
                     }
                 }
+            }
+        }
+    }
+
+    public class IconGroup
+    {
+        // image header
+        public short Reserved1 { get; set; }
+        public short ImageType { get; set; }  // 1 = Icon, 2 = Cursor
+        public byte NumberOfColors { get; set; }
+        public byte Reserved2 { get; set; }
+        public List<IconElement> Icons { get; set; }
+
+        public IconGroup()
+        {
+            Reserved1 = 0;
+            ImageType = 1; // 1 = icon, 2 = cursor
+            NumberOfColors = 0;
+            Reserved2 = 0;
+
+            Icons = new List<IconElement>();
+        }
+
+        public void Save(string filePath)
+        {
+            using (var outputStream = new FileStream(filePath, FileMode.OpenOrCreate))
+            {
+                using (var iconWriter = new BinaryWriter(outputStream))
+                {
+                    // write icon 
+                    Write(iconWriter);
+                }
+            }
+        }
+
+        private void Write(BinaryWriter iconWriter)
+        {
+            // https://www.daubnet.com/en/file-format-ico
+
+            // Ico Group Header (6 bytes)
+            iconWriter.Write((short)Reserved1);                 // 0-1   Reserved. Must always be 0.
+            iconWriter.Write((short)ImageType);                 // 2-3   Specifies image type: 1 for icon (.ICO) image, 2 for cursor (.CUR) image. Other values are invalid.
+            iconWriter.Write((short)Icons.Count);               // 4-5   Specifies number of images in the file.
+
+            int lastIconLength = 0;
+
+            // Header for each entry (16 bytes)
+            foreach (var icon in Icons)
+            {
+                iconWriter.Write((byte)icon.Width);             // 6     Specifies image width in pixels. Can be any number between 0 and 255. Value 0 means image width is 256 pixels.
+                iconWriter.Write((byte)icon.Height);            // 7     Specifies image height in pixels. Can be any number between 0 and 255. Value 0 means image height is 256 pixels.
+                iconWriter.Write((byte)NumberOfColors);         // 8     Specifies number of colors in the color palette. Should be 0 if the image does not use a color palette.
+                iconWriter.Write((byte)Reserved2);              // 9     Reserved. Should be 0.
+                iconWriter.Write((short)icon.Planes);           // 10-11 In ICO format: Specifies color planes. Should be 0 or 1.
+                iconWriter.Write((short)icon.BitCount);         // 12-13 In ICO format: Specifies bits per pixel.
+                iconWriter.Write((uint)icon.Length);            // 14-17 Size of (InfoHeader + ANDbitmap + XORbitmap) in bytes
+
+                // the offset is the first 6 bytes + the 16 header bytes times the number of icon and the last image byte length
+                int offsetOfImageData = 6 + (16 * Icons.Count) + lastIconLength;
+                iconWriter.Write((uint)offsetOfImageData);      // 18-21 Specifies the offset of BMP or PNG data from the beginning of the ICO/CUR file, where InfoHeader starts
+
+                lastIconLength += icon.Length;
+            }
+
+            // InfoHeader (40 bytes + image data)
+            foreach (var icon in Icons)
+            {
+                icon.Write(iconWriter);
+            }
+        }
+    }
+
+    public class IconElement
+    {
+        // icon entry
+        public UInt32 Size { get; set; } // Size of InfoHeader structure = 40
+        public UInt32 Width { get; set; }
+        public UInt32 Height { get; set; } // Icon Height (added height of XOR-Bitmap and AND-Bitmap)
+        public UInt16 Planes { get; set; }
+        public UInt16 BitCount { get; set; } // bits per pixel
+        public UInt32 Compression { get; set; }
+        public UInt32 ImageSize { get; set; }
+        public UInt32 XpixelsPerMeter { get; set; }
+        public UInt32 YpixelsPerMeter { get; set; }
+        public UInt32 ColorsUsed { get; set; }
+        public UInt32 ColorsImportant { get; set; }
+        public byte[] ImageData { get; set; }
+        public byte[] BitMask { get; set; }
+
+        public IImageFormat ImageFormat { get; set; }
+        public Image Image { get; set; }
+
+        public int Length
+        {
+            get
+            {
+                int length = 0;
+                if (Image != null)
+                {
+                    // PNGs
+                    length = ImageData.Length;
+                }
+                else
+                {
+                    length = 40 + ImageData.Length + BitMask.Length;
+                }
+
+                return length;
+            }
+        }
+
+        public IconElement(byte[] bytes)
+        {
+            using (var inputStream = new MemoryStream(bytes))
+            {
+                using (var iconReader = new BinaryReader(inputStream))
+                {
+                    Size = iconReader.ReadUInt32();
+
+                    // check if this is really a PNG and not a "old" ICO
+                    if (Size != 40)
+                    {
+                        // this might be a PNG
+                        IImageFormat imageFormat = null;
+                        Image = Image.Load(bytes, out imageFormat);
+                        ImageFormat = imageFormat;
+
+                        // save as bytes
+                        if (Image != null && ImageFormat != null)
+                        {
+                            using (var ms = new MemoryStream())
+                            {
+                                Image.Save(ms, imageFormat);
+
+                                ImageData = ms.ToArray();
+                                ImageSize = (uint)ImageData.Length;
+                            }
+                        }
+
+                        Size = 40;
+                        Width = (uint)Image.Width;
+                        Height = (uint)Image.Height;
+                        BitCount = (ushort)Image.PixelType.BitsPerPixel;
+                        BitMask = new byte[0];
+                        return;
+                    }
+
+                    Width = iconReader.ReadUInt32();
+                    Height = iconReader.ReadUInt32();
+                    Planes = iconReader.ReadUInt16();
+                    BitCount = iconReader.ReadUInt16();
+                    Compression = iconReader.ReadUInt32();
+                    ImageSize = iconReader.ReadUInt32();
+                    XpixelsPerMeter = iconReader.ReadUInt32();
+                    YpixelsPerMeter = iconReader.ReadUInt32();
+                    ColorsUsed = iconReader.ReadUInt32();
+                    ColorsImportant = iconReader.ReadUInt32();
+
+                    // something is wrong if ImageSize = 0
+                    if (ImageSize == 0)
+                    {
+                        ImageSize = (uint)(bytes.Length - 40);
+                    }
+
+                    ImageData = new byte[ImageSize];
+                    iconReader.Read(ImageData, 0, (int)ImageSize);
+
+                    // calculate mask length
+                    int maskLength = bytes.Length - 40 - (int)ImageSize;
+
+                    // check if the reading failed
+                    if (maskLength < 0) return;
+
+                    BitMask = new byte[maskLength];
+                    iconReader.Read(BitMask, 0, (int)maskLength);
+                }
+            }
+        }
+
+        public void Write(BinaryWriter iconWriter)
+        {
+            if (Image != null)
+            {
+                // PNGs
+                iconWriter.Write(ImageData);
+            }
+            else
+            {
+                // original version
+                iconWriter.Write(Size);
+                iconWriter.Write(Width);
+                iconWriter.Write(Height);
+                iconWriter.Write(Planes);
+                iconWriter.Write(BitCount);
+                iconWriter.Write(Compression);
+                iconWriter.Write(ImageSize);
+                iconWriter.Write(XpixelsPerMeter);
+                iconWriter.Write(YpixelsPerMeter);
+                iconWriter.Write(ColorsUsed);
+                iconWriter.Write(ColorsImportant);
+
+                iconWriter.Write(ImageData);
+                iconWriter.Write(BitMask);
+                iconWriter.Flush();
             }
         }
     }
