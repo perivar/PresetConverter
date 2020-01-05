@@ -25,8 +25,6 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
-            // ResourceExtractor.ExtractAll(@"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\inNKX.x32.dll", @"C:\Users\perner\Downloads\TotalCommander.Plugins.[DEV][VST]\[inNKX]\Resources");
-            // return;
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             IConfiguration config = new ConfigurationBuilder()
@@ -76,7 +74,7 @@ namespace PresetConverter
 
                     if (!doPack)
                     {
-                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt" };
+                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".exe", ".dll" };
                         var filePaths = HandleMultipleInputPaths(optionInputDirectoryOrFilePath, extensions);
 
                         foreach (var inputFilePath in filePaths)
@@ -116,6 +114,10 @@ namespace PresetConverter
                                 case ".nki":
                                 case ".nicnt":
                                     HandleNIKontaktFile(inputFilePath, outputDirectoryPath, extension, config, doList, doVerbose, doPack, doWCX);
+                                    break;
+                                case ".exe":
+                                case ".dll":
+                                    HandleWindowsFile(inputFilePath, outputDirectoryPath, config, doList, doVerbose);
                                     break;
                             }
                         }
@@ -1221,6 +1223,22 @@ namespace PresetConverter
                         Log.Error("Error processing {0} ({1})...", inputDirectoryOrFilePath, e);
                     }
                 }
+            }
+        }
+
+        private static void HandleWindowsFile(string inputDirectoryOrFilePath, string outputDirectoryPath, IConfiguration config, bool doList, bool doVerbose)
+        {
+            string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryOrFilePath);
+            var destinationDirectoryPath = Path.Combine(outputDirectoryPath, outputFileName);
+
+            if (doList)
+            {
+                ResourceExtractor.List(inputDirectoryOrFilePath);
+            }
+            else
+            {
+                IOUtils.CreateDirectoryIfNotExist(destinationDirectoryPath);
+                ResourceExtractor.ExtractAll(inputDirectoryOrFilePath, destinationDirectoryPath);
             }
         }
     }

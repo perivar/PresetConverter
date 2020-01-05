@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using CommonUtils;
 using Vestris.ResourceLib;
 
@@ -69,9 +72,145 @@ namespace PresetConverter
                             break;
                         case "RT_VERSION": // Version 
                             break;
-                        case "RT_ICON": // Icon 
-                            break;
                         case "RT_GROUP_ICON":
+                            var icondirectoryResource = resource as IconDirectoryResource;
+                            int counter = 0;
+                            foreach (var icon in icondirectoryResource.Icons)
+                            {
+                                // read icon resource header info from the data
+                                counter++;
+                                var bytes_ = icon.Image.Data;
+                                UInt32 width_ = (UInt32)icon.Width;
+                                UInt32 height_ = (UInt32)icon.Height;
+
+                                // and save each icon as a independent icon file
+                                using (var outputStream = new FileStream(string.Format("{0}_{1}.ico", destinationFilePath, counter), FileMode.OpenOrCreate))
+                                {
+                                    using (var iconWriter = new BinaryWriter(outputStream))
+                                    {
+                                        // 0-1 reserved, 0
+                                        iconWriter.Write((byte)0);
+                                        iconWriter.Write((byte)0);
+
+                                        // 2-3 image type, 1 = icon, 2 = cursor
+                                        iconWriter.Write((short)1);
+
+                                        // 4-5 number of images
+                                        iconWriter.Write((short)1);
+
+                                        // image entry 1
+                                        // 0 image width
+                                        iconWriter.Write((byte)width_);
+                                        // 1 image height
+                                        iconWriter.Write((byte)height_);
+
+                                        // 2 number of colors
+                                        iconWriter.Write((byte)0);
+
+                                        // 3 reserved
+                                        iconWriter.Write((byte)0);
+
+                                        // 4-5 color planes
+                                        iconWriter.Write((short)0);
+
+                                        // 6-7 bits per pixel
+                                        iconWriter.Write((short)32);
+
+                                        // 8-11 size of image data
+                                        iconWriter.Write((int)bytes_.Length);
+
+                                        // 12-15 offset of image data
+                                        iconWriter.Write((int)(6 + 16));
+
+                                        // write image data
+                                        // png data must contain the whole png data file
+                                        iconWriter.Write(bytes_);
+                                    }
+                                }
+
+                            }
+                            isAlreadyWritten = true;
+                            break;
+                        case "RT_ICON": // Icon 
+
+                            var bytes = resource.WriteAndGetBytes();
+
+                            // read icon resource header info from the byte stream
+                            UInt32 size = 0;
+                            UInt32 width = 0;
+                            UInt32 height = 0;
+                            UInt16 planes = 0;
+                            UInt16 bitCount = 0;
+                            UInt32 compression = 0;
+                            UInt32 sizeImage = 0;
+                            UInt32 XpelsPerMet = 0;
+                            UInt32 YpelsPerMet = 0;
+                            UInt32 clrUsed = 0;
+                            UInt32 clrImportant = 0;
+                            using (var inputStream = new MemoryStream(bytes))
+                            {
+                                using (var iconReader = new BinaryReader(inputStream))
+                                {
+                                    size = iconReader.ReadUInt32();
+                                    width = iconReader.ReadUInt32();
+                                    height = iconReader.ReadUInt32();
+                                    planes = iconReader.ReadUInt16();
+                                    bitCount = iconReader.ReadUInt16();
+                                    compression = iconReader.ReadUInt32();
+                                    sizeImage = iconReader.ReadUInt32();
+                                    XpelsPerMet = iconReader.ReadUInt32();
+                                    YpelsPerMet = iconReader.ReadUInt32();
+                                    clrUsed = iconReader.ReadUInt32();
+                                    clrImportant = iconReader.ReadUInt32();
+                                }
+                            }
+
+                            // and save as one single icon file
+                            using (var outputStream = new FileStream(destinationFilePath + ".ico", FileMode.OpenOrCreate))
+                            {
+                                using (var iconWriter = new BinaryWriter(outputStream))
+                                {
+                                    // 0-1 reserved, 0
+                                    iconWriter.Write((byte)0);
+                                    iconWriter.Write((byte)0);
+
+                                    // 2-3 image type, 1 = icon, 2 = cursor
+                                    iconWriter.Write((short)1);
+
+                                    // 4-5 number of images
+                                    iconWriter.Write((short)1);
+
+                                    // image entry 1
+                                    // 0 image width
+                                    iconWriter.Write((byte)width);
+                                    // 1 image height
+                                    iconWriter.Write((byte)height);
+
+                                    // 2 number of colors
+                                    iconWriter.Write((byte)0);
+
+                                    // 3 reserved
+                                    iconWriter.Write((byte)0);
+
+                                    // 4-5 color planes
+                                    iconWriter.Write((short)0);
+
+                                    // 6-7 bits per pixel
+                                    iconWriter.Write((short)32);
+
+                                    // 8-11 size of image data
+                                    iconWriter.Write((int)bytes.Length);
+
+                                    // 12-15 offset of image data
+                                    iconWriter.Write((int)(6 + 16));
+
+                                    // write image data
+                                    // png data must contain the whole png data file
+                                    iconWriter.Write(bytes);
+                                }
+                            }
+                            isAlreadyWritten = true;
+
                             break;
                         case "RT_MENU": // Menu 
                             break;
