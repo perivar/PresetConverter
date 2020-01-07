@@ -238,22 +238,26 @@ namespace PresetConverterProject.NIKontaktNKS
     [return: MarshalAs(UnmanagedType.U4)]
     delegate int ReadHeaderDelegateExW(IntPtr hArcData, [In, Out] ref tHeaderDataExW HeaderData);
 
+    // 
     // Add a [MarshalAs(UnmanagedType.LPWStr)] attribute to the parameter in your delegate declaration in order for String to get converted into wchar_t* :
     //     delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] string foo)
+    // 
     // To pass a modifiable string, give a StringBuilder. You need to explicitly reserve space for the unmanaged function to work with:
     //     delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] StringBuilder foo)
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    delegate int ProcessFileDelegate(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestName);
+    // delegate int ProcessFileDelegate(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestName);
+    delegate int ProcessFileDelegate(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] String DestPath, [MarshalAs(UnmanagedType.LPStr)] String DestName);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestName);
-    // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] string DestPath, [MarshalAs(UnmanagedType.LPWStr)] string DestName);
     // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, IntPtr DestPath, IntPtr DestName);
+    // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestName);
+    delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] string DestPath, [MarshalAs(UnmanagedType.LPWStr)] string DestName);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
+    // delegate int PackFilesDelegateW([MarshalAs(UnmanagedType.LPWStr)] string PackedFile, [MarshalAs(UnmanagedType.LPWStr)] string SubPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder SrcPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder AddList, int Flags);
     delegate int PackFilesDelegateW([MarshalAs(UnmanagedType.LPWStr)] string PackedFile, [MarshalAs(UnmanagedType.LPWStr)] string SubPath, [MarshalAs(UnmanagedType.LPWStr)] string SrcPath, [MarshalAs(UnmanagedType.LPWStr)] string AddList, int Flags);
 
 
@@ -600,6 +604,31 @@ namespace PresetConverterProject.NIKontaktNKS
                     return false;
                 }
 
+                // add callback methods
+                SetChangeVolProcDelegateW SetChangeVolProcW = null;
+                if (pSetChangeVolProcW != IntPtr.Zero)
+                {
+                    SetChangeVolProcW = (SetChangeVolProcDelegateW)Marshal.GetDelegateForFunctionPointer(
+                            pSetChangeVolProcW,
+                            typeof(SetChangeVolProcDelegateW));
+                }
+
+                SetProcessDataProcDelegateW SetProcessDataProcW = null;
+                if (pSetProcessDataProcW != IntPtr.Zero)
+                {
+                    SetProcessDataProcW = (SetProcessDataProcDelegateW)Marshal.GetDelegateForFunctionPointer(
+                            pSetProcessDataProcW,
+                            typeof(SetProcessDataProcDelegateW));
+                }
+
+                tChangeVolProcW pChangeVolProc = new tChangeVolProcW(ChangeVol);
+                tProcessDataProcW pProcessDataProc = new tProcessDataProcW(ProcessData);
+
+                // set the callback methods using IntPtr.Zero
+                if (SetChangeVolProcW != null) SetChangeVolProcW(IntPtr.Zero, pChangeVolProc);
+                if (SetProcessDataProcW != null) SetProcessDataProcW(IntPtr.Zero, pProcessDataProc);
+
+                // pack
                 if (openTodo == TodoOperations.TODO_PACK)
                 {
                     // PackFiles unicode version
@@ -616,30 +645,67 @@ namespace PresetConverterProject.NIKontaktNKS
                         string libraryName = Path.GetFileNameWithoutExtension(archiveName);
                         string outputFileName = libraryName + ".nicnt";
                         string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
+                        // string outputFilePath = archiveName;
                         Log.Information("Packing into file {0} ...", outputFilePath);
 
-                        // string resourcesDirectoryPath = Path.Combine(archiveName, "Resources");
-                        // if (Directory.Exists(resourcesDirectoryPath))
-                        // {
-                        //     var resourcesFilePaths = Directory.GetFiles(resourcesDirectoryPath, "*.*", SearchOption.AllDirectories);
-                        // }
-
+                        // don't use sub path
                         string subPath = null;
+
+                        // ensure that the src path ends with the /
+                        // string srcPath = outputDirectoryPath;
                         string srcPath = archiveName;
+                        if (!srcPath.EndsWith(Path.DirectorySeparatorChar))
+                        {
+                            srcPath += Path.DirectorySeparatorChar;
+                        }
 
-                        // add list
-                        string addList = Path.DirectorySeparatorChar + libraryName + ".xml" + "\0\0";
-                        // Encoding encoding = Encoding.UTF8;
-                        // var contentBytes = encoding.GetBytes(addToList);
-                        // var endBytes = encoding.GetBytes("\0");
+                        // build add list
+                        // SrcPath contains path to the files in AddList. 
+                        // SrcPath and AddList together specify files that are to be packed into PackedFile. 
+                        // Each string in AddList is zero-delimited (ends in zero), 
+                        // and the AddList string ends with an extra zero byte, i.e. there are two zero bytes at the end of AddList.
+                        // Example: 
+                        // string addList = "ClipExample1.stl" + char.MinValue + "ClipExample2.stl" + char.MinValue + char.MinValue;
+                        string addList = "";
 
-                        // string addList = null;
-                        // using (var ms = new MemoryStream())
-                        // {
-                        //     ms.Write(contentBytes);
-                        //     ms.Write(endBytes);
-                        //     addList = encoding.GetString(ms.ToArray());
-                        // }
+                        // add mandatory xml document
+                        string libraryXmlFileName = libraryName + ".xml";
+                        if (File.Exists(Path.Combine(srcPath, libraryXmlFileName)))
+                        {
+                            addList += libraryXmlFileName + char.MinValue;
+                        }
+                        else
+                        {
+                            // this will fail
+                            Log.Error("Failed packing - mandatory library xml file is missing!");
+                            return false;
+                        }
+
+                        // check if contentversion txt exists
+                        string contentVersionFileName = "ContentVersion.txt";
+                        if (File.Exists(Path.Combine(srcPath, contentVersionFileName)))
+                        {
+                            addList += contentVersionFileName + char.MinValue;
+                        }
+
+                        // and add the files in the Resources dir 
+                        string resourcesDirectoryPath = Path.Combine(srcPath, "Resources");
+                        if (Directory.Exists(resourcesDirectoryPath))
+                        {
+                            var resourcesFilePaths = Directory.GetFiles(resourcesDirectoryPath, "*.*", SearchOption.AllDirectories);
+                            foreach (var resourcesFilePath in resourcesFilePaths)
+                            {
+                                // remove src path
+                                string addFilename = resourcesFilePath;
+                                if (resourcesFilePath.StartsWith(srcPath))
+                                {
+                                    addFilename = resourcesFilePath.Substring(srcPath.Length);
+                                }
+                                addList += addFilename + char.MinValue;
+                            }
+                        }
+                        // ensure to end with another \0
+                        addList += char.MinValue;
 
                         int result = PackFilesW(outputFilePath, subPath, srcPath, addList, (int)PackFilesFlags.PK_PACK_SAVE_PATHS);
                     }
@@ -691,29 +757,9 @@ namespace PresetConverterProject.NIKontaktNKS
                             if (DEBUG) Log.Information("OpenArchiveW: Successfully opened archive at {0}", archW);
                             // Span<byte> byteArray = new Span<byte>(arcdW.ToPointer(), ptrLength);
 
-                            // add callback methods
-                            SetChangeVolProcDelegateW SetChangeVolProcW = null;
-                            if (pSetChangeVolProcW != IntPtr.Zero)
-                            {
-                                SetChangeVolProcW = (SetChangeVolProcDelegateW)Marshal.GetDelegateForFunctionPointer(
-                                        pSetChangeVolProcW,
-                                        typeof(SetChangeVolProcDelegateW));
-                            }
-
-                            SetProcessDataProcDelegateW SetProcessDataProcW = null;
-                            if (pSetProcessDataProcW != IntPtr.Zero)
-                            {
-                                SetProcessDataProcW = (SetProcessDataProcDelegateW)Marshal.GetDelegateForFunctionPointer(
-                                        pSetProcessDataProcW,
-                                        typeof(SetProcessDataProcDelegateW));
-                            }
-
-                            tChangeVolProcW pChangeVolProc = new tChangeVolProcW(ChangeVol);
-                            tProcessDataProcW pProcessDataProc = new tProcessDataProcW(ProcessData);
-
+                            // set callback functions with the archive pointer
                             if (SetChangeVolProcW != null) SetChangeVolProcW(archW, pChangeVolProc);
                             if (SetProcessDataProcW != null) SetProcessDataProcW(archW, pProcessDataProc);
-
 
                             // output header
                             switch (openTodo)
@@ -786,8 +832,6 @@ namespace PresetConverterProject.NIKontaktNKS
                                 // while ((rc = ReadHeader(archW, ref hdrd)) == 0)
                                 while ((rc = ReadHeaderExW(archW, ref hdrd)) == 0)
                                 {
-                                    StringBuilder destPath = new StringBuilder(260);
-                                    StringBuilder destName = new StringBuilder(260);
                                     int pfrc = -1;
 
                                     switch (openTodo)
@@ -803,7 +847,6 @@ namespace PresetConverterProject.NIKontaktNKS
                                                 (hdrd.FileAttr & 0x10) != 0 ? 'd' : '-', // Directory
                                                 (hdrd.FileAttr & 0x20) != 0 ? 'a' : '-')); // Archive file
 
-                                            // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
                                             pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
                                             if (pfrc != 0)
                                             {
@@ -816,7 +859,6 @@ namespace PresetConverterProject.NIKontaktNKS
                                         case TodoOperations.TODO_TEST:
                                             if ((hdrd.FileAttr & 0x10) == 0)
                                             {
-                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, IntPtr.Zero, IntPtr.Zero);
                                                 pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_TEST, null, null);
                                                 if (pfrc != 0)
                                                 {
@@ -831,7 +873,6 @@ namespace PresetConverterProject.NIKontaktNKS
                                             }
                                             else
                                             {
-                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
                                                 pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
                                             }
                                             break;
@@ -841,15 +882,13 @@ namespace PresetConverterProject.NIKontaktNKS
                                             {
                                                 string outputFilePath = Path.Combine(outputDirectoryPath, hdrd.FileName);
                                                 IOUtils.CreateDirectoryIfNotExist(Path.GetDirectoryName(outputFilePath));
-                                                destName.Append(outputFilePath);
+
+                                                pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, null, outputFilePath);
 
                                                 // from string to Ptr
                                                 // IntPtr destPathPtr = IntPtr.Zero;
                                                 // IntPtr destNamePtr = Marshal.StringToHGlobalUni(outputFilePath);
-
-                                                pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, null, destName);
                                                 // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_EXTRACT, destPathPtr, destNamePtr);
-
                                                 // remember to unallocate the string
                                                 // Marshal.FreeHGlobal(destPathPtr);
                                                 // Marshal.FreeHGlobal(destNamePtr);
@@ -867,7 +906,6 @@ namespace PresetConverterProject.NIKontaktNKS
                                             }
                                             else
                                             {
-                                                // pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, IntPtr.Zero, IntPtr.Zero);
                                                 pfrc = ProcessFileW(archW, (int)ProcessFileFlags.PK_SKIP, null, null);
                                             }
                                             break;
