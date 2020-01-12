@@ -67,17 +67,20 @@ namespace PresetConverterProject.NIKontaktNKS
                             Log.Information(string.Format("Found Icon in ProductHints Xml in {0} format. (Dimensions: {1} x {2}, Width: {1} pixels, Height: {2} pixels, Bit depth: {3} bpp)", imageFormat.Name, image.Width, image.Height, image.PixelType.BitsPerPixel));
 
                             // save icon to file
-                            var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
-                            var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
+                            if (!doList)
+                            {
+                                var iconFileName = outputFileName + " Icon." + imageFormat.Name.ToLower();
+                                var iconFilePath = Path.Combine(outputDirectoryPath, outputFileName, iconFileName);
 
-                            if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
+                                if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
 
-                            // save using ImageSharp
-                            // var imageEncoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
-                            // image.Save(iconFilePath, imageEncoder);
+                                // save using ImageSharp
+                                // var imageEncoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
+                                // image.Save(iconFilePath, imageEncoder);
 
-                            // save using image bytes
-                            BinaryFile.ByteArrayToFile(iconFilePath, productHints.Product.Icon.ImageBytes);
+                                // save using image bytes
+                                BinaryFile.ByteArrayToFile(iconFilePath, productHints.Product.Icon.ImageBytes);
+                            }
                         }
                     }
 
@@ -206,22 +209,22 @@ namespace PresetConverterProject.NIKontaktNKS
                             }
                             else
                             {
-                                Log.Error("Header4 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header4));
+                                Log.Error(inputFilePath + ": Header4 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header4));
                             }
                         }
                         else
                         {
-                            Log.Error("Header3 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header3));
+                            Log.Error(inputFilePath + ": Header3 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header3));
                         }
                     }
                     else
                     {
-                        Log.Error("Header2 not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header2));
+                        Log.Error(inputFilePath + ": Header2 not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header2));
                     }
                 }
                 else
                 {
-                    Log.Error("Header not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header));
+                    Log.Error(inputFilePath + ": Header not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header));
                 }
             }
         }

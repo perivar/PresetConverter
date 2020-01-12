@@ -430,9 +430,8 @@ namespace PresetConverterProject.NIKontaktNKS
             return 1;
         }
 
-        public static bool Call64BitWCXPlugin(string wcxPath, string archiveName, string outputDirectoryPath, TodoOperations openTodo)
+        public static bool Call64BitWCXPlugin(string wcxPath, string archiveName, string outputDirectoryPath, TodoOperations openTodo, bool doVerbose = false)
         {
-            const bool DEBUG = false;
             IntPtr fModuleHandle = IntPtr.Zero;
 
             // store filename
@@ -451,7 +450,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
                 else
                 {
-                    if (DEBUG)
+                    if (doVerbose)
                     {
                         Log.Debug("WCX module loaded '{0}' at {1}.", wcxFileName, fModuleHandle);
                     }
@@ -754,7 +753,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         }
                         else
                         {
-                            if (DEBUG) Log.Information("OpenArchiveW: Successfully opened archive at {0}", archW);
+                            if (doVerbose) Log.Information("OpenArchiveW: Successfully opened archive at {0}", archW);
                             // Span<byte> byteArray = new Span<byte>(arcdW.ToPointer(), ptrLength);
 
                             // set callback functions with the archive pointer
