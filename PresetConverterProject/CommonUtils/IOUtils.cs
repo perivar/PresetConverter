@@ -394,8 +394,10 @@ namespace CommonUtils
         /// <param name="filePath">file path</param>
         /// <param name="hasHeader">whether we should skip the first header row</param>
         /// <param name="parser">a parser delegate method</param>
+        /// <param name="columnSeparator">column seperator, default ","</param>
+        /// <param name="doRemoveEmptyEntries">whether to remove empty entries when parsing lines, default TRUE</param>
         /// <returns>a list of objects that can be casted to whatever</returns>
-        public static List<object> ReadCSV(string filePath, bool hasHeader, MyParser parser)
+        public static List<object> ReadCSV(string filePath, bool hasHeader, MyParser parser, string columnSeparator = columnSeparator, bool doRemoveEmptyEntries = true)
         {
 
             int lineCounter = 0;
@@ -416,7 +418,7 @@ namespace CommonUtils
                 // parse
                 var elements = line.Split(new String[] {
                                               columnSeparator
-                                          }, StringSplitOptions.RemoveEmptyEntries);
+                                          }, doRemoveEmptyEntries ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 
 
                 list.Add(parser(elements));
@@ -452,7 +454,8 @@ namespace CommonUtils
         /// <param name="filePath">file path</param>
         /// <param name="lines">a list of objects</param>
         /// <param name="formatter">a formatter delegate method</param>
-        public static void WriteCSV(string filePath, List<object> lines, MyFormatter formatter)
+        /// <param name="columnSeparator">column seperator, default ","</param>
+        public static void WriteCSV(string filePath, List<object> lines, MyFormatter formatter, string columnSeparator = columnSeparator)
         {
 
             int lineCounter = 0;

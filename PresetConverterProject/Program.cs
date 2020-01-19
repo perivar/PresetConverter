@@ -23,6 +23,50 @@ namespace PresetConverter
 {
     class Program
     {
+        public static object SnpidCSVParser(string[] splittedLine)
+        {
+            var snpid = splittedLine[0];
+            var companyName = splittedLine[1];
+            var libraryName = splittedLine[2];
+
+            NksLibraryDesc libDesc = new NksLibraryDesc();
+            libDesc.Id = snpid;
+            libDesc.Company = companyName;
+            libDesc.Name = libraryName;
+
+            return libDesc;
+        }
+
+        public static object RTStringsParser(string[] splittedLine)
+        {
+            var snpidAndCode = splittedLine[0];
+
+            Regex snpidAndCodeRegex = new Regex(@"^(\d+):\s(.*?)$");
+            Match match = snpidAndCodeRegex.Match(snpidAndCode);
+            string snpid = null;
+            string jdx = null;
+            if (match.Success)
+            {
+                int id = int.Parse(match.Groups[1].Value);
+                snpid = string.Format("{0:000}", id);
+                jdx = match.Groups[2].Value;
+            }
+
+            var hu = splittedLine[1];
+            var libraryName = splittedLine[2];
+
+            // ignore the count if it exist
+            // var count = splittedLine[3];
+
+            NksLibraryDesc libDesc = new NksLibraryDesc();
+            libDesc.Id = snpid;
+            libDesc.Name = libraryName;
+            NKS.NksGeneratingKeySetKeyStr(libDesc.GenKey, jdx);
+            NKS.NksGeneratingKeySetIvStr(libDesc.GenKey, hu);
+
+            return libDesc;
+        }
+
         static void Main(string[] args)
         {
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -31,6 +75,24 @@ namespace PresetConverter
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
             .Build();
+
+            // // Read settings into NKSLibraries.Libraries
+            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], true);
+
+            // // Read CSV
+            // var csvList = IOUtils.ReadCSV(@"C:\Users\perner\My Projects\PresetConverter\PresetConverterProject\NIKontaktNKS\SNPID List.csv", true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
+
+            // // read RT_STRINGS with / delimiter
+            // var rtList = IOUtils.ReadCSV(@"C:\Users\perner\My Projects\PresetConverter\PresetConverterProject\NIKontaktNKS\RT_STRINGS.TXT", false, RTStringsParser, "/", false).Cast<NksLibraryDesc>();
+
+            // // check for differences
+            // var inCSVButNotRT = csvList.Where(csv => rtList.All(rt => rt.Id != csv.Id));
+            // var inRTButNotCSV = rtList.Where(rt => csvList.All(csv => csv.Id != rt.Id));
+            // var inBothButDifferentName = rtList.Join(csvList, rt => rt.Id, csv => csv.Id, (rt, csv) => new { rt, csv }).Where(both => both.rt.Name != both.csv.Name);
+            // // var inBothButDifferentName = rtList.Where(p => csvList.Any(p2 => p2.Id == p.Id && p2.Name != p.Name));
+            // var completeList = rtList.Union(csvList).OrderBy(a => a.Id);
+
+            // return;
 
             // Setup command line parser
             var app = new CommandLineApplication();

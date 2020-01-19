@@ -70,11 +70,12 @@ namespace PresetConverterProject.NIKontaktNKS
                 foreach (NksLibraryDesc entry in list)
                 {
                     var id = entry.Id;
+                    var company = entry.Company;
                     var name = entry.Name;
                     var keyHex = StringUtils.ByteArrayToHexString(entry.GenKey.Key);
                     var ivHEx = StringUtils.ByteArrayToHexString(entry.GenKey.IV);
 
-                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}\nIV: {3}", id, name, keyHex, ivHEx);
+                    writer.WriteLine("Id: {0}\nCompany: {1}\nName: {2}\nKey: {3}\nIV: {4}", id, company, name, keyHex, ivHEx);
                 }
             }
         }
@@ -125,6 +126,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                         libDesc.Id = value.ToUpper();
                                         break;
                                     case "Company":
+                                        libDesc.Company = value;
                                         break;
                                     case "ContentDir":
                                         break;
@@ -281,7 +283,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return libDesc;
         }
 
-        private static bool NksGeneratingKeySetKeyStr(NksGeneratingKey generatingKey, string key)
+        public static bool NksGeneratingKeySetKeyStr(NksGeneratingKey generatingKey, string key)
         {
             byte[] data = null;
             int len = 0;
@@ -297,7 +299,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool NksGeneratingKeySetIvStr(NksGeneratingKey generatingKey, string key)
+        public static bool NksGeneratingKeySetIvStr(NksGeneratingKey generatingKey, string key)
         {
             byte[] data = null;
             int len = 0;
