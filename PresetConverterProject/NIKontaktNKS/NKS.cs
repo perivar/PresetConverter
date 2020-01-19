@@ -128,16 +128,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                         // check if we are using only integer ids
                                         if (useIntegerIds)
                                         {
-                                            // if we are unable to parse into an integer, we have a base 36 id
-                                            try
-                                            {
-                                                long base10Id = long.Parse(libDesc.Id);
-                                            }
-                                            catch (System.Exception)
-                                            {
-                                                long base36Key = Base36Converter.Decode(libDesc.Id) + SNPID_CONST;
-                                                libDesc.Id = string.Format("{0:000}", base36Key);
-                                            }
+                                            libDesc.Id = ConvertToBase10(libDesc.Id);
                                         }
 
                                         break;
@@ -1275,16 +1266,7 @@ namespace PresetConverterProject.NIKontaktNKS
             if (header.SetId == 0) return "";
 
             long base10SetId = header.SetId;
-            string setIdKey = base10SetId.ToString();
-
-            // check if this is a base36 or base10 id?
-            if ((base10SetId - SNPID_CONST) > 0)
-            {
-                // convert the number to Base36 (alphanumeric)             
-                setIdKey = Base36Converter.Encode(base10SetId - SNPID_CONST);
-            }
-
-            return setIdKey;
+            return ConvertToBase36(base10SetId);
         }
 
         private static string GetSetIdString(NksEncryptedHeader header)
@@ -1292,16 +1274,37 @@ namespace PresetConverterProject.NIKontaktNKS
             if (header.SetId == null) return "";
 
             long base10SetId = long.Parse(header.SetId);
-            string setIdKey = base10SetId.ToString();
+            return ConvertToBase36(base10SetId);
+        }
+
+        public static string ConvertToBase36(long base10Id)
+        {
+            string setId = base10Id.ToString();
 
             // check if this is a base36 or base10 id?
-            if ((base10SetId - SNPID_CONST) > 0)
+            if ((base10Id - SNPID_CONST) > 0)
             {
                 // convert the number to Base36 (alphanumeric)             
-                setIdKey = Base36Converter.Encode(base10SetId - SNPID_CONST);
+                setId = Base36Converter.Encode(base10Id - SNPID_CONST);
             }
 
-            return setIdKey;
+            return setId;
+        }
+
+        public static string ConvertToBase10(string id)
+        {
+            // TryParse will be faster than catching an exception
+            // ignore out
+            if (long.TryParse(id, out _))
+            {
+                return id;
+            }
+            else
+            {
+                // if we are unable to parse into an integer, we have a base 36 id
+                long base10Id = Base36Converter.Decode(id) + SNPID_CONST;
+                return base10Id.ToString();
+            }
         }
 
         private static string GetIndentStrings(int indentCount)
