@@ -389,6 +389,11 @@ namespace PresetConverterProject.NIKontaktNKS
         }
         #endregion
 
+        // In order to prevent: "A callback was made on a garbage collected delegate of type"
+        // add a field to your class. Making it static is a sure-fire way to ensure the object can't be collected.
+        private static tChangeVolProcW pChangeVolProc;
+        private static tProcessDataProcW pProcessDataProc;
+
         private static int ChangeVol(string ArcName, int Mode)
         {
             int rc = 0; // 1 is success
@@ -620,8 +625,9 @@ namespace PresetConverterProject.NIKontaktNKS
                             typeof(SetProcessDataProcDelegateW));
                 }
 
-                tChangeVolProcW pChangeVolProc = new tChangeVolProcW(ChangeVol);
-                tProcessDataProcW pProcessDataProc = new tProcessDataProcW(ProcessData);
+                // set the private static callback methods
+                pChangeVolProc = new tChangeVolProcW(ChangeVol);
+                pProcessDataProc = new tProcessDataProcW(ProcessData);
 
                 // set the callback methods using IntPtr.Zero
                 if (SetChangeVolProcW != null) SetChangeVolProcW(IntPtr.Zero, pChangeVolProc);
