@@ -77,7 +77,7 @@ namespace PresetConverter
             .Build();
 
             // // Read settings into NKSLibraries.Libraries
-            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], true);
+            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], false, true);
 
             // // Read CSV
             // var csvList = IOUtils.ReadCSV(@"C:\Users\perner\My Projects\PresetConverter\PresetConverterProject\NIKontaktNKS\SNPID List.csv", true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
@@ -91,6 +91,11 @@ namespace PresetConverter
             // var inBothButDifferentName = rtList.Join(csvList, rt => rt.Id, csv => csv.Id, (rt, csv) => new { rt, csv }).Where(both => both.rt.Name != both.csv.Name);
             // // var inBothButDifferentName = rtList.Where(p => csvList.Any(p2 => p2.Id == p.Id && p2.Name != p.Name));
             // var completeList = rtList.Union(csvList).OrderBy(a => a.Id);
+
+            // // check agains the lib list (Settings.cfg)           
+            // var sameIDsButDifferentGenKeys = NKSLibraries.Libraries.Values.Join(rtList, nks => nks.Id, rt => rt.Id, (nks, rt) => new { nks, rt }).Where(both => both.nks.GenKey != both.rt.GenKey);
+            // var inRTButNotLib = rtList.Where(rt => NKSLibraries.Libraries.Values.All(nks => nks.Id != rt.Id));
+            // var inLibButNotRT = NKSLibraries.Libraries.Values.Where(nks => rtList.All(rt => rt.Id != nks.Id));
 
             // return;
 
@@ -421,23 +426,12 @@ namespace PresetConverter
                 return string.Format("{0} {1} {2} {3}", GUID, OutputFileName, PluginName, Bytes.Length);
             }
 
-            public override bool Equals(object obj)
-            {
-                if (obj == null) return false;
-                PresetInfo objAsPresetInfo = obj as PresetInfo;
-
-                if (objAsPresetInfo == null) return false;
-                else return Equals(objAsPresetInfo);
-            }
-
-            public override int GetHashCode()
-            {
-                return ToString().GetHashCode();
-            }
+            public override bool Equals(object obj) => Equals(obj as PresetInfo);
+            public override int GetHashCode() => (GUID, OutputFileName, PluginName, Bytes).GetHashCode();
 
             public bool Equals(PresetInfo other)
             {
-                if (other == null) return false;
+                if (other is null) return false;
 
                 return (this.OutputFileName.Equals(other.OutputFileName) &&
                 this.PluginName.Equals(other.PluginName) &&

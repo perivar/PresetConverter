@@ -3,43 +3,43 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PresetConverterTests
+namespace CommonUtils
 {
-    public class JaggedByteComparer : IEqualityComparer<byte[]>
+    public class JaggedDoubleComparer : IEqualityComparer<double[]>
     {
         private readonly double threshold;
 
-        public JaggedByteComparer(double threshold)
+        public JaggedDoubleComparer(double threshold)
         {
             this.threshold = threshold;
         }
 
-        public bool Equals(byte[] x, byte[] y)
+        public bool Equals(double[] x, double[] y)
         {
-            return (x.SequenceEqual<byte>(y, new ByteComparer(threshold)));
+            return (x.SequenceEqual<double>(y, new DoubleComparer(threshold)));
         }
 
-        public int GetHashCode(byte[] obj)
+        public int GetHashCode(double[] obj)
         {
             return obj.GetHashCode();
         }
     }
 
-    public class ByteComparer : IEqualityComparer<byte>
+    public class DoubleComparer : IEqualityComparer<double>
     {
         private readonly double threshold;
 
-        public ByteComparer(double threshold)
+        public DoubleComparer(double threshold)
         {
             this.threshold = threshold;
         }
 
-        public bool Equals(byte x, byte y)
+        public bool Equals(double x, double y)
         {
             return Math.Abs(x - y) < this.threshold;
         }
 
-        public int GetHashCode(byte obj)
+        public int GetHashCode(double obj)
         {
             return obj.GetHashCode();
         }

@@ -37,7 +37,7 @@ namespace PresetConverterProject.NIKontaktNKS
         // Number used in SNPID Base36 conversion
         const int SNPID_CONST = 4080;
 
-        public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false)
+        public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             // read in all libraries
             var regList = NksGetRegistryLibraries();
@@ -49,7 +49,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     NKSLibraries.Libraries[regEntry.Id] = regEntry;
                 }
             }
-            var settingsList = NksGetSettingsLibraries(nksSettingsPath, includeNonEncryptedLibs);
+            var settingsList = NksGetSettingsLibraries(nksSettingsPath, includeNonEncryptedLibs, useIntegerIds);
             if (settingsList != null)
             {
                 foreach (var settingsEntry in settingsList)
@@ -80,7 +80,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath, bool includeNonEncryptedLibs = false)
+        private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             Regex sectionRegex = new Regex(@"\[([\w\d\s\.\-]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
@@ -124,6 +124,22 @@ namespace PresetConverterProject.NIKontaktNKS
                                         break;
                                     case "SNPID":
                                         libDesc.Id = value.ToUpper();
+
+                                        // check if we are using only integer ids
+                                        if (useIntegerIds)
+                                        {
+                                            // if we are unable to parse into an integer, we have a base 36 id
+                                            try
+                                            {
+                                                long base10Id = long.Parse(libDesc.Id);
+                                            }
+                                            catch (System.Exception)
+                                            {
+                                                long base36Key = Base36Converter.Decode(libDesc.Id) + SNPID_CONST;
+                                                libDesc.Id = string.Format("{0:000}", base36Key);
+                                            }
+                                        }
+
                                         break;
                                     case "Company":
                                         libDesc.Company = value;

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -33,11 +35,43 @@ namespace PresetConverterProject.NIKontaktNKS
         }
     }
 
-    public class NksGeneratingKey
+    public class NksGeneratingKey : IEquatable<NksGeneratingKey>
     {
         public byte[] Key { get; set; }
         public int KeyLength { get { return Key != null ? Key.Length : 0; } }
         public byte[] IV { get; set; }
         public int IVLength { get { return IV != null ? IV.Length : 0; } }
+
+        public override string ToString()
+        {
+            return string.Format("Key-length: {0}, IV-length: {1}", KeyLength, IVLength);
+        }
+
+        public bool Equals(NksGeneratingKey other)
+        {
+            if (other is null) return false;
+
+            return (this.Key.SequenceEqual(other.Key) && this.IV.SequenceEqual(other.IV));
+        }
+
+        public override bool Equals(object obj) => Equals(obj as NksGeneratingKey);
+        public override int GetHashCode() => (Key, IV).GetHashCode();
+
+        public static bool operator ==(NksGeneratingKey nksGeneratingKey1, NksGeneratingKey nksGeneratingKey2)
+        {
+            if (((object)nksGeneratingKey1) == null || ((object)nksGeneratingKey2) == null)
+                return Object.Equals(nksGeneratingKey1, nksGeneratingKey2);
+
+            return nksGeneratingKey1.Equals(nksGeneratingKey2);
+        }
+
+        public static bool operator !=(NksGeneratingKey nksGeneratingKey1, NksGeneratingKey nksGeneratingKey2)
+        {
+            if (((object)nksGeneratingKey1) == null || ((object)nksGeneratingKey2) == null)
+                return !Object.Equals(nksGeneratingKey1, nksGeneratingKey2);
+
+            return !(nksGeneratingKey1.Equals(nksGeneratingKey2));
+        }
+
     }
 }
