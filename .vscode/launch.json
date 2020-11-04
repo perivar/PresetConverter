@@ -608,6 +608,26 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
+            "name": ".NET Core Launch (DAW) Cubase CPR Kontakt6_64out",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
+            "args": [
+                "-i",
+                "G:\\Downloads\\CUBASE PROJECTS\\Cinemaman Resources\\Cinemaman Cubase 10.5 Project\\Cinemaman.cpr",
+                "-o",
+                "G:\\Development Projects\\Own Projects\\Temp",
+                "-k6"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": ".NET Core Launch (DAW) Cubase CPR TEST",
             "type": "coreclr",
             "request": "launch",

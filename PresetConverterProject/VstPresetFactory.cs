@@ -51,6 +51,9 @@ namespace PresetConverter
                 case VstPreset.VstIDs.NIKontakt6:
                     preset = new NIKontakt6();
                     break;
+                case VstPreset.VstIDs.NIKontakt6_64out:
+                    preset = new NIKontakt6_64out();
+                    break;
                 case VstPreset.VstIDs.EastWestPlay:
                     preset = new EastWestPlay();
                     break;

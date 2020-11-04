@@ -746,6 +746,21 @@ namespace PresetConverter
 
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
+
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt6_64out)
+                {
+                    var kontakt = vstPreset as NIKontakt6_64out;
+                    origPluginName = "Kontakt 6";
+
+                    // check if we should convert to kontakt 6 preset
+                    if (doConvertToKontakt6)
+                    {
+                        origPluginName = "Kontakt 6";
+                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt641;
+                    }
+
+                    HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
+                }
             }
             else
             {
