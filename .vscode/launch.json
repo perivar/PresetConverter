@@ -569,7 +569,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (DAW) Cubase CPR",
+            "name": ".NET Core Launch (DAW) Cubase CPR 1",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -588,7 +588,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (DAW) Cubase CPR NEW",
+            "name": ".NET Core Launch (DAW) Cubase CPR 2",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -597,6 +597,26 @@
             "args": [
                 "-i",
                 "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\gladiator - free pack\\Gladiator-02-perivar-new-01.cpr",
+                "-o",
+                "G:\\Development Projects\\Own Projects\\Temp",
+                "-k6"
+            ],
+            "cwd": "${workspaceFolder}",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Launch (DAW) Cubase CPR 3",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/netcoreapp3.0/PresetConverter.dll",
+            "args": [
+                "-i",
+                "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\DaVinci Code - Free Pack\\DaVinci Code-01.cpr",
                 "-o",
                 "G:\\Development Projects\\Own Projects\\Temp",
                 "-k6"
@@ -628,7 +648,7 @@
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
-            "name": ".NET Core Launch (DAW) Cubase CPR TEST",
+            "name": ".NET Core Launch (DAW) Cubase CPR Folder",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",

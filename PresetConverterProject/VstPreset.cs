@@ -63,7 +63,10 @@ namespace PresetConverter
             public const string SteinbergHALionSonicSE = "5B6D6402C5F74C35B3BE88ADF7FC7D27";
             public const string SteinbergMonoDelay = "42A36F8AEE394B98BB2E8B63CB68E3E7";
             public const string SteinbergMultibandCompressor = "86DFC3F5415C40388D3AA69030C380B1";
+            public const string SteinbergMultibandEnvelopeShaper = "F7E6BFADFCD947BEB0A726EF32CBFC70";
+            public const string SteinbergNoiseGate = "C3B0615A2A444991B423673DEE2379A7";
             public const string SteinbergPingPongDelay = "37A3AA84E3A24D069C39030EC68768E1";
+            public const string SteinbergPitchCorrect = "10F9FE4142694F1EAC21E294B42577C6";
             public const string SteinbergPrologue = "FFF583CCDFB246F894308DB9C5D94C8D";
             public const string SteinbergREVerence = "ED824AB48E0846D5959682F5626D0972";
             public const string SteinbergStandardPanner = "44E1149EDB3E4387BDD827FEA3A39EE7";
@@ -71,6 +74,7 @@ namespace PresetConverter
             public const string SteinbergStereoEnhancer = "77BBA7CA90F14C9BB298BA9010D6DD78";
             public const string SteinbergStudioEQ = "946051208E29496E804F64A825C8A047";
             public const string SteinbergTremolo = "E97A6873690F40E986F3EE1007B5C8FC";
+            public const string SteinbergTuner = "6B9B08D2CA294270BF092A62865521BF";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
 
             // Waves
@@ -110,8 +114,8 @@ namespace PresetConverter
             // Native Instruments
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
             public const string NIKontakt6 = "5653544E694F356B6F6E74616B740000"; // this opens as as a vstpreset file if in the Kontakt 5 folder (NiO5)
-            public const string NIKontakt641 = "5653544E6924646B6F6E74616B740000"; // this opens as as a vstpreset file if in the Kontakt 6 folder (Ni$D)
-            public const string NIKontakt6_64out = "5653544E6924446B6F6E74616B740000";                                                    
+            public const string NIKontakt641 = "5653544E6924646B6F6E74616B740000"; // works for Kontakt 6.4.1 and opens as as a vstpreset file if in the Kontakt 6 folder (Ni$D)
+            public const string NIKontakt6_64out = "5653544E6924446B6F6E74616B740000"; // works for Kontakt 6.4.2 and opens as as a vstpreset file if in the Kontakt 6 folder (Ni$D)                                                    
 
             // Fabfilter
             public const string FabFilterProQ = "E45D59E8CB2540FAB0F346E115F8AFD4";
@@ -715,7 +719,11 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergTremolo)
+                    this.Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMultibandEnvelopeShaper) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergNoiseGate) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergTuner)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
