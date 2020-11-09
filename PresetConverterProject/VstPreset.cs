@@ -51,6 +51,7 @@ namespace PresetConverter
         public struct VstIDs
         {
             // Steinberg
+            public const string SteinbergAmpSimulator = "E4B91D8420B74C48A8B10F2DB9CB707E";
             public const string SteinbergAutoPan = "1CA6E894E4624F73ADEB29CD01DDE9EE";
             public const string SteinbergCompressor = "5B38F28281144FFE80285FF7CCF20483";
             public const string SteinbergDeEsser = "75FD13A528D24880982197D541BC582A";
@@ -62,6 +63,7 @@ namespace PresetConverter
             public const string SteinbergGrooveAgentSE = "91585860BA1748E581441ECD96B153ED";
             public const string SteinbergHALionSonicSE = "5B6D6402C5F74C35B3BE88ADF7FC7D27";
             public const string SteinbergMonoDelay = "42A36F8AEE394B98BB2E8B63CB68E3E7";
+            public const string SteinbergMorphFilter = "25B0872DB12B44B89E32ABBC1D0B3D8A";
             public const string SteinbergMultibandCompressor = "86DFC3F5415C40388D3AA69030C380B1";
             public const string SteinbergMultibandEnvelopeShaper = "F7E6BFADFCD947BEB0A726EF32CBFC70";
             public const string SteinbergNoiseGate = "C3B0615A2A444991B423673DEE2379A7";
@@ -706,6 +708,7 @@ namespace PresetConverter
             else
             {
                 if (
+                    this.Vst3ID.Equals(VstIDs.SteinbergAmpSimulator) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergAutoPan) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
@@ -714,16 +717,17 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergExpander) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMorphFilter) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMultibandEnvelopeShaper) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergNoiseGate) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMultibandEnvelopeShaper) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergNoiseGate) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergTuner)
+                    this.Vst3ID.Equals(VstIDs.SteinbergTuner) 
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
