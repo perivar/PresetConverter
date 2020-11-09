@@ -113,8 +113,8 @@ namespace PresetConverter
 
             // Native Instruments
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
-            public const string NIKontakt6 = "5653544E694F356B6F6E74616B740000"; // this opens as as a vstpreset file if in the Kontakt 5 folder (NiO5)
-            public const string NIKontakt641 = "5653544E6924646B6F6E74616B740000"; // works for Kontakt 6.4.1 and opens as as a vstpreset file if in the Kontakt 6 folder (Ni$D)
+            public const string NIKontakt6 = "5653544E694F356B6F6E74616B740000"; // this opens as as a vstpreset file if in the Kontakt 5 folder (NiO5) using a Kontakt6 portable dll copy
+            // public const string NIKontakt641 = "5653544E6924646B6F6E74616B740000"; // works for Kontakt 6.4.1 and opens as as a vstpreset file if in the Kontakt 6 folder (Ni$D)
             public const string NIKontakt6_64out = "5653544E6924446B6F6E74616B740000"; // works for Kontakt 6.4.2 and opens as as a vstpreset file if in the Kontakt 6 folder (Ni$D)                                                    
 
             // Fabfilter

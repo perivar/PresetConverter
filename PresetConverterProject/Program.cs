@@ -729,11 +729,12 @@ namespace PresetConverter
                     var kontakt = vstPreset as NIKontakt5;
                     origPluginName = "Kontakt 5";
 
-                    // check if we should convert to kontakt 6 preset
+                    // check if we should convert to kontakt 6 64 out preset
                     if (doConvertToKontakt6)
                     {
                         origPluginName = "Kontakt 6";
-                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6;
+                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6_64out;
+                        kontakt.FXP.Content.FxID = "Ni$D"; // make sure to set the fxID to the right kontakt version
                     }
 
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
@@ -744,6 +745,14 @@ namespace PresetConverter
                     var kontakt = vstPreset as NIKontakt6;
                     origPluginName = "Kontakt 6";
 
+                    // check if we should convert to kontakt 6 64 out preset
+                    if (doConvertToKontakt6)
+                    {
+                        origPluginName = "Kontakt 6";
+                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6_64out;
+                        kontakt.FXP.Content.FxID = "Ni$D"; // make sure to set the fxID to the right kontakt version
+                    }                    
+
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
 
@@ -752,12 +761,7 @@ namespace PresetConverter
                     var kontakt = vstPreset as NIKontakt6_64out;
                     origPluginName = "Kontakt 6";
 
-                    // check if we should convert to a standard kontakt 6 preset
-                    // if (doConvertToKontakt6)
-                    // {
-                    //     origPluginName = "Kontakt 6";
-                    //     kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt641;
-                    // }
+                    // already Kontakt 6
 
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
