@@ -132,6 +132,7 @@ namespace CommonUtils
             var fxp = ReadFXP(bf);
             Content = fxp.Content;
             XmlDocument = fxp.XmlDocument;
+            bf.Close(); // cannot close the binary file inside the ReadFXP method since a bank reads several programs of fxp content
         }
 
         public void Write(string filePath)
@@ -295,6 +296,7 @@ namespace CommonUtils
             var fxp = ReadFXP(bf);
             Content = fxp.Content;
             XmlDocument = fxp.XmlDocument;
+            bf.Close(); // cannot close the binary file inside the ReadFXP method since a bank reads several programs of fxp content
         }
 
         private static FXP ReadFXP(BinaryFile bf)
@@ -433,8 +435,6 @@ namespace CommonUtils
 
                 fxp.Content = set;
             }
-
-            bf.Close();
 
             return fxp;
         }
