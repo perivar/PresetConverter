@@ -53,18 +53,23 @@ namespace PresetConverter
             // Steinberg
             public const string SteinbergAmpSimulator = "E4B91D8420B74C48A8B10F2DB9CB707E";
             public const string SteinbergAutoPan = "1CA6E894E4624F73ADEB29CD01DDE9EE";
+            public const string SteinbergBrickwallLimiter = "94DEB7BF378041EE9E2FEDA24E19EF60";
             public const string SteinbergCompressor = "5B38F28281144FFE80285FF7CCF20483";
             public const string SteinbergDeEsser = "75FD13A528D24880982197D541BC582A";
             public const string SteinbergDistortion = "A990C1062CDE43839ECEF8FE91743DA5";
+            public const string SteinbergDJEq = "B023870608424FABBCF5516BB15FF0EE";
             public const string SteinbergDualFilter = "6143DAECD6184AE2A570FE9F35065E24";
             public const string SteinbergEnvelopeShaper = "C3D60417A5BB4FB288CB1A75FA641EDF";
             public const string SteinbergEQ = "297BA567D83144E1AE921DEF07B41156";
             public const string SteinbergExpander = "2A4C06FF24F14078868891D184CEFB73";
             public const string SteinbergFrequency = "01F6CCC94CAE4668B7C6EC85E681E419";
+            public const string SteinbergGEQ10 = "7C215D9E31E2419E9925056D19310ACD";
             public const string SteinbergGrooveAgentONE = "D3F57B09EC6B49998C534F50787A9F86";
             public const string SteinbergGrooveAgentSE = "91585860BA1748E581441ECD96B153ED";
             public const string SteinbergHALionSonicSE = "5B6D6402C5F74C35B3BE88ADF7FC7D27";
             public const string SteinbergLimiter = "B94789B3C4C944EFB0058694DAB8704E";
+            public const string SteinbergMaximizer = "44A0C349905B45D0B97C72D2C6F5B565";
+            public const string SteinbergModMachine = "27994C1910A04BA991A20C402B922E35";
             public const string SteinbergMonoDelay = "42A36F8AEE394B98BB2E8B63CB68E3E7";
             public const string SteinbergMorphFilter = "25B0872DB12B44B89E32ABBC1D0B3D8A";
             public const string SteinbergMultibandCompressor = "86DFC3F5415C40388D3AA69030C380B1";
@@ -715,15 +720,20 @@ namespace PresetConverter
                 if (
                     this.Vst3ID.Equals(VstIDs.SteinbergAmpSimulator) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergAutoPan) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergBrickwallLimiter) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergDJEq) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDualFilter) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergEnvelopeShaper) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergEQ) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergExpander) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergGEQ10) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergLimiter) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMaximizer) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergModMachine) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMorphFilter) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
@@ -736,7 +746,7 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergTuner) 
+                    this.Vst3ID.Equals(VstIDs.SteinbergTuner)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -926,7 +936,7 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.WavesHDelayStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesKramerTapeStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesL3LLMultiStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesMannyMReverbStereo)||
+                    this.Vst3ID.Equals(VstIDs.WavesMannyMReverbStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMetaFlangerStereo) ||
