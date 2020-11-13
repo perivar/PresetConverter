@@ -56,6 +56,7 @@ namespace PresetConverter
             public const string SteinbergBrickwallLimiter = "94DEB7BF378041EE9E2FEDA24E19EF60";
             public const string SteinbergCompressor = "5B38F28281144FFE80285FF7CCF20483";
             public const string SteinbergDeEsser = "75FD13A528D24880982197D541BC582A";
+            public const string SteinbergDeEsserNew = "464DF4539C164C03869900DF86BD887F";
             public const string SteinbergDistortion = "A990C1062CDE43839ECEF8FE91743DA5";
             public const string SteinbergDJEq = "B023870608424FABBCF5516BB15FF0EE";
             public const string SteinbergDualFilter = "6143DAECD6184AE2A570FE9F35065E24";
@@ -63,11 +64,13 @@ namespace PresetConverter
             public const string SteinbergEQ = "297BA567D83144E1AE921DEF07B41156";
             public const string SteinbergExpander = "2A4C06FF24F14078868891D184CEFB73";
             public const string SteinbergFrequency = "01F6CCC94CAE4668B7C6EC85E681E419";
+            public const string SteinbergGate = "3B660266B3CA4B57BBD487AE1E6C0D2A";
             public const string SteinbergGEQ10 = "7C215D9E31E2419E9925056D19310ACD";
             public const string SteinbergGrooveAgentONE = "D3F57B09EC6B49998C534F50787A9F86";
             public const string SteinbergGrooveAgentSE = "91585860BA1748E581441ECD96B153ED";
             public const string SteinbergHALionSonicSE = "5B6D6402C5F74C35B3BE88ADF7FC7D27";
             public const string SteinbergLimiter = "B94789B3C4C944EFB0058694DAB8704E";
+            public const string SteinbergMagnetoII = "B8874B5BFF884A93A524C74D7FFB1D54";
             public const string SteinbergMaximizer = "44A0C349905B45D0B97C72D2C6F5B565";
             public const string SteinbergModMachine = "27994C1910A04BA991A20C402B922E35";
             public const string SteinbergMonoDelay = "42A36F8AEE394B98BB2E8B63CB68E3E7";
@@ -76,28 +79,37 @@ namespace PresetConverter
             public const string SteinbergMultibandEnvelopeShaper = "F7E6BFADFCD947BEB0A726EF32CBFC70";
             public const string SteinbergNoiseGate = "C3B0615A2A444991B423673DEE2379A7";
             public const string SteinbergOctaver = "4114D8E30C024C1DB0DE375FC53CDBED";
+            public const string SteinbergPadShop = "F38B6C9C04CC45C8B98A682A6F45424A";
             public const string SteinbergPingPongDelay = "37A3AA84E3A24D069C39030EC68768E1";
             public const string SteinbergPitchCorrect = "10F9FE4142694F1EAC21E294B42577C6";
             public const string SteinbergPrologue = "FFF583CCDFB246F894308DB9C5D94C8D";
             public const string SteinbergREVerence = "ED824AB48E0846D5959682F5626D0972";
+            public const string SteinbergSamplerTrack = "D1B42E80F1124DFEAFEDE2480EFB4298";
             public const string SteinbergStandardPanner = "44E1149EDB3E4387BDD827FEA3A39EE7";
             public const string SteinbergStereoDelay = "001DCD3345D14A13B59DAECF75A37536";
             public const string SteinbergStereoEnhancer = "77BBA7CA90F14C9BB298BA9010D6DD78";
+            public const string SteinbergStudioChorus = "8545543739404DEB84F4E6CF0DC687B5";
             public const string SteinbergStudioEQ = "946051208E29496E804F64A825C8A047";
             public const string SteinbergTremolo = "E97A6873690F40E986F3EE1007B5C8FC";
             public const string SteinbergTuner = "6B9B08D2CA294270BF092A62865521BF";
+            public const string SteinbergUV22HR = "56535455564852757632326872000000";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
 
             // Waves
             public const string WavesAPI2500Mono = "5653544150434D6170692D3235303020";
+            public const string WavesBassRiderStereo = "56535442534C53626173732072696465";
             public const string WavesC1CompStereo = "565354434D5053633120636F6D702073";
             public const string WavesC4Stereo = "5653544445515363342073746572656F";
             public const string WavesCLAGuitarsStereo = "56535443475453636C61206775697461";
+            public const string WavesDeBreathMono = "5653544252544D646562726561746820";
+            public const string WavesDeEsserStereo = "56535444534153646565737365722073";
             public const string WavesDoubler2Stereo = "56535457443253646F75626C65723220";
             public const string WavesDoubler4Stereo = "56535457443453646F75626C65723420";
             public const string WavesHDelayStereo = "56535448424453682D64656C61792073";
             public const string WavesKramerTapeStereo = "565354544150536B72616D6572207461";
             public const string WavesL3LLMultiStereo = "565354523350536C332D6C6C206D756C";
+            public const string WavesL3MultiMaximizerStereo = "5653544C3350536C33206D756C74696D";
+            public const string WavesLinEQLowbandStereo = "5653544C5153536C696E6571206C6F77";
             public const string WavesMannyMReverbStereo = "5653544D4D52536D616E6E796D207265";
             public const string WavesMaseratiACGStereo = "565354544E41536D6173657261746920";
             public const string WavesMaseratiVX1Stereo = "565354544E56536D6173657261746920";
@@ -107,8 +119,10 @@ namespace PresetConverter
             public const string WavesPuigTecEQP1AStereo = "56535450314153707569677465632065";
             public const string WavesQ10Stereo = "56535445514153713130207374657265";
             public const string WavesQ2Stereo = "5653544551325371322073746572656F";
+            public const string WavesRBassStereo = "565354524E4253726261737320737465";
             public const string WavesRChannelStereo = "565354524E5453726368616E6E656C20";
             public const string WavesRCompressorStereo = "5653545552435372636F6D7072657373";
+            public const string WavesRDeEsserStereo = "56535452445353726465657373657220";
             public const string WavesREQ6Stereo = "56535452513653726571203620737465";
             public const string WavesRVerbStereo = "56535452524653727665726220737465";
             public const string WavesS1ImagerStereo = "5653544E534853733120696D61676572";
@@ -119,6 +133,9 @@ namespace PresetConverter
             public const string WavesSuperTap2TapsMonoStereo = "5653544D543258737570657274617020";
             public const string WavesSuperTap2TapsStereo = "5653544D543253737570657274617020";
             public const string WavesTrueVerbStereo = "56535454563453747275657665726220";
+            public const string WavesTuneLTStereo = "565354544E4C5377617665732074756E";
+            public const string WavesVitaminStereo = "56535456544D53766974616D696E2073";
+            public const string WavesVocalRiderStereo = "56535452445253766F63616C20726964";
 
             // UAD
             public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
@@ -138,6 +155,16 @@ namespace PresetConverter
             // East West
             public const string EastWestPlay = "ABCDEF019182FAEB2D45572D4577506C";
             public const string EastWestPlayx64 = "565354706C6179706C61795F7673745F";
+
+            // MusicLab
+            public const string MusicLabRealStrat = "5653544D526C537265616C7374726174";
+            public const string MusicLabRealEight = "5653544D526C457265616C6569676874";
+            public const string MusicLabRealGuitarClassic = "5653544D526C477265616C6775697461";
+            public const string MusicLabRealLPC = "565354524C50437265616C6C70630000";
+
+
+            // Other
+            public const string TBProAudioGainRider2 = "F2AEE70D00DE4F4E5442504154425044";
         }
 
         private class ListElement
@@ -723,6 +750,7 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergBrickwallLimiter) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergDeEsserNew) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDJEq) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergDualFilter) ||
@@ -730,8 +758,10 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergEQ) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergExpander) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergGate) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergGEQ10) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergLimiter) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergMagnetoII) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMaximizer) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergModMachine) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
@@ -744,9 +774,11 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergStudioChorus) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergTuner)
+                    this.Vst3ID.Equals(VstIDs.SteinbergTuner) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergUV22HR)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -801,6 +833,8 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergHALionSonicSE) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergSamplerTrack) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergPadShop) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                     )
                 {
@@ -928,14 +962,19 @@ namespace PresetConverter
 
                 else if (
                     this.Vst3ID.Equals(VstIDs.WavesAPI2500Mono) ||
+                    this.Vst3ID.Equals(VstIDs.WavesBassRiderStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesC1CompStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesC4Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesCLAGuitarsStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesDeBreathMono) ||
+                    this.Vst3ID.Equals(VstIDs.WavesDeEsserStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesDoubler2Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesDoubler4Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesHDelayStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesKramerTapeStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesL3LLMultiStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesL3MultiMaximizerStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesLinEQLowbandStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMannyMReverbStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
@@ -945,8 +984,10 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.WavesPuigTecEQP1AStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesQ10Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesQ2Stereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesRBassStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesRChannelStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesRCompressorStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesRDeEsserStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesREQ6Stereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesRVerbStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesS1ImagerStereo) ||
@@ -956,7 +997,10 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.WavesSSLEQStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsMonoStereo) ||
                     this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesTrueVerbStereo)
+                    this.Vst3ID.Equals(VstIDs.WavesTrueVerbStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesTuneLTStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesVitaminStereo) ||
+                    this.Vst3ID.Equals(VstIDs.WavesVocalRiderStereo)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -1065,6 +1109,40 @@ namespace PresetConverter
                     return;
 
                 }
+
+                else if (
+                    this.Vst3ID.Equals(VstIDs.MusicLabRealEight) ||
+                    this.Vst3ID.Equals(VstIDs.MusicLabRealGuitarClassic) ||
+                    this.Vst3ID.Equals(VstIDs.MusicLabRealLPC) ||
+                    this.Vst3ID.Equals(VstIDs.MusicLabRealStrat)
+                    )
+                {
+                    // rewind 4 bytes (seek to comp data start pos)
+                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+
+                    // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
+                    // as in:
+                    // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
+
+                    // read until all bytes have been read
+                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+
+                    // seek to cont start pos
+                    if (this.ContDataChunkSize > 0)
+                    {
+                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+
+                        // read until all bytes have been read
+                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                    }
+
+                    // try to read the info xml 
+                    TryReadInfoXml(bf);
+
+                    return;
+
+                }
+
                 else
                 {
                     // rewind 4 bytes (seek to comp data start pos)
