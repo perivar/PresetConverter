@@ -22,7 +22,7 @@ namespace CommonUtils
         /// <summary>
         /// Return all files by their extension in ONE Directory (not recursive)
         /// </summary>
-        /// <param name="dir">Directoy Path</param>
+        /// <param name="dir">Directory Path</param>
         /// <param name="extensions">extensions, e.g. ".jpg",".exe",".gif"</param>
         /// <returns></returns>
         /// <example>dInfo.GetFilesByExtensions(".jpg",".exe",".gif");</example>
@@ -39,7 +39,7 @@ namespace CommonUtils
         /// Get Files using regexp pattern like \.mp3|\.mp4\.wav\.ogg
         /// By using SearchOption.AllDirectories, you can make it recursive
         /// </summary>
-        /// <param name="path">Directoy Path</param>
+        /// <param name="path">Directory Path</param>
         /// <param name="searchPatternExpression">Regexp pattern like \.mp3|\.mp4\.wav\.ogg</param>
         /// <param name="searchOption">SearchOption like SearchOption.AllDirectories</param>
         /// <returns>IEnumerable array of filenames</returns>
@@ -54,7 +54,7 @@ namespace CommonUtils
         /// Get Files using array of extensions and executes in parallel
         /// By using SearchOption.AllDirectories, you can make it recursive
         /// </summary>
-        /// <param name="path">Directoy Path</param>
+        /// <param name="path">Directory Path</param>
         /// <param name="searchPatterns">Array of extensions like: string[] extensions = { "*.mp3", "*.wav", "*.ogg" };</param>
         /// <param name="searchOption">SearchOption like SearchOption.AllDirectories</param>
         /// <returns>IEnumerable array of filenames</returns>
@@ -70,7 +70,7 @@ namespace CommonUtils
         /// <summary>
         /// Get files recursively using a search pattern
         /// </summary>
-        /// <param name="path">Directoy Path</param>
+        /// <param name="path">Directory Path</param>
         /// <param name="searchPattern">Search pattern like: "*.mp3" or "one_specific_file.wav"</param>
         /// <returns>IEnumerable array of filenames</returns>
         public static IEnumerable<string> GetFilesRecursive(string path, string searchPattern)
@@ -81,7 +81,7 @@ namespace CommonUtils
         /// <summary>
         /// Get files recursively using an array of extensions
         /// </summary>
-        /// <param name="path">Directoy Path</param>
+        /// <param name="path">Directory Path</param>
         /// <param name="extensions">Array of extensions like: string[] extensions = { ".mp3", ".wav", ".ogg" };</param>
         /// <returns>IEnumerable array of filenames</returns>
         /// <example>
@@ -99,7 +99,7 @@ namespace CommonUtils
         /// <summary>
         /// Get all files recursively
         /// </summary>
-        /// <param name="path">Directoy Path</param>
+        /// <param name="path">Directory Path</param>
         /// <returns>IEnumerable array of filenames</returns>
         public static IEnumerable<string> GetFilesRecursive(string path)
         {

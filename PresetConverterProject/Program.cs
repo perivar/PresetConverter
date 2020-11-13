@@ -751,7 +751,7 @@ namespace PresetConverter
                         origPluginName = "Kontakt 6";
                         kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6_64out;
                         kontakt.FXP.Content.FxID = "Ni$D"; // make sure to set the fxID to the right kontakt version
-                    }                    
+                    }
 
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
@@ -836,7 +836,16 @@ namespace PresetConverter
                 }
                 else
                 {
-                    Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " and filename: " + fileNameNoExtension);
+                    var snpidNum = NKS.ConvertToBase10(snpid);
+                    if (snpidNum != snpid)
+                    {
+                         Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " (" +  snpidNum + ") and filename: " + fileNameNoExtension);
+                    }
+                    else
+                    {
+                        Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " and filename: " + fileNameNoExtension);
+                    }
+
                     kontaktLibraryName = snpid;
                 }
                 fileNameNoExtension += (" - " + kontaktLibraryName);
@@ -1305,6 +1314,8 @@ namespace PresetConverter
         {
             string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryOrFilePath);
             var destinationDirectoryPath = Path.Combine(outputDirectoryPath, outputFileName);
+
+            Log.Information("Note that if extracting resources fails or turns up empty or garbled information its probably packed. Use a tool like upx (https://github.com/upx/upx) to unpack before running this script again.");
 
             if (doList)
             {

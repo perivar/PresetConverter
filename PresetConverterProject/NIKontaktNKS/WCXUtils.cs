@@ -99,10 +99,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public static class NativeMethods
     {
-        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr LoadLibrary(string fileName);
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr LoadLibrary(string lpFileName);
 
-        // [DllImport("kernel32", SetLastError = true)]
         [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr module, string procedureName);
 
@@ -957,5 +956,158 @@ namespace PresetConverterProject.NIKontaktNKS
 
             return true;
         }
+
+        public static string ExtractResourceFromExecutable(string filePath)
+        {
+            // check out https://github.com/resourcelib/resourcelib
+
+            // load DLL
+            IntPtr hModule = Kernel32.LoadLibraryEx(filePath, IntPtr.Zero,
+                Kernel32.DONT_RESOLVE_DLL_REFERENCES | Kernel32.LOAD_LIBRARY_AS_DATAFILE);
+
+            // Note that if extracting resources turns up garbled information its probably packed.
+            // use a tool like upx (https://github.com/upx/upx) to unpack before running this script again
+
+            if (hModule != IntPtr.Zero)
+            {
+                try
+                {
+                    // enumerate resource types
+                    // for each type, enumerate resource names
+                    // for each name, enumerate resource languages
+                    // for each resource language, enumerate actual resources
+                    if (!Kernel32.EnumResourceTypes(hModule, EnumResourceTypesImpl, IntPtr.Zero))
+                    {
+                        int error = Marshal.GetLastWin32Error();
+                        string message = string.Format("GetResourceFromExecutable failed with error {0}", error);
+                        Log.Error(message);
+                        return null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.Message);
+                    return null;
+                }
+            }
+            else
+            {
+                Log.Error("Failed opening {0}", filePath);
+            }
+
+            return "";
+        }
+
+        /// <summary>
+        /// Enumerate resource types.
+        /// </summary>
+        /// <param name="hModule">Module handle.</param>
+        /// <param name="lpszType">Resource type.</param>
+        /// <param name="lParam">Additional parameter.</param>
+        /// <returns>TRUE if successful.</returns>
+        private static bool EnumResourceTypesImpl(IntPtr hModule, IntPtr lpszType, IntPtr lParam)
+        {
+            // enumerate resource names
+            if (!Kernel32.EnumResourceNames(hModule, lpszType, new Kernel32.EnumResourceNamesDelegate(EnumResourceNamesImpl), IntPtr.Zero))
+            {
+                int error = Marshal.GetLastWin32Error();
+                string message = string.Format("EnumResourceTypesImpl failed with error {0}", error);
+                Log.Error(message);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Enumerate resource names within a resource by type
+        /// </summary>
+        /// <param name="hModule">Module handle.</param>
+        /// <param name="lpszType">Resource type.</param>
+        /// <param name="lpszName">Resource name.</param>
+        /// <param name="lParam">Additional parameter.</param>
+        /// <returns>TRUE if successful.</returns>
+        private static bool EnumResourceNamesImpl(IntPtr hModule, IntPtr lpszType, IntPtr lpszName, IntPtr lParam)
+        {
+            if (!Kernel32.EnumResourceLanguages(hModule, lpszType, lpszName, new Kernel32.EnumResourceLanguagesDelegate(EnumResourceLanguages), IntPtr.Zero))
+            {
+                int error = Marshal.GetLastWin32Error();
+                string message = string.Format("EnumResourceNamesImpl failed with error {0}", error);
+                Log.Error(message);
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool EnumResourceLanguages(IntPtr hModule, IntPtr lpszType, IntPtr lpszName, UInt16 wIDLanguage, IntPtr lParam)
+        {
+            string name = IsIntResource(lpszName)
+                    ? lpszName.ToString()
+                    : Marshal.PtrToStringUni(lpszName);
+            var type = (Kernel32.ResourceTypes)lpszType;
+            var BlockId = (UInt16)lpszName.ToInt64();
+
+            IntPtr hResource = Kernel32.FindResourceEx(hModule, lpszType, lpszName, wIDLanguage);
+
+            if (hResource != IntPtr.Zero)
+            {
+                int resSize = Kernel32.SizeofResource(hModule, hResource);
+                IntPtr resData = Kernel32.LoadResource(hModule, hResource);
+                if (resData != IntPtr.Zero)
+                {
+                    byte[] resBytes = new byte[resSize];
+                    IntPtr ipMemorySource = Kernel32.LockResource(resData);
+                    Marshal.Copy(ipMemorySource, resBytes, 0, (int)resSize);
+
+                    // process string table
+                    if (type == Kernel32.ResourceTypes.RT_STRING)
+                    {
+                        // https://github.com/resourcelib/resourcelib/blob/master/Source/ResourceLib/StringResource.cs
+
+                        // set starting point
+                        IntPtr lpRes = ipMemorySource;
+
+                        for (int i = 0; i < 16; i++)
+                        {
+                            UInt16 len = (UInt16)Marshal.ReadInt16(lpRes);
+                            if (len != 0)
+                            {
+                                UInt16 id = (UInt16)((BlockId - 1) * 16 + i);
+                                IntPtr lpString = new IntPtr(lpRes.ToInt64() + 2);
+                                string s = Marshal.PtrToStringUni(lpString, len);
+                                Log.Information(id + ": " + s);
+                            }
+                            lpRes = new IntPtr(lpRes.ToInt64() + 2 + (len * Marshal.SystemDefaultCharSize));
+                        }
+                    }
+                    else
+                    {
+                        Log.Information("Name: " + name + ", Type: " + type + ", Lang: " + wIDLanguage + " - " + StringUtils.ToHexEditorString(resBytes));
+
+                        // string filePath = "G:\\Development Projects\\Own Projects\\Temp\\" + type + "_" + lpszName.ToString() + ".bin";
+                        // using (var outputStream = new FileStream(filePath, FileMode.OpenOrCreate))
+                        // {
+                        //     using (var writer = new BinaryWriter(outputStream))
+                        //     {
+                        //         writer.Write(resBytes);
+                        //     }
+                        // }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if the resource is an integer resource.
+        /// </summary>
+        /// <param name="value">Resource pointer.</param>
+        static bool IsIntResource(IntPtr value)
+        {
+            return value.ToInt64() <= UInt16.MaxValue;
+        }
+
     }
 }
