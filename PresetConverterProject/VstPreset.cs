@@ -83,8 +83,10 @@ namespace PresetConverter
             public const string SteinbergPingPongDelay = "37A3AA84E3A24D069C39030EC68768E1";
             public const string SteinbergPitchCorrect = "10F9FE4142694F1EAC21E294B42577C6";
             public const string SteinbergPrologue = "FFF583CCDFB246F894308DB9C5D94C8D";
+            public const string SteinbergRetrologue = "CC3695D88FE74881B46E6CCFFB291CFF";
             public const string SteinbergREVerence = "ED824AB48E0846D5959682F5626D0972";
             public const string SteinbergSamplerTrack = "D1B42E80F1124DFEAFEDE2480EFB4298";
+            public const string SteinbergSpector = "6790343791E94AE79D617D85146881AC";
             public const string SteinbergStandardPanner = "44E1149EDB3E4387BDD827FEA3A39EE7";
             public const string SteinbergStereoDelay = "001DCD3345D14A13B59DAECF75A37536";
             public const string SteinbergStereoEnhancer = "77BBA7CA90F14C9BB298BA9010D6DD78";
@@ -93,7 +95,9 @@ namespace PresetConverter
             public const string SteinbergTremolo = "E97A6873690F40E986F3EE1007B5C8FC";
             public const string SteinbergTuner = "6B9B08D2CA294270BF092A62865521BF";
             public const string SteinbergUV22HR = "56535455564852757632326872000000";
+            public const string SteinbergVintageCompressor = "E0E5F5FC9F854334B69096445A7B2FA8";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
+            public const string SteinbergVSTDynamics = "A920B15DBBF04B359CB8A471C58E3B91";
 
             // Waves
             public const string WavesAPI2500Mono = "5653544150434D6170692D3235303020";
@@ -667,8 +671,9 @@ namespace PresetConverter
         {
             // Some presets start with a chunkID here,
             // Others start with the preset content
-            string dataChunkID = bf.ReadString(4);
-            Log.Verbose("data chunk id: '{0}'", dataChunkID);
+            var dataChunkIDBytes = bf.ReadBytes(4);
+            string dataChunkID = Encoding.ASCII.GetString(dataChunkIDBytes);
+            Log.Verbose("Data chunk id: '{0}'", StringUtils.ToHexAndAsciiString(dataChunkIDBytes));
 
             // Single preset?
             bool singlePreset = false;
@@ -778,7 +783,9 @@ namespace PresetConverter
                     this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergTuner) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergUV22HR)
+                    this.Vst3ID.Equals(VstIDs.SteinbergUV22HR) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergVintageCompressor) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergVSTDynamics)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -831,10 +838,12 @@ namespace PresetConverter
 
                 else if (
                     this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergHALionSonicSE) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergSamplerTrack) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergPadShop) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergRetrologue) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergSamplerTrack) ||
+                    this.Vst3ID.Equals(VstIDs.SteinbergSpector) ||
                     this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                     )
                 {
@@ -1032,8 +1041,9 @@ namespace PresetConverter
                     var param1Name = "XmlContent";
                     AddParameter(param1Name, 1, xmlContent);
 
-                    var postType = bf.ReadString(4);
-                    Log.Verbose("PostType: {0}", postType);
+                    var postTypeBytes = bf.ReadBytes(4);
+                    string postType = Encoding.ASCII.GetString(postTypeBytes);
+                    Log.Verbose("PostType: '{0}'", StringUtils.ToHexAndAsciiString(postTypeBytes));
 
                     // there is some xml content after the PresetChunkXMLTree chunk
                     // read in this also

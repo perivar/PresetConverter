@@ -466,6 +466,32 @@ namespace PresetConverter
 
             // parse the project file
             var riffReader = new RIFFFileReader(file);
+            var binaryFile = riffReader.BinaryFile;
+
+            // second chunk should contain Cubase Project File information
+            var infoChunk = riffReader.Chunks[1];
+
+            // 'Cubase' field
+            binaryFile.Seek(99);
+            var cubaseLen = binaryFile.ReadInt32();
+            var cubaseField = binaryFile.ReadString(cubaseLen, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField(binaryFile, "Cubase", cubaseField))
+            {
+                Log.Error("Fatal error! Could not read Cubase Project File!");
+                return;
+            }
+
+            var versionLen = binaryFile.ReadInt32();
+            var versionField = binaryFile.ReadString(versionLen, Encoding.ASCII).TrimEnd('\0');
+            if (!versionField.StartsWith("Version"))
+            {
+                Log.Error("Fatal error! Could not read Cubase Project File!");
+                return;
+            }
+
+            var versionText = versionField.Substring(8);
+            var version = new Version(versionText);
+            Log.Information("Found Cubase Version {0} Project File", version);
 
             // get fourth chunk
             var chunk = riffReader.Chunks[3];
@@ -482,7 +508,6 @@ namespace PresetConverter
             // namely the index of the very last byte in the chunk byte array
             if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices.Add(chunkBytes.Length - 1);
 
-            var binaryFile = riffReader.BinaryFile;
             for (int i = 0, trackNumber = 1; i < vstMultitrackIndices.Count() - 1; i++, trackNumber++)
             {
                 // the current and next index as within the chunk byte array
@@ -503,11 +528,14 @@ namespace PresetConverter
                 var v2 = binaryFile.ReadInt32();
                 var v3 = binaryFile.ReadInt32();
 
-                // 'RuntimeID' field
-                var runtimeIDLen = binaryFile.ReadInt32();
-                var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField)) continue;
-                var b1 = binaryFile.ReadBytes(10);
+                if (version.Major > 8)
+                {
+                    // 'RuntimeID' field
+                    var runtimeIDLen = binaryFile.ReadInt32();
+                    var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
+                    if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField)) continue;
+                    var b1 = binaryFile.ReadBytes(10);
+                }
 
                 // 'Name' field
                 var nameLen = binaryFile.ReadInt32();
@@ -534,10 +562,13 @@ namespace PresetConverter
                 outputFileName = string.Format("{0} {1:D3} - {2}", outputFileName, trackNumber, trackName);
                 outputFileName = StringUtils.MakeValidFileName(outputFileName);
 
-                // 'Type'
-                var typeLen = binaryFile.ReadInt32();
-                var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField(binaryFile, "Type", typeField)) continue;
+                if (version.Major > 8)
+                {
+                    // 'Type'
+                    var typeLen = binaryFile.ReadInt32();
+                    var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
+                    if (IsWrongField(binaryFile, "Type", typeField)) continue;
+                }
 
                 // skip to the next 'VstCtrlInternalEffect' field            
                 var vstEffectBytePattern = Encoding.ASCII.GetBytes("VstCtrlInternalEffect\0");
@@ -615,7 +646,7 @@ namespace PresetConverter
             // Plugin Name
             var pluginNameLen = binaryFile.ReadInt32();
             var pluginName = binaryFile.ReadString(pluginNameLen, Encoding.UTF8);
-            pluginName = pluginName.Replace("\0", "");
+            pluginName = StringUtils.RemoveByteOrderMark(pluginName);
             Log.Information("Plugin Name: {0}", pluginName);
 
             // 'Original Plugin Name' or 'Audio Input Count'
@@ -628,7 +659,7 @@ namespace PresetConverter
                 var t9 = binaryFile.ReadInt16();
                 var origPluginNameLen = binaryFile.ReadInt32();
                 origPluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
-                origPluginName = origPluginName.Replace("\0", "");
+                origPluginName = StringUtils.RemoveByteOrderMark(origPluginName);
                 Log.Information("Original Plugin Name: {0}", origPluginName);
             }
 
@@ -839,7 +870,7 @@ namespace PresetConverter
                     var snpidNum = NKS.ConvertToBase10(snpid);
                     if (snpidNum != snpid)
                     {
-                         Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " (" +  snpidNum + ") and filename: " + fileNameNoExtension);
+                        Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " (" + snpidNum + ") and filename: " + fileNameNoExtension);
                     }
                     else
                     {
