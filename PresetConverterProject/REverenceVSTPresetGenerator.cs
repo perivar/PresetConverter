@@ -24,7 +24,7 @@ namespace PresetConverter
 
             if (automaticImageMode)
             {
-                // Rule, look in parent directory for file
+                // Rule, look in same directory for file
                 var imageFiles = new DirectoryInfo(wavFilePath).Parent.GetFiles("*.jpg");
 
                 if (null != imageFiles && imageFiles.Length > 0)
@@ -32,7 +32,18 @@ namespace PresetConverter
                     foreach (FileInfo fi in imageFiles)
                     {
                         images.Add(fi.FullName);
-                        Log.Debug("Found image file to use: {0}", fi.Name);
+                        Log.Debug("Found image file to use in same directory: {0}", fi.Name);
+                    }
+                }
+                else
+                {
+                    //  also check in parent dir
+                    var parentImageFiles = new DirectoryInfo(wavFilePath).Parent.Parent.GetFiles("*.jpg");
+
+                    foreach (FileInfo fi in parentImageFiles)
+                    {
+                        images.Add(fi.FullName);
+                        Log.Debug("Found image file to use in parent directory: {0}", fi.Name);
                     }
                 }
             }
