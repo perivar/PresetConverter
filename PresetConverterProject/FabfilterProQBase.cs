@@ -24,7 +24,7 @@ namespace PresetConverter
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
 
             string header = binFile.ReadString(4);
-            if (header == headerExpected) // "FPQr" or "FQ2p"
+            if (header == headerExpected) // "FPQr", "FQ2p" or "FQ3p"
             {
                 int version = binFile.ReadInt32();
                 int parameterCount = binFile.ReadInt32();

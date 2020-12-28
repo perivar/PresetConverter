@@ -155,6 +155,7 @@ namespace PresetConverter
             public const string FabFilterProQx64 = "5653544650517266616266696C746572";
             public const string FabFilterProQ2 = "55FD08E6C00B44A697DA68F61C6FD576";
             public const string FabFilterProQ2x64 = "5653544651327066616266696C746572";
+            public const string FabFilterProQ3 = "5653544651337066616266696C746572";
 
             // East West
             public const string EastWestPlay = "ABCDEF019182FAEB2D45572D4577506C";

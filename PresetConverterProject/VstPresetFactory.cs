@@ -96,6 +96,14 @@ namespace PresetConverter
                     var fabFilterProQ2 = preset as FabfilterProQ2;
                     fabFilterProQ2.InitFromParameters();
                 }
+
+                else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ3)
+                {
+                    // init variables from the parameters or FXP object
+                    var fabFilterProQ3 = preset as FabfilterProQ3;
+                    fabFilterProQ3.InitFromParameters();
+                }
+
             }
             catch (System.Exception e)
             {
@@ -157,6 +165,16 @@ namespace PresetConverter
                     fabFilterProQ2.InitFromParameters();
 
                     break;
+                case VstPreset.VstIDs.FabFilterProQ3:
+                    preset = new FabfilterProQ3();
+                    preset.Parameters = vstPreset.Parameters;
+                    preset.FXP = vstPreset.FXP;
+
+                    // init variables from the parameters or FXP object
+                    var fabFilterProQ3 = preset as FabfilterProQ3;
+                    fabFilterProQ3.InitFromParameters();
+
+                    break;                    
                 case VstPreset.VstIDs.WavesSSLChannelStereo:
                     VstPreset.Parameter sslChannelXml = null;
                     vstPreset.Parameters.TryGetValue("XmlContent", out sslChannelXml);

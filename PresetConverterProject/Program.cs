@@ -1004,6 +1004,12 @@ namespace PresetConverter
                     HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
                 }
 
+                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ3)
+                {
+                    var fabFilterProQ3 = vstPreset as FabfilterProQ3;
+                    HandleFabfilterPresetFile(fabFilterProQ3, "FabFilterProQ3", outputDirectoryPath, fileNameNoExtension);
+                }
+
                 // always output the information
                 else
                 {
@@ -1033,6 +1039,13 @@ namespace PresetConverter
                     {
                         var fabFilterProQ2 = vstPreset as FabfilterProQ2;
                         HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2x64", outputDirectoryPath, fileNameNoExtension);
+                    }
+
+                    // check if FabFilter Pro Q3
+                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ3)
+                    {
+                        var fabFilterProQ3 = vstPreset as FabfilterProQ3;
+                        HandleFabfilterPresetFile(fabFilterProQ3, "FabFilterProQ3", outputDirectoryPath, fileNameNoExtension);
                     }
 
                     else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
@@ -1092,10 +1105,30 @@ namespace PresetConverter
             else
             {
                 floatArray = FabfilterProQBase.ReadFloats(file, "FQ2p");
-                var preset = new FabfilterProQ2();
-                if (preset.ReadFFP(file))
+                if (floatArray != null)
                 {
-                    HandleFabfilterPresetFile(preset, "FabfilterProQ2", outputDirectoryPath, outputFileName);
+                    var preset = new FabfilterProQ2();
+                    if (preset.ReadFFP(file))
+                    {
+                        HandleFabfilterPresetFile(preset, "FabfilterProQ2", outputDirectoryPath, outputFileName);
+                    }
+                }
+                else
+                {
+                    floatArray = FabfilterProQBase.ReadFloats(file, "FQ3p");
+                    if (floatArray != null)
+                    {
+                        var preset = new FabfilterProQ3();
+                        if (preset.ReadFFP(file))
+                        {
+                            HandleFabfilterPresetFile(preset, "FabfilterProQ3", outputDirectoryPath, outputFileName);
+                        }
+                    }
+                    else
+                    {
+                        // failed
+                        Log.Error("Failed reading fabfilter eq information {0}...", file);
+                    }
                 }
             }
         }
@@ -1127,6 +1160,30 @@ namespace PresetConverter
         private static void HandleFabfilterPresetFile(FabfilterProQ2 preset, string pluginName, string outputDirectoryPath, string fileNameNoExtension)
         {
             // output the vstpreset
+            string fabFilterOutputFilePath = Path.Combine(outputDirectoryPath, pluginName, fileNameNoExtension);
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
+            preset.Write(fabFilterOutputFilePath + ".vstpreset");
+
+            // and dump the text info as well
+            File.WriteAllText(fabFilterOutputFilePath + ".txt", preset.ToString());
+
+            // write the preset file as well
+            preset.WriteFFP(fabFilterOutputFilePath + ".ffp");
+
+            // convert to steinberg Frequency format
+            var steinbergFrequency = preset.ToSteinbergFrequency();
+            string frequencyOutputFilePath = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".vstpreset");
+            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+            steinbergFrequency.Write(frequencyOutputFilePath);
+
+            // and dump the steinberg frequency info as well
+            string frequencyOutputFilePathText = Path.Combine(outputDirectoryPath, "Frequency", fileNameNoExtension + ".txt");
+            File.WriteAllText(frequencyOutputFilePathText, steinbergFrequency.ToString());
+        }
+
+        private static void HandleFabfilterPresetFile(FabfilterProQ3 preset, string pluginName, string outputDirectoryPath, string fileNameNoExtension)
+        {
+            // output the vstpreset (Note! have not tested if the vstpreset file works!)
             string fabFilterOutputFilePath = Path.Combine(outputDirectoryPath, pluginName, fileNameNoExtension);
             IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, pluginName));
             preset.Write(fabFilterOutputFilePath + ".vstpreset");
