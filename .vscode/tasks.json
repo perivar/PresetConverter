@@ -1,120 +1,155 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/PresetConverterProject/PresetConverter.csproj"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "test",
-            "command": "dotnet",
-            "type": "shell",
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            },
-            "args": [
-                "test",
-                "${workspaceFolder}/TestProject/Test.csproj"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": true
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "dotnet version",
-            "command": "dotnet",
-            "args": [
-                "--version"
-            ],
-            "type": "shell",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": true
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "publish release win-x64",
-            "command": "dotnet",
-            "args": [
-                "publish",
-                "--configuration",
-                "Release",
-                "--runtime",
-                "win-x64"
-            ],
-            "type": "shell",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": true
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "publish debug win-x64",
-            "command": "dotnet",
-            "args": [
-                "publish",
-                "--configuration",
-                "Debug",
-                "--runtime",
-                "win-x64"
-            ],
-            "type": "shell",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": true
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "publish release linux-x64",
-            "command": "dotnet",
-            "args": [
-                "publish",
-                "--configuration",
-                "Release",
-                "--runtime",
-                "linux-x64"
-            ],
-            "type": "shell",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": true
-            },
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "publish debug linux-x64",
-            "command": "dotnet",
-            "args": [
-                "publish",
-                "--configuration",
-                "Debug",
-                "--runtime",
-                "linux-x64"
-            ],
-            "type": "shell",
-            "presentation": {
-                "reveal": "always",
-                "panel": "new",
-                "focus": true
-            },
-            "problemMatcher": "$msCompile"
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-new",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/PresetConverter.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish-new",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/PresetConverter.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/PresetConverter.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/PresetConverterProject/PresetConverter.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "shell",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "args": ["test", "${workspaceFolder}/TestProject/Test.csproj"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "dotnet version",
+      "command": "dotnet",
+      "args": ["--version"],
+      "type": "shell",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish release win-x64",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "--configuration",
+        "Release",
+        "--runtime",
+        "win-x64",
+        "--self-contained",
+        "false",
+        "-p:PublishSingleFile=true",
+        "-p:UseAppHost=true"
+        // "-p:IncludeNativeLibrariesForSelfExtract=true",
+        // "-p:DebugType=embedded",
+      ],
+      "type": "shell",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish debug win-x64",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "--configuration",
+        "Debug",
+        "--runtime",
+        "win-x64",
+        "--self-contained",
+        "false",
+        "-p:PublishSingleFile=true",
+        "-p:UseAppHost=true"
+      ],
+      "type": "shell",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish release linux-x64",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "--configuration",
+        "Release",
+        "--runtime",
+        "linux-x64"
+      ],
+      "type": "shell",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish debug linux-x64",
+      "command": "dotnet",
+      "args": ["publish", "--configuration", "Debug", "--runtime", "linux-x64"],
+      "type": "shell",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    }
+  ]
 }

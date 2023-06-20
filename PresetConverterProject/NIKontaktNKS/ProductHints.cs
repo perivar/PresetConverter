@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using CommonUtils;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 
 namespace PresetConverterProject.NIKontaktNKS
@@ -281,17 +277,14 @@ namespace PresetConverterProject.NIKontaktNKS
                 var imageBytes = productHints.Product.Icon.ImageBytes;
                 if (imageBytes != null)
                 {
-                    using (var ms = new MemoryStream(imageBytes))
-                    {
-                        IImageFormat imageFormat = null;
-                        var image = Image.Load(ms, out imageFormat);
+                    var image = Image.Load(imageBytes);
+                    var imageFormat = image.Metadata.DecodedImageFormat;
 
-                        // store format
-                        productHints.Product.Icon.ImageFormat = imageFormat;
+                    // store format
+                    productHints.Product.Icon.ImageFormat = imageFormat;
 
-                        // store image
-                        productHints.Product.Icon.Image = image;
-                    }
+                    // store image
+                    productHints.Product.Icon.Image = image;
                 }
             }
         }

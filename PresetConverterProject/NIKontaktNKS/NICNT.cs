@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using CommonUtils;
 using Serilog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -75,7 +69,7 @@ namespace PresetConverterProject.NIKontaktNKS
                                 if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
 
                                 // save using ImageSharp
-                                // var imageEncoder = image.GetConfiguration().ImageFormatsManager.FindEncoder(imageFormat);
+                                // var imageEncoder = image.GetConfiguration().ImageFormatsManager.GetEncoder(imageFormat);
                                 // image.Save(iconFilePath, imageEncoder);
 
                                 // save using image bytes

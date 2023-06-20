@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using CommonUtils;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using Vestris.ResourceLib;
 
@@ -261,27 +254,29 @@ namespace PresetConverter
                     if (Size != 40)
                     {
                         // this might be a PNG
-                        IImageFormat imageFormat = null;
-                        Image = Image.Load(bytes, out imageFormat);
-                        ImageFormat = imageFormat;
+                        Image = Image.Load(bytes);
 
                         // save as bytes
-                        if (Image != null && ImageFormat != null)
+                        if (Image != null)
                         {
-                            using (var ms = new MemoryStream())
+                            ImageFormat = Image.Metadata.DecodedImageFormat;
+                            if (ImageFormat != null)
                             {
-                                Image.Save(ms, imageFormat);
+                                using (var ms = new MemoryStream())
+                                {
+                                    Image.Save(ms, ImageFormat);
+                                    ImageData = ms.ToArray();
+                                    ImageSize = (uint)ImageData.Length;
+                                }
 
-                                ImageData = ms.ToArray();
-                                ImageSize = (uint)ImageData.Length;
+                                Width = (uint)Image.Width;
+                                Height = (uint)Image.Height;
+                                BitCount = (ushort)Image.PixelType.BitsPerPixel;
                             }
                         }
 
                         Size = 40;
-                        Width = (uint)Image.Width;
-                        Height = (uint)Image.Height;
-                        BitCount = (ushort)Image.PixelType.BitsPerPixel;
-                        BitMask = new byte[0];
+                        BitMask = Array.Empty<byte>();
                         return;
                     }
 

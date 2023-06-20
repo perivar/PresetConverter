@@ -1,3 +1,5 @@
 {
-    "dotnet-test-explorer.testProjectPath": "TestProject"
+  "dotnet.defaultSolution": "PresetConverter.sln",
+  "editor.formatOnSave": true,
+  "cSpell.enabled": false
 }

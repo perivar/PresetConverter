@@ -1,22 +1,11 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-
 using CommonUtils;
 using PresetConverter;
 using Xunit;
 
-namespace PresetConverterTests
+namespace TestProject
 {
     public class SteinbergTests
     {
-        [Fact]
-        public void Test1()
-        {
-
-        }
-
         [Theory]
         [InlineData(@"Compressor\Sidechain - Default.vstpreset")]
         [InlineData(@"Compressor\Sidechain - Vocal Delay Throws.vstpreset")]
@@ -24,10 +13,10 @@ namespace PresetConverterTests
         [InlineData(@"Frequency\Subtle Stereo Enhancer (Stereo).vstpreset")]
         [InlineData(@"MultibandCompressor\Drum Bus (Get Bass Under Control Before Saturation).vstpreset")]
         [InlineData(@"Groove Agent SE\Loveless - They Don't Know.vstpreset")]
-        // [InlineData(@"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies\REVerence\Bricasti - Small Room 27.vstpreset")]
+        // [InlineData(@"REVerence\Bricasti - Small Room 27.vstpreset")]
         public void Test2(string fileName)
         {
-            string outputDirectoryPath = @"C:\Users\perner\Amazon Drive\Documents\My Projects\Steinberg Media Technologies";
+            string outputDirectoryPath = @"C:\Users\per.nerseth\OneDrive\DevProjects\Steinberg Media Technologies";
             string filePath = Path.Combine(outputDirectoryPath, fileName);
 
             var readBytes = File.ReadAllBytes(filePath);

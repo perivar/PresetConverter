@@ -9,7 +9,7 @@ using PresetConverterProject.NIKontaktNKS;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace PresetConverterTests
+namespace TestProject
 {
     public class NKSTests
     {

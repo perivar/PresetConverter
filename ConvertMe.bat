@@ -1,7 +1,7 @@
 @ECHO off
 
-SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\netcoreapp3.0\win-x64\publish"
-SET "OUTPUTDIR=%UserProfile%\My Projects\Temp"
+SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\net7.0\win-x64\publish"
+SET "OUTPUTDIR=%UserProfile%\Development\Temp"
 SET "CONVERTER=PresetConverter.exe"
 
 FOR %%i IN (%*) DO IF EXIST %%~si\NUL (CALL :ISDIR %%i) ELSE (CALL :ISFILE %%i)
