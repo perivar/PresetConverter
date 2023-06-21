@@ -68,10 +68,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
                                 if (doVerbose) Log.Debug("Saving Icon to: " + iconFilePath);
 
-                                // save using ImageSharp
-                                // var imageEncoder = image.GetConfiguration().ImageFormatsManager.GetEncoder(imageFormat);
-                                // image.Save(iconFilePath, imageEncoder);
-
                                 // save using image bytes
                                 BinaryFile.ByteArrayToFile(iconFilePath, productHints.Product.Icon.ImageBytes);
                             }

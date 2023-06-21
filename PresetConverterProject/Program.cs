@@ -135,7 +135,7 @@ namespace PresetConverter
 
                     if (!doPack)
                     {
-                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".exe", ".dll" };
+                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".exe", ".dll", ".wcx64" };
                         var filePaths = HandleMultipleInputPaths(optionInputDirectoryOrFilePath, extensions);
 
                         foreach (var inputFilePath in filePaths)
@@ -178,6 +178,7 @@ namespace PresetConverter
                                     break;
                                 case ".exe":
                                 case ".dll":
+                                case ".wcx64":
                                     HandleWindowsFile(inputFilePath, outputDirectoryPath, config, doList, doVerbose);
                                     break;
                             }

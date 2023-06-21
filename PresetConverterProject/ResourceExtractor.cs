@@ -64,12 +64,80 @@ namespace PresetConverter
                     bool isAlreadyWritten = false;
                     switch (resource.Type.TypeName)
                     {
-                        case "RT_BITMAP": // Bitmap 
+                        case "RT_BITMAP": // Bitmap
+                            try
+                            {
+                                var bmpRaw = resource.WriteAndGetBytes();
+                                BinaryFile binFile = new BinaryFile(bmpRaw, BinaryFile.ByteOrder.LittleEndian);
+
+                                // Read BITMAPINFOHEADER
+                                var biSize = (int)binFile.ReadUInt32(); // header size
+                                var biWidth = (int)binFile.ReadUInt32();
+                                var biHeight = (int)binFile.ReadUInt32();
+                                var biPlanes = (short)binFile.ReadUInt16();
+                                var biBitCount = (short)binFile.ReadUInt16(); // bit count
+                                var biCompression = (int)binFile.ReadUInt32();
+                                var biSizeImage = (int)binFile.ReadUInt32();
+                                var biXPelsPerMeter = (int)binFile.ReadUInt32();
+                                var biYPelsPerMeter = (int)binFile.ReadUInt32();
+                                var biClrUsed = (int)binFile.ReadUInt32();
+                                var biClrImportant = (int)binFile.ReadUInt32();
+
+                                int byteCountToRead = (int)binFile.Length - 40;
+
+                                // we only support 24 or 32 bit formats
+                                if ((biBitCount == 24 | biBitCount == 32) && byteCountToRead > 0)
+                                {
+                                    var pixelData = binFile.ReadBytes(byteCountToRead);
+
+                                    Image? img = null;
+                                    if (biBitCount == 24)
+                                    {
+                                        // TODO - are RT_BITMAP using Rgb24 or Bgr24 ?
+                                        img = Image.LoadPixelData<Bgr24>(pixelData, biWidth, biHeight);
+                                    }
+                                    else if (biBitCount == 32)
+                                    {
+                                        // TODO - are RT_BITMAP using Rgba32 or Bgra32 ?
+                                        img = Image.LoadPixelData<Bgra32>(pixelData, biWidth, biHeight);
+                                    }
+
+                                    if (img != null)
+                                    {
+                                        // flip
+                                        img.Mutate(imageContext => imageContext
+                                            .Flip(FlipMode.Vertical)
+                                        );
+
+                                        // Work with the image
+                                        destinationFilePath = Path.ChangeExtension(destinationFilePath, "BMP");
+                                        img.SaveAsBmp(destinationFilePath);
+                                        isAlreadyWritten = true;
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // ignore
+                            }
+
+                            break;
+                        case "PNG": // Png
+                        case "IMAGE": // Png?
+                            try
+                            {
+                                var imageFormat = Image.DetectFormat(resource.WriteAndGetBytes());
+                                var extension = imageFormat != null ? imageFormat.Name : "PNG";
+                                destinationFilePath = Path.ChangeExtension(destinationFilePath, extension);
+                            }
+                            catch (Exception)
+                            {
+                                // ignore
+                            }
                             break;
                         case "RT_VERSION": // Version 
                             break;
-                        case "RT_GROUP_ICON":
-
+                        case "RT_GROUP_ICON": // Icon Group 
                             var iconGroup = new IconGroup();
                             var icondirectoryResource = resource as IconDirectoryResource;
                             foreach (var icon in icondirectoryResource.Icons)
@@ -81,8 +149,7 @@ namespace PresetConverter
                             iconGroup.Save(destinationFilePath + ".ICO");
                             isAlreadyWritten = true;
                             break;
-                        case "RT_ICON": // Icon 
-
+                        case "RT_ICON": // Single Icon 
                             var iconSingle = new IconGroup();
                             var bytes = resource.WriteAndGetBytes();
                             var iconElementSingle = new IconElement(bytes);
@@ -117,6 +184,12 @@ namespace PresetConverter
                         case "RT_GROUP_CURSOR":
                             break;
                         case "RT_MANIFEST": // Manifest
+                            break;
+                        case "WAVE": // Wave
+                            destinationFilePath = Path.ChangeExtension(destinationFilePath, "WAV");
+                            break;
+                        case "XML": // XML
+                            destinationFilePath = Path.ChangeExtension(destinationFilePath, "XML");
                             break;
                         default:
                             break;

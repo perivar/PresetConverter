@@ -255,13 +255,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 var imageFormat = productHints.Product.Icon.ImageFormat;
                 if (image != null && imageFormat != null)
                 {
-                    using (var ms = new MemoryStream())
-                    {
-                        image.Save(ms, imageFormat);
-
-                        // store image bytes
-                        productHints.Product.Icon.ImageBytes = ms.ToArray();
-                    }
+                    // store image bytes
+                    productHints.Product.Icon.ImageBytes = image.ToByteArray(imageFormat);
                 }
             }
         }

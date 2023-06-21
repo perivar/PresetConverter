@@ -305,7 +305,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": ".NET Core Launch (DAW) NI Kontakt NICNT unpack",
+      "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT unpack",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -314,23 +314,23 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
+        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\per.nerseth\\Development\\Temp",
         "--wcx"
         // "-l",
         // "-v"
@@ -367,6 +367,71 @@
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp",
         "-p",
+        "--wcx"
+        // "-l",
+        // "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (LAPTOP) Extract DLL Resources",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "${workspaceFolder}/PresetConverterProject/WCXPlugins/nkx.wcx64",
+        // "-i",
+        // "C:\\Windows\\System32\\imageres.dll",
+        // "-i",
+        // "C:\\Windows\\System32\\shell32.dll",
+        // "-i",
+        // "C:\\Windows\\System32\\pifmgr.dll",
+        "-o",
+        "C:\\Users\\per.nerseth\\Development\\Temp",
+        // "-l",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt NICNT unpack",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
+        "-i",
+        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
+        "-o",
+        "G:\\Development Projects\\Own Projects\\Temp",
         "--wcx"
         // "-l",
         // "-v"
