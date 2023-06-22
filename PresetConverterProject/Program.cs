@@ -71,13 +71,20 @@ namespace PresetConverter
             .Build();
 
             // // Read settings into NKSLibraries.Libraries
-            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], false, true);
+            // var appExecutionPath = IOUtils.GetApplicationExecutionPath();
+            // var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
+            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], nksLibsPath, false, true);
+
+            // // find current directory
+            // var curDirPath = Directory.GetCurrentDirectory();
 
             // // Read CSV
-            // var csvList = IOUtils.ReadCSV(@"C:\Users\perner\My Projects\PresetConverter\PresetConverterProject\NIKontaktNKS\SNPID List.csv", true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
+            // var cvsPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List.csv");
+            // var csvList = IOUtils.ReadCSV(cvsPath, true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
 
             // // read RT_STRINGS with / delimiter
-            // var rtList = IOUtils.ReadCSV(@"C:\Users\perner\My Projects\PresetConverter\PresetConverterProject\NIKontaktNKS\RT_STRINGS.TXT", false, RTStringsParser, "/", false).Cast<NksLibraryDesc>();
+            // var rtPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS.TXT");
+            // var rtList = IOUtils.ReadCSV(rtPath, false, RTStringsParser, "/", false).Cast<NksLibraryDesc>();
 
             // // check for differences
             // var inCSVButNotRT = csvList.Where(csv => rtList.All(rt => rt.Id != csv.Id));
@@ -454,7 +461,7 @@ namespace PresetConverter
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath, IConfiguration config, bool doConvertToKontakt6)
         {
             // read Kontakt library ids
-            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], true);
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], null, true);
 
             // dictionary to hold the processed presets, to avoid duplicates
             var processedPresets = new List<PresetInfo>();
@@ -1398,16 +1405,21 @@ namespace PresetConverter
             string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryOrFilePath);
             var destinationDirectoryPath = Path.Combine(outputDirectoryPath, outputFileName);
 
-            Log.Information("Note that if extracting resources fails or turns up empty or garbled information its probably packed. Use a tool like upx (https://github.com/upx/upx) to unpack before running this script again.");
-
-            if (doList)
+            try
             {
-                ResourceExtractor.List(inputDirectoryOrFilePath);
+                if (doList)
+                {
+                    ResourceExtractor.List(inputDirectoryOrFilePath);
+                }
+                else
+                {
+                    IOUtils.CreateDirectoryIfNotExist(destinationDirectoryPath);
+                    ResourceExtractor.ExtractAll(inputDirectoryOrFilePath, destinationDirectoryPath);
+                }
             }
-            else
+            catch (System.Exception)
             {
-                IOUtils.CreateDirectoryIfNotExist(destinationDirectoryPath);
-                ResourceExtractor.ExtractAll(inputDirectoryOrFilePath, destinationDirectoryPath);
+                Log.Error("Failed loading resource! This means that the resource is probably packed. Use a tool like upx (https://github.com/upx/upx) to unpack before running this script again.");
             }
         }
     }

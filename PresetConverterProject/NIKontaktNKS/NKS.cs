@@ -37,24 +37,42 @@ namespace PresetConverterProject.NIKontaktNKS
         // Number used in SNPID Base36 conversion
         const int SNPID_CONST = 4080;
 
-        public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        public static void NksReadLibrariesInfo(string nksSettingsPath, string nksLibsPath = null, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             // read in all libraries
+
+            // read libs from nklibs_info.userdb
+            if (nksLibsPath != null)
+            {
+                var nksLibsList = NksGetNKLibsLibraries(nksLibsPath, includeNonEncryptedLibs, useIntegerIds);
+                if (nksLibsList != null)
+                {
+                    foreach (var nksLibsEntry in nksLibsList)
+                    {
+                        // ignore duplicates, they are are silently eliminated
+                        NKSLibraries.Libraries[nksLibsEntry.Id] = nksLibsEntry;
+                    }
+                }
+            }
+
+            // read libs from registry
             var regList = NksGetRegistryLibraries();
             if (regList != null)
             {
                 foreach (var regEntry in regList)
                 {
-                    // ignore if duplicates are silently eliminated
+                    // ignore duplicates, they are are silently eliminated
                     NKSLibraries.Libraries[regEntry.Id] = regEntry;
                 }
             }
+
+            // read libs from Settings.cfg
             var settingsList = NksGetSettingsLibraries(nksSettingsPath, includeNonEncryptedLibs, useIntegerIds);
             if (settingsList != null)
             {
                 foreach (var settingsEntry in settingsList)
                 {
-                    // ignore if duplicates are silently eliminated
+                    // ignore duplicates, they are are silently eliminated
                     NKSLibraries.Libraries[settingsEntry.Id] = settingsEntry;
                 }
             }
@@ -174,6 +192,123 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             return settingsList;
+        }
+
+        #endregion
+
+        #region Read Library Descriptors from nklibs_info.userdb
+        public static void PrintNKLibsLibraryInfo(string nksLibsPath, TextWriter writer, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        {
+            var list = NKS.NksGetNKLibsLibraries(nksLibsPath, includeNonEncryptedLibs, useIntegerIds);
+
+            if (list != null)
+            {
+                foreach (NksLibraryDesc entry in list)
+                {
+                    var id = entry.Id;
+                    var company = entry.Company;
+                    var name = entry.Name;
+                    var keyHex = StringUtils.ByteArrayToHexString(entry.GenKey.Key);
+                    var ivHEx = StringUtils.ByteArrayToHexString(entry.GenKey.IV);
+
+                    writer.WriteLine("Id: {0}\nCompany: {1}\nName: {2}\nKey: {3}\nIV: {4}", id, company, name, keyHex, ivHEx);
+                }
+            }
+        }
+
+        private static List<NksLibraryDesc> NksGetNKLibsLibraries(string nksLibsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        {
+            Regex sectionRegex = new Regex(@"\[([\w\d]+)\]");
+            Regex elementRegex = new Regex(@"(.*?)=(.*?)$");
+
+            var keyElements = new List<string>();
+            keyElements.Add("JDX");
+            keyElements.Add("HU");
+            keyElements.Add("RegKey");
+            keyElements.Add("Company");
+
+            List<NksLibraryDesc> nkLibsList = null;
+
+            using (var reader = new StreamReader(nksLibsPath))
+            {
+                string line = null;
+                string sectionName = null;
+                bool isProcessingSection = false;
+                NksLibraryDesc libDesc = null;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (isProcessingSection)
+                    {
+                        if (libDesc == null) libDesc = new NksLibraryDesc();
+
+                        // Set SNPID if its not already set
+                        if (libDesc.Id == null)
+                        {
+                            libDesc.Id = sectionName.ToUpper();
+
+                            // check if we are using only integer ids
+                            if (useIntegerIds)
+                            {
+                                libDesc.Id = ConvertToBase10(libDesc.Id);
+                            }
+                        }
+
+                        Match elementMatch = elementRegex.Match(line);
+
+                        // found new section
+                        if (elementMatch.Success)
+                        {
+                            string key = elementMatch.Groups[1].Value;
+                            string value = elementMatch.Groups[2].Value;
+
+                            if (keyElements.Contains(key))
+                            {
+                                switch (key)
+                                {
+                                    case "RegKey":
+                                        libDesc.Name = value; // .ToUpper();
+                                        break;
+                                    case "Company":
+                                        libDesc.Company = value;
+                                        break;
+                                    case "JDX":
+                                        NksGeneratingKeySetKeyStr(libDesc.GenKey, value);
+                                        break;
+                                    case "HU":
+                                        NksGeneratingKeySetIvStr(libDesc.GenKey, value);
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException("Key not supported: " + key);
+                                }
+                            }
+                        }
+                    }
+
+                    Match sectionMatch = sectionRegex.Match(line);
+
+                    // found new section
+                    if (sectionMatch.Success)
+                    {
+                        sectionName = sectionMatch.Groups[1].Value;
+
+                        isProcessingSection = true;
+
+                        // store previously finished libDesc if found new section
+                        if (libDesc != null
+                        && libDesc.Id != null
+                        && ((!includeNonEncryptedLibs && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0) || includeNonEncryptedLibs)
+                        )
+                        {
+                            if (nkLibsList == null) nkLibsList = new List<NksLibraryDesc>();
+                            nkLibsList.Add(libDesc);
+
+                            libDesc = null;
+                        }
+                    }
+                }
+            }
+
+            return nkLibsList;
         }
 
         #endregion

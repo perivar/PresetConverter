@@ -115,7 +115,6 @@ namespace CommonUtils
         {
             if (File.Exists(fileName))
             {
-
                 string destinationBackupFileName = fileName + ".bak";
 
                 // make sure to create a new backup if the backup file already exist
@@ -399,11 +398,10 @@ namespace CommonUtils
         /// <returns>a list of objects that can be casted to whatever</returns>
         public static List<object> ReadCSV(string filePath, bool hasHeader, MyParser parser, string columnSeparator = columnSeparator, bool doRemoveEmptyEntries = true)
         {
-
             int lineCounter = 0;
             var list = new List<object>();
 
-            // read in the dictionary file in the ord10k.csv format
+            // read in the dictionary file in the csv format
             foreach (var line in File.ReadLines(filePath, _isoLatin1Encoding))
             {
                 lineCounter++;
@@ -420,15 +418,10 @@ namespace CommonUtils
                                               columnSeparator
                                           }, doRemoveEmptyEntries ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 
-
                 list.Add(parser(elements));
-
-                //word.Place = int.Parse(elements[0]);
-                //word.Frequency = int.Parse(elements[1]);
-                //word.Word = elements[4];
             }
-            return list;
 
+            return list;
         }
 
         /// <summary>
@@ -457,7 +450,6 @@ namespace CommonUtils
         /// <param name="columnSeparator">column seperator, default ","</param>
         public static void WriteCSV(string filePath, List<object> lines, MyFormatter formatter, string columnSeparator = columnSeparator)
         {
-
             int lineCounter = 0;
             TextWriter pw = new StreamWriter(filePath, false, _isoLatin1Encoding);
 

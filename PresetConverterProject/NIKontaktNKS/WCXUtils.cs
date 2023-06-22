@@ -99,12 +99,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public static class NativeMethods
     {
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr LoadLibrary(string lpFileName);
+        // https://www.pinvoke.net/default.aspx/kernel32/LoadLibrary.html
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
+        public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpFileName);
 
+        // https://www.pinvoke.net/default.aspx/kernel32.getprocaddress
         [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        public static extern IntPtr GetProcAddress(IntPtr module, string procedureName);
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
+        // https://www.pinvoke.net/default.aspx/kernel32/FreeLibrary.html
         [DllImport("kernel32", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool FreeLibrary(IntPtr hModule);
@@ -237,32 +240,28 @@ namespace PresetConverterProject.NIKontaktNKS
     [return: MarshalAs(UnmanagedType.U4)]
     delegate int ReadHeaderDelegateExW(IntPtr hArcData, [In, Out] ref tHeaderDataExW HeaderData);
 
-    // 
     // Add a [MarshalAs(UnmanagedType.LPWStr)] attribute to the parameter in your delegate declaration in order for String to get converted into wchar_t* :
     //     delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] string foo)
     // 
     // To pass a modifiable string, give a StringBuilder. You need to explicitly reserve space for the unmanaged function to work with:
     //     delegate void MyDelegate([MarshalAs(UnmanagedType.LPWStr)] StringBuilder foo)
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.U4)]
-    // delegate int ProcessFileDelegate(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPStr)] StringBuilder DestName);
-    delegate int ProcessFileDelegate(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] String DestPath, [MarshalAs(UnmanagedType.LPStr)] String DestName);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, IntPtr DestPath, IntPtr DestName);
-    // delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder DestName);
+    delegate int ProcessFileDelegate(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPStr)] string DestPath, [MarshalAs(UnmanagedType.LPStr)] string DestName);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.U4)]
     delegate int ProcessFileDelegateW(IntPtr hArcData, int Operation, [MarshalAs(UnmanagedType.LPWStr)] string DestPath, [MarshalAs(UnmanagedType.LPWStr)] string DestName);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U4)]
-    // delegate int PackFilesDelegateW([MarshalAs(UnmanagedType.LPWStr)] string PackedFile, [MarshalAs(UnmanagedType.LPWStr)] string SubPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder SrcPath, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder AddList, int Flags);
     delegate int PackFilesDelegateW([MarshalAs(UnmanagedType.LPWStr)] string PackedFile, [MarshalAs(UnmanagedType.LPWStr)] string SubPath, [MarshalAs(UnmanagedType.LPWStr)] string SrcPath, [MarshalAs(UnmanagedType.LPWStr)] string AddList, int Flags);
-
 
     // delegates with call back methods
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate int tChangeVolProcW([MarshalAs(UnmanagedType.LPWStr)] string ArcName, int Mode);
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate int tProcessDataProcW([MarshalAs(UnmanagedType.LPWStr)] string FileName, int Size);
 

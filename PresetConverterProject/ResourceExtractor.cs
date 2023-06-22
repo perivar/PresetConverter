@@ -183,12 +183,11 @@ namespace PresetConverter
                             break;
                         case "RT_GROUP_CURSOR":
                             break;
-                        case "RT_MANIFEST": // Manifest
-                            break;
                         case "WAVE": // Wave
                             destinationFilePath = Path.ChangeExtension(destinationFilePath, "WAV");
                             break;
                         case "XML": // XML
+                        case "RT_MANIFEST": // Manifest as XML
                             destinationFilePath = Path.ChangeExtension(destinationFilePath, "XML");
                             break;
                         default:
