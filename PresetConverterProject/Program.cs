@@ -60,6 +60,19 @@ namespace PresetConverter
             return libDesc;
         }
 
+        public static string NKSLibFormatter(object line, int lineCounter, string columnSeparator)
+        {
+            var elements = new List<string>();
+            var libDesc = (NksLibraryDesc)line;
+
+            // elements.Add(String.Format("{0,4}", lineCounter));
+            elements.Add(libDesc.Id);
+            elements.Add(libDesc.Company);
+            elements.Add(libDesc.Name);
+
+            return string.Join(columnSeparator, elements);
+        }
+
         static void Main(string[] args)
         {
             var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
@@ -70,35 +83,42 @@ namespace PresetConverter
             .AddEnvironmentVariables()
             .Build();
 
-            // // Read settings into NKSLibraries.Libraries
-            // var appExecutionPath = IOUtils.GetApplicationExecutionPath();
-            // var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
-            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], nksLibsPath, false, true);
+            // Read settings into NKSLibraries.Libraries
+            var appExecutionPath = IOUtils.GetApplicationExecutionPath();
+            var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], nksLibsPath, false, true);
+            var libList = NKSLibraries.Libraries.Values.AsEnumerable();
 
-            // // find current directory
-            // var curDirPath = Directory.GetCurrentDirectory();
+            // find current directory
+            var curDirPath = Directory.GetCurrentDirectory();
 
-            // // Read CSV
-            // var cvsPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List.csv");
-            // var csvList = IOUtils.ReadCSV(cvsPath, true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
+            // Read CSV
+            var cvsPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List.csv");
+            var csvList = IOUtils.ReadCSV(cvsPath, true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
 
-            // // read RT_STRINGS with / delimiter
-            // var rtPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS.TXT");
-            // var rtList = IOUtils.ReadCSV(rtPath, false, RTStringsParser, "/", false).Cast<NksLibraryDesc>();
+            // read RT_STRINGS_COMPANY as lookup list
 
-            // // check for differences
-            // var inCSVButNotRT = csvList.Where(csv => rtList.All(rt => rt.Id != csv.Id));
-            // var inRTButNotCSV = rtList.Where(rt => csvList.All(csv => csv.Id != rt.Id));
-            // var inBothButDifferentName = rtList.Join(csvList, rt => rt.Id, csv => csv.Id, (rt, csv) => new { rt, csv }).Where(both => both.rt.Name != both.csv.Name);
-            // // var inBothButDifferentName = rtList.Where(p => csvList.Any(p2 => p2.Id == p.Id && p2.Name != p.Name));
-            // var completeList = rtList.Union(csvList).OrderBy(a => a.Id);
 
-            // // check agains the lib list (Settings.cfg)           
-            // var sameIDsButDifferentGenKeys = NKSLibraries.Libraries.Values.Join(rtList, nks => nks.Id, rt => rt.Id, (nks, rt) => new { nks, rt }).Where(both => both.nks.GenKey != both.rt.GenKey);
-            // var inRTButNotLib = rtList.Where(rt => NKSLibraries.Libraries.Values.All(nks => nks.Id != rt.Id));
-            // var inLibButNotRT = NKSLibraries.Libraries.Values.Where(nks => rtList.All(rt => rt.Id != nks.Id));
+            // read RT_STRINGS with / delimiter
+            var rtPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS.TXT");
+            var rtList = IOUtils.ReadCSV(rtPath, false, RTStringsParser, "/", false).Cast<NksLibraryDesc>();
 
-            // return;
+            // check for differences
+            var inCSVButNotRT = csvList.Where(csv => rtList.All(rt => rt.Id != csv.Id));
+            var inRTButNotCSV = rtList.Where(rt => csvList.All(csv => csv.Id != rt.Id));
+            var inBothButDifferentName = rtList.Join(csvList, rt => rt.Id, csv => csv.Id, (rt, csv) => new { rt, csv }).Where(both => both.rt.Name != both.csv.Name);
+
+            // check agains the lib list (Settings.cfg)           
+            var sameIDsButDifferentGenKeys = NKSLibraries.Libraries.Values.Join(rtList, nks => nks.Id, rt => rt.Id, (nks, rt) => new { nks, rt }).Where(both => both.nks.GenKey != both.rt.GenKey);
+            var inRTButNotLib = rtList.Where(rt => NKSLibraries.Libraries.Values.All(nks => nks.Id != rt.Id));
+            var inLibButNotRT = NKSLibraries.Libraries.Values.Where(nks => rtList.All(rt => rt.Id != nks.Id));
+
+            var completeList = libList.Union(rtList).Union(csvList).OrderBy(a => a.Id);
+
+            List<object> lines = completeList.Cast<object>().ToList();
+            IOUtils.WriteCSV("output.csv", lines, NKSLibFormatter, ";");
+
+            return;
 
             // Setup command line parser
             var app = new CommandLineApplication();

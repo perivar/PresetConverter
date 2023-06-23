@@ -388,7 +388,7 @@ namespace CommonUtils
         /// 	return double.Parse(splittedLine[1]);
         /// }
         /// var objects = IOUtils.ReadCSV("input.csv", false, CsvDoubleParser);
-        /// var doubles = objects.Cast&lt;double&gt;().ToArray();
+        /// var doubles = objects.Cast<double>().ToArray();
         /// </example>
         /// <param name="filePath">file path</param>
         /// <param name="hasHeader">whether we should skip the first header row</param>
@@ -430,7 +430,7 @@ namespace CommonUtils
         /// <example>
         /// public static string CvsComplexFormatter(object line, int lineCounter, string columnSeparator)
         /// {
-        ///     var elements = new List&lt;string&gt;();
+        ///     var elements = new List<string>();
         ///     var complex = (CommonUtils.MathLib.FFT.Complex) line;
         ///
         ///     elements.Add(String.Format("{0,4}", lineCounter));
@@ -441,7 +441,7 @@ namespace CommonUtils
         /// }
         /// 
         /// Complex[] spectrum = SpectrogramUtils.padded_FFT(ref signal);
-        /// List&lt;object&gt; lines = spectrum.Cast&lt;object&gt;().ToList();
+        /// List<object> lines = spectrum.Cast<object>().ToList();
         /// IOUtils.WriteCSV("output.csv", lines, CvsComplexFormatter);
         /// </example>
         /// <param name="filePath">file path</param>
