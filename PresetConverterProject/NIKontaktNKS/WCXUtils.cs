@@ -956,7 +956,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        public static string ExtractResourceFromExecutable(string filePath)
+        public static string? ExtractResourceFromExecutable(string filePath)
         {
             // check out https://github.com/resourcelib/resourcelib
 

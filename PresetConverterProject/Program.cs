@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
@@ -16,7 +17,7 @@ namespace PresetConverter
 {
     class Program
     {
-        public static object SnpidCSVParser(string[] splittedLine)
+        public static object SnpidCSVParser(int lineCounter, string[] splittedLine, Dictionary<int, string> lookupDictionary)
         {
             var snpid = splittedLine[0];
             var companyName = splittedLine[1];
@@ -30,14 +31,14 @@ namespace PresetConverter
             return libDesc;
         }
 
-        public static object RTStringsParser(string[] splittedLine)
+        public static object RTStringsParser(int lineCounter, string[] splittedLine, Dictionary<int, string> lookupDictionary)
         {
             var snpidAndCode = splittedLine[0];
 
-            Regex snpidAndCodeRegex = new Regex(@"^(\d+):\s(.*?)$");
+            Regex snpidAndCodeRegex = new(@"^(\d+):\s(.*?)$");
             Match match = snpidAndCodeRegex.Match(snpidAndCode);
-            string snpid = null;
-            string jdx = null;
+            string? snpid = null;
+            string? jdx = null;
             if (match.Success)
             {
                 int id = int.Parse(match.Groups[1].Value);
@@ -47,15 +48,19 @@ namespace PresetConverter
 
             var hu = splittedLine[1];
             var libraryName = splittedLine[2];
-
-            // ignore the count if it exist
-            // var count = splittedLine[3];
+            var libraryCompanyId = splittedLine.Length > 3 ? splittedLine[3] : null;
 
             NksLibraryDesc libDesc = new NksLibraryDesc();
             libDesc.Id = snpid;
             libDesc.Name = libraryName;
             NKS.NksGeneratingKeySetKeyStr(libDesc.GenKey, jdx);
             NKS.NksGeneratingKeySetIvStr(libDesc.GenKey, hu);
+
+            if (libraryCompanyId != null)
+            {
+                var companyId = int.Parse(libraryCompanyId);
+                libDesc.Company = lookupDictionary[companyId];
+            }
 
             return libDesc;
         }
@@ -70,7 +75,78 @@ namespace PresetConverter
             elements.Add(libDesc.Company);
             elements.Add(libDesc.Name);
 
+            if (libDesc.GenKey.KeyLength > 0) elements.Add(StringUtils.ByteArrayToHexString(libDesc.GenKey.Key));
+            if (libDesc.GenKey.IVLength > 0) elements.Add(StringUtils.ByteArrayToHexString(libDesc.GenKey.IV));
+
             return string.Join(columnSeparator, elements);
+        }
+
+        public static string NKSLibCSVHeader(string columnSeparator)
+        {
+            var elements = new List<string>();
+
+            // elements.Add("Line");
+            elements.Add("SNPID");
+            elements.Add("Company Name");
+            elements.Add("Product Name");
+            elements.Add("JDX");
+            elements.Add("HU");
+
+            return string.Join(columnSeparator, elements);
+        }
+
+
+        public class SemiNumericComparer : IComparer<string>
+        {
+            /// <summary>
+            /// Method to determine if a string is a number
+            /// </summary>
+            /// <param name="value">String to test</param>
+            /// <returns>True if numeric</returns>
+            public static bool IsNumeric(string value)
+            {
+                return int.TryParse(value, out _);
+            }
+
+            /// <inheritdoc />
+            public int Compare(string s1, string s2)
+            {
+                const int S1GreaterThanS2 = 1;
+                const int S2GreaterThanS1 = -1;
+
+                var IsNumeric1 = IsNumeric(s1);
+                var IsNumeric2 = IsNumeric(s2);
+
+                if (IsNumeric1 && IsNumeric2)
+                {
+                    var i1 = Convert.ToInt32(s1);
+                    var i2 = Convert.ToInt32(s2);
+
+                    if (i1 > i2)
+                    {
+                        return S1GreaterThanS2;
+                    }
+
+                    if (i1 < i2)
+                    {
+                        return S2GreaterThanS1;
+                    }
+
+                    return 0;
+                }
+
+                if (IsNumeric1)
+                {
+                    return S2GreaterThanS1;
+                }
+
+                if (IsNumeric2)
+                {
+                    return S1GreaterThanS2;
+                }
+
+                return string.Compare(s1, s2, true, CultureInfo.InvariantCulture);
+            }
         }
 
         static void Main(string[] args)
@@ -86,7 +162,7 @@ namespace PresetConverter
             // Read settings into NKSLibraries.Libraries
             var appExecutionPath = IOUtils.GetApplicationExecutionPath();
             var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
-            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], nksLibsPath, false, true);
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], nksLibsPath, false, false);
             var libList = NKSLibraries.Libraries.Values.AsEnumerable();
 
             // find current directory
@@ -94,14 +170,35 @@ namespace PresetConverter
 
             // Read CSV
             var cvsPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List.csv");
-            var csvList = IOUtils.ReadCSV(cvsPath, true, SnpidCSVParser, ";", false).Cast<NksLibraryDesc>();
+            var csvList = IOUtils.ReadCSV(cvsPath, true, SnpidCSVParser, null, ";", false).Cast<NksLibraryDesc>();
+
+            // Read CSV2
+            var cvs2Path = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List2.csv");
+            var csv2List = IOUtils.ReadCSV(cvs2Path, true, SnpidCSVParser, null, ";", false).Cast<NksLibraryDesc>();
 
             // read RT_STRINGS_COMPANY as lookup list
-
+            var rtCompanyPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS_COMPANY.TXT");
+            Dictionary<int, string> companyDict =
+                File.ReadLines(rtCompanyPath).
+                Select((value, number) => (value, number)).
+                ToDictionary(x => x.number, x => x.value.Trim());
 
             // read RT_STRINGS with / delimiter
             var rtPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS.TXT");
-            var rtList = IOUtils.ReadCSV(rtPath, false, RTStringsParser, "/", false).Cast<NksLibraryDesc>();
+            var rtList = IOUtils.ReadCSV(rtPath, false, RTStringsParser, companyDict, "/", false).Cast<NksLibraryDesc>();
+            var rtListWithId = rtList.Select(x =>
+             new NksLibraryDesc
+             {
+                 Id = NKS.ConvertToBase36(long.Parse(x.Id)).PadLeft(3, '0'),
+                 Company = x.Company,
+                 Name = x.Name,
+                 GenKey = x.GenKey
+             });
+
+            // check for differences
+            var inCSVButNotCSV2 = csvList.Where(csv => csv2List.All(rt => rt.Id != csv.Id));
+            var inCSV2ButNotCSV = csv2List.Where(rt => csvList.All(csv => csv.Id != rt.Id));
+            var inBothCSVButDifferentName = csv2List.Join(csvList, rt => rt.Id, csv => csv.Id, (rt, csv) => new { rt, csv }).Where(both => both.rt.Name != both.csv.Name);
 
             // check for differences
             var inCSVButNotRT = csvList.Where(csv => rtList.All(rt => rt.Id != csv.Id));
@@ -113,10 +210,14 @@ namespace PresetConverter
             var inRTButNotLib = rtList.Where(rt => NKSLibraries.Libraries.Values.All(nks => nks.Id != rt.Id));
             var inLibButNotRT = NKSLibraries.Libraries.Values.Where(nks => rtList.All(rt => rt.Id != nks.Id));
 
-            var completeList = libList.Union(rtList).Union(csvList).OrderBy(a => a.Id);
-
+            // build and save the complete list
+            // var completeList = libList.Union(rtListWithId).Union(csvList).OrderBy(a => a.Id, new SemiNumericComparer());
+            var completeList = libList.Union(rtListWithId).OrderBy(a => a.Id, new SemiNumericComparer());
+            // var completeList = csv2List.OrderBy(a => a.Id, new SemiNumericComparer());
+            // var completeList = csvList.Union(csv2List).OrderBy(a => a.Id, new SemiNumericComparer());
+            // var completeList = libList.OrderBy(a => a.Id, new SemiNumericComparer());
             List<object> lines = completeList.Cast<object>().ToList();
-            IOUtils.WriteCSV("output.csv", lines, NKSLibFormatter, ";");
+            IOUtils.WriteCSV("output.csv", lines, NKSLibFormatter, NKSLibCSVHeader, ";");
 
             return;
 

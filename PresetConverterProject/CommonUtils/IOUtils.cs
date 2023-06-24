@@ -311,7 +311,7 @@ namespace CommonUtils
         /// <param name="path">long path</param>
         /// <param name="startAfterPart">base path</param>
         /// <returns></returns>
-        public static string GetRightPartOfPath(string path, string startAfterPart)
+        public static string? GetRightPartOfPath(string path, string startAfterPart)
         {
             int startAfter = path.LastIndexOf(startAfterPart, StringComparison.Ordinal);
 
@@ -375,8 +375,9 @@ namespace CommonUtils
         }
 
         #region Read and Write CSV files
-        public delegate object MyParser(string[] splittedLine);
+        public delegate object MyParser(int lineCounter, string[] splittedLine, Dictionary<int, string> lookupDictionary);
         public delegate string MyFormatter(object line, int lineCounter, string columnSeparator);
+        public delegate string MyFormatterHeader(string columnSeparator);
 
         /// <summary>
         /// Read a CSV file and use delegate method to parse the lines
@@ -396,7 +397,7 @@ namespace CommonUtils
         /// <param name="columnSeparator">column seperator, default ","</param>
         /// <param name="doRemoveEmptyEntries">whether to remove empty entries when parsing lines, default TRUE</param>
         /// <returns>a list of objects that can be casted to whatever</returns>
-        public static List<object> ReadCSV(string filePath, bool hasHeader, MyParser parser, string columnSeparator = columnSeparator, bool doRemoveEmptyEntries = true)
+        public static List<object> ReadCSV(string filePath, bool hasHeader, MyParser parser, Dictionary<int, string>? lookupDictionary = null, string columnSeparator = columnSeparator, bool doRemoveEmptyEntries = true)
         {
             int lineCounter = 0;
             var list = new List<object>();
@@ -418,7 +419,7 @@ namespace CommonUtils
                                               columnSeparator
                                           }, doRemoveEmptyEntries ? StringSplitOptions.RemoveEmptyEntries : StringSplitOptions.None);
 
-                list.Add(parser(elements));
+                list.Add(parser(lineCounter, elements, lookupDictionary));
             }
 
             return list;
@@ -448,10 +449,15 @@ namespace CommonUtils
         /// <param name="lines">a list of objects</param>
         /// <param name="formatter">a formatter delegate method</param>
         /// <param name="columnSeparator">column seperator, default ","</param>
-        public static void WriteCSV(string filePath, List<object> lines, MyFormatter formatter, string columnSeparator = columnSeparator)
+        public static void WriteCSV(string filePath, List<object> lines, MyFormatter formatter, MyFormatterHeader? header = null, string columnSeparator = columnSeparator)
         {
             int lineCounter = 0;
             TextWriter pw = new StreamWriter(filePath, false, _isoLatin1Encoding);
+
+            if (header != null)
+            {
+                pw.WriteLine(header(columnSeparator));
+            }
 
             // rows and columns
             if (lines != null)

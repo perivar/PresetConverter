@@ -37,7 +37,7 @@ namespace PresetConverterProject.NIKontaktNKS
         // Number used in SNPID Base36 conversion
         const int SNPID_CONST = 4080;
 
-        public static void NksReadLibrariesInfo(string nksSettingsPath, string nksLibsPath = null, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        public static void NksReadLibrariesInfo(string nksSettingsPath, string? nksLibsPath = null, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             // read in all libraries
 
@@ -98,7 +98,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc> NksGetSettingsLibraries(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        private static List<NksLibraryDesc>? NksGetSettingsLibraries(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             Regex sectionRegex = new Regex(@"\[([\w\d\s\.\-]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
@@ -111,14 +111,14 @@ namespace PresetConverterProject.NIKontaktNKS
             keyElements.Add("JDX");
             keyElements.Add("HU");
 
-            List<NksLibraryDesc> settingsList = null;
+            List<NksLibraryDesc>? settingsList = null;
 
             using (var reader = new StreamReader(nksSettingsPath))
             {
-                string line = null;
-                string sectionName = null;
+                string? line = null;
+                string? sectionName = null;
                 bool isProcessingSection = false;
-                NksLibraryDesc libDesc = null;
+                NksLibraryDesc? libDesc = null;
                 while ((line = reader.ReadLine()) != null)
                 {
                     if (isProcessingSection)
@@ -216,7 +216,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc> NksGetNKLibsLibraries(string nksLibsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        private static List<NksLibraryDesc>? NksGetNKLibsLibraries(string nksLibsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             Regex sectionRegex = new Regex(@"\[([\w\d]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=(.*?)$");
@@ -227,14 +227,14 @@ namespace PresetConverterProject.NIKontaktNKS
             keyElements.Add("RegKey");
             keyElements.Add("Company");
 
-            List<NksLibraryDesc> nkLibsList = null;
+            List<NksLibraryDesc>? nkLibsList = null;
 
             using (var reader = new StreamReader(nksLibsPath))
             {
-                string line = null;
-                string sectionName = null;
+                string? line = null;
+                string? sectionName = null;
                 bool isProcessingSection = false;
-                NksLibraryDesc libDesc = null;
+                NksLibraryDesc? libDesc = null;
                 while ((line = reader.ReadLine()) != null)
                 {
                     if (isProcessingSection)
@@ -368,7 +368,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return null;
         }
 
-        private static NksLibraryDesc CreateLibraryDesc(string keyName, string name)
+        private static NksLibraryDesc? CreateLibraryDesc(string keyName, string name)
         {
             NksLibraryDesc libDesc = null;
             uint id = 0;
@@ -427,7 +427,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static bool NksGeneratingKeySetKeyStr(NksGeneratingKey generatingKey, string key)
         {
-            byte[] data = null;
+            byte[]? data = null;
             int len = 0;
             if (!HexStringToBinary(key, out data, out len))
                 return false;
@@ -443,7 +443,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static bool NksGeneratingKeySetIvStr(NksGeneratingKey generatingKey, string key)
         {
-            byte[] data = null;
+            byte[]? data = null;
             int len = 0;
             if (!HexStringToBinary(key, out data, out len))
                 return false;
@@ -457,7 +457,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool HexStringToBinary(string str, out byte[] returnData, out int returnLength)
+        private static bool HexStringToBinary(string str, out byte[]? returnData, out int returnLength)
         {
             int len = str.Length;
 
@@ -1458,7 +1458,7 @@ namespace PresetConverterProject.NIKontaktNKS
         private static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
         private static byte[] Nks0110BaseKey;
 
-        private static bool NksGet0100Key(int keyIndex, out byte[] key, out int length)
+        private static bool NksGet0100Key(int keyIndex, out byte[]? key, out int length)
         {
             key = null;
             length = 0;
@@ -1836,14 +1836,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class NksEntry
     {
-        public String Name { get; set; }
+        public String? Name { get; set; }
         public NksEntryType Type { get; set; }
         public UInt32 Offset { get; set; }
 
         // added to support a recursive tree
         public int Level { get; set; }
-        public IList<NksEntry> Children { get; set; }
-        public String SetId { get; set; }
+        public IList<NksEntry>? Children { get; set; }
+        public String? SetId { get; set; }
 
         public override string ToString()
         {
@@ -1859,7 +1859,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class Nks
     {
-        public BinaryFile BinaryFile { get; set; }
+        public BinaryFile? BinaryFile { get; set; }
         public NksEntry RootEntry = new NksEntry();
         public Dictionary<String, NksSetKey> SetKeys { get; set; }
     }

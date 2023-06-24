@@ -22,16 +22,32 @@ namespace PresetConverterProject.NIKontaktNKS
       };
     }
 
-    public class NksLibraryDesc
+    public class NksLibraryDesc : IEquatable<NksLibraryDesc>
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Company { get; set; }
-        public NksGeneratingKey GenKey = new NksGeneratingKey();
+        public string? Id { get; set; }
+        public string? Name { get; set; }
+        public string? Company { get; set; }
+        public NksGeneratingKey GenKey = new();
 
         public override string ToString()
         {
             return string.Format("Id: {0}{1}, Name: {2}", Id, string.IsNullOrEmpty(Company) ? "" : ", Company: " + Company, Name);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as NksLibraryDesc);
+        }
+
+        public bool Equals(NksLibraryDesc? other)
+        {
+            return other != null &&
+                   Id == other.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 
@@ -54,13 +70,22 @@ namespace PresetConverterProject.NIKontaktNKS
             return (this.Key.SequenceEqual(other.Key) && this.IV.SequenceEqual(other.IV));
         }
 
-        public override bool Equals(object obj) => Equals(obj as NksGeneratingKey);
-        public override int GetHashCode() => (Key, IV).GetHashCode();
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as NksGeneratingKey);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Key, IV);
+        }
 
         public static bool operator ==(NksGeneratingKey nksGeneratingKey1, NksGeneratingKey nksGeneratingKey2)
         {
             if (((object)nksGeneratingKey1) == null || ((object)nksGeneratingKey2) == null)
+            {
                 return Object.Equals(nksGeneratingKey1, nksGeneratingKey2);
+            }
 
             return nksGeneratingKey1.Equals(nksGeneratingKey2);
         }
@@ -68,9 +93,11 @@ namespace PresetConverterProject.NIKontaktNKS
         public static bool operator !=(NksGeneratingKey nksGeneratingKey1, NksGeneratingKey nksGeneratingKey2)
         {
             if (((object)nksGeneratingKey1) == null || ((object)nksGeneratingKey2) == null)
+            {
                 return !Object.Equals(nksGeneratingKey1, nksGeneratingKey2);
+            }
 
-            return !(nksGeneratingKey1.Equals(nksGeneratingKey2));
+            return !nksGeneratingKey1.Equals(nksGeneratingKey2);
         }
 
     }
