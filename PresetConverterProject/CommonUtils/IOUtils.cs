@@ -29,7 +29,7 @@ namespace CommonUtils
         public static IEnumerable<FileInfo> GetFilesByExtensions(this DirectoryInfo dir, params string[] extensions)
         {
             if (extensions == null)
-                throw new ArgumentNullException("extensions");
+                throw new ArgumentNullException(nameof(extensions));
 
             IEnumerable<FileInfo> files = dir.EnumerateFiles();
             return files.Where(f => extensions.Contains(f.Extension));
@@ -125,7 +125,7 @@ namespace CommonUtils
                 }
                 while (File.Exists(destinationBackupFileName + (backupFileCount > 0 ? "_" + backupFileCount.ToString() : "")));
 
-                destinationBackupFileName = (destinationBackupFileName + (backupFileCount > 0 ? "_" + (backupFileCount).ToString() : ""));
+                destinationBackupFileName += (backupFileCount > 0 ? "_" + (backupFileCount).ToString() : "");
                 File.Copy(fileName, destinationBackupFileName);
             }
         }
@@ -144,7 +144,7 @@ namespace CommonUtils
 
             // build up filename
             var fileInfo = new FileInfo(filePath);
-            string extension = fileInfo.Extension;
+
             DirectoryInfo folder = fileInfo.Directory;
             string folderName = folder.FullName;
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileInfo.Name);
@@ -329,7 +329,7 @@ namespace CommonUtils
         /// </summary>
         /// <param name="fullPath">full path with extension</param>
         /// <returns>full path without extension</returns>
-        public static String GetFullPathWithoutExtension(String fullPath)
+        public static string GetFullPathWithoutExtension(string fullPath)
         {
             return Path.Combine(Path.GetDirectoryName(fullPath), Path.GetFileNameWithoutExtension(fullPath));
         }
@@ -340,7 +340,7 @@ namespace CommonUtils
         /// <param name="fullPath">full path with our without extension</param>
         /// <param name="extension">extension in the format .ext e.g. '.png', '.wav'</param>
         /// <returns></returns>
-        public static String EnsureExtension(string fullPath, string extension)
+        public static string EnsureExtension(string fullPath, string extension)
         {
             if (!fullPath.EndsWith(extension, StringComparison.Ordinal))
             {
@@ -375,7 +375,7 @@ namespace CommonUtils
         }
 
         #region Read and Write CSV files
-        public delegate object MyParser(int lineCounter, string[] splittedLine, Dictionary<int, string> lookupDictionary);
+        public delegate object MyParser(int lineCounter, string[] splittedLine, Dictionary<int, string>? lookupDictionary);
         public delegate string MyFormatter(object line, int lineCounter, string columnSeparator);
         public delegate string MyFormatterHeader(string columnSeparator);
 
@@ -484,7 +484,7 @@ namespace CommonUtils
         public static string GetApplicationExecutionPath()
         {
             // get the application execution path
-            return Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
         /// <summary>

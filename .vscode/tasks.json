@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build-new",
+      "label": "build-solution",
       "command": "dotnet",
       "type": "process",
       "args": [
@@ -14,7 +14,7 @@
       "problemMatcher": "$msCompile"
     },
     {
-      "label": "publish-new",
+      "label": "publish-solution",
       "command": "dotnet",
       "type": "process",
       "args": [
@@ -43,7 +43,9 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/PresetConverterProject/PresetConverter.csproj"
+        "${workspaceFolder}/PresetConverterProject/PresetConverter.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
       ],
       "problemMatcher": "$msCompile"
     },
@@ -89,7 +91,7 @@
         "-p:PublishSingleFile=true",
         "-p:UseAppHost=true"
         // "-p:IncludeNativeLibrariesForSelfExtract=true",
-        // "-p:DebugType=embedded",
+        // "-p:DebugType=embedded"
       ],
       "type": "shell",
       "presentation": {
