@@ -32,7 +32,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Ableton",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Ableton",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -52,7 +52,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\AbletonALS",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -72,7 +72,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Steinberg Media Technologies",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Steinberg Media Technologies",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -92,7 +92,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Waves",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Waves",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -112,7 +112,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\WavesXPS",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\WavesXPS",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -152,7 +152,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\CubaseCPR",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp",
         "-k6"
@@ -173,7 +173,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\FabFilter",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\FabFilter",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -193,7 +193,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
       ],
@@ -213,7 +213,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp",
         "-l"
@@ -234,9 +234,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato.nki",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato.nki",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato Absolute Path.nki",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato Absolute Path.nki",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
         // "-l"
@@ -257,15 +257,15 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Sacconi_vln1_MainMics_Add_0.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Sacconi_vln1_MainMics_Add_0.nkx",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicBrass__Bass Trombones a2003.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicBrass__Bass Trombones a2003.nkx",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_048.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_048.nkx",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_050.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_050.nkx",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicWoods_Alto Flute003.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicWoods_Alto Flute003.nkx",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp"
         // "-v"
@@ -286,13 +286,13 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Whole Woodwinds Swells Samples.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Whole Woodwinds Swells Samples.nkx",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\06. Harp.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\06. Harp.nkx",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineBrass.nkr",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineBrass.nkr",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Neo-Soul Keys\\NSR.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Neo-Soul Keys\\NSR.nkx",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp",
         "-l"
@@ -314,21 +314,21 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
         "-i",
-        "C:\\Users\\per.nerseth\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
         "-o",
         "C:\\Users\\per.nerseth\\Development\\Temp",
         "--wcx"
@@ -419,23 +419,23 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "--wcx"
         // "-l",
         // "-v"
@@ -456,11 +456,11 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings_info.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings_info.nkx",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Orchestral Brass Classic_info.nkx",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Orchestral Brass Classic_info.nkx",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "--wcx"
       ],
       "cwd": "${workspaceFolder}",
@@ -479,7 +479,7 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Downloads\\TotalCommander.Plugins.[DEV][VST]\\[inNKX]\\inNKX.x64.dll",
+        "${workspaceFolder}/PresetConverterProject/WCXPlugins/nkx.wcx64",
         // "-i",
         // "C:\\Windows\\System32\\imageres.dll",
         // "-i",
@@ -487,7 +487,7 @@
         // "-i",
         // "C:\\Windows\\System32\\pifmgr.dll",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         // "-l",
         "-v"
       ],
@@ -507,9 +507,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\periv\\Documents\\Ableton\\User Library\\Presets\\Audio Effects",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Ableton",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -527,9 +527,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
+        "C:\\Users\\periv\\OneDrive\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -549,7 +549,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\Documents\\VST3 Presets",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -569,7 +569,7 @@
         "-i",
         "C:\\Users\\Public\\Waves Audio\\Plug-In Settings",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -589,7 +589,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -609,7 +609,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-e",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Bricasti M7.JPG"
       ],
@@ -631,7 +631,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-e",
         "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\TCE System 6000.jpg"
       ],
@@ -653,7 +653,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Lexicon 480",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -673,7 +673,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Logic Space Designer",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -691,9 +691,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\polar express (free pack)",
+        "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Polar Express",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -711,9 +711,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\gladiator - free pack\\Gladiator-02-perivar-new-01.cpr",
+        "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Gladiator\\Gladiator-02-perivar-new-01.cpr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -732,9 +732,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\DaVinci Code - Free Pack\\DaVinci Code-01.cpr",
+        "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\DaVinci Code\\DaVinci Code-01.cpr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -753,9 +753,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\inception (free pack)\\Inception-01.cpr",
+        "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Inception\\Inception-01.cpr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -774,9 +774,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Downloads\\CUBASE PROJECTS\\BTS Packs Collection\\maze runner - free pack\\Maze Runner BTS.cpr",
+        "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Maze Runner\\Maze Runner BTS.cpr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -797,7 +797,7 @@
         "-i",
         "G:\\Downloads\\CUBASE PROJECTS\\Cinemaman Resources\\Cinemaman Cubase 10.5 Project\\Cinemaman.cpr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -816,9 +816,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\CubaseCPR",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -836,9 +836,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\FabFilter\\FabFilter Pro-Q 3",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\FabFilter\\FabFilter Pro-Q 3",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -856,9 +856,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -882,7 +882,7 @@
         "-i",
         "H:\\SAMPLES\\NI Kontakt\\Hephaestus Sounds Harp The Magic Of Agatha V1.01\\Pack\\TMOA.nkr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -900,33 +900,33 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Metropolis Ark 3.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Metropolis Ark 3.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Symphobia.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Symphobia.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Ostinato.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Ostinato.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings.nicnt",
         "-i",
-        "G:\\Amazon Drive\\Documents\\My Projects\\Native Instruments GmbH\\Instruments\\Session Horns.nicnt",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Session Horns.nicnt",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         // "-l",
         "-v"
       ],
@@ -946,25 +946,25 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Spitfire HARP",
+        "C:\\Development Projects\\Own Projects\\Temp\\Spitfire HARP",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Berlin Woodwinds",
+        "C:\\Development Projects\\Own Projects\\Temp\\Berlin Woodwinds",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Spitfire Symphonic Woodwinds",
+        "C:\\Development Projects\\Own Projects\\Temp\\Spitfire Symphonic Woodwinds",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Spitfire Symphonic Strings",
+        "C:\\Development Projects\\Own Projects\\Temp\\Spitfire Symphonic Strings",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Symphobia",
+        "C:\\Development Projects\\Own Projects\\Temp\\Symphobia",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Ostinato",
+        "C:\\Development Projects\\Own Projects\\Temp\\Ostinato",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\LA Scoring Strings",
+        "C:\\Development Projects\\Own Projects\\Temp\\LA Scoring Strings",
         "-i",
-        "G:\\Development Projects\\Own Projects\\Temp\\Session Horns",
+        "C:\\Development Projects\\Own Projects\\Temp\\Session Horns",
         "-e",
         "nicnt",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Development Projects\\Own Projects\\Temp",
         "-p",
         "-v"
       ],
@@ -986,7 +986,7 @@
         "-i",
         "G:\\Downloads\\CUBASE PROJECTS\\c8_free_start\\Cubase Pro 8 Starter - Labofmusic Records.cpr",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -1006,7 +1006,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
         "-o",
-        "G:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Development Projects\\Own Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
