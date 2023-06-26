@@ -189,9 +189,7 @@ namespace PresetConverter
             .Build();
 
             // // Read settings into NKSLibraries.Libraries
-            // var appExecutionPath = IOUtils.GetApplicationExecutionPath();
-            // var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
-            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], nksLibsPath, false, false);
+            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], false, false);
             // var libList = NKSLibraries.Libraries.Values.AsEnumerable();
 
             // // find current directory
@@ -616,7 +614,7 @@ namespace PresetConverter
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath, IConfiguration config, bool doConvertToKontakt6)
         {
             // read Kontakt library ids
-            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], null, true);
+            NKS.NksReadLibrariesInfo(config["NksSettingsPath"], true);
 
             // dictionary to hold the processed presets, to avoid duplicates
             var processedPresets = new List<PresetInfo>();
@@ -1522,19 +1520,23 @@ namespace PresetConverter
                     {
                         if (doVerbose)
                         {
-                            // var memStream = new MemoryStream();
-                            // var streamWriter = new StreamWriter(memStream);
+                            var memStream = new MemoryStream();
+                            var streamWriter = new StreamWriter(memStream);
 
-                            // streamWriter.WriteLine("RegistryLibraryInfo:");
-                            // NKS.PrintRegistryLibraryInfo(streamWriter);
+                            streamWriter.WriteLine("\nRegistryLibraryInfo:");
+                            NKS.PrintRegistryLibraryInfo(streamWriter);
 
-                            // streamWriter.WriteLine("SettingsLibraryInfo:");
-                            // NKS.PrintSettingsLibraryInfo(streamWriter);
-                            // streamWriter.Flush();
-                            // string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
+                            streamWriter.WriteLine("SettingsLibraryInfo:");
+                            NKS.PrintSettingsLibraryInfo(config["NksSettingsPath"], streamWriter);
 
-                            // Log.Debug(libraryInfo);
-                            // memStream.Close();
+                            streamWriter.WriteLine("NKLibsLibraryInfo:");
+                            NKS.PrintNKLibsLibraryInfo(streamWriter);
+
+                            streamWriter.Flush();
+                            string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
+
+                            Log.Debug(libraryInfo);
+                            memStream.Close();
 
                             NKS.Scan(inputDirectoryOrFilePath);
                         }

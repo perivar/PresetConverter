@@ -37,21 +37,18 @@ namespace PresetConverterProject.NIKontaktNKS
         // Number used in SNPID Base36 conversion
         const int SNPID_CONST = 4080;
 
-        public static void NksReadLibrariesInfo(string nksSettingsPath, string? nksLibsPath = null, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        public static void NksReadLibrariesInfo(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
             // read in all libraries
 
             // read libs from nklibs_info.userdb
-            if (nksLibsPath != null)
+            var nksLibsList = NksGetNKLibsLibraries(includeNonEncryptedLibs, useIntegerIds);
+            if (nksLibsList != null)
             {
-                var nksLibsList = NksGetNKLibsLibraries(nksLibsPath, includeNonEncryptedLibs, useIntegerIds);
-                if (nksLibsList != null)
+                foreach (var nksLibsEntry in nksLibsList)
                 {
-                    foreach (var nksLibsEntry in nksLibsList)
-                    {
-                        // ignore duplicates, they are are silently eliminated
-                        NKSLibraries.Libraries[nksLibsEntry.Id] = nksLibsEntry;
-                    }
+                    // ignore duplicates, they are are silently eliminated
+                    NKSLibraries.Libraries[nksLibsEntry.Id] = nksLibsEntry;
                 }
             }
 
@@ -79,9 +76,9 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         #region Read Library Descriptors from Settings.cfg
-        public static void PrintSettingsLibraryInfo(TextWriter writer, bool includeNonEncryptedLibs = false)
+        public static void PrintSettingsLibraryInfo(string nksSettingsPath, TextWriter writer, bool includeNonEncryptedLibs = false)
         {
-            var list = NKS.NksGetSettingsLibraries("Settings.cfg", includeNonEncryptedLibs);
+            var list = NKS.NksGetSettingsLibraries(nksSettingsPath, includeNonEncryptedLibs);
 
             if (list != null)
             {
@@ -197,9 +194,9 @@ namespace PresetConverterProject.NIKontaktNKS
         #endregion
 
         #region Read Library Descriptors from nklibs_info.userdb
-        public static void PrintNKLibsLibraryInfo(string nksLibsPath, TextWriter writer, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        public static void PrintNKLibsLibraryInfo(TextWriter writer, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
-            var list = NKS.NksGetNKLibsLibraries(nksLibsPath, includeNonEncryptedLibs, useIntegerIds);
+            var list = NKS.NksGetNKLibsLibraries(includeNonEncryptedLibs, useIntegerIds);
 
             if (list != null)
             {
@@ -216,8 +213,12 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc>? NksGetNKLibsLibraries(string nksLibsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
+        private static List<NksLibraryDesc>? NksGetNKLibsLibraries(bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
+            // get path to nklibs_info.userdb
+            var appExecutionPath = IOUtils.GetApplicationExecutionPath();
+            var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
+
             Regex sectionRegex = new Regex(@"\[([\w\d]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=(.*?)$");
 
@@ -345,7 +346,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         var regList = new List<NksLibraryDesc>();
 
                         var subKeys = key.GetValueNames(); // values in current reg folder
-                        // var subkeys = key.GetSubKeyNames(); // sub folders
+                                                           // var subkeys = key.GetSubKeyNames(); // sub folders
 
                         foreach (var subKey in subKeys)
                         {
