@@ -34,7 +34,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Ableton",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -54,7 +54,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -74,7 +74,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Steinberg Media Technologies",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -94,7 +94,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Waves",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -114,7 +114,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\WavesXPS",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -132,9 +132,9 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\perner\\Downloads\\AmazonDriveDownload",
+        "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ennio Morricone - Gabriels Oboe\\Gabriels Oboe (Cubase 10)-01.cpr",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -154,7 +154,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -175,7 +175,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\FabFilter",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -195,7 +195,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -215,7 +215,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-l"
       ],
       "cwd": "${workspaceFolder}",
@@ -238,7 +238,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato Absolute Path.nki",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
         // "-l"
       ],
       "cwd": "${workspaceFolder}",
@@ -267,7 +267,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicWoods_Alto Flute003.nkx",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
         // "-v"
       ],
       "cwd": "${workspaceFolder}",
@@ -294,7 +294,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Neo-Soul Keys\\NSR.nkx",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-l"
         // "-v"
       ],
@@ -330,7 +330,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "--wcx"
         // "-l",
         // "-v"
@@ -351,25 +351,25 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Berlin Brass",
+        "C:\\Users\\periv\\Projects\\Temp\\Berlin Brass",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Berlin Strings",
+        "C:\\Users\\periv\\Projects\\Temp\\Berlin Strings",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Berlin Woodwinds",
+        "C:\\Users\\periv\\Projects\\Temp\\Berlin Woodwinds",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\CineStrings CORE",
+        "C:\\Users\\periv\\Projects\\Temp\\CineStrings CORE",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Spitfire HARP",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire HARP",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Spitfire Symphonic Brass",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Brass",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Spitfire Symphonic Strings",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Strings",
         "-i",
-        "C:\\Users\\per.nerseth\\Development\\Temp\\Spitfire Symphonic Woodwinds",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Woodwinds",
         "-e",
         "nicnt",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-p",
         "--wcx"
         // "-l",
@@ -399,7 +399,7 @@
         // "-i",
         // "C:\\Windows\\System32\\pifmgr.dll",
         "-o",
-        "C:\\Users\\per.nerseth\\Development\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         // "-l",
         "-v"
       ],
@@ -414,7 +414,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -451,7 +450,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -474,7 +472,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -502,7 +499,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -522,7 +518,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -542,7 +537,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -562,7 +556,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -582,7 +575,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -602,7 +594,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -624,7 +615,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -646,7 +636,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -666,7 +655,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -686,7 +674,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -706,7 +693,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -727,7 +713,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -748,7 +733,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -769,7 +753,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -790,7 +773,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -811,7 +793,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -831,7 +812,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -851,7 +831,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -871,7 +850,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -895,7 +873,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -941,7 +918,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -979,7 +955,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
@@ -999,7 +974,6 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [

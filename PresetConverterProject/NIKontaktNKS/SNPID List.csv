@@ -1,78 +1,157 @@
-﻿SNPID;Company Name;Product Name
+SNPID;Company Name;Product Name
 012;Native Instruments GmbH;Elastic Thump
 013;Native Instruments GmbH;Keyboard Collection
-026;Sonokinetic;Ostinato Strings
+014;Output;ANALOG STRINGS
+015;Realitone;Hip Hop Creator
+016;Native Instruments GmbH;Prismatic Bliss
+017;SonicCouture;Electro Acoustic
+018;Best Service;Chris Hein - Solo ContraBass
+019;SonicCouture;Estey Reed Organ
+020;DAC Acoustic Services;Soca Starter Pack - Volume 1
+021;Divergent Audio Group;Invasors
+022;Native Instruments GmbH;Kinetic Treats
+023;Big Fish Audio;Grindhouse
+024;ProjectSAM;Swing More!
+025;Best Service;Ethno World 6 Voices
+026;Sonokinetic;Ostinato
+027;Best Service;Ethno World 6 Instruments
+028;The Loop Loft;Drum Direktor - From The Garage
 029;Spitfire Audio;Spitfire Symphonic Woodwinds
+030;Spitfire Audio;Spitfire Masse
 031;Spitfire Audio;Spitfire Symphonic Strings
+032;Native Instruments GmbH;Radiant Horizon
 033;Soundiron;Elysium Harp
+034;Wave Alchemy;Revolution
+035;Q Up Arts;California Keys
+036;Kirk Hunter Studios;Virtuoso Ensembles
+037;Best Service;Chris Hein - Solo Viola
+038;Best Service;Chris Hein - Solo Cello
+039;Native Instruments GmbH;Scarbee Classic EP-88s
+040;Sonokinetic;Maximo
+041;Room Sound;Kurt Ballou Signature Series Drums
+042;Sample Magic;Klip
+043;Umlaut Audio;uBEAT Bundle
+044;Umlaut Audio;uBEAT Hybrid
+045;Umlaut Audio;uBEAT Elektro
+046;Umlaut Audio;uBEAT Hip Hop
+047;Orange Tree Samples;Evolution Jazz Archtop
 048;Spitfire Audio;Albion V
 049;Spitfire Audio;Spitfire Symphonic Brass
+050;Realitone;Fingerpick
 051;Orchestral Tools;Metropolis Ark 2
+052;Get Good Drums;Matt Halpern Signature pack
+053;Tovusound;Edward Ultimate Suite
+054;Bechstein;Digital Grand
 055;Orchestral Tools;Berlin Brass
-058;Spitfire Audio;Chamber Strings
+056;Orange Tree Samples;Evolution Mandolin
+057;Orange Tree Samples;Evolution Flatpick 6
+058;Spitfire Audio;Spitfire Chamber Strings
+059;Native Instruments GmbH;Sierra Grove
+060;Spitfire Audio;Spitfire North 7 Vintage Keys
+062;Native Instruments GmbH;Symphony Essentials Woodwind Collection
+063;Native Instruments GmbH;Symphony Essentials Brass Collection
 064;Native Instruments GmbH;Session Guitarist - Strummed Acoustic 2
+065;Wavesfactory;Wavesfactory - Mercury
+066;Orange Tree Samples;Evolution Sitardelic
+067;Orange Tree Samples;Evolution Rick 12
+068;Drumdrops;Drumdrops Folk Rock Kits
+069;Sample Logic;Cinematic Guitars Organic Atmospheres
+070;Sonokinetic;Orchestral Series - Woodwinds Ensemble
 071;Heavyocity;GP03 Scoring Guitars
+072;Native Instruments GmbH;Lilac Glare
+073;Umlaut Audio;PADS
+074;Umlaut Audio;ARPS
+075;Native Instruments GmbH;Symphony Series Woodwind Collection
 076;Native Instruments GmbH;Symphony Series Woodwind Ensemble
 077;Native Instruments GmbH;Symphony Series Woodwind Solo
+078;Cinematic Samples;Cinematic Studio Piano
 079;Cinematic Samples;Cinematic Studio Strings
+080;Impact Soundworks;Super Audio Cart
 081;Cinesamples;CineStrings Solo
+082;Best Service;KWAYA
+083;Native Instruments GmbH;KOMPLETE 11 SELECT
+084;JGR Production;Big Hands Vol 1
 085;Native Instruments GmbH;Form
-087;Best Service;Chris Hein - Solo Violin
+086;Native Instruments GmbH;Reaktor Factory Selection R2
+087;Native Instruments GmbH;Symphony Essentials Woodwind Solo
 088;Native Instruments GmbH;Symphony Essentials Woodwind Ensemble
-089;Chris Hein;Chris Hein - Solo Violin
+089;Best Service;Chris Hein - Solo Violin
 090;Native Instruments GmbH;Molten Veil
+091;Sample Logic;Rhythmology
 092;Big Fish Audio;Cyborg
+093;Output;SUBSTANCE
+094;e-Instruments;Session Keys Electric S
 095;Native Instruments GmbH;Queensbridge Story
-097;Heavyocity;Heavyocity MS Ensemble Woods
-100;Cinesamples;Piano in Blue V2
-101;Garritan;Stradivari Solo Violin
-103;Native Instruments GmbH;Otto
-104;Native Instruments GmbH;Absynth 2
-105;Native Instruments GmbH;Absynth 2
-106;Native Instruments GmbH;Absynth 2
-107;Native Instruments GmbH;Kompakt
+096;Soniccouture;Haunted Spaces
+097;Heavyocity;Master Sessions Ensemble Woods
+098;Native Instruments GmbH;KOMPLETE 12 ULTIMATE Collectors Edition
+099;SonicCouture;Xbow Guitars
+100;Native Instruments GmbH;KOMPLETE 11 PLAYERS
+101;Gary Garritan;Stradivari Solo Violin
+102;Gary Garritan;Finale GPO 2.0
+103;Fixed Noise;OTTO
+104;Vir2;Acoustic Legends HD
+105;Sample Logic;Ambience Impacts Rhythms
+106;Best Service;Chris Hein - Guitars
+107;Dan Dean Productions;Solo Strings Advanced
 108;Native Instruments GmbH;Kompakt
 109;Native Instruments GmbH;Kompakt
+110;Undefined;Undefined
 111;Best Service;Drums Overkill
-112;Native Instruments GmbH;Traktor Pro
-113;Native Instruments GmbH;Intakt
-114;Native Instruments GmbH;Intakt
-115;Native Instruments GmbH;Intakt
-116;Native Instruments GmbH;Traktor FS 1.5
-117;Native Instruments GmbH;Traktor FS 1.5
-118;Native Instruments GmbH;Traktor FS 1.5
-119;Native Instruments GmbH;Traktor FS 2
+112;Big Fish Audio;Raging Guitars KP2
+113;Mackie;GPO Tracktion 3 Edition
+114;Mackie;GPO Tracktion 3 Edition
+115;Vir2;VI.ONE
+116;Gary Garritan;Gofriller Cello
+117;Pro Audio Vault;Bluthner Model One
+118;Sibelius;Sibelius Sounds Essentials
+119;Terratec;WAVE XTABLE VI
 120;Native Instruments GmbH;Traktor Scratch
+121;Native Instruments GmbH;Traktor Scratch Pro
 122;Native Instruments GmbH;Traktor Scratch Duo
 123;Native Instruments GmbH;Traktor LE
 126;Native Instruments GmbH;Traktor Duo
 127;Native Instruments GmbH;Traktor VMS Edition
-129;Native Instruments GmbH;Traktor 2
-131;Native Instruments GmbH;Traktor Scratch Pro 2
+129;Native Instruments GmbH;Traktor Pro 2
+131;Native Instruments GmbH;Traktor Pro 2
 132;Native Instruments GmbH;Traktor Duo 2
 133;Native Instruments GmbH;Traktor Scratch Duo 2
-134;Native Instruments GmbH;Traktor LE
+134;Native Instruments GmbH;Traktor LE 2
 135;Native Instruments GmbH;Traktor Pioneer DDJ-T1 Edition
 136;Native Instruments GmbH;TRAKTOR Pioneer DDJ-T1 Edition 2
 137;Native Instruments GmbH;TRAKTOR Velocity Midi Station Edition 2
 138;Native Instruments GmbH;TRAKTOR Numark 4TRAK Edition 2
-139;Native Instruments GmbH;Traktor Pro 2 - Traktor Scratch Pro 2
+139;Native Instruments GmbH;Traktor Pro 2
 140;Native Instruments GmbH;Massive
-141;Native Instruments GmbH;Traktor Pro 2 - Traktor Scratch Duo 2
+141;Native Instruments GmbH;Traktor Scratch Duo 2
+142;Native Instruments GmbH;TRAKTOR AUDIO 2 HW
+143;Native Instruments GmbH;TRAKTOR AUDIO 6 HW
+144;Native Instruments GmbH;TRAKTOR AUDIO 10 HW
+145;Native Instruments GmbH;TRAKTOR KONTROL X1 HW
+146;Native Instruments GmbH;TRAKTOR KONTROL F1 HW
+147;Native Instruments GmbH;TRAKTOR KONTROL S2 HW
+148;Native Instruments GmbH;TRAKTOR KONTROL S4 HW
 149;Native Instruments GmbH;Vintage Compressors Mk2
 150;Native Instruments GmbH;Audio Kontrol 1
 151;Native Instruments GmbH;Skanner XT
 152;Native Instruments GmbH;The Giant
+153;Native Instruments GmbH;TRAKTOR KONTROL Z2 HW
+154;Native Instruments GmbH;TRAKTOR KONTROL Z1 HW
+155;Native Instruments GmbH;TRAKTOR KONTROL X1 MK2 HW
 156;Sennheiser;DrumMic'a!
 157;Impact Soundworks;Juggernaut
 158;Native Instruments GmbH;Drum Lab
 159;Native Instruments GmbH;Static Friction
-163;Native Instruments GmbH;Traktor Pro 2 - Traktor Scratch Pro 2
+160;Native Instruments GmbH;TRAKTOR KONTROL S4 MK2 HW
+161;Native Instruments GmbH;TRAKTOR KONTROL S2 MK2 HW
+162;Native Instruments GmbH;TRAKTOR AUDIO 2 MK2 HW
+163;Native Instruments GmbH;Traktor Pro 2 VIP
 164;Sample Logic;HAVOC
-166;Soniccoutre;Geosonics
+165;Native Instruments GmbH;Maschine 2 Essentials
+166;SonicCouture;Geosonics
 167;Embertone;Friedlander Violin
-168;Soniccoutre;Clav
-169;Soniccoutre;Grand Marimba
+168;SonicCouture;Clav
+169;SonicCouture;Grand Marimba
 170;Native Instruments GmbH;Elektrik Piano
 171;Native Instruments GmbH;Elektrik Piano
 172;Native Instruments GmbH;Akoustik Piano
@@ -87,8 +166,10 @@
 181;Native Instruments GmbH;Twang Combo
 182;Native Instruments GmbH;AC-Box Combo
 183;Native Instruments GmbH;Plex Combo
-184;Native Instruments GmbH;Guitar Rig 3 Dark Fire (aka Guitar Rig 2)
+184;Native Instruments GmbH;Guitar Rig 2
 185;Native Instruments GmbH;AC-Box Combo
+189;Native Instruments GmbH;Guitar Rig 3 Dark Fire
+190;Native Instruments GmbH;Guitar Rig 4 Factory Selection
 191;Native Instruments GmbH;RC 24
 192;Native Instruments GmbH;RC 48
 193;Big Fish Audio;Vintage Horns
@@ -96,28 +177,31 @@
 195;ProjectSAM;Lumina
 196;Heavyocity;AEON Melodic
 197;Heavyocity;AEON Rhythmic
-198;Best Service;Peter Siedlaczek's Complete Orchestral Collection
-199;drumsonic;drumasonic LUXURY
+198;Best Service;Complete Orchestral Collection
+199;Drumasonic;drumasonic LUXURY
 200;Native Instruments GmbH;Reaktor 2.3
 201;Native Instruments GmbH;Reaktor 2.3
 202;Native Instruments GmbH;Reaktor 2.3
 203;Native Instruments GmbH;Reaktor 2.3
 204;Native Instruments GmbH;Prism
-205;Native Instruments GmbH;The Finger
+205;Tim Exile;The Finger
 206;Native Instruments GmbH;Spark
 207;Native Instruments GmbH;Reaktor Factory Selection
 208;Native Instruments GmbH;Reaktor Elements Selection
-209;Native Instruments GmbH;The Mouth
+209;Tim Exile;The Mouth
 210;Native Instruments GmbH;Mikro Prism
 212;Native Instruments GmbH;Razor
 213;Native Instruments GmbH;Skanner
 214;Soundiron;Olympus Elements
-215;Plugin Guru;MegaMacho Drums
-217;Sample Logic;Virtual Ensemble Trilogy
-218;Big Fish Audio;Epic Cinematic Drums and Sound Design
+215;PlugInGuru;MegaMacho Drums
+216;Sample Logic;IMPAKT
+217;Sample Logic;Virtual Ensemble Triolgy
+218;Big Fish Audio;EPIC
 219;Embertone;Blakus Cello
+220;Cinematique Instruments;Fabrique
 221;Vir2;Cinematic Thunder
 222;Sample Modeling;The Trombone 3.0
+223;Volkswagen AG;Volkswagen Brand Instruments
 224;Best Service;Shevannai
 225;Native Instruments GmbH;Action Strikes
 226;Sonokinetic;Minimal
@@ -128,13 +212,16 @@
 231;Soundiron;Apocalypse Elements
 232;Orchestral Tools;Berlin Strings
 234;Native Instruments GmbH;B4
+235;Native Instruments GmbH;B4
+236;Native Instruments GmbH;B4
+237;Native Instruments GmbH;B4
 238;Native Instruments GmbH;B4 II
 239;Native Instruments GmbH;B4 II
 240;Native Instruments GmbH;Reaktor 2.3
-241;Soniccoutre;The Attic
-242;Soniccoutre;Vibraphone SC
-245;Cinesamples;CineStrings Core
-246;Zero-G;Epica
+241;SonicCouture;The Attic
+242;SonicCouture;Vibraphone
+245;Cinesamples;CineStrings CORE
+246;Zero - G;Epica
 247;Native Instruments GmbH;Resonant Blaze
 248;Native Instruments GmbH;Molekular
 249;Native Instruments GmbH;Battery 4
@@ -158,14 +245,16 @@
 267;Native Instruments GmbH;Absynth 3
 268;Native Instruments GmbH;Absynth 4
 269;Native Instruments GmbH;Absynth 5
-271;Native Instruments GmbH;FM7
-272;Native Instruments GmbH;FM7
-273;Native Instruments GmbH;FM7
-274;Native Instruments GmbH;FM7
+271;Native Instruments GmbH;FM 7
+272;Native Instruments GmbH;FM 7
+273;Native Instruments GmbH;FM 7
+274;Native Instruments GmbH;FM 7
 275;Native Instruments GmbH;FM8
 276;Native Instruments GmbH;Kontakt 4
 277;Native Instruments GmbH;Rising Crescent
-279;Native Instruments GmbH;Kontakt 4
+279;Native Instruments GmbH;Kontakt Player 4
+280;Native Instruments GmbH;KONTAKT 1.0
+281;Native Instruments GmbH;KONTAKT 1.0
 282;Native Instruments GmbH;Kontakt
 283;Native Instruments GmbH;Kontakt
 284;Native Instruments GmbH;Kontakt
@@ -175,62 +264,73 @@
 290;Native Instruments GmbH;Pro-53
 291;Native Instruments GmbH;Pro-53
 292;Native Instruments GmbH;Pro-52
-293;Heavyocity;DM-307
+293;Heavyocity;DM307
 294;Native Instruments GmbH;Supercharger GT
 295;Native Instruments GmbH;Marble Rims
 296;Best Service;Altus
-297;RealiTone;Realivox Blue
+297;Realitone;Realivox Blue
 298;Native Instruments GmbH;Pro-53
 299;Native Instruments GmbH;Pro-53
+300;PREMIER Engineering;Drum Tree
 301;Native Instruments GmbH;Reaktor 3
-302;Native Instruments GmbH;Reaktor
-303;Native Instruments GmbH;Reaktor
-304;Native Instruments GmbH;Reaktor
+302;Native Instruments GmbH;Reaktor 3
+303;Native Instruments GmbH;Reaktor 3
+304;Native Instruments GmbH;Reaktor 3
 305;Native Instruments GmbH;Reaktor 4
 306;Native Instruments GmbH;Reaktor 4
-307;Native Instruments GmbH;Reaktor Sesson
+307;Native Instruments GmbH;Reaktor Session
 308;Native Instruments GmbH;Reaktor Session
 309;Native Instruments GmbH;Reaktor 4
 310;Native Instruments GmbH;Studio Collection
 311;Native Instruments GmbH;Studio Collection
 312;Native Instruments GmbH;Reaktor Session
-313;Spitfire Audio;Hans Zimmer HZ01 Percussion
-314;Native Instruments GmbH;Session Horns Pro
+313;Spitfire Audio;HZ Percussion
+314;e-Instruments;Session Horns Pro
 315;Native Instruments GmbH;Reaktor 5
+316;Native Instruments GmbH;Reaktor 5
+317;Native Instruments GmbH;Reaktor 5
+318;Big Fish Audio;Vital Series Mallets
+319;Native Instruments GmbH;Reaktor 5 Player
 320;Native Instruments GmbH;Maschine
 321;Native Instruments GmbH;Kontakt 5
 322;Native Instruments GmbH;Kontakt 5
-323;Native Instruments GmbH;Kontakt 5
+323;Native Instruments GmbH;Kontakt Player 5
 324;Native Instruments GmbH;Kontakt Factory Library
-325;Native Instruments GmbH;Rise and Hit
+325;Native Instruments GmbH;Rise And Hit
 326;Best Service;Cantus
-327;e-instruments;Session Keys Grand S
-328;e-instruments;Session Keys Grand Y
+327;e-Instruments;Session Keys Grand S
+328;e-Instruments;Session Keys Grand Y
 329;Native Instruments GmbH;Halcyon Sky
 330;Native Instruments GmbH;Maschine Expansion
 331;Native Instruments GmbH;Transistor Punch
 332;Native Instruments GmbH;Vintage Heat
 333;Native Instruments GmbH;True School
-334;Native Instruments GmbH;Maschine 2 (aka Maschine)
+334;Native Instruments GmbH;Maschine 2
 335;Native Instruments GmbH;Dark Pressure
 336;Native Instruments GmbH;Platinum Bounce
 337;Native Instruments GmbH;Raw Voltage
+338;Native Instruments GmbH;MASCHINE Mk2 HW
+339;Native Instruments GmbH;MASCHINE MIKRO Mk2 HW
 340;Native Instruments GmbH;Conant Gardens
-341;Native Instruments GmbH;Pulsewerk
-345;Heavyocity;Quantum Damage
+341;Native Instruments GmbH;Pulswerk
+343;Native Instruments GmbH;MASCHINE MIKRO Mk2 R2 HW
+344;Native Instruments GmbH;MASCHINE Mk2 R2 HW
+345;Native Instruments GmbH;MASCHINE MIKRO MK3 Collection
 346;Native Instruments GmbH;Electric Vice
 347;Native Instruments GmbH;Drop Squad
 348;Native Instruments GmbH;Drop Squad Sounds
 349;Native Instruments GmbH;Drop Squad Bundle
 350;Native Instruments GmbH;'57 Drawbar Organ
 351;Native Instruments GmbH;Best of Massive
-352;Native Instruments GmbH;Best Of Reaktor Vol. 1
+352;Native Instruments GmbH;Best of Reaktor Vol. 1
 353;Native Instruments GmbH;Synthetic Drums Reloaded
-354;Native Instruments GmbH;Best Of Absynth
-355;Native Instruments GmbH;Kontakt Sax And Brass
+354;Native Instruments GmbH;Best of Absynth
+355;Native Instruments GmbH;Kontakt Sax and Brass
 356;Native Instruments GmbH;Massive Expansion Vol. 1
 357;Native Instruments GmbH;Pop Drums
 358;Heavyocity;NOVO
+360;Spitfire Audio;Bernard Herrmann Composer Toolkit
+361;Orange Tree Samples;Evolution Hollowbody Blues
 364;Native Instruments GmbH;Deep Transformations
 365;Native Instruments GmbH;FM8 Transient Attacks
 366;Native Instruments GmbH;Urban Arsenal
@@ -245,19 +345,22 @@
 377;Native Instruments GmbH;North India
 378;Native Instruments GmbH;Deep Reconstructions
 379;Native Instruments GmbH;Essential Bass
-380;Native Instruments GmbH;The Finger
+380;Tim Exile;The Finger
 381;Native Instruments GmbH;Sonic Fiction
 382;Native Instruments GmbH;Massive Threat
 383;Native Instruments GmbH;Paranormal Spectrums
 384;Native Instruments GmbH;Deep Freq
-385;Native Instruments GmbH;Maschine 2
+385;Native Instruments GmbH;Maschine 2 Bundle
+386;Native Instruments GmbH;MASCHINE STUDIO HW
 387;Native Instruments GmbH;Maschine 2 Factory Library
 388;ProjectSAM;Symphobia Colours Animator
 389;ProjectSAM;Symphobia Colours Orchestrator
 390;Vir2;Acou6tics
 391;Native Instruments GmbH;Reaktor 6
 392;Impact Soundworks;Archtop
+393;vi elements;Core Kit
 394;Native Instruments GmbH;Grey Forge
+395;Cinesamples;Cinesymphony LITE
 396;Best Service;Chris Hein - Winds Vol 3
 397;Best Service;Chris Hein - Winds Vol 1
 398;Best Service;Chris Hein - Winds Vol 2
@@ -268,7 +371,7 @@
 405;Heavyocity;Evolve Mutations
 406;Native Instruments GmbH;Scarbee Pre-Bass
 407;Native Instruments GmbH;Scarbee Pre-Bass Amped
-408;Native Instruments GmbH;Discovery Series: Balinese Gamelan
+408;Native Instruments GmbH;Balinese Gamelan
 409;Native Instruments GmbH;Upright Piano
 410;Native Instruments GmbH;Berlin Concert Grand
 411;Native Instruments GmbH;New York Concert Grand
@@ -284,16 +387,16 @@
 421;Native Instruments GmbH;Scarbee Mark I
 422;Native Instruments GmbH;Scarbee Vintage Keys
 423;Native Instruments GmbH;Abbey Road 70s Drums
-424;Native Instruments GmbH;Session Strings
+424;e-Instruments;Session Strings
 425;Native Instruments GmbH;Vintage Organs
-426;Native Instruments GmbH;Kontakt Elements
+426;Native Instruments GmbH;Kontakt Elements Selection
 427;Native Instruments GmbH;Abbey Road 60s Drums Vintage
 428;Native Instruments GmbH;Abbey Road 80s Drums
 429;Native Instruments GmbH;Abbey Road Modern Drums
 430;Native Instruments GmbH;George Duke Soul Treasures
 431;Native Instruments GmbH;Scarbee Funk Guitarist
 432;Native Instruments GmbH;Kontakt Elements Selection R2
-433;Native Instruments GmbH;Discovery Series: West Africa
+433;Native Instruments GmbH;West Africa
 434;Native Instruments GmbH;Session Strings Pro
 435;Native Instruments GmbH;Studio Drummer
 436;Native Instruments GmbH;Retro Machines Mk2
@@ -303,35 +406,41 @@
 440;Native Instruments GmbH;Abbey Road 80s Drummer
 441;Native Instruments GmbH;Abbey Road Modern Drummer
 442;Native Instruments GmbH;Evolve R2
+443;Native Instruments GmbH;Motor Impact
 444;Native Instruments GmbH;Enhanced EQ
 445;Native Instruments GmbH;Passive EQ
 446;Native Instruments GmbH;Vari Comp
-447;Native Instruments GmbH;Solid EQ FX (aka Solid EQ)
+447;Native Instruments GmbH;Solid EQ FX
 448;Native Instruments GmbH;VC 76 FX
-449;Native Instruments GmbH;Solid Dynamics FX (aka Solid Dynamics)
-450;Native Instruments GmbH;Solid Bus Comp FX (aka Solid Bus Comp)
+449;Native Instruments GmbH;Solid Dynamics FX
+450;Native Instruments GmbH;Solid Bus Comp FX
 451;Native Instruments GmbH;Transient Master FX
-452;Native Instruments GmbH;VC 160 FX (aka VC 160)
-453;Native Instruments GmbH;VC 2A FX (aka VC 2A)
+452;Native Instruments GmbH;VC 160 FX
+453;Native Instruments GmbH;VC 2A FX
 454;Native Instruments GmbH;Action Strings
 455;Native Instruments GmbH;Session Horns
 456;Native Instruments GmbH;Monark
 457;Native Instruments GmbH;Abbey Road Vintage Drummer
 458;Native Instruments GmbH;Driver
-459;Native Instruments GmbH;Scarbee Rickenbacker Bass
+459;Scarbee;Scarbee Rickenbacker Bass
 462;Native Instruments GmbH;Pro-53 Xpress
 464;Native Instruments GmbH;B4 Xpress
 465;Native Instruments GmbH;B4 Xpress
 466;Native Instruments GmbH;Xpress Keyboards
 467;Native Instruments GmbH;Xpress Keyboards
 469;Native Instruments GmbH;Abbey Road 50s Drummer
+470;Sonokinetic;Espressivo
 471;Native Instruments GmbH;Lucid Mission
 472;Wave Alchemy;Digital Revolution
 473;Big Fish Audio;Urban Legacy XXL
 474;Big Fish Audio;GOTH
-475;Sample Logic;Arpology
+475;Sample Logic;ARPOLOGY
+476;Native Instruments GmbH;TRAKTOR KONTROL S8 HW
+477;Native Instruments GmbH;KOMPLETE KONTROL S25 HW
+478;Native Instruments GmbH;KOMPLETE KONTROL S49 HW
+479;Native Instruments GmbH;KOMPLETE KONTROL S61 HW
 480;Native Instruments GmbH;Arcane Attic
-481;Cinesamples;CineStrings - Runs
+481;Cinesamples;CineStrings - RUNS
 482;Cinesamples;Artist Series - Tina Guo
 483;Sonokinetic;Grosso
 484;Prominy;Hummingbird
@@ -344,9 +453,9 @@
 491;Native Instruments GmbH;Kontour
 492;Native Instruments GmbH;Komplete 10
 493;Native Instruments GmbH;Komplete 10 Ultimate
-494;Spitfire Audio;Hans Zimmer HZ02 Percussion Los Angeles
+494;Spitfire Audio;HZ02 Percussion
 495;Native Instruments GmbH;Circuit Halo
-496;The Sound of Poland;B-11X Multi-timbral Synth and Organ
+496;ULTREC;B-11X Multi-timbral Synth and Organ
 497;Samplephonics;Dirty Modular
 500;Native Instruments GmbH;NI Spektral Delay
 501;Native Instruments GmbH;NI Spektral Delay
@@ -358,75 +467,96 @@
 507;Native Instruments GmbH;Vokator
 508;Native Instruments GmbH;Vokator
 510;Native Instruments GmbH;Vokator
-511;Native Instruments GmbH;Guitar Rig 4
+511;Native Instruments GmbH;Guitar Rig 4 Factory Selection
 512;Native Instruments GmbH;Guitar Rig 4 Pro
-513;Native Instruments GmbH;Guitar Rig 4 Factory Selection - Guitar Rig 4 Pro
+513;Native Instruments GmbH;Guitar Rig 4 Pro
 514;Native Instruments GmbH;Guitar Rig 4 LE
 515;Native Instruments GmbH;Guitar Rig 4 Essential
-516;Native Instruments GmbH;Guitar Rig 4 Factory Selection - Guitar Rig 4 Essential
-517;Native Instruments GmbH;Guitar Rig 4 Factory Selection - Guitar Rig 4 Essential
+516;Native Instruments GmbH;Guitar Rig 4 Essential
+517;Native Instruments GmbH;Guitar Rig 4 Essential
 518;Native Instruments GmbH;Rammfire
 519;Spitfire Audio;Earth
 520;Native Instruments GmbH;Reflektor
+521;Native Instruments GmbH;KOMPLETE 12 SELECT
+522;Native Instruments GmbH;KOMPLETE 12
 523;Native Instruments GmbH;Traktors 12
+524;Native Instruments GmbH;KOMPLETE 12 ULTIMATE
 525;Native Instruments GmbH;Guitar Rig 5 Pro
 526;Native Instruments GmbH;Vintage Compressors
 527;Native Instruments GmbH;VC 76
-528;Native Instruments GmbH;Vintage Compressors GR5 (aka VC 2A)
+528;Native Instruments GmbH;VC 2A
 529;Native Instruments GmbH;VC 160
 530;Native Instruments GmbH;Transient Master
 531;Native Instruments GmbH;Guitar Rig 5 Factory Selection
-532;Native Instruments GmbH;Guitar Rig Factory Selection Library (aka Elements Selection)
-533;Native Instruments GmbH;Guitar Rig Elements Selection Library (aka Guitar Rig 5 LE)
+532;Native Instruments GmbH;Guitar Rig 5 Elements Selection
+533;Native Instruments GmbH;Guitar Rig 5 LE
 534;Native Instruments GmbH;Solid Mix Series
 535;Native Instruments GmbH;Solid Dynamics
 536;Native Instruments GmbH;Solid EQ
 537;Native Instruments GmbH;Solid Bus Comp
+538;Native Instruments GmbH;Vintage Compressors GR5
 539;Native Instruments GmbH;Solid Mix Series Mk2
-540;Native Instruments GmbH;Discovery Series: Cuba
+540;Native Instruments GmbH;Cuba
 541;Sample Logic;Cinematic Keys
-542;Audiobro;LA Drama Drums (LADD)
+542;AudioBro;LADD
 543;Native Instruments GmbH;Magnate Hustle
 544;Native Instruments GmbH;Replika
-545;sonic cat;Calliope
+545;Sonic Cat;Calliope
 546;Native Instruments GmbH;Caribbean Current
 547;Best Service;Mystica
-548;Big Fish Audio;Smack: Claps, Snaps & Stomps
+548;Big Fish Audio;Smack
 549;Big Fish Audio;Vintage Strings
 550;Best Service;Drums Overkill
 551;Sample Logic;Xosphere
-552;Spitfire Audio;Hans Zimmer HZ03 Percussion London Solos
+552;Spitfire Audio;HZ03
 553;ProjectSAM;Orchestral Essentials 2
 554;Native Instruments GmbH;Paradise Rinse
-555;Native Instruments GmbH;Arcane
+555;Embertone;Arcane
 556;Native Instruments GmbH;Prospect Haze
-557;Vir2 (by Big Fish);Apollo: Cinematic Guitars
+557;Big Fish Audio;Apollo Cinematic Guitars
 558;Output;Signal
-559;Soniccoutre;Hammersmith Pro (aka Hammersmith Pro Edition)
+559;SonicCouture;The Hammersmith Pro
 560;Big Fish Audio;Fuse
 561;Native Instruments GmbH;Replika XT
+562;Spitfire Audio;The Grange
 563;Spitfire Audio;Albion IV
-564;8Dio;Borosilicate Bells
+564;Spitfire Audio;Fanshawe Vol 1
+565;SonicCouture;The Hammersmith
+566;Native Instruments GmbH;TRAKTOR KONTROL D2 HW
+567;Native Instruments GmbH;TRAKTOR KONTROL S5 HW
 568;Native Instruments GmbH;Session Guitarist - Strummed Acoustic
 569;Native Instruments GmbH;Emotive Strings
+570;Sonokinetic;Capriccio
 571;Big Fish Audio;Ambient White
+572;Fable Sounds;Broadway Gig
+573;Embertone;Intimate String Chords
 574;Best Service;Emotional Cello
+575;SonicCouture;Mercury Elements Boys Choir
+576;Cinesamples;CineBrass Twelve Horn Ensemble
 577;Native Instruments GmbH;Neon Drive
-578;e-instruments;Session Keys Electric R
+578;e-Instruments;Session Keys Electric R
+579;JGR Production;The Performer - The Voice of the Chrysler 300C
 580;Sample Logic;Bohemian
 581;Native Instruments GmbH;Astral Flutter
+582;Cinesamples;Abbey Road Classic Upright Pianos
+583;Tovusound;Edward Foleyart Instrument
 584;Native Instruments GmbH;Golden Kingdom
-585;Soniccoutre;Box Of Tricks
-587;Native Instruments GmbH;Discovery Series: India
+585;SonicCouture;Box of Tricks
+586;Native Instruments GmbH;Komplete Select
+587;Native Instruments GmbH;India
 588;Impact Soundworks;PEARL Concert Grand
+589;ProjectSAM;Swing!
 590;Native Instruments GmbH;Symphony Series Brass Solo
 591;Native Instruments GmbH;Symphony Series Brass Ensemble
 592;Sample Logic;Cinematic Guitars Infinity
+593;Sonokinetic;Tutti Vox
 594;Native Instruments GmbH;Amplified Funk
 595;Big Fish Audio;Ambient Black
-596;Big Fish Audio;The Foundry
+596;Sonicsmiths;The Foundry
+597;Native Instruments GmbH;Traktor Pro 2 VIP Stem
 598;Heavyocity;Gravity
-599;Native Instruments GmbH;Flesh
+599;Tim Exile;Flesh
+600;Sample Modeling;The Trumpet 3
 601;Native Instruments GmbH;Traktor DJ Studio
 602;Native Instruments GmbH;Traktor DJ Studio
 603;Native Instruments GmbH;Traktor DJ Studio
@@ -434,37 +564,45 @@
 605;Native Instruments GmbH;Traktor DJ Studio 2
 606;Native Instruments GmbH;Traktor DJ Studio 2
 607;Native Instruments GmbH;Traktor DJ Studio 2
+608;Native Instruments GmbH;KOMPLETE AUDIO 6 HW
 609;Native Instruments GmbH;Traktor DJ Studio 2.x
 610;Wide Blue Sound;Orbit
 611;Native Instruments GmbH;Traktor DJ
-612;Native Instruments GmbH;Traktor D3
-613;Native Instruments GmbH;Traktor D3
+612;Native Instruments GmbH;Traktor DJ
+613;Native Instruments GmbH;Traktor DJ
 614;Native Instruments GmbH;Lone Forest
-615;Native Instruments GmbH;Traktor D3
+615;Native Instruments GmbH;Traktor DJ
 616;Native Instruments GmbH;Traktor 3
 617;Native Instruments GmbH;Traktor 3
-618;Soniccoutre;Balinese Gamelan II
+618;Soniccouture;Balinese Gamelan 2
 619;Impact Soundworks;Bravura Scoring Brass
-620;Native Instruments GmbH;Traktor D3
+620;Native Instruments GmbH;Traktor DJ
 622;Native Instruments GmbH;Traktor Hercules
-623;Cinesamples;CineWinds
+623;Native Instruments GmbH;Traktor Hercules
 624;Native Instruments GmbH;Traktor Hercules
 625;Native Instruments GmbH;Traktor 3 LE
-626;Cinesamples;CineWinds Core
-627;Cinesamples;CineWinds Pro
-628;Native Instruments GmbH;Discovery Series: Gamelan
+626;Cinesamples;CineWinds CORE
+627;Cinesamples;CineWinds PRO
+628;Sample Logic;Gamelan
 629;Impact Soundworks;Shreddage Drums
+630;Sonokinetic;Tutti
+631;C-Dub;Whoop Triggerz Ultimate
 632;Native Instruments GmbH;Velvet Lounge
 633;Native Instruments GmbH;Symphony Series String Ensemble
-634;Native Instruments GmbH;Reaktor 6 Bundle
+634;Native Instruments GmbH;Reaktor 6
 635;Native Instruments GmbH;Reaktor Blocks
 636;Native Instruments GmbH;Reaktor Factory Library
-637;Native Instruments GmbH;Reaktor, Reaktor 6 Player
-639;Output;REV X-Loops
+637;Native Instruments GmbH;Reaktor 6 Player
+638;Rattly and Raw;Martin France Drums
+639;Output;REV X-LOOPS
 640;Output;EXHALE
-642;The Loop Loft;Drum Direktor CINEMATIK
+641;Drumasonic;drumasonic Xplosive
+642;The Loop Loft;Drum Direktor Cinematik
 643;The Loop Loft;Drum Direktor FNK-4
+644;Realitone;RealiDrums
 645;Big Fish Audio;Vintage Rhythm Section
+646;Native Instruments GmbH;MASCHINE JAM HW
+647;Tru-Urban;Kevin Keys by Kevin Randolph
 648;Orchestral Tools;Berlin Percussion
 649;Sample Logic;CinemorphX
 650;Native Instruments GmbH;Black Arc
@@ -472,32 +610,52 @@
 652;Native Instruments GmbH;Symphony Series Brass Collection
 653;Native Instruments GmbH;Cavern Floor
 654;Cinesamples;CinePerc
-656;Orange Tree Samples;Evolution Strawberry (New Version)
+655;Orange Tree Samples;Evolution Steel Strings
+656;Orange Tree Samples;Evolution Strawberry
 657;Embertone;Leonid Bass
+658;Sonokinetic;Sotto
 659;Native Instruments GmbH;Una Corda
 660;Native Instruments GmbH;Komplete 9
 661;Native Instruments GmbH;Komplete 9 Ultimate
+662;DAC Acoustic Services;Laventille Rhythm Section
 663;Native Instruments GmbH;Kinetic Toys
-666;Soundiron;Venus - Symphonic Womens Choir
-667;Soundiron;Mars - Symphonic Mens Choir
-668;Soundiron;Apocalypse Percussion Ensemble
-669;Soundiron;Mercury - Symphonic Boychoir
+664;Native Instruments GmbH;KOMPLETE 11
+665;Native Instruments GmbH;KOMPLETE 11 ULTIMATE
+666;Native Instruments GmbH;KOMPLETE AUDIO 6 Collection
+667;Native Instruments GmbH;KOMPLETE KONTROL A-SERIES Collection
+668;Native Instruments GmbH;Symphony Essentials Brass Ensemble
+669;Native Instruments GmbH;Symphony Essentials Brass Solo
 670;Native Instruments GmbH;Symphony Essentials String Ensemble
 671;Native Instruments GmbH;Reaktor Blocks Wired
 672;Orchestral Tools;Metropolis Ark 1
 673;Orange Tree Samples;Evolution Modern Nylon
+674;SonicCouture;Ondioline
 675;Native Instruments GmbH;Solar Breeze
+676;Orange Tree Samples;Evolution Stratosphere
+677;Wide Blue Sound;Eclipse
+678;Best Service;Chris Hein Winds Compact
+679;Best Service;Chris Hein Orchestral Brass Compact
 680;Native Instruments GmbH;Helios Ray
 681;Native Instruments GmbH;Lazer Dice
 682;Embertone;Fischer Viola
+683;Native Instruments GmbH;KOMPLETE KONTROL S88 HW
 684;Orange Tree Samples;Evolution Banshee
+685;Spitfire Audio;Hans Zimmer Piano
+686;Soundiron;Voices of Rapture
 687;Native Instruments GmbH;Crystal Daggers
 688;Spitfire Audio;Albion ONE
 689;Sonic Faction;Archetype
+690;Synthepica;Epica Bass
 691;Heavyocity;GP02 Vocalise
+692;Best Service;Chris Hein Orchestral Brass
+693;Ethnaudio;Breath Of Anatolia
+694;Ethnaudio;Strings Of Anatolia
 695;Impact Soundworks;Shreddage Bass 2
+696;Cinesamples;Rio Grooves
+697;Heavyocity;Master Sessions Ensemble Drums
 698;Heavyocity;Master Sessions Ensemble Metals
 699;Heavyocity;Master Sessions Ethnic Drum Ensembles
+700;Sample Modeling;French Horn and Tuba 3
 701;Heavyocity;HYML_RC1 (aka Heavyocity Masters Sessions Ensemble Drums)
 702;Native Instruments GmbH;Battery Studio Drums
 703;Native Instruments GmbH;Synthetic Drums
@@ -506,138 +664,144 @@
 706;Native Instruments GmbH;Reaktor Electronic Instruments 2
 707;Native Instruments GmbH;Electronic Instruments 2 XT
 708;Native Instruments GmbH;Keyboard Collection
-709;Gospelmusicians;Neo-Soul Keys
+709;Gospel Musicians;Neo-Soul Keys
 710;East West Quantum Leap;Hardcore Bass
 711;East West Quantum Leap;Symphonic Orchestra Volume 1 Strings
 712;East West Quantum Leap;Symphonic Orchestra Volume 2 Woodwinds
 713;East West Quantum Leap;Symphonic Orchestra Volume 3 Brass
 714;East West Quantum Leap;Symphonic Orchestra Volume 4 Percussion
-715;Sampletekk;Boesendorfer 290
-716;East West Quantum Leap;Silver Edition
-718;Garritan;Garritan Personal Orchestra
+715;East West Quantum Leap;Boesendorfer 290
+716;East West Quantum Leap;EWQL Symphonic Orchestra Silver Edition
+718;Gary Garritan;Garritan Personal Orchestra
 719;Zero-G;Morphology
-720;Galaxy Instruments;Galaxy Steinway 5.1
+720;Best Service;Galaxy Steinway 5.1
 721;East West Quantum Leap;Storm Drum Kompakt
-722;East West Quantum Leap;PSP Vapor Virtual Synthesizer
-723;East West Quantum Leap;Gold Edition
+722;East West Quantum Leap;PSP Vapor
+723;East West Quantum Leap;EWQL Symphonic Orchestra Gold Edition
+724;Best Service;Artist Drums
 725;East West Quantum Leap;Storm Drum Intakt
 726;Best Service;Cult Sampler
-727;Zero-G;The Operating Table
-728;Zero-G;Wired
-729;Native Instruments GmbH;Koncept+Funktion
-730;Zero-G;AfroLatin Slam
-731;Zero-G;NuJointz
-732;East West Quantum Leap;PSP StormBreakz
-733;East West Quantum Leap;HCB Vintage Expansion
+727;Zero-G;PSPVol7 The Operating Table
+728;Zero-G;PSP Wired - The Elements of Trance
+729;Zero-G;PSP Koncept & Funktion
+730;Zero-G;PSP Afrolatin Slam
+731;Zero-G;PSP Nu Jointz
+732;East West Quantum Leap;PSP Stormbreakz
+733;East West Quantum Leap;Hardcore Bass XP
 734;East West Quantum Leap;PSP Drumkit From Hell 2
 735;East West Quantum Leap;PSP Adrenaline
 736;East West Quantum Leap;PSP Percussive Adventures 2 LE
-737;Zero-G;Sounds Of Polynesia
+737;Zero-G;Sounds of Polynesia
 738;East West Quantum Leap;Percussive Adventures 2
-739;Zero-G;Altered States Intakt
+739;Zero-G;Altered States
 740;Zero-G;Sounds of the 70s
 741;Best Service;Artist Grooves
 742;Big Fish Audio;London Solo Strings
 743;Big Fish Audio;Raging Guitars
-744;Vir2;Fractured: Prepared Acoustic Guitar
+744;Vir2;Fractured
 745;Big Fish Audio;First Call Horns
-747;Cinesamples;CineBrass Core
-748;Cinesamples;CineBrass Pro
+747;Cinesamples;Cinebrass
+748;Cinesamples;CineBrass PRO
 749;Big Fish Audio;Celtic Instruments
-750;Zero-G;Beats Working In Cuba
+750;Zero-G;Beats Working in Cuba
 751;Future Music;Future Loops
 752;East West Quantum Leap;Colossus
 753;East West Quantum Leap;RA
 754;Zero-G;Analogue Sequencer Loops
+755;Impact Soundworks;Straight Ahead Jazz Horns
 756;Best Service;Latin World
-757;Tapspace;Virtual Drumline 2
+757;Tap Space;Virtual Drumline 2
 758;Computer Music;CM Session
 759;Art Vista;Virtual Grand Piano
 760;Native Instruments GmbH;Synthetic Drums 2
 762;East West Quantum Leap;Symphonic Choirs
-763;Best Service;Ethno World Complete 3
+763;Best Service;Ethno World 3 Complete
 764;Zero-G;Nostalgia
 765;Native Instruments GmbH;Kontakt Experience
-766;Best Service;Peter Siedlaczek's String Essentials
-767;Garritan;Jazz and Bigband
+766;Best Service;String Essentials
+767;Gary Garritan;Garritan Jazz
 768;Zero-G;Vocal Forge
-769;East West Quantum Leap;EWQLSO Pro XP Strings
-770;East West Quantum Leap;EWQLSO Pro XP Woodwinds
-771;East West Quantum Leap;EWQLSO Pro XP Brass
-772;East West Quantum Leap;EWQLSO Pro XP Percussion
-773;East West Quantum Leap;EWQLSO Pro XP Gold
-774;East West Quantum Leap;EWQLSO Pro XP Silver
+769;East West Quantum Leap;EWQL Symphonic Orchestra Pro XP Strings
+770;East West Quantum Leap;EWQL Symphonic Orchestra Pro XP Woodwinds
+771;East West Quantum Leap;EWQL Symphonic Orchestra Pro XP Brass
+772;East West Quantum Leap;EWQL Symphonic Orchestra Pro XP Percussion
+773;East West Quantum Leap;EWQL Symphonic Orchestra Pro XP Gold Edition
+774;East West Quantum Leap;EWQL Symphonic Orchestra Pro XP Silver Edition
 775;Zero-G;Outer Limits
 776;Best Service;Orient World
-777;Best Service;Peter Siedlaczek's Complete Classical Collection
-778;Best Service;Chris Hein Horns Compact
+777;Best Service;Classical Collection
+778;Best Service;Chris Hein Horns
 781;Best Service;Chris Hein Horns Pro Complete
-782;Sony;Sony ACID Pro
-783;Garritan;Stradivari Solo Violin
+782;Native Instruments GmbH;Kompakt Sony ACID Pro
+783;Gary Garritan;Stradivari Solo Violin
 784;Fixed Noise;OTTO
 785;Best Service;Chris Hein - Guitars
 787;Vir2;Acoustic Legends HD
-788;Sample Logic;Ambience Impacts Rhythms (A.I.R.)
-789;Dan Dean;Solo Strings Advanced
-790;Garritan;GPO Tracktion 3 Edition
+788;Sample Logic;Ambience Impacts Rhythms
+789;Dan Dean Productions;Solo Strings Advanced
+790;Mackie;GPO Tracktion 3 Edition
 791;Pro Audio Vault;Bluthner Model One
-792;Garritan;Gofriller Cello
-793;TerraTec Producer;WAVE XTABLE VI
-794;Vir2;VI One
-795;Big Fish Audio;Raging Guitars
-796;Garritan;Jazz And Big Band KP2
+792;Gary Garritan;Gofriller Cello
+793;Terratec;WAVE XTABLE VI
+794;Vir2;VI.ONE
+795;Big Fish Audio;Raging Guitars KP2
+796;Gary Garritan;Jazz and Big Band KP2
 797;Big Fish Audio;London Solo Strings KP2
 798;Big Fish Audio;First Call Horns KP2
-799;Garritan;Garritan Personal Orchestra KP2
-800;Vir2;SyntaX
-801;Tapspace;Virtual Drumline 2.5
+799;Gary Garritan;Garritan Personal Orchestra KP2
+800;Vir2;syntAX
+801;Tap Space;Virtual Drumline 2.5
 802;Best Service;Galaxy II
-803;Garritan;Concert and Marching Band
+803;Gary Garritan;Concert and Marching Band
 804;Orchestral Tools;Symphonic Sphere
 805;Orchestral Tools;Orchestral String Runs
 806;Kirk Hunter Studios;Pop Rock Strings
-809;Big Fish Audio;RiG: Urban Workstation
-810;Cinesamples;Voxos: Epic Virtual Choir
+807;Gary Garritan;Garritan Instruments for Finale
+808;Audio Impressions;70 DVZ Strings
+809;Big Fish Audio;RIG
+810;Cinesamples;VOXOS
 811;Vir2;Q
-812;Cinesamples;Hollywood Winds
+812;Cinesamples;Hollywoodwinds
 813;Sample Logic;Cinematic Guitars
 814;Vir2;Violence
 815;Prominy;SR5 Rock Bass
-818;Sidsonic Libraries;Circus Circuit Bending
+816;Undefined;Undefined
+817;Undefined;Undefined
+818;sidsonic;Circus Circuit Bending
 819;Best Service;Chris Hein Horns Vol 3
 820;Best Service;Chris Hein Horns Vol 4
 821;Best Service;CHH Compact
 822;Audiobro;LA Scoring Strings
 823;Best Service;Galaxy Vintage D
 824;Best Service;Accordions
-825;Best Service;Ethno World 5 Voices And Choirs
+825;Best Service;Ethno World 5 Voices and Choirs
 826;Best Service;Ethno World 5 Instruments
 827;Sample Modeling;Mr. Sax T
 828;Sample Modeling;The Trumpet
-829;Prominy;SC Electric Guitar
-830;Mixosaurus;Mixosaurus Kit A
-831;Sonivox;Presonus VI
+829;Prominy;Prominy SC
+830;MIXOSAURUS DAW Drums;Mixosaurus Kit A
+831;SONiVOX;Presonus Virtual Instrument
 832;Sample Logic;The Elements
-833;Zero-G;Phaedra
-834;Best Service;Peter Siedlaczek's Complete Classical Collection
-835;Best Service;Peter Siedlaczek's String Essentials
+833;Zero - G;Phaedra
+834;Best Service;Complete Classical Collection KP2
+835;Best Service;String Essentials KP2
 836;Best Service;Ethno World 4
 837;Best Service;Chris Hein Bass
 838;Best Service;Convolution Space
 839;Best Service;Galaxy Steinway OEM
-840;Xsample;Xsample Chamber Ensemble
+840;Best Service;Xsample Chamber Ensemble
 841;Vir2;Elite Orchestral Percussion
 842;Vir2;BASiS
 843;Vir2;Electri6ity
-844;Vir2;MOJO: Horn Section
-845;Vir2;World Impact: Global Percussion
+844;Vir2;Mojo
+845;Vir2;World Impact
 846;Art Vista;Virtual Grand Piano 2
 847;Sonic Reality;Ocean Way Drums Gold
 848;Sonic Reality;Ocean Way Drums Platinum
 849;Heavyocity;Evolve
 850;Best Service;Chris Hein Horns Solo
 851;Best Service;Chris Hein Horns Vol 2
-852;Vir2;Synergy
+852;Sample Logic;Synergy
 853;Fixed Noise;Kreate
 854;ProjectSAM;Symphobia
 855;ProjectSAM;Orchestral Brass Classic
@@ -645,8 +809,8 @@
 857;Spitfire Audio;Chamber Strings
 858;Spitfire Audio;Symphonic Strings
 859;Spitfire Audio;Great British Brass
-860;Sonic Reality;Infinite Player
-861;Vital Arts;Plectrum
+860;Sonic Reality;Studio ProFiles Infinite Player
+861;Vital Arts Media;Plectrum
 862;Sonic Reality;Ocean Way Expandable
 863;Steven Slate;Steven Slate Drums LE
 864;Steven Slate;Steven Slate Drums Platinum
@@ -655,79 +819,93 @@
 868;Sample Modeling;The Sax Brothers
 869;Sample Modeling;The Trombone
 870;Native Instruments GmbH;Pro-52
+871;Refractor Audio;Transport
 872;Native Instruments GmbH;Pro-52
 873;Native Instruments GmbH;Pro-52
 874;Fable Sounds;Broadway Big Band
 875;Fable Sounds;Broadway Lites
 876;Orange Tree Samples;Evolution Dracus
+877;Big Fish Audio;Aeris Hybrid Choir Designer
 878;Sample Logic;Cyclone
 879;Sample Logic;Assault
-880;Sample Logic;Morphestra Generations/Morphestra 2
+880;Sample Logic;Morphestra
 881;Fixed Noise;Rhythm Objekt
-882;Soniccoutre;Glassworks
-883;Drumasonic;Drumasonic
-884;Sidsonic Libraries;Tubes!
-885;ProjectSAM;True Strike 1 Orchestral Percussion
-886;ProjectSAM;True Strike 2 World & Effects Percussion
+882;SonicCouture;Glassworks
+883;Music Services;Drumasonic
+884;sidsonic;Tubes!
+885;ProjectSAM;True Strike
+886;ProjectSAM;True Strike 2
 887;ProjectSAM;Symphobia 2
 888;ProjectSAM;Concert Harp
 889;ProjectSAM;Organ Mystique
-890;Audiobro;LA Scoring Strings Lite
-891;Audiobro;LA Scoring Strings First Chair
+890;AudioBro;LA Scoring Strings Lite
+891;AudioBro;LA Scoring Strings First Chair
 893;Audiobro;LASS Legato Sordino
-895;Sample Modeling;French Horn And Tuba
-897;Spitfire Audio;Albion III: Iceni
+894;Sample Logic;Electro City
+895;Sample Modeling;French Horn and Tuba
+897;Spitfire Audio;Iceni
+898;Spitfire Audio;Spitfire British Wood
 899;Spitfire Audio;Spitfire Percussion
-900;Best Service;Chris Hein Bass Download Edtion
-901;Best Service;Ethno World 4 Pro Download Edition
+900;Best Service;Chris Hein Bass DE
+901;Best Service;Ethno World 4 Pro DE
 902;Best Service;Galaxy II DE
-903;Best Service;Chris Hein Guitars DE
-904;Xsample;Xsample Chamber Ensemble DE
+903;Best Service;Chris Hein - Guitars DE
+904;Best Service;Xsample Chamber Ensemble DE
 905;Best Service;Chris Hein Horns Solo DE
 906;Best Service;Chris Hein Horns Vol 2 DE
 908;Best Service;Galaxy Vienna Grand
 909;Best Service;Galaxy Steinway
-910;Best Service;Galaxy 1929 German Grand (aka Galaxy 1929 German Baby Grand)
+910;Best Service;Galaxy German Baby Grand
 911;Vir2;Studio Kit Builder
 912;Sample Logic;Rumble
 913;Sample Logic;Fanfare
 914;Big Fish Audio;Vintage Vibe
-915;8Dio;Epic Frame Drum Ensemble
+915;Tonehammer;Epic Frame Drum Ensemble
+916;Tonehammer;Solo Frame Drums
 917;Soundiron;Emotional Piano
-918;Soundiron;Struck Grand
+918;Tonehammer;Plucked Grand
 919;Soundiron;Requiem Light
-921;Soniccoutre;EP73 Deconstructed
-922;Soniccoutre;Konkrete
-923;Soniccoutre;Broken Wurli
-924;Soniccoutre;Novachord
-925;Soniccoutre;Array Mbira
-926;Soniccoutre;Xtended Piano
-927;Soniccoutre;Ondes
-928;Soniccoutre;Pan Drums (aka Pan Drums 2)
-929;Soniccoutre;The Conservatoire Collection
+920;Tonehammer;Bowed Grand
+921;SonicCouture;EP73 Deconstructed
+922;SonicCouture;Konkrete
+923;SonicCouture;Broken Wurli
+924;SonicCouture;Novachord
+925;SonicCouture;Array Mbira
+926;SonicCouture;Xtended Piano
+927;SonicCouture;Ondes Martenot
+928;SonicCouture;Pan Drums
+929;SonicCouture;The Conservatoire Collection
 930;Native Instruments GmbH;Bandstand
-931;Best Service;Nitron
+931;Tunebeast;Nitron
 932;Audio Raiders;Sasha Soundlab
-933;RealiTone;Realivox The Ladies
+933;Realitone;Realivox The Ladies
+934;In Session Audio;Riff Generation
 935;Spitfire Audio;Albion
 936;Prominy;V-Metal
-937;Native Instruments GmbH;Orchestral Essentials
-938;Gospelmusicians;MK Sensation
+937;ProjectSAM;Orchestral Essentials
+938;Gospel Musicians;MKSensation
+939;Native Instruments GmbH;Hexagon Highway
 940;Native Instruments GmbH;Kore
 941;Native Instruments GmbH;Kore 2
 942;Cinesamples;CineBrass Descant Horn
-943;Spitfire Audio;London Contemporary Strings
+943;Spitfire Audio;London Contemporary Orchestra Strings
+944;Best Service;The Orchestra
 945;Native Instruments GmbH;Kore Player
+946;Native Instruments GmbH;KOMPLETE KONTROL S49 MK2 HW
+947;Native Instruments GmbH;KOMPLETE KONTROL S61 MK2 HW
+948;Native Instruments GmbH;MASCHINE MK3 HW
 949;Native Instruments GmbH;Thrill
 950;Native Instruments GmbH;NI Komplete 2
-951;Native Instruments GmbH;Komplete 2
-952;Native Instruments GmbH;Komplete 2
-953;Native Instruments GmbH;Komplete 2
-954;Native Instruments GmbH;Komplete 2
-955;Native Instruments GmbH;Komplete 2
+951;Native Instruments GmbH;NI Komplete 2
+952;Native Instruments GmbH;NI Komplete 2
+953;Native Instruments GmbH;NI Komplete 2
+954;Native Instruments GmbH;NI Komplete 2
+955;Native Instruments GmbH;NI Komplete 2
 956;Native Instruments GmbH;NI Komplete Care 2005
 957;Native Instruments GmbH;Komplete Sound
 958;Native Instruments GmbH;Komplete 3
+959;Native Instruments GmbH;Komplete 3
+960;Native Instruments GmbH;Komplete 3
 961;Native Instruments GmbH;NI Essentials
 962;Native Instruments GmbH;NI Essentials
 963;Native Instruments GmbH;NI Komplete Care 2006
@@ -736,35 +914,51 @@
 966;Native Instruments GmbH;Komplete 5
 967;Native Instruments GmbH;Komplete Synths
 968;Native Instruments GmbH;Komplete Classics
+969;Native Instruments GmbH;Komplete 6
 970;Native Instruments GmbH;Komplete 7
 971;Native Instruments GmbH;Komplete 7 Elements
-972;Native Instruments GmbH;Komplete 7 Player
+972;Native Instruments GmbH;Komplete 7 Players
 973;Native Instruments GmbH;Komplete Elements
 974;Native Instruments GmbH;Komplete 8
 975;Native Instruments GmbH;Komplete 8 Ultimate
 976;Native Instruments GmbH;Komplete 8 Players
 977;Native Instruments GmbH;Komplete Elements Mk2
-978;Cinematic Strings;Cinematic Strings
+978;Cinematic Samples;Cinematic Strings
 979;Sonokinetic;Vivace
 980;Wave Alchemy;Transistor Revolution
-982;;Black
+981;SonicCouture;The Canterbury Suitcase
+982;Sampletekk;Black
 983;8mosphere;The 13 Cosmic Rays
-984;Art Vista;Tony's  Old School Bass
-985;Art Vista;Tony's Bright and Funky Bass
-986;Art Vista;Tony's Double Neck Bass
-987;Art Vista;Back Beat Bass
+984;Art Vista;Tonys Old School Bass
+985;Art Vista;Tonys Bright and Funky Bass
+986;Art Vista;Tonys Double Neck Bass
+987;Art Vista;Art Vista Back Beat Bass
+988;Cinematique Instruments;Ensemblia 2 Percussive
 989;4SCORING;Solo Violino Classico
 990;4SCORING;Solo Violino Virtuoso
 991;Orchestral Tools;Berlin Woodwinds
-992;Spitfire Audio;Albion II: Loegria
+992;Spitfire Audio;Loegria
 993;Sample Logic;Cinematic Guitars 2
-995;Zapzorn;Zapzorn Elements
+994;DAC Acoustic Services;Indigisounds
+995;ZapZorn;ZapZorn Elements
 996;Impact Soundworks;Shreddage II
 997;Evolution Series;World Percussion 2.0
 998;Output;REV
-999;Native Instruments GmbH;Komplete Selection, Percussion Hits
+999;Native Instruments GmbH;Komplete Selection - Percussion Hits
+01B;Native Instruments GmbH;TRK-01 Bass
+01K;Native Instruments GmbH;TRK-01 Kick
+01P;Native Instruments GmbH;TRK-01 Play
 0PA;Strezov Sampling;Tickle
+0UT;Native Instruments GmbH;MASCHINE Outreach HW
+1KA;Native Instruments GmbH;KOMPLETE AUDIO 1 HW
 23Y;Strezov Sampling;Freyja Female Choir v1.1
+2KA;Native Instruments GmbH;KOMPLETE AUDIO 2 HW
+32C;Native Instruments GmbH;KOMPLETE KONTROL M32 Collection
+3BQ;Sample Logic;Sample Logic Xosphere 2
+3MM;Native Instruments GmbH;MASCHINE MIKRO MK3 HW
+49B;Native Instruments GmbH;KOMPLETE KONTROL S49 MK2 HW BLACK KEYS
+61B;Native Instruments GmbH;KOMPLETE KONTROL S61 MK2 HW BLACK KEYS
+6KA;Native Instruments GmbH;KOMPLETE AUDIO 6 MK2 HW
 8D0;8Dio;Adagio Violins Vol.1
 8D1;8Dio;Adagio Violins Vol.1.1
 8D2;8Dio;Adagio Violas Vol.1
@@ -778,12 +972,15 @@
 8YP;Strezov Sampling;Rhodope Ethnic Bulgarian Choir
 9A0;Embertone;Sensual Saxophone
 9A1;PettinHouse;Acoustic Guitar Complete
-9A2;Cinematic Strings;Monster Staccatos
+9A2;Cinematic Strings;Cinematic Strings Monster Staccatos
 9A3;Strezov Sampling;Tickle
 9A4;Vienna Symphonic Library;Epic Horns
 9A5;Unversalsampling;Windchimes
 9A6;Impact Soundworks;Django Gypsy Guitar
-9AC;;Synthesis
+9AC;Native Instruments GmbH;Synthesis
+A25;Native Instruments GmbH;KOMPLETE KONTROL A25 HW
+A49;Native Instruments GmbH;KOMPLETE KONTROL A49 HW
+A61;Native Instruments GmbH;KOMPLETE KONTROL A61 HW
 AA0;Christian John;Keyscape Library by Christian John
 AA1;Ivy Audio;Clare Solo V2
 AA2;Ivy Audio;Carpenter Trombone
@@ -801,6 +998,7 @@ C08;8Dio;Liberis Angelic Choir
 CC7;Spitfire Audio;Albions Collection
 CC8;Spitfire Audio;BML Bones Vol.1
 CC9;Spitfire Audio;Orchestral Grand Piano
+CT0;Native Instruments GmbH;Creator Tools
 D05;8Dio;Requim Pro
 DD0;Spitfire Audio;Solo Strings
 DD1;Spitfire Audio;BML Horn Section
@@ -812,6 +1010,8 @@ DD6;Spitfire Audio;Flute Consort Vol.1
 DD7;Spitfire Audio;Harp Redux
 DD8;Spitfire Audio;Harpsichord
 DD9;8Dio;Epic Taiko Ensemble
+DJ0;Native Instruments GmbH;Traktor DJ Labs
+DJ2;Native Instruments GmbH;Traktor DJ 2
 EC1;Soundiron;Mercury
 EE0;Cinesamples;CinePerc Core
 EE1;Cinesamples;CinePerc Pro
@@ -828,16 +1028,16 @@ F00;Native Instruments GmbH;Guitar Rig Transient Master for Maschine
 F01;Native Instruments GmbH;Guitar Rig VC 160 for Maschine
 F02;Native Instruments GmbH;Guitar Rig VC 2A for Maschine
 F03;Native Instruments GmbH;Guitar Rig VC 76 for Maschine
-FE3;Native Instruments GmbH;Guitar Rig Pro Library for Machine
-FE4;Native Instruments GmbH;Guitar Rig Factory Selection for Machine
+FE3;Native Instruments GmbH;Guitar Rig Pro Library for Maschine
+FE4;Native Instruments GmbH;Guitar Rig Factory Selection for Maschine
 FE5;Native Instruments GmbH;Guitar Rig Elements for Maschine
 FF1;Soundiron;Mars
 FF3;Native Instruments GmbH;Guitar Rig Pro Library for Maschine
 FF6;Native Instruments GmbH;Solid Dynamics for Maschine
 FF7;Native Instruments GmbH;Solid Bus Comp for Maschine
 FF8;Native Instruments GmbH;Solid EQ for Maschine
-FF9;Native Instruments GmbH;Guitar Rig VC 160 for Machine
-FFA;Native Instruments GmbH;FFA Guitar Rig VC 2A for Maschine
+FF9;Native Instruments GmbH;Guitar Rig VC 160 for Maschine
+FFA;Native Instruments GmbH;Guitar Rig VC 2A for Maschine
 FFB;Native Instruments GmbH;Guitar Rig VC 76 for Maschine
 FFC;Native Instruments GmbH;Traktors 12 for Maschine
 FFD;Native Instruments GmbH;Rammfire for Maschine
@@ -846,46 +1046,500 @@ FFF;Native Instruments GmbH;Guitar Rig Transient Master for Maschine
 FX0;Native Instruments GmbH;Choral
 FX1;Native Instruments GmbH;Flair
 FX2;Native Instruments GmbH;Phasis
+FX3;Native Instruments GmbH;Mod Pack
 FX4;Native Instruments GmbH;Bite
 FX5;Native Instruments GmbH;Freak
 FX6;Native Instruments GmbH;Dirt
+FX7;Native Instruments GmbH;Crush Pack
+FX8;Native Instruments GmbH;Raum
 HTP;Strezov Sampling;Arva Children Choir
 K01;Native Instruments GmbH;Middle East
 K02;Native Instruments GmbH;Session Guitarist - Electric Sunburst
+K03;Native Instruments GmbH;Session Strings 2
 K04;Native Instruments GmbH;Session Strings Pro 2
+K05;Native Instruments GmbH;Mallet Flux
+K06;Native Instruments GmbH;Play Series Selection
 K07;Native Instruments GmbH;Noire
-K6E;Native Instruments GmbH;Kontakt 6
+K08;Native Instruments GmbH;Straylight
+K09;Native Instruments GmbH;Modular Icons
+K10;Native Instruments GmbH;Session Guitarist - Picked Acoustic
+K11;Native Instruments GmbH;East Asia
+K12;Native Instruments GmbH;KOMPLETE AUDIO Essentials Collection
+K13;Native Instruments GmbH;Mysteria
+K14;Native Instruments GmbH;Session Guitarist - Electric Sunburst Deluxe
+K15;Native Instruments GmbH;Stradivari Violin
+K16;Native Instruments GmbH;Pharlight
+K17;Native Instruments GmbH;Arkhis
+K18;Native Instruments GmbH;Cloud Supply
+K19;Native Instruments GmbH;Stradivari Cello
+K20;Native Instruments GmbH;Guarneri Violin
+K21;Native Instruments GmbH;Amati Viola
+K22;Native Instruments GmbH;Session Guitarist - Electric Vintage
+K23;Native Instruments GmbH;Action Strings 2
+K24;Native Instruments GmbH;Melted Vibes
+K46;Native Instruments GmbH;KOMPLETE AUDIO Collection
+K6C;Native Instruments GmbH;KOMPLETE AUDIO 6 Collection R2
+K6E;Native Instruments GmbH;Kontakt
+K6P;Native Instruments GmbH;Kontakt 6 Player
+K82;Native Instruments GmbH;KOMPLETE KONTROL S88 MK2 HW
+KAC;Native Instruments GmbH;KOMPLETE KONTROL A-SERIES Collection R2
+KE1;Native Instruments GmbH;Analog Dreams
+KE2;Native Instruments GmbH;Ethereal Earth
+KE3;Native Instruments GmbH;Hybrid Keys
+KE5;Native Instruments GmbH;Lo-Fi Glow
+KE7;Native Instruments GmbH;Butch Vig Drums
+KL1;Native Instruments GmbH;Soul Sessions
+KT0;Native Instruments GmbH;KI Test
+M01;Native Instruments GmbH;Spectrum Quake
+M02;Native Instruments GmbH;Nocturnal State
+M03;Native Instruments GmbH;Stadium Flex
+M32;Native Instruments GmbH;KOMPLETE KONTROL M32 HW
+MFS;Native Instruments GmbH;Maschine 2 Factory Selection
+MM1;Native Instruments GmbH;MASCHINE MIKRO HW
+MMC;Native Instruments GmbH;MASCHINE MIKRO MK3 Collection R2
 MNL;Zero-G;Ethera Gold
 MNM;Zero-G;Ethera 2.0
 MTK;8Dio;Lacrimosa Epic Choir
 MUC;Strezov Sampling;Storm Choir
 MUD;Strezov Sampling;Storm Choir 2
 MXE;Native Instruments GmbH;Massive X
-MXL;Native Instruments GmbH;Massive X Library
-NB1;Native Instruments GmbH;Native Browser Preview Library
-P04;Orchestral Tools;Inspire
+MXL;Native Instruments GmbH;Massive X Factory Library
+MXS;Native Instruments GmbH;Massive X Factory Selection
+NB1;Native Instruments GmbH;Previews
+P01;In Session Audio;Fluid Harmonics
+P02;In Session Audio;Fluid Strike
+P03;Luftrum;Lunaris
+P04;Orchestral Tools;Berlin Orchestra Inspire
+P05;Big Fish Audio;Sequence
+P06;Sound Yeti;Collision FX
+P07;Versilian Studios;Chamber Orchestra 2.6 Professional Edition
+P08;Secret Room Music;STRIKEFORCE
+P09;Soundiron;Ambius
 P10;Embertone;Joshua Bell Violin
+P11;Heavyocity;GP04 Vocalise 2
+P12;Big Fish Audio;Vintage Horns 2
+P13;Spitfire Audio;Spitfire Symphonic Strings Evolutions
+P14;Soundiron;Olympus Micro
+P15;Soundiron;Apocalypse Percussion Micro
+P16;Cinematic Samples;Cinematic Studio Solo Strings
+P17;Nashville Sampling Co;Rich Redmonds Modern Country Drums
+P18;Best Service;Accordions 2
+P19;Soundiron;Motor Rhythms
+P20;Soundiron;Voices Of Rage
+P21;Cinesamples;CineHarps
+P22;Soundiron;Voices Of Gaia
+P23;Soundiron;Antidrum Machine
+P24;Spitfire Audio;Hans Zimmer Percussion
+P25;Orange Tree Samples;Evolution Rock Standard
+P28;Soundiron;Mercury Micro
+P29;Soundiron;Glitch Hero
 P30;Spitfire Audio;Orchestral Swarm
 P31;Heavyocity;NP01 Intimate Textures
+P32;e-Instruments;Session Keys Upright
+P33;Bechstein;Digital Grand Essentials
+P34;Spitfire Audio;Hans Zimmer Percussion Professional
+P35;In Session Audio;Shimmer Shake Strike
+P36;Standalone Music;GETLOW
 P37;Red Room Audio;Palette
+P38;Orange Tree Samples;Evolution Songwriter
+P39;Orange Tree Samples;Evolution Infinity
+P40;Strezov Sampling;Balkan Ethnic Orchestra
+P41;e-Instruments;Session Keys Electric W
+P42;Vir2;Vital Series Sticks
+P43;Drumdrops;The Vintage Disco and Funk Kits
+P44;Sonokinetic BV;Accordion
+P45;Sonokinetic BV;Alphorn
+P46;Sonokinetic BV;Arpeggio
+P47;Sonokinetic BV;Bells and Whistles
+P48;Sonokinetic BV;Celesta
+P49;Sonokinetic BV;Da Capo
+P50;Sonokinetic BV;Delphi
+P51;Sonokinetic BV;EMP
+P52;Sonokinetic BV;Gediz
+P53;Sonokinetic BV;Guzin
+P54;Sonokinetic BV;Hurdy Gurdy
+P55;Sonokinetic BV;Mallets
+P56;Sonokinetic BV;Noir
+P57;Sonokinetic BV;Ostinato Brass
+P58;Sonokinetic BV;Oud
+P59;Sonokinetic BV;Percussao do Brasil
+P60;Sonokinetic BV;Qanun
+P61;Sonokinetic BV;Shahrazad
+P62;Sonokinetic BV;Sleigh Bells
+P63;Sonokinetic BV;Speeldoos
+P64;Sonokinetic BV;Steelpan
+P65;Sonokinetic BV;Sultan Drums
+P66;Sonokinetic BV;Sultan Strings
+P67;Sonokinetic BV;The Carnival
+P68;Sonokinetic BV;Toccata
+P69;Sonokinetic BV;Toll
+P70;Sonokinetic BV;Watchmaker
+P71;Sonokinetic BV;Yemenite
+P72;Wave Alchemy;EVOLUTION
 P73;Audiobro;Genesis Childrens Choir
 P74;Orchestral Tools;Metropolis Ark 3
+P75;Big Fish Audio;Vintage Vocals
+P76;Output;ANALOG BRASS AND WINDS
+P77;PREMIER Engineering;Princess Koto KAGUYA
 P78;Spitfire Audio;Olafur Arnalds Chamber Evolutions
+P79;Spitfire Audio;Alternative Solo Strings
+P80;Get Good Drums;GGD Modern and Massive
+P81;Aviram Dayan Production;Aviram Harp Guitar
+P82;Aviram Dayan Production;Aviram Music Box
+P83;DAC Acoustic Services;Chutney and Tassa Starter Pack
+P84;Cinesamples;CineHarpsichord
 P85;Cinesamples;CinePiano
-Q23;Orchestral Tools;Inspire 2
+P86;Orange Tree Samples;Evolution Jumbo 12
+P87;Best Service;Emotional Violin
+P88;Room Sound;Blasting Room Signature Series Drums
+P89;Heavyocity;GP05 Scoring Guitars 2
+P90;Gothic Instruments;Dronar Master Edition
+P91;Soundiron;Hyperion Strings Micro
+P92;Spitfire Audio;Spitfire Solo Strings
+P93;In Session Audio;Fruit Shake
+P94;Soniccouture;Guzheng
+P95;Soniccouture;Morpheus
+P96;Soniccouture;Skiddaw Stones
+P97;Soniccouture;Tingklik
+P98;Best Service;Chris Hein - Ensemble Strings
+P99;Heavyocity;NP02 Rhythmic Textures
+Q01;Beyron Audio;Altron
+Q02;Soniccouture;Bowed Gamelan
+Q03;Soniccouture;Choir Horns
+Q04;Soniccouture;Giant Bass Tongue Drum
+Q05;Soniccouture;Kim
+Q06;Soniccouture;Music Boxes
+Q07;Soniccouture;Rocksichord
+Q08;Soniccouture;Samulnori Percussion
+Q09;Soniccouture;Toy Pianos
+Q10;Soniccouture;Tube Drum
+Q11;Soniccouture;Wassolou Balafon
+Q12;Soniccouture;Tape Choir
+Q13;Soniccouture;Thunder Drum
+Q14;Embertone;Walker 1955 Steinway D
+Q15;Embertone;Walker 1955 Concert D Lite
+Q16;Heavyocity;FORZO
+Q17;Orange Tree Samples;Evolution Texas Twang
+Q18;Spitfire Audio;British Drama Toolkit
+Q19;Sonokinetic BV;SonokineticLargo
+Q21;Spitfire Audio;Spitfire Studio Strings
+Q22;Spitfire Audio;Spitfire Studio Strings Professional
+Q23;Orchestral Tools;Berlin Orchestra Inspire 2
+Q24;SubMission Bass;EUROBASS
+Q25;Soundiron;Rhythmic Odyssey
+Q26;RMXHTZ;Release
+Q27;Audiomodern;Atom
 Q28;Cinesamples;90s Retro Trumpets
+Q29;Orchestral Tools;Time Macro
+Q30;Audiomodern;Atom Contemporary Ethnic
+Q31;Vir2;Mojo 2
+Q33;Room Sound;Jay Maas Signature Series Drums
+Q34;Soniccouture;NyckelHarpas
+Q35;why do birds;Siemens Sound Sampler
+Q36;Heavyocity;NP03 Synthetic Strings
+Q37;EarthMoments;5Elements
+Q38;In Session Audio;Taiko Creator
+Q39;PREMIER Engineering;Shakuhachi Premier G
+Q40;Impact Soundworks;Shreddage 3
+Q41;Spitfire Audio;Ambient Guitars
+Q42;Strezov Sampling;Afflatus Chapter I Strings
+Q43;Sonic Scores;Amadeus Symphonic Orchestra
+Q44;Spitfire Audio;Spitfire Studio Brass Professional
+Q45;Spitfire Audio;Spitfire Studio Brass
+Q46;Cinematic Samples;Cinematic Studio Brass
 Q47;Cinesamples;Voices of War - Men of the North
+Q48;Digital Sound Factory;E-MU Proteus Rack
+Q49;Orchestral Tools;Metropolis Ark 4
+Q51;Produce RNB;Chord Genesis 2.0
+Q52;Sonokinetic BV;Ostinato Woodwinds
 Q53;Orchestral Tools;The Orchestral Grands
-Q82;Cinesamples;CineWinds Monster Low Winds
+Q54;SOUND Museum;Temple Bei Guan
+Q55;Prominy;SR5 Rock Bass 2
+Q56;Wave Alchemy;Drumvolution
+Q57;Sonokinetic BV;Bowls
+Q58;Sonokinetic BV;Carillon
+Q59;Sonokinetic BV;Chime
+Q60;Cinesamples;Artist Series - Tina Guo vol 2
+Q61;Audiomodern;Opacity
+Q62;Sonokinetic BV;Sleighbells II
+Q63;Spitfire Audio;London Contemporary Orchestra Textures
+Q64;Spitfire Audio;Spitfire Studio Woodwinds
+Q65;Spitfire Audio;Spitfire Studio Woodwinds Professional
+Q66;UNDRGRND Sounds;Redlight
+Q67;Orange Tree Samples;Evolution Flatwound Bass
+Q68;Impact Soundworks;Shreddage 3 Abyss
+Q69;Impact Soundworks;Shreddage 3 Archtop
+Q70;Impact Soundworks;Shreddage 3 Jupiter
+Q71;Impact Soundworks;Shreddage 3 Rogue
+Q72;Impact Soundworks;Shreddage 3 Serpent
+Q73;Big Fish Audio;Ancient World - Instruments of Antiquity
+Q74;Soniccouture;Sheng Khaen Sho
+Q75;Sonica Instruments;KABUKI and NOH PERCUSSION
+Q76;Heavyocity;NOVO Essentials
+Q77;Soundiron;Mimi Page Light and Shadow
+Q78;Audiobro;Modern Scoring Brass
+Q79;Impact Soundworks;Shreddage 3 Stratus
+Q80;Ocean Swift Synthesis;Pathfinder WT
+Q81;Get Good Drums;Invasion
+Q82;Cinesamples;Monster Low Winds
+Q83;Heavyocity;GP06 Scoring Bass
+Q84;GSD Sounds;House Bass Vol 1
+Q85;Orange Tree Samples;Evolution Roundwound Bass
+Q86;Sonokinetic BV;Indie
+Q87;Spitfire Audio;Kepler Orchestra
+Q88;Soundiron;Hopkin Instrumentarium Tines and Echoes
+Q89;Soundiron;Voice Of Wind Adey
+Q90;Evolution Series;World Strings Oud
+Q91;NeO team;NeO soundstation 2
+Q92;Best Service;The Orchestra Complete
+Q93;Best Service;TO - Strings Of Winter
+Q94;Wave Alchemy;BASSYNTH
+Q95;Heavyocity;Mosaic Keys
+Q96;Heavyocity;Mosaic Voices
+Q98;Sample Modeling;Solo and Ensemble Strings
+Q99;Soundiron;Hyperion Strings Elements
+R01;Blinksonic;SUBSTANZ
+R02;Tim Exile;SLOO
+R03;Blinksonic;RUIDOZ
+R04;Blinksonic;VOZ
+R05;Blinksonic;AETONZ
+R06;Tim Exile;SLOR
+R07;Heavyocity;Calc-U-Synth
+R08;Heavyocity;C-Tools
+R09;Heavyocity;GRID II
+R10;Heavyocity;BitRate II & MonoBoy
+R11;Tonsturm;WHOOSH
+R12;Twisted Tools;Buffeater
+R13;Twisted Tools;Colorflex
+R14;Twisted Tools;MSMAX
+R15;Twisted Tools;Rolodecks
+R16;Twisted Tools;Scapes
+R17;Twisted Tools;S-Layer
+R18;Twisted Tools;Ultraloop
+R19;Twisted Tools;Vortex
+R20;Toy Box;Free Pack
+R21;Michael Hetrick;Euro Reakt
+R22;Michael Hetrick;Euro Reakt - Free Edition
+R23;Toy Box;Designers Pack
+R24;Toy Box;Floor Shakers Pack
+R25;Toy Box;Sampling Pack
+R26;holonic systems;Holonic Source
+R27;MeinHomestudio.de;Caldo
+R28;Genki Instruments;Wave
+R29;Toy Box;Synth Pack
+R30;Async Audio;OV Snare
+RBB;Native Instruments GmbH;Blocks Base
+RBP;Native Instruments GmbH;Blocks Primes
+RS8;Native Instruments GmbH;Super 8
+S23;Native Instruments GmbH;TRAKTOR KONTROL S2 MK3 HW
+S43;Native Instruments GmbH;TRAKTOR KONTROL S4 MK3 HW
+SC0;Native Instruments GmbH;Symphony Series Collection
+SE0;Native Instruments GmbH;Symphony Essentials Collection
 SE1;Native Instruments GmbH;Symphony Essentials Percussion
+SS1;Native Instruments GmbH;Symphony Series Percussion
 SWY;Strezov Sampling;Wotan Male Choir v1.2
+SY1;Native Instruments GmbH;MassiveX
+T01;Bluescreen Productions;Berlin Blue Bass
 T38;Soundiron;Venus Symphonic Womens Choir
+TL3;Native Instruments GmbH;Traktor Pro 3 LE
+TP3;Native Instruments GmbH;Traktor Pro 3
 TRK;Native Instruments GmbH;TRK-01
+TS3;Native Instruments GmbH;TRAKTOR KONTROL S3 HW
+TV3;Native Instruments GmbH;Traktor Pro 3 VIP
+V01;Soundiron;Hopkin Instrumentarium Miago Trod
+V02;Soundiron;Shake
+V03;Soundiron;Hopkin Instrumentarium The U
+V04;Soniccouture;All Saints Organ
+V05;Ethnaudio;Percussion Of Anatolia
+V06;Cymatic Form;Acousmatic Engine
+V07;Artistry Audio;ORIGIN X
+V10;Audiosyncrasy;The Harmonium
+V11;Cinesamples;Soundscapes
+V13;Impact Soundworks;InSIDious
+V14;Orange Tree Samples;The Famous E Electric Piano
+V15;Valiant Samples;Quartarone Guitar Reveries
+V16;Heavyocity;Damage 2
+V17;Slate and Ash;AURAS
+V20;Sonica Instruments;Koto 17
+V21;Sonica Instruments;Koto 20
+V22;Sonica Instruments;Sanshin
+V25;Audio Imperia;Cerberus
+V26;Audio Imperia;Jaeger
+V27;Audio Imperia;Legacy
+V28;Audio Imperia;Trailer Guitars 2
+V29;Audio Imperia;Talos
+V30;Baticci Lab;Hyperflute
+V31;Best Service;TO - Horns of Hell
+V33;RS Drums;Enso
+V34;Soundiron;Voice Of Wind Kimba
+V35;Luftrum;Bioscape
+V36;Keep Forest;Ferrum - Free Edition
+V37;Audiobro;Modern Scoring Strings
+V39;weyrerTon;Tyrolean Harp
+V41;In Session Audio;Guitar Swell
+V42;Soniccouture;Celeste
+V43;Renegade Soundplay;High Score
+V44;Fracture Sounds;Woodchester Piano
+V46;Wavelet Audio;Ashen Scoring Cello
+V48;Orchestral Tools;Special Bows 2
+V49;Fracture Sounds;Midnight Grand
+V50;Audiomodern;Opacity II
+V51;Sonixinema;Contemporary Soloist - Cello
+V53;Heavyocity;Mosaic Tape
+V54;Vir2;Aura - Atmospheric Drone Builder
+V55;Spitfire Audio;Aperture Orchestra
+V56;Capital House Studio;Drum Daddy
+V57;Audio Imperia;Areia Lite Edition
+V58;Soniccouture;Hammersmith Free
+V60;Get Good Drums;One Kit Wonder - Aggressive Rock
+V61;Audiobro;Modern Scoring Strings Expanded Legato
+V62;Murst Instruments;Glass
+V63;Murst Instruments;Legato Cello
+V64;Murst Instruments;Stone
+V65;Realitone;Sunset Strings
+V66;Straight Ahead Samples;Birth of the Trumpet
+V67;Sonokinetic BV;Ibrido Favola
+V68;Sonokinetic BV;Ibrido Zero
+V69;Soundiron;Hapi Drums
+V70;Sonokinetic BV;Carousel
+V71;ProjectSAM;Colours Adaptive Runs
+V72;Cinesamples;CineBrass Horns of the Deep
+V74;Nami Audio;Hammer and Felt
+V75;Nami Audio;Quasar
+V81;Toy Box;Nano Pack
+V82;Spitfire Audio;Contemporary Drama Toolkit
+V83;Fracture Sounds;Glacier Keys
+V84;Soundiron;Voice Of Wind Audrey
+V85;Strezov Sampling;Strezov Sampling Choir Essentials
+V86;Cinematic Samples;Cinematic Studio Woodwinds
+V87;Heavyocity;GP07 Scoring Acoustic Guitars
+V89;Emergence Audio;Quantum
+V90;Goremall instruments;Wavelady
+V92;Orange Tree Samples;Evolution Bluegrass Banjo
+V94;Soniccouture;Orchestral Chimes Collection
+V95;Sonixinema;Hang Drum - Experiments
+V96;Impact Soundworks;Modern Harpejji
+V97;Sonixinema;Abstract - Experiments
+W01;Spitfire Audio;Hauschka Composer Toolkit
+W02;Room Sound;Jay Maas Signature Series Drums LITE
 W03;Cinesamples;Artist Series - Randys Prepared Piano
+W04;In Session Audio;Riff Generation - Outside In Edition
+W05;Submission Audio;PunkBass
+W06;Impact Soundworks;Pedal Steel
+W07;Best Service;Chris Hein - Strings Compact
+W08;Sound Yeti;Method 1
+W09;Audio Imperia;Nucleus
+W10;Soundiron;Soundiron Vocal Suite
+W11;Get Good Drums;P4 Matt Halpern Signature pack
+W12;Impact Soundworks;Shreddage 3 Legacy
+W13;Impact Soundworks;Ventus Winds - Duduk
+W14;Soundiron;Hopkin Instrumentarium Rattletines
+W15;Merkaba Electronics;The Sound Stone
+W16;Spitfire Audio;Symphonic Organ
+W19;Orchestral Tools;Berlin Orchestra Inspire 1 and 2 Collection
+W20;Orchestral Tools;Metropolis Ark 1 and 2 Collection NKS Store
+W21;Orchestral Tools;Metropolis Ark 3 and 4 Collection NKS Store
+W22;Soniccouture;Moonkits
+W23;Spitfire Audio;Spitfire Solo Cello
 W24;Spitfire Audio;Spitfire Solo Violin
-W35;Cinesamples;Taylor Davis
+W25;Heavyocity;Ascend Modern Grand
+W26;Orchestral Tools;Time Micro
+W27;Strezov Sampling;Arva Children Choir
+W28;Strezov Sampling;Freyja Female Choir
+W29;Strezov Sampling;Rhodope 2 Ethnic Bulgarian Choir
+W30;Strezov Sampling;Wotan Male Choir
+W34;United Audio Artists;Scratch Master Pro
+W35;Cinesamples;Artist Series - Taylor Davis
+W36;Best Service;Elysion
+W37;Spitfire Audio;Percussion Swarm
+W38;Soniccouture;Soniccouture Premium Collection
+W39;Soniccouture;The Attic 2
+W40;Soundiron;Hopkin Instrumentarium Woodentines
+W41;ProjectSAM;Symphobia 4 Pandora
+W42;Spitfire Audio;Aperture Strings
+W43;Heavyocity;Vento - Modern Woodwinds
+W45;Big Fish Audio;Street Percussion
+W47;Impact Soundworks;Shreddage 3 Precision
+W49;Keep Forest;Ferrum
+W50;Keep Forest;Risenge Core
+W51;Slate and Ash;Cycles
+W52;Sonokinetic BV;Modal Runs
+W53;Sonokinetic BV;Ostinato Noir
+W54;Spitfire Audio;Albion NEO
+W56;Strezov Sampling;Storm Choir Ultimate
+W57;Keep Forest;Risenge Pro
+W58;Soundiron;Soundiron Collection
+W59;Audio Imperia;Nucleus Lite Edition
+W60;Embertone;Joshua Bell Violin Essential
+W61;Sample Modeling;Solo and Ensemble Violins
+W62;Room Sound;Beau Burchell Signature Series Drums
+W63;Soniccouture;Blanks
+W64;Cinesamples;CineBrass Sonore
+W65;Impact Soundworks;Cinema Sound Foley Library
+W66;Sudden Audio;Raw Strings
+W67;Orange Tree Samples;Flute Flight
+W68;Submission Audio;DjinnBass
+W69;Big Fish Audio;Ambient Minimalism
+W70;Soundiron;Hopkin Instrumentarium Metaltines
+W71;Soundiron;Alpha Organ
+W72;Spitfire Audio;Olafur Arnalds Stratus
+W73;In Session Audio;Drumatic Creator
+W74;Best Service;Emotional Viola
+W75;ProjectSAM;The Free Orchestra
+W76;Impact Soundworks;Shreddage 3 Hydra
+W77;ProjectSAM;Symphobia 4 Pandora Core
+W79;Seqsual;Blue Set
+W80;Spitfire Audio;Olafur Arnalds Evolutions
+W82;Cinesamples;Artist Series - Tina Guo Acoustic Cello Legato
+W83;Spitfire Audio;Olafur Arnalds Composer Toolkit
+W84;Heavyocity;FORZO Essentials
+W85;Soniccouture;All Saints Choir
+W86;Get Good Drums;One Kit Wonder - Modern Fusion
+W88;Sound Yeti;Ambition
+W89;Strezov Sampling;Jade Ethnic Orchestra
+W90;Wide Blue Sound;Elysium
+W91;Audio Imperia;Areia
+W92;Sonokinetic BV;Ibrido Cinematica
+W95;Soundiron;Rumba Boxes
+W96;Heavyocity;Mosaic Bass
+W97;Big Fish Audio;Ambient Minimalism II - The Dark Side
+W98;Sonokinetic BV;Ibrido Cinematica Free Edition
+W99;Soundiron;Didgeridoos
 X01;Native Instruments GmbH;London Grit
+X02;Native Instruments GmbH;Street Swarm
 X03;Native Instruments GmbH;Byte Riot
 X04;Native Instruments GmbH;Decoded Forms
 X05;Native Instruments GmbH;Deep Matter
+X06;Native Instruments GmbH;Basement Era
+X07;Native Instruments GmbH;Timeless Glow
+X08;Native Instruments GmbH;Meteoric Rise
+X09;Native Instruments GmbH;Carbon Decay
+X10;Native Instruments GmbH;Global Shake
+X11;Native Instruments GmbH;Polar Flare
+X12;Native Instruments GmbH;Infamous Flow
+X13;Native Instruments GmbH;Midnight Sunset
+X14;Native Instruments GmbH;District Xeo
+X15;Native Instruments GmbH;Aquarius Earth
+X16;Native Instruments GmbH;Opaline Drift
+X17;Native Instruments GmbH;Expansions Selection
+X18;Native Instruments GmbH;Indigo Dust
+X19;Native Instruments GmbH;Lockdown Grind
+X20;Native Instruments GmbH;Warped Symmetry
+X21;Native Instruments GmbH;Chromatic Fire
+X22;Native Instruments GmbH;Pure Drip
+X23;Native Instruments GmbH;The Stereotypes
+X27;Native Instruments GmbH;Magnetic Coast
+X28;Native Instruments GmbH;Faded Reels
 X2Y;Cinesamples;CineBells
+XG1;Native Instruments GmbH;Yangqin
+Y03;Cinesamples;Continuum Guitars
+Y09;Heavyocity;Vento Essentials
+Y10;Get Good Drums;One Kit Wonder - Metal
+Y11;In Session Audio;World Percussion Creator
+Y13;Audio Imperia;Solo
+Y16;Soniccouture;Threnody Strings
+Y21;Heavyocity;Mosaic Pluck
+Y23;Skybox Audio;Hammers and Waves - Acoustic
+Y24;Skybox Audio;Hammers and Waves - Chime
+Y25;Skybox Audio;Hammers and Waves - Electric
+Y26;Skybox Audio;Hammers and Waves - Prepared
