@@ -2,6 +2,54 @@ using System.Runtime.InteropServices;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
+    public static class NCW
+    {
+        public static bool NCW2Wav(string source, string dest)
+        {
+            bool result = false;
+
+            // Convert file
+            NCWParser ncwParser = new NCWParser();
+            ncwParser.Clear();
+            ncwParser.OpenNCWFile(source);
+            ncwParser.ReadNCW();
+
+            // string tempfile = GetTempFile(dest);
+
+            // if (wavtype == wtStandard)
+            //     ncwParser.SaveToWAV(tempfile);
+            // else if (wavtype == wtExtended)
+            //     ncwParser.SaveToWAVEx(tempfile);
+            // else
+            // {
+            //     if (ncwParser.Header.Channels > 2 ||
+            //         ncwParser.Header.Bits > 16 ||
+            //         ncwParser.Header.Samplerate > 44100)
+            //         ncwParser.SaveToWAVEx(tempfile);
+            //     else
+            //         ncwParser.SaveToWAV(tempfile);
+            // }
+
+            ncwParser = null;
+
+            // Rename temp file
+            // string destfile = dest;
+            // if (File.Exists(destfile))
+            // {
+            //     if (isrewrite)
+            //         File.Delete(destfile);
+            //     else
+            //         destfile = GetUniqueFileName(destfile);
+            // }
+
+            // File.Move(tempfile, destfile);
+
+            result = true;
+            return result;
+        }
+
+    }
+
     public class NCWParser
     {
         public static readonly byte[] NCW_SIGNATURE1 = new byte[] { 0x01, 0xA8, 0x9E, 0xD6, 0x31, 0x01, 0x00, 0x00 };
@@ -41,10 +89,29 @@ namespace PresetConverterProject.NIKontaktNKS
         private FileStream fs;
         private TNCWHeader Header;
         private int[] BlocksDefList;
+        private int[] datai;
         private sbyte[] data8;
         private short[] data16;
         private byte[][] data24;
-        private int[] datai;
+
+        public void Clear()
+        {
+            CloseFile();
+            datai = new int[0];
+            data8 = new sbyte[0];
+            data16 = new short[0];
+            data24 = new byte[0][];
+        }
+
+        public void CloseFile()
+        {
+            if (fs != null)
+            {
+                fs.Dispose();
+                fs = null;
+            }
+            BlocksDefList = new int[0];
+        }
 
         public void OpenNCWFile(string filename)
         {
