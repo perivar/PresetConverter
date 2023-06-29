@@ -173,7 +173,8 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else
             {
-                Log.Warning(inputFilePath + ": Header2 is not a '/\\ NI FC MTD  /\\' header. Got " + StringUtils.ToHexAndAsciiString(header2));
+                // this is typically ok, so just debug
+                Log.Debug("Header2 is not a '/\\ NI FC MTD  /\\' header. Got " + StringUtils.ToHexAndAsciiString(header2));
             }
 
             return isSuccess;

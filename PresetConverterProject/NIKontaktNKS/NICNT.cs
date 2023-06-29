@@ -77,7 +77,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     // try to read NI FC MTD again, and extract resources
                     if (NI.TryReadNIResources(inputFilePath, outputDirectoryPath, bf, doList, doVerbose))
                     {
-                        Log.Information(String.Format("Succesfully parsed NI Resources ..."));
+                        Log.Information(inputFilePath + ": Succesfully parsed NI Resources.");
                     }
                 }
                 else

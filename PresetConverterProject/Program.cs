@@ -48,8 +48,10 @@ namespace PresetConverter
 
             var hu = splittedLine[1];
 
-            NksLibraryDesc libDesc = new NksLibraryDesc();
-            libDesc.Id = snpid;
+            NksLibraryDesc libDesc = new()
+            {
+                Id = snpid
+            };
             NKS.NksGeneratingKeySetKeyStr(libDesc.GenKey, jdx);
             NKS.NksGeneratingKeySetIvStr(libDesc.GenKey, hu);
 

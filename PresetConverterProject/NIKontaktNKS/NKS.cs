@@ -1,8 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
 
@@ -100,13 +96,15 @@ namespace PresetConverterProject.NIKontaktNKS
             Regex sectionRegex = new Regex(@"\[([\w\d\s\.\-]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
 
-            var keyElements = new List<string>();
-            keyElements.Add("Name");
-            keyElements.Add("SNPID");
-            keyElements.Add("Company");
-            keyElements.Add("ContentDir");
-            keyElements.Add("JDX");
-            keyElements.Add("HU");
+            var keyElements = new List<string>
+            {
+                "Name",
+                "SNPID",
+                "Company",
+                "ContentDir",
+                "JDX",
+                "HU"
+            };
 
             List<NksLibraryDesc>? settingsList = null;
 
@@ -222,11 +220,13 @@ namespace PresetConverterProject.NIKontaktNKS
             Regex sectionRegex = new Regex(@"\[([\w\d]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=(.*?)$");
 
-            var keyElements = new List<string>();
-            keyElements.Add("JDX");
-            keyElements.Add("HU");
-            keyElements.Add("RegKey");
-            keyElements.Add("Company");
+            var keyElements = new List<string>
+            {
+                "JDX",
+                "HU",
+                "RegKey",
+                "Company"
+            };
 
             List<NksLibraryDesc>? nkLibsList = null;
 
@@ -333,9 +333,9 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        private static List<NksLibraryDesc> NksGetRegistryLibraries()
+        private static List<NksLibraryDesc>? NksGetRegistryLibraries()
         {
-            NksLibraryDesc ld = null;
+            NksLibraryDesc? ld = null;
             try
             {
                 var regPath = string.Format("{0}\\{1}", REG_PATH, "Content");
@@ -500,7 +500,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        private static bool NksOpenBf(BinaryFile bf, Nks nks)
+        private static bool NksOpenBf(BinaryFile? bf, Nks nks)
         {
             if (bf == null)
                 throw new ArgumentNullException("BinaryFile cannot be null");
@@ -733,7 +733,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (nks.BinaryFile.Seek(offset, SeekOrigin.Begin) < 0)
                     throw new IOException("Failed reading from stream");
 
-                NksEntry entry = new NksEntry();
+                NksEntry? entry = new NksEntry();
 
                 switch (header.Version)
                 {
@@ -966,7 +966,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int keyLength = 0;
             long keyPos = 0;
-            byte[] key = null;
+            byte[]? key = null;
 
             if (header.KeyIndex < 0xff)
             {
@@ -988,7 +988,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
             else if (header.KeyIndex == 0x100)
             {
-                NksSetKey setKey = nks.SetKeys.Where(a => a.Key == header.SetId).Select(a => a.Value).FirstOrDefault();
+                NksSetKey? setKey = nks.SetKeys.Where(a => a.Key == header.SetId).Select(a => a.Value).FirstOrDefault();
 
                 if (setKey == null)
                 {
@@ -1013,8 +1013,10 @@ namespace PresetConverterProject.NIKontaktNKS
                         }
                     }
 
-                    setKey = new NksSetKey();
-                    setKey.SetId = header.SetId;
+                    setKey = new NksSetKey
+                    {
+                        SetId = header.SetId
+                    };
                     setKey.Data = NksCreate0110Key(lib.GenKey, setKey.Data.Length);
                     if (setKey.Data == null)
                     {
@@ -1451,7 +1453,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         #region Generate and Read Keys mehods
         private static byte[][] Nks0100Keys = MathUtils.CreateJaggedArray<byte[][]>(32, 16);
-        private static byte[] Nks0110BaseKey;
+        private static byte[]? Nks0110BaseKey;
 
         private static bool NksGet0100Key(int keyIndex, out byte[]? key, out int length)
         {
@@ -1848,7 +1850,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
     public class NksSetKey
     {
-        public String SetId { get; set; }
+        public String? SetId { get; set; }
         public byte[] Data = new byte[0x10000];
     }
 

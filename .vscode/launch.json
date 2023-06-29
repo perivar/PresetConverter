@@ -294,17 +294,19 @@
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
+        // NKR = Resource File
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineBrass.nkr",
+        // NKX = Sample File
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Whole Woodwinds Swells Samples.nkx",
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\06. Harp.nkx",
         "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineBrass.nkr",
-        "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Neo-Soul Keys\\NSR.nkx",
         "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-l"
+        "C:\\Users\\periv\\Projects\\Temp"
+        // "-l"
         // "-v"
       ],
       "cwd": "${workspaceFolder}",

@@ -17,38 +17,38 @@ namespace PresetConverterProject.NIKontaktNKS
                 // should start with /\ NI FC MTD  /\
                 if (NI.TryReadNIResources(inputFilePath, outputDirectoryPath, bf, doList, doVerbose))
                 {
-                    Log.Information(String.Format("Succesfully parsed NI Resources ..."));
+                    Log.Information(inputFilePath + ": Succesfully parsed NI Resources.");
                 }
                 else
                 {
                     bf.Seek(0, SeekOrigin.Begin);
 
                     UInt32 fileSize = bf.ReadUInt32();
-                    Log.Debug("fileSize: " + fileSize);
+                    Log.Information("File Size: " + fileSize);
 
                     UInt32 unknown01 = bf.ReadUInt32();
-                    Log.Debug("unknown01: " + unknown01);
+                    if (doVerbose) Log.Debug("unknown01: " + unknown01);
 
                     UInt32 unknown02 = bf.ReadUInt32();
-                    Log.Debug("unknown02: " + unknown02);
+                    if (doVerbose) Log.Debug("unknown02: " + unknown02);
 
                     var unknown03 = bf.ReadString(4);
-                    Log.Debug("unknown03: " + unknown03);
+                    if (doVerbose) Log.Debug("unknown03: " + unknown03);
 
                     UInt32 unknown04 = bf.ReadUInt32();
-                    Log.Debug("unknown04: " + unknown04);
+                    if (doVerbose) Log.Debug("unknown04: " + unknown04);
 
                     UInt32 unknown05 = bf.ReadUInt32();
-                    Log.Debug("unknown05: " + unknown05);
+                    if (doVerbose) Log.Debug("unknown05: " + unknown05);
 
                     bf.Seek(350, SeekOrigin.Begin);
-                    int snpidCount = bf.ReadInt32();
-                    string snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
+                    int snpidNumChars = bf.ReadInt32();
+                    string snpid = bf.ReadString(snpidNumChars * 2, Encoding.Unicode);
 
                     // snpid cannot have more than 4 characters (?!)
-                    if (snpidCount > 4)
+                    if (snpidNumChars > 4)
                     {
-                        snpidCount = 0;
+                        snpidNumChars = 0;
                         snpid = "";
                         bf.Seek(355, SeekOrigin.Begin);
                     }
@@ -56,58 +56,85 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         bf.ReadBytes(25);
                     }
-                    Log.Debug("snpid: " + snpid);
+                    Log.Information("SNPID: " + snpid);
 
-                    int versionCount = bf.ReadInt32();
-                    string version = bf.ReadString(versionCount * 2, Encoding.Unicode);
-                    Log.Debug("version: " + version);
+                    int versionNumChars = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("versionNumChars: " + versionNumChars);
+                    string version = bf.ReadString(versionNumChars * 2, Encoding.Unicode);
+                    Log.Information("Version: " + version);
 
                     bf.ReadBytes(122);
-                    int presetNameCount = bf.ReadInt32();
-                    string presetName = bf.ReadString(presetNameCount * 2, Encoding.Unicode);
-                    int presetNameRest = bf.ReadInt32();
-                    Log.Debug("presetName: " + presetName);
 
-                    int companyNameCount = bf.ReadInt32();
-                    string companyName = bf.ReadString(companyNameCount * 2, Encoding.Unicode);
+                    int presetNameNumChars = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("presetNameNumChars: " + presetNameNumChars);
+                    string presetName = bf.ReadString(presetNameNumChars * 2, Encoding.Unicode);
+                    Log.Information("Preset Name: " + presetName);
+                    int presetNameRest = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("presetNameRest: " + presetNameRest);
+
+                    int companyNameNumChars = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("companyNameNumChars: " + companyNameNumChars);
+                    string companyName = bf.ReadString(companyNameNumChars * 2, Encoding.Unicode);
+                    Log.Information("Company Name: " + companyName);
                     int companyNameRest = bf.ReadInt32();
-                    Log.Debug("companyName: " + companyName);
+                    if (doVerbose) Log.Debug("companyNameRest: " + companyNameRest);
 
                     bf.ReadBytes(40);
 
-                    int libraryNameCount = bf.ReadInt32();
-                    string libraryName = bf.ReadString(libraryNameCount * 2, Encoding.Unicode);
+                    int libraryNameNumChars = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("libraryNameNumChars: " + libraryNameNumChars);
+                    string libraryName = bf.ReadString(libraryNameNumChars * 2, Encoding.Unicode);
+                    Log.Information("Library Name: " + libraryName);
                     int libraryNameRest = bf.ReadInt32();
-                    Log.Debug("libraryName: " + libraryName);
+                    if (doVerbose) Log.Debug("libraryNameRest: " + libraryNameRest);
 
-                    int typeCount = bf.ReadInt32();
-                    if (typeCount != 0)
+                    int typeNumChars = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("typeNumChars: " + typeNumChars);
+                    if (typeNumChars != 0)
                     {
-                        string type = bf.ReadString(typeCount * 2, Encoding.Unicode);
+                        string type = bf.ReadString(typeNumChars * 2, Encoding.Unicode);
+                        Log.Information("Type: " + type);
                         int typeRest = bf.ReadInt32();
-                        Log.Debug("type: " + type);
+                        if (doVerbose) Log.Debug("typeRest: " + typeRest);
                     }
 
-                    int number = bf.ReadInt32();
-
-                    for (int i = 0; i < number * 2; i++)
+                    int paramCount = bf.ReadInt32();
+                    if (doVerbose) Log.Debug("paramCount: " + paramCount);
+                    for (int i = 0; i < paramCount * 2; i++)
                     {
-                        int sCount = bf.ReadInt32();
-                        string s = bf.ReadString(sCount * 2, Encoding.Unicode);
-                        Log.Debug(s);
+                        int paramNumChars = bf.ReadInt32();
+                        if (doVerbose) Log.Debug("paramNumChars: " + paramNumChars);
+                        string paramName = bf.ReadString(paramNumChars * 2, Encoding.Unicode);
+                        if (doVerbose) Log.Debug(paramName);
                     }
 
                     bf.ReadBytes(249);
 
                     UInt32 chunkSize = bf.ReadUInt32();
-                    Log.Debug("chunkSize: " + chunkSize);
+                    if (doVerbose) Log.Debug("chunkSize: " + chunkSize);
+
+                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", "NKI_CONTENT", bf.Position, chunkSize));
+                    var byteArray = bf.ReadBytes((int)chunkSize);
+
+                    UInt32 unknown06 = bf.ReadUInt32();
+                    if (doVerbose) Log.Debug("unknown06: " + unknown06);
+
+                    UInt32 unknown07 = bf.ReadUInt32();
+                    if (doVerbose) Log.Debug("unknown07: " + unknown07);
+
+                    UInt32 unknown08 = bf.ReadUInt32();
+                    if (doVerbose) Log.Debug("unknown08: " + unknown08);
+                    bf.Close();
+
+                    // read content
+                    var bFileContent = new BinaryFile(byteArray, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII);
 
                     string outputFileName = Path.GetFileNameWithoutExtension(inputFilePath);
                     string outputFilePath = Path.Combine(outputDirectoryPath, "NKI_CONTENT", outputFileName + ".bin");
                     IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "NKI_CONTENT"));
 
                     var nks = new Nks();
-                    nks.BinaryFile = bf;
+                    nks.BinaryFile = bFileContent;
                     nks.SetKeys = new Dictionary<String, NksSetKey>();
 
                     NksEncryptedFileHeader header = new NksEncryptedFileHeader();
@@ -120,10 +147,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     if (snpid == "")
                     {
+                        Log.Information("Library is not encrypted.");
+                        Log.Information("Trying to extract.");
                         if (!doList) NKS.ExtractFileEntryToBf(nks, header, outBinaryFile);
                     }
                     else
                     {
+                        Log.Information(string.Format("Library is encrypted using snpid: {0}", snpid));
+                        Log.Information("Trying to extract encrypted file.");
                         if (!doList) NKS.ExtractEncryptedFileEntryToBf(nks, header, outBinaryFile);
                     }
 
