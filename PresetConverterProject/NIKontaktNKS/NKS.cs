@@ -674,7 +674,6 @@ namespace PresetConverterProject.NIKontaktNKS
         private static bool ExtractNksEntry(Nks nks, NksEntry fileEntry, string prefix)
         {
             bool isSuccessfull = true;
-            int extractedCount = 0;
 
             string outFile = Path.Join(prefix, fileEntry.Name);
 
@@ -684,11 +683,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 case NksEntryType.NKS_ENT_FILE:
 
                     var r = NksExtractFileEntry(nks, fileEntry, outFile);
-                    if (r)
-                    {
-                        extractedCount++;
-                    }
-
                     isSuccessfull = r;
                     break;
 

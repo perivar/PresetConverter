@@ -8,15 +8,13 @@ namespace PresetConverterProject.NIKontaktNKS
 {
     public static class NICNT
     {
-        static readonly byte[] NKS_NICNT_MTD = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x4D, 0x54, 0x44, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC MTD  /\
-        static readonly byte[] NKS_NICNT_TOC = new byte[] { 0x2F, 0x5C, 0x20, 0x4E, 0x49, 0x20, 0x46, 0x43, 0x20, 0x54, 0x4F, 0x43, 0x20, 0x20, 0x2F, 0x5C }; // /\ NI FC TOC  /\
-
         public static void Unpack(string inputFilePath, string outputDirectoryPath, bool doList, bool doVerbose)
         {
             using (BinaryFile bf = new BinaryFile(inputFilePath, BinaryFile.ByteOrder.LittleEndian, false))
             {
+                // should start with /\ NI FC MTD  /\
                 var header = bf.ReadBytes(16);
-                if (header.SequenceEqual(NKS_NICNT_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
+                if (header.SequenceEqual(NI.NI_FC_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
                 {
                     bf.Seek(66, SeekOrigin.Begin);
                     string version = bf.ReadString(66, Encoding.Unicode).TrimEnd('\0');
@@ -75,141 +73,11 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
 
                     bf.Seek(startOffset + 256, SeekOrigin.Begin);
-                    var header2 = bf.ReadBytes(16);
-                    if (header2.SequenceEqual(NKS_NICNT_MTD)) // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\
+
+                    // try to read NI FC MTD again, and extract resources
+                    if (NI.TryReadNIResources(inputFilePath, outputDirectoryPath, bf, doList, doVerbose))
                     {
-                        bf.ReadBytes(116);
-
-                        long unknown4 = bf.ReadInt64();
-                        if (doVerbose) Log.Debug("Unknown4: " + unknown4);
-
-                        bf.ReadBytes(4);
-
-                        long unknown5 = bf.ReadInt64();
-                        if (doVerbose) Log.Debug("Unknown5: " + unknown5);
-
-                        bf.ReadBytes(104);
-
-                        long unknown6 = bf.ReadInt64();
-                        if (doVerbose) Log.Debug("Unknown6: " + unknown6);
-
-                        var delimiter1 = bf.ReadBytes(8);
-                        if (doVerbose) Log.Debug("Delimiter1: " + StringUtils.ByteArrayToHexString(delimiter1)); // F0 F0 F0 F0 F0 F0 F0 F0
-                        if (!delimiter1.SequenceEqual(new byte[] { 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0 }))
-                        {
-                            Log.Error("Delimiter1 not as expected 'F0 F0 F0 F0 F0 F0 F0 F0' but got " + StringUtils.ToHexAndAsciiString(delimiter1));
-                        }
-
-                        long totalResourceCount = bf.ReadInt64();
-                        Log.Information("Total Resource Count: " + totalResourceCount);
-
-                        long totalResourceLength = bf.ReadInt64();
-                        Log.Information("Total Resource Byte Length: " + totalResourceLength);
-
-                        var resourceList = new List<NICNTResource>();
-                        var header3 = bf.ReadBytes(16);
-                        if (header3.SequenceEqual(NKS_NICNT_TOC)) // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
-                        {
-                            bf.ReadBytes(600);
-
-                            long lastEndIndex = 0;
-                            for (int i = 0; i < totalResourceCount; i++)
-                            {
-                                var resource = new NICNTResource();
-
-                                Log.Information("-------- Index: " + bf.Position + " --------");
-
-                                long resCounter = bf.ReadInt64();
-                                Log.Information("Resource Counter: " + resCounter);
-                                resource.Count = resCounter;
-
-                                bf.ReadBytes(16);
-
-                                string resName = bf.ReadString(600, Encoding.Unicode).TrimEnd('\0');
-                                Log.Information("Resource Name: " + resName);
-                                resource.Name = resName;
-
-                                long resUnknown = bf.ReadInt64();
-                                if (doVerbose) Log.Debug("Resource Unknown: " + resUnknown);
-
-                                long resEndIndex = bf.ReadInt64();
-                                Log.Information("Resource End Index: " + resEndIndex);
-                                resource.EndIndex = resEndIndex;
-
-                                // store calculated length
-                                if (lastEndIndex > 0)
-                                {
-                                    resource.Length = resEndIndex - lastEndIndex;
-                                }
-                                else
-                                {
-                                    // for the very first entry the end index is the same as the byte length
-                                    resource.Length = resEndIndex;
-                                }
-                                Log.Information("Calculated Resource Byte Length: " + resource.Length);
-
-                                lastEndIndex = resEndIndex;
-                                resourceList.Add(resource);
-                            }
-                            Log.Information("-------- Index: " + bf.Position + " --------");
-
-                            var delimiter2 = bf.ReadBytes(8);
-                            if (doVerbose) Log.Debug("Delimiter2: " + StringUtils.ByteArrayToHexString(delimiter2)); // F1 F1 F1 F1 F1 F1 F1 F1
-
-                            if (!delimiter2.SequenceEqual(new byte[] { 0xF1, 0xF1, 0xF1, 0xF1, 0xF1, 0xF1, 0xF1, 0xF1 }))
-                            {
-                                Log.Error("Delimiter2 not as expected 'F1 F1 F1 F1 F1 F1 F1 F1' but got " + StringUtils.ToHexAndAsciiString(delimiter2));
-                            }
-
-                            long unknown13 = bf.ReadInt64();
-                            if (doVerbose) Log.Debug("Unknown13: " + unknown13);
-
-                            long unknown14 = bf.ReadInt64();
-                            if (doVerbose) Log.Debug("Unknown14: " + unknown14);
-
-                            var header4 = bf.ReadBytes(16);
-                            if (header4.SequenceEqual(NKS_NICNT_TOC)) // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
-                            {
-                                bf.ReadBytes(592);
-
-                                if (!doList) IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, outputFileName, "Resources"));
-
-                                foreach (var res in resourceList)
-                                {
-                                    // convert the unix filename to a windows supported filename
-                                    string escapedFileName = FromUnixFileNames(res.Name);
-
-                                    // and add the counter in front
-                                    string escapedFileNameWithNumber = string.Format("{0:D3}{1}", res.Count, escapedFileName);
-
-                                    Log.Information(String.Format("Resource '{0}' @ position {1} [{2} bytes]", escapedFileNameWithNumber, bf.Position, res.Length));
-
-                                    res.Data = bf.ReadBytes((int)res.Length);
-
-                                    // if not only listing, save files
-                                    if (!doList)
-                                    {
-                                        string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName, "Resources", escapedFileNameWithNumber);
-                                        BinaryFile outBinaryFile = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true);
-
-                                        outBinaryFile.Write(res.Data);
-                                        outBinaryFile.Close();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                Log.Error(inputFilePath + ": Header4 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header4));
-                            }
-                        }
-                        else
-                        {
-                            Log.Error(inputFilePath + ": Header3 not as expected '/\\ NI FC TOC  /\\' but got " + StringUtils.ToHexAndAsciiString(header3));
-                        }
-                    }
-                    else
-                    {
-                        Log.Error(inputFilePath + ": Header2 not as expected '/\\ NI FC MTD  /\\' but got " + StringUtils.ToHexAndAsciiString(header2));
+                        Log.Information(String.Format("Succesfully parsed NI Resources ..."));
                     }
                 }
                 else
@@ -286,7 +154,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             // read the files in the resources directory
-            var resourceList = new List<NICNTResource>();
+            var resourceList = new List<NIResource>();
             string resourcesDirectoryPath = Path.Combine(inputDirectoryPath, "Resources");
             if (Directory.Exists(resourcesDirectoryPath))
             {
@@ -294,7 +162,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 int counter = 1;
                 foreach (var filePath in resourcesFilePaths)
                 {
-                    var res = new NICNTResource();
+                    var res = new NIResource();
 
                     string name = Path.GetFileName(filePath);
 
@@ -302,7 +170,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     string escapedFileNameWithNumber = Regex.Replace(name, @"^\d{3}(.*?)$", "$1", RegexOptions.IgnoreCase);
 
                     // convert the windows supported unix filename to the original unix filename 
-                    string unescapedFileName = ToUnixFileName(escapedFileNameWithNumber);
+                    string unescapedFileName = NI.ToUnixFileName(escapedFileNameWithNumber);
                     res.Name = unescapedFileName;
 
                     var bytes = File.ReadAllBytes(filePath);
@@ -346,7 +214,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 // format the xml string
                 string xmlString = BeautifyXml(xml);
 
-                var res = new NICNTResource();
+                var res = new NIResource();
                 res.Name = ".db.cache";
                 var bytes = Encoding.UTF8.GetBytes(xmlString);
                 res.Data = bytes;
@@ -360,7 +228,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             using (BinaryFile bf = new BinaryFile(outputFilePath, BinaryFile.ByteOrder.LittleEndian, true))
             {
-                bf.Write(NKS_NICNT_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
+                bf.Write(NI.NI_FC_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
                 bf.Write(new byte[50]); // 50 zero bytes
 
                 bf.WriteStringPadded(version, 66, Encoding.Unicode); // zero padded string
@@ -382,7 +250,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 bf.Write(new byte[startOffset + 256 - bf.Position]); // 512000 + 256 zero bytes - current pos
 
-                bf.Write(NKS_NICNT_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
+                bf.Write(NI.NI_FC_MTD); // 2F 5C 20 4E 49 20 46 43 20 4D 54 44 20 20 2F 5C   /\ NI FC MTD  /\                
                 bf.Write(new byte[116]); // 116 zero bytes
 
                 Int64 unknown4 = 2;
@@ -407,7 +275,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 Int64 totalResourceLength = resourceList.Sum(item => item.Length); // sum of bytes in the resourceList
                 bf.Write(totalResourceLength);
 
-                bf.Write(NKS_NICNT_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
+                bf.Write(NI.NI_FC_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
 
                 bf.Write(new byte[600]); // 600 zero bytes
 
@@ -434,13 +302,13 @@ namespace PresetConverterProject.NIKontaktNKS
                 // write delimiter
                 bf.Write(StringUtils.HexStringToByteArray("F1F1F1F1F1F1F1F1"));
 
-                Int64 unknown13 = 0;
-                bf.Write(unknown13);
+                Int64 unknown8 = 0;
+                bf.Write(unknown8);
 
-                Int64 unknown14 = 0;
-                bf.Write(unknown14);
+                Int64 unknown9 = 0;
+                bf.Write(unknown9);
 
-                bf.Write(NKS_NICNT_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
+                bf.Write(NI.NI_FC_TOC); // 2F 5C 20 4E 49 20 46 43 20 54 4F 43 20 20 2F 5C  /\ NI FC TOC  /\
 
                 bf.Write(new byte[592]); // 592 zero bytes
 
@@ -486,200 +354,6 @@ namespace PresetConverterProject.NIKontaktNKS
             sb.Replace(" />", "/>");
 
             return sb.ToString();
-        }
-
-
-        /// <summary>
-        /// Class to store a NICNT resource
-        /// </summary>
-        class NICNTResource
-        {
-            public long Count { get; set; }
-            public string Name { get; set; }
-            public long Length { get; set; }
-            public byte[] Data { get; set; }
-            public long EndIndex { get; set; }
-            public long RealIndex { get; set; }
-        }
-
-        // replacement map
-        static Dictionary<string, string> entityReplacements = new Dictionary<string, string> {
-                { "\\", "[bslash]" },
-                { "?", "[qmark]" },
-                { "*", "[star]" },
-                { "\"", "[quote]" },
-                { "|", "[pipe]" },
-                { ":", "[colon]" },
-                { "<", "[less]" },
-                { ">", "[greater]" }
-             };
-
-        /// <summary>
-        /// Convert from unix filenames to a filename that can be stored on windows
-        /// i.e. convert | to [pipe], etc.
-        /// </summary>
-        /// <param name="fileName">unix filename</param>
-        /// <returns>a windows supported unix filename</returns>
-        public static string FromUnixFileNames(string fileName)
-        {
-            // \ [bslash]
-            // ? [qmark]
-            // * [star]
-            // " [quote]
-            // | [pipe]
-            // : [colon]
-            // < [less]
-            // > [greater]
-            // _ [space] (only at the end of the name)
-            // . [dot] (only at the end of the name)
-
-            // Regexp background information - test using https://regex101.com/
-            // ----------------------------------------------------------------------------------------------------------------
-            // https://stackoverflow.com/questions/8113104/what-is-regex-for-odd-length-series-of-a-known-character-in-a-string
-            // (?<!A)(?:AA)*A(?!A)        
-            //   (?<!A)     # asserts that it should not be preceded by an 'A' 
-            //   (?:AA)*A   # matches an odd number of 'A's 
-            //   (?!A)      # asserts it should not be followed by an 'A'.
-
-            // https://stackoverflow.com/questions/28113962/regular-expression-to-match-unescaped-characters-only
-            // (?<!\\)(?:(\\\\)*)[*]
-
-            // https://stackoverflow.com/questions/816915/match-uneven-number-of-escape-symbols
-            // (?<!\\)(?:\\\\)*\\ \n
-            //   (?<!\\)    # not preceded by a backslash
-            //   (?:\\\\)*  # zero or more escaped backslashes
-            //   \\ \n      # single backslash and linefeed
-
-            // https://stackoverflow.com/questions/22375138/regex-in-c-sharp-expression-in-negative-lookbehind
-            // (?<=(^|[^?])(\?\?)*\?)
-            //    (^|[^?])   # not a question mark (possibly also start of string, i.e. nothing)
-            //    (\?\?)*    # any number of question mark pairs
-            //    \?         # a single question mark
-
-            // https://www.wipfli.com/insights/blogs/connect-microsoft-dynamics-365-blog/c-regex-multiple-replacements
-            // using Regex.Replace MatchEvaluator delegate to perform multiple replacements
-
-            // escape all control sequences 
-            // match even number of [ in front of a control character
-            const string replaceControlSequencesEven = @"(?<!\[)(\[\[)+(?!\[)(?:bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
-            // (?<!\[)               # asserts that it should not be preceded by a '['
-            // (\[\[)+               # matches an even number of '['s (at least one pair)
-            // (?!\[)                # asserts it should not be followed by an '['
-            // (?:bslash|qmark|...)  # non-caputuring group that only matches a control sequence  
-            fileName = Regex.Replace(fileName, replaceControlSequencesEven,
-                // add the first group to effectively double the found '['s, which will escape them  
-                m => m.Groups[1].Value + m.Value
-            );
-
-            // escape all control sequences 
-            // match odd number of [ in front of a control character
-            const string replaceControlSequencesOdd = @"(?<!\[)((?:\[\[)*\[)(?!\[)(?:bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)";
-            // (?<!\[)               # asserts that it should not be preceded by a '['
-            // ((?:\[\[)*\[)         # matches a odd number of '['s (at least one)
-            // (?!\[)                # asserts it should not be followed by an '['
-            // (?:bslash|qmark|...)  # non-caputuring group that only matches a control sequence  
-            fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
-                // escape every odd number of '[' with another '[', which makes them even - meaning this regexp must come after the even check!
-                m => "[" + m.Value
-            );
-
-            // replace all control characters that does start with a character [
-            // Note! remember to add another [
-            const string replaceControlWithEscape = @"(\[+)([\?*""|:<>])";
-            // (\[+)                 # match at least one '['
-            // ([\?*""|:<>])         # match the control character
-            fileName = Regex.Replace(fileName, replaceControlWithEscape,
-                // double the first group match to effectively double the found '['s, which will escape them  
-                m => m.Groups[1].Value + m.Groups[1].Value + entityReplacements[m.Groups[2].Value]
-            );
-
-            // replace all control characters that doesn't start with an escape character [
-            const string replaceControlWithoutEscape = @"(?<!\[)[\?*""|:<>]";
-            // (?<!\[)               # asserts that it should not be preceded by a '['
-            // [\?*""|:<>]           # match the control character
-            fileName = Regex.Replace(fileName, replaceControlWithoutEscape,
-                m => entityReplacements[m.Value]
-            );
-
-            while (fileName.EndsWith(" "))
-            {
-                fileName = fileName.Replace(" ", "[space]");
-            }
-
-            while (fileName.EndsWith("."))
-            {
-                fileName = fileName.Replace(".", "[dot]");
-            }
-
-            return fileName;
-        }
-
-        /// <summary>
-        /// Convert from windows filename with unix patterns back to unix filename
-        /// i.e. convert from [pipe] to |, etc.
-        /// </summary>
-        /// <param name="fileName">windows supported unix filename</param>
-        /// <returns>a unix filename</returns>
-        public static string ToUnixFileName(string fileName)
-        {
-            // \ [bslash]
-            // ? [qmark]
-            // * [star]
-            // " [quote]
-            // | [pipe]
-            // : [colon]
-            // < [less]
-            // > [greater]
-            // _ [space] (only at the end of the name)
-            // . [dot] (only at the end of the name)
-
-            // replace all control sequences 
-            // match odd number of [ in front of a control character
-            const string replaceControlSequencesOdd = @"(?<!\[)((?:\[\[)*\[)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
-            // (?<!\[)               # asserts that it should not be preceded by a '['
-            // ((?:\[\[)*\[)         # matches a odd number of '['s (at least one)
-            // (?!\[)                # asserts it should not be followed by an '['
-            // (bslash|qmark|...)    # matches any control sequence  
-            // \]                    # asserts that it needs to end with a ']'
-            fileName = Regex.Replace(fileName, replaceControlSequencesOdd,
-                m =>
-                {
-                    var val = "[" + m.Groups[2].Value + "]";
-                    var entity = entityReplacements.FirstOrDefault(x => x.Value == val);
-                    // if the number of brackets are 3 - reduce them by two
-                    var prefix = (m.Groups[1].Value.Length >= 3 ? new String('[', (m.Groups[1].Value.Length - 2)) : "");
-                    return prefix + entity.Key;
-                }
-            );
-
-            // replace all control sequences 
-            // match even number of [ in front of a control character
-            // each pair of these brackets ([[) will be replaced with a single ([).
-            const string replaceControlSequencesEven = @"(?<!\[)((?:\[\[)+)(?!\[)(bslash|qmark|star|quote|pipe|colon|less|greater|space|dot)\]";
-            // (?<!\[)               # asserts that it should not be preceded by a '['
-            // ((?:\[\[)+)           # matches an even number of '['s (at least one pair)
-            // (?!\[)                # asserts it should not be followed by an '['
-            // (bslash|qmark|...)    # matches any control sequence  
-            // \]                    # asserts that it needs to end with a ']'
-            fileName = Regex.Replace(fileName, replaceControlSequencesEven,
-                m =>
-                {
-                    var prefix = (m.Groups[1].Value.Length >= 4 ? new String('[', (m.Groups[1].Value.Length / 2)) : "[");
-                    return prefix + m.Groups[2].Value + "]";
-                }
-            );
-
-            while (fileName.EndsWith("[space]"))
-            {
-                fileName = fileName.Replace("[space]", " ");
-            }
-
-            while (fileName.EndsWith("[dot]"))
-            {
-                fileName = fileName.Replace("[dot]", ".");
-            }
-
-            return fileName;
         }
     }
 }
