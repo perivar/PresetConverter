@@ -297,7 +297,7 @@ namespace PresetConverter
 
                     if (!doPack)
                     {
-                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".exe", ".dll", ".wcx64" };
+                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".ncw", ".exe", ".dll", ".wcx64" };
                         var filePaths = HandleMultipleInputPaths(optionInputDirectoryOrFilePath, extensions);
 
                         foreach (var inputFilePath in filePaths)
@@ -336,6 +336,7 @@ namespace PresetConverter
                                 case ".nkr":
                                 case ".nki":
                                 case ".nicnt":
+                                case ".ncw":
                                     HandleNIKontaktFile(inputFilePath, outputDirectoryPath, extension, config, doList, doVerbose, doPack, doWCX);
                                     break;
                                 case ".exe":
@@ -1515,6 +1516,10 @@ namespace PresetConverter
                     {
                         NICNT.Unpack(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
                     }
+                }
+                else if (extension == ".ncw")
+                {
+                    NCW.NCW2Wav(inputDirectoryOrFilePath, outputDirectory);
                 }
                 else
                 {

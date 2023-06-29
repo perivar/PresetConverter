@@ -128,6 +128,7 @@ namespace PresetConverterProject.NIKontaktNKS
             fs.Read(headerBytes, 0, headerBytes.Length);
             Header = ByteArrayToStructure<TNCWHeader>(headerBytes);
 
+            // check if matches either ncw signature 1 or 2
             for (int i = 0; i < 8; i++)
                 if ((Header.Signature[i] != NCW_SIGNATURE1[i]) && (Header.Signature[i] != NCW_SIGNATURE2[i]))
                     throw new Exception("Wrong file signature");

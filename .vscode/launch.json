@@ -501,6 +501,29 @@
     },
 
     {
+      "name": ".NET Core Launch (LAPTOP) NI Kontakt Audio (ncw)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-comp Samples\\viola_sus_short-portato_64-127_E4 - AB.ncw",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp",
+        // "-l"
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+
+    {
       "name": ".NET Core Launch (LAPTOP) Extract DLL Resources",
       "type": "coreclr",
       "request": "launch",
