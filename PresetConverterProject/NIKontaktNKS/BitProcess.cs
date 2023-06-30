@@ -829,7 +829,7 @@ namespace PresetConverterProject.NIKontaktNKS
         public static void Fill24_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
             byte[] sBuffer = new byte[n];
-            int[] dBuffer = new int[n];
+            int[] dBuffer = new int[n * 3];
 
             Marshal.Copy(source, sBuffer, 0, n);
 
@@ -976,11 +976,11 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             if (relative)
                 if (bits == 8)
-                    Fill16_8rel(n, (IntPtr)source, (IntPtr)dest, (int)base_value);
+                    Fill16_8rel(n, source, dest, (int)base_value);
                 else
-                    Fill16_bits(n, bits, (IntPtr)source, (IntPtr)dest, (int)base_value);
+                    Fill16_bits(n, bits, source, dest, (int)base_value);
             else
-                Fill16abs(n, (IntPtr)source, (IntPtr)dest);
+                Fill16abs(n, source, dest);
 
         }
 
@@ -989,12 +989,12 @@ namespace PresetConverterProject.NIKontaktNKS
             if (relative)
                 switch (bits)
                 {
-                    case 8: Fill24_8rel(n, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
-                    case 16: Fill24_16rel(n, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
-                    default: Fill24_bits(n, bits, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
+                    case 8: Fill24_8rel(n, source, dest, (int)base_value); break;
+                    case 16: Fill24_16rel(n, source, dest, (int)base_value); break;
+                    default: Fill24_bits(n, bits, source, dest, (int)base_value); break;
                 }
             else
-                Fill24abs(n, (IntPtr)source, (IntPtr)dest);
+                Fill24abs(n, source, dest);
 
         }
 
@@ -1003,10 +1003,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (relative)
                 switch (bits)
                 {
-                    case 8: Fill32_8rel(n, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
-                    case 16: Fill32_16rel(n, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
-                    case 24: Fill32_24rel(n, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
-                    default: Fill32_bits(n, bits, (IntPtr)source, (IntPtr)dest, (int)base_value); break;
+                    case 8: Fill32_8rel(n, source, dest, (int)base_value); break;
+                    case 16: Fill32_16rel(n, source, dest, (int)base_value); break;
+                    case 24: Fill32_24rel(n, source, dest, (int)base_value); break;
+                    default: Fill32_bits(n, bits, source, dest, (int)base_value); break;
                 }
             else
                 Fill32abs(n, (IntPtr)(source), (IntPtr)(dest));
@@ -1017,9 +1017,9 @@ namespace PresetConverterProject.NIKontaktNKS
                                         IntPtr dest)
         {
             if (bits == 8)
-                Encode8_8(n, (IntPtr)source, (IntPtr)dest);
+                Encode8_8(n, source, dest);
             else
-                EncodeL_8(n, bits, (IntPtr)source, (IntPtr)dest);
+                EncodeL_8(n, bits, source, dest);
 
         }
 
@@ -1027,11 +1027,11 @@ namespace PresetConverterProject.NIKontaktNKS
                                         IntPtr dest)
         {
             if (bits == 8)
-                Encode8_16(n, (IntPtr)source, (IntPtr)dest);
+                Encode8_16(n, source, dest);
             else if (bits == 16)
-                Encode16_16(n, (IntPtr)source, (IntPtr)dest);
+                Encode16_16(n, source, dest);
             else
-                EncodeL_16(n, bits, (IntPtr)source, (IntPtr)dest);
+                EncodeL_16(n, bits, source, dest);
 
         }
 
@@ -1039,13 +1039,13 @@ namespace PresetConverterProject.NIKontaktNKS
                                         IntPtr dest)
         {
             if (bits == 8)
-                Encode8_24(n, (IntPtr)source, (IntPtr)dest);
+                Encode8_24(n, source, dest);
             else if (bits == 16)
-                Encode16_24(n, (IntPtr)source, (IntPtr)dest);
+                Encode16_24(n, source, dest);
             else if (bits == 24)
-                Encode24_24(n, (IntPtr)source, (IntPtr)dest);
+                Encode24_24(n, source, dest);
             else
-                EncodeL_24(n, bits, (IntPtr)source, (IntPtr)dest);
+                EncodeL_24(n, bits, source, dest);
 
         }
 

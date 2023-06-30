@@ -1519,7 +1519,7 @@ namespace PresetConverter
                 }
                 else if (extension == ".ncw")
                 {
-                    NCW.NCW2Wav(inputDirectoryOrFilePath, outputDirectory);
+                    NCW.NCW2Wav(inputDirectoryOrFilePath, outputDirectory, doList, doVerbose);
                 }
                 else
                 {
