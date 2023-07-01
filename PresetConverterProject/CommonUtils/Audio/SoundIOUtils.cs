@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Text;
 
 namespace CommonUtils.Audio
@@ -9,9 +7,8 @@ namespace CommonUtils.Audio
         #region Rounding
         public static int RoundToClosestInt(double x)
         {
-            int y = 0;
             // use AwayFromZero since default rounding is "round to even", which would make 1.5 => 1
-            y = (int)Math.Round(x, MidpointRounding.AwayFromZero);
+            int y = (int)Math.Round(x, MidpointRounding.AwayFromZero);
 
             // nearbyint: The value of x rounded to a nearby integral (as a floating-point value).
             // Rounding using to-nearest rounding:
@@ -24,8 +21,7 @@ namespace CommonUtils.Audio
 
         public static int RoundUpToClosestInt(double x)
         {
-            int y = 0;
-            y = (int)MathUtils.RoundUp(x);
+            int y = (int)MathUtils.RoundUp(x);
             return y;
         }
         #endregion
@@ -58,7 +54,7 @@ namespace CommonUtils.Audio
             stream.Write(Encoding.ASCII.GetBytes("RIFF"), 0, 4);
 
             // Chunk size.
-            stream.Write(BitConverter.GetBytes(((bitDepth / 8) * totalSampleCount) + 36), 0, 4);
+            stream.Write(BitConverter.GetBytes((bitDepth / 8 * totalSampleCount) + 36), 0, 4);
 
             // Format.
             stream.Write(Encoding.ASCII.GetBytes("WAVE"), 0, 4);
@@ -84,7 +80,7 @@ namespace CommonUtils.Audio
             stream.Write(BitConverter.GetBytes(sampleRate * channelCount * (bitDepth / 8)), 0, 4);
 
             // Block align.
-            stream.Write(BitConverter.GetBytes((ushort)channelCount * (bitDepth / 8)), 0, 2);
+            stream.Write(BitConverter.GetBytes(channelCount * (bitDepth / 8)), 0, 2);
 
             // Bits per sample.
             stream.Write(BitConverter.GetBytes(bitDepth), 0, 2);
@@ -95,7 +91,7 @@ namespace CommonUtils.Audio
             stream.Write(Encoding.ASCII.GetBytes("data"), 0, 4);
 
             // Sub-chunk 2 size.
-            stream.Write(BitConverter.GetBytes((bitDepth / 8) * totalSampleCount), 0, 4);
+            stream.Write(BitConverter.GetBytes(bitDepth / 8 * totalSampleCount), 0, 4);
         }
     }
 }

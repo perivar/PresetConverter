@@ -12,7 +12,7 @@ namespace CommonUtils.Audio
         #region Helper Methods
         private static double UnsignedToFloat(ulong u)
         {
-            return (((double)((long)(u - 2147483647L - 1))) + 2147483648.0);
+            return ((double)(long)(u - 2147483647 - 1)) + 2147483648;
         }
 
         private static double ldexp(double x, int exp)
@@ -28,7 +28,7 @@ namespace CommonUtils.Audio
 
         private static ulong FloatToUnsigned(double f)
         {
-            return ((ulong)(((long)(f - 2147483648.0)) + 2147483647L) + 1);
+            return (ulong)(((long)(f - 2147483648)) + 2147483647) + 1;
         }
         #endregion
 

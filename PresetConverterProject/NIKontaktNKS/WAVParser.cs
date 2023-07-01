@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using CommonUtils;
+using CommonUtils.Audio;
 using Serilog;
 
 namespace PresetConverterProject.NIKontaktNKS
@@ -79,11 +80,16 @@ namespace PresetConverterProject.NIKontaktNKS
             public int numOfPoints;
         }
 
-        const int MAX_SHORTINT = 128;
-        const int MAX_BYTE = byte.MaxValue; // 0xFF = 255 
-        const int MAX_SMALLINT = short.MaxValue; // 0x7FFF = 32767
-        const int MAX_24BIT = 8388607; // 0x7FFFFF = 8388607
-        const int MAX_32BIT = int.MaxValue; // 0x7FFFFFFF = 2147483647
+        // signed 8-bit value  (-128 to +127)               = (-0x80 to 0x7F)
+        // signed 16-bit value (-32768 to 32767)            = (-0x8000 to 0x7FFF)
+        // signed 24-bit value (-8388608 to 8388607)        = (-0x800000 to 0x7FFFFF) 
+        // signed 32-bit value (-2147483648 to +2147483647) = (-0x80000000 to +0x7FFFFFFF)
+
+        // use one mroe than the real max value
+        const int MAX_8BIT = 128; // 0x80
+        const int MAX_16BIT = 32768; // 0x8000
+        const int MAX_24BIT = 8388608; // 0x800000
+        const long MAX_32BIT = 2147483648; // 0x80000000
 
         private TMyWAVHeader wavHeader;
         public TMyWAVHeader WavHeader { get => wavHeader; set => wavHeader = value; }
@@ -116,13 +122,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             bfReader.Seek(0, SeekOrigin.Begin);
             char[] head = bfReader.ReadChars(4);
+            wavHeader.RIFFtag = head;
             if (new string(head) != "RIFF")
             {
                 Log.Error("Wrong format or bad file header (RIFF)");
                 return false;
             }
 
-            int fSize = bfReader.ReadInt32();
+            uint fSize = bfReader.ReadUInt32();
+            wavHeader.fileSize = fSize;
             fSize += 8;
             if (bfReader.Length != fSize)
             {
@@ -131,6 +139,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             head = bfReader.ReadChars(4);
+            wavHeader.WAVEtag = head;
             if (new string(head) != "WAVE")
             {
                 Log.Error("Wrong format or bad file header (WAVE)");
@@ -138,6 +147,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             head = bfReader.ReadChars(4);
+            wavHeader.FMTtag = head;
             if (new string(head) != "fmt ")
             {
                 Log.Error("Wrong format or bad file header (fmt )");
@@ -145,10 +155,12 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             uint chnkSize = bfReader.ReadUInt32();
+            wavHeader.chnkSize = chnkSize;
+
             ushort frmt = bfReader.ReadUInt16();
 
             // --- Standard PCM file
-            if (frmt == 1)
+            if (frmt == SoundIO.WAVE_FORMAT_PCM)
             {
                 wavHeader.extended = false;
                 if ((chnkSize != 16) && (chnkSize != 20))
@@ -172,8 +184,33 @@ namespace PresetConverterProject.NIKontaktNKS
                     Log.Error("Only mono and stereo allowed");
             }
 
+            // --- 32 bit float
+            else if (frmt == SoundIO.WAVE_FORMAT_IEEE_FLOAT)
+            {
+                wavHeader.extended = false;
+                if ((chnkSize != 16) && (chnkSize != 20))
+                {
+                    Log.Error("Wrong format or bad file header (fmt chunk size)");
+                    return false;
+                }
+
+                wavHeader.wFormatTag = frmt;
+                wavHeader.nChannels = bfReader.ReadUInt16();
+                wavHeader.nSamplesPerSec = bfReader.ReadUInt32();
+                wavHeader.nAvgBytesPerSec = bfReader.ReadUInt32();
+                wavHeader.nBlockAlign = bfReader.ReadUInt16();
+                wavHeader.wBitsPerSample = bfReader.ReadUInt16();
+
+                if ((wavHeader.nChannels * wavHeader.wBitsPerSample * wavHeader.nSamplesPerSec / 8) != wavHeader.nAvgBytesPerSec)
+                    Log.Error("Bad file header (AvgBytesPerSec)");
+                else if (wavHeader.wBitsPerSample != 32)
+                    Log.Error("Wrong bits per sample (only 32 allowed)");
+                else if ((wavHeader.nChannels != 1) && (wavHeader.nChannels != 2))
+                    Log.Error("Only mono and stereo allowed");
+            }
+
             // --- Extensible file header
-            else if ((frmt == 0xFFFE) && (chnkSize == 40))
+            else if ((frmt == SoundIO.WAVE_FORMAT_EXTENSIBLE) && (chnkSize == 40))
             {
                 wavHeader.extended = true;
 
@@ -285,7 +322,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         // 0 - 255
                         byte b = (byte)bfReader.ReadByte();
                         bytesRead += 1;
-                        data[i * wavHeader.nChannels + j] = (float)(b - MAX_SHORTINT + 1) / MAX_SHORTINT;
+                        data[i * wavHeader.nChannels + j] = (float)(b - MAX_8BIT + 1) / MAX_8BIT;
                     }
                 }
             }
@@ -302,13 +339,13 @@ namespace PresetConverterProject.NIKontaktNKS
                         // -32768 to 32767
                         short s = bfReader.ReadInt16();
                         bytesRead += 2;
-                        data[i * wavHeader.nChannels + j] = (float)s / MAX_SMALLINT;
+                        data[i * wavHeader.nChannels + j] = (float)s / MAX_16BIT;
                     }
                 }
             }
             else
-            // --- 24 bit standard (3 bytes per sample)
-            if (!wavHeader.extended && wavHeader.wBitsPerSample == 24)
+            // --- 24 bit (3 bytes per sample)
+            if (wavHeader.wBitsPerSample == 24)
             {
                 for (int i = 0; i < num; i++)
                 {
@@ -320,26 +357,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         byte[] bytes = bfReader.ReadBytes(3);
                         int l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
                         bytesRead += 3;
-                        l = l << 8;
-                        data[i * wavHeader.nChannels + j] = (float)l / MAX_24BIT;
-                    }
-                }
-            }
-            else
-            // --- 24 bit extended
-            if (wavHeader.extended && wavHeader.wBitsPerSample == 24)
-            {
-                for (int i = 0; i < num; i++)
-                {
-                    for (int j = 0; j < wavHeader.nChannels; j++)
-                    {
-                        // read signed 24-bit int and convert to 32-bit float
-                        // convert [0x800000, 0x7FFFFF] to [-1.0, 1.0]
-                        // -8388608 to 8388607
-                        byte[] bytes = bfReader.ReadBytes(3);
-                        int l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
-                        bytesRead += 3;
-                        l = l << 8;
+                        // l <<= 8;
                         data[i * wavHeader.nChannels + j] = (float)l / MAX_24BIT;
                     }
                 }
@@ -352,12 +370,20 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        // read signed 32-bit int and convert to 32-bit float
-                        // convert [0x80000000, 0x7FFFFFFF] to [-1.0, 1.0]
-                        // -2147483648 to 2147483647
-                        int l = bfReader.ReadInt32();
-                        bytesRead += 4;
-                        data[i * wavHeader.nChannels + j] = (float)l / MAX_32BIT;
+                        if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_PCM)
+                        {
+                            // read signed 32-bit int and convert to 32-bit float
+                            // convert [0x80000000, 0x7FFFFFFF] to [-1.0, 1.0]
+                            // -2147483648 to 2147483647
+                            int l = bfReader.ReadInt32();
+                            bytesRead += 4;
+                            data[i * wavHeader.nChannels + j] = (float)l / MAX_32BIT;
+                        }
+                        else if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_IEEE_FLOAT)
+                        {
+                            float d = bfReader.ReadSingle();
+                            data[i * wavHeader.nChannels + j] = d;
+                        }
                     }
                 }
             }
@@ -385,10 +411,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
             bfReader.Seek(wavHeader.dataPos, SeekOrigin.Begin);
 
-            byte b;      // 8-bit
-            short s;     // 16-bit
-            int l;       // 32-bit
-
             // --- 8-bit
             if (wavHeader.wBitsPerSample == 8)
             {
@@ -396,8 +418,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        b = (byte)bfReader.ReadByte();
-                        data[i * wavHeader.nChannels + j] = b - MAX_SHORTINT + 1;
+                        byte b = bfReader.ReadByte();
+                        data[i * wavHeader.nChannels + j] = b;
                     }
                 }
             }
@@ -409,61 +431,41 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        s = BitConverter.ToInt16(bfReader.ReadBytes(2), 0);
+                        short s = BitConverter.ToInt16(bfReader.ReadBytes(2), 0);
                         data[i * wavHeader.nChannels + j] = s;
                     }
                 }
             }
             else
-            // --- 24-bit standard (3 bytes per sample, 1 channel)
-            if (!wavHeader.extended && wavHeader.wBitsPerSample == 24)
+            // --- 24-bit (3 bytes per sample, 1 channel)
+            if (wavHeader.wBitsPerSample == 24)
             {
                 for (int i = 0; i < wavHeader.numOfPoints; i++)
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
                         byte[] bytes = bfReader.ReadBytes(3);
-                        l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
+                        // Combine the three bytes into a 32-bit signed int
+                        int l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
+                        // Since the original sample was stored as a 24-bit value, 
+                        // the remaining 8 bits in the 32-bit integer will be filled with zeros. 
+                        // Therefore, dividing the value by 256 (which is equivalent to shifting the value right by 8 bits) 
+                        // effectively discards the extra zeros and converts the 32-bit value to a 24-bit value.
+                        // l / 256 = l >> 8
                         data[i * wavHeader.nChannels + j] = l / 256;
                     }
                 }
             }
+
             else
-            // --- 24-bit extended
-            if (wavHeader.extended && wavHeader.wBitsPerSample == 24)
+            // --- 32-bit
+            if (wavHeader.wBitsPerSample == 32)
             {
                 for (int i = 0; i < wavHeader.numOfPoints; i++)
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        byte[] bytes = bfReader.ReadBytes(3);
-                        l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
-                        data[i * wavHeader.nChannels + j] = l / 256;
-                    }
-                }
-            }
-            else
-            // --- 32-bit standard
-            if (!wavHeader.extended && wavHeader.wBitsPerSample == 32)
-            {
-                for (int i = 0; i < wavHeader.numOfPoints; i++)
-                {
-                    for (int j = 0; j < wavHeader.nChannels; j++)
-                    {
-                        l = BitConverter.ToInt32(bfReader.ReadBytes(4), 0);
-                        data[i * wavHeader.nChannels + j] = l;
-                    }
-                }
-            }
-            else
-            // --- 32-bit extended
-            if (wavHeader.extended && wavHeader.wBitsPerSample == 32)
-            {
-                for (int i = 0; i < wavHeader.numOfPoints; i++)
-                {
-                    for (int j = 0; j < wavHeader.nChannels; j++)
-                    {
-                        l = BitConverter.ToInt32(bfReader.ReadBytes(4), 0);
+                        int l = BitConverter.ToInt32(bfReader.ReadBytes(4), 0);
                         data[i * wavHeader.nChannels + j] = l;
                     }
                 }
@@ -486,8 +488,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
-            int sample;
-
             // --- 8 bit ---
             if (wavHeader.wBitsPerSample == 8)
             {
@@ -495,7 +495,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_SHORTINT + MAX_SHORTINT - 1);
+                        int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_8BIT + MAX_8BIT - 1);
                         fsWriter.WriteByte((byte)sample);
                     }
                 }
@@ -507,7 +507,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_SMALLINT);
+                        int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_16BIT);
                         fsWriter.Write(BitConverter.GetBytes((short)sample), 0, 2);
                     }
                 }
@@ -519,8 +519,15 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_24BIT);
-                        fsWriter.Write(BitConverter.GetBytes(sample), 0, 3);
+                        int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_24BIT);
+                        // Since the original sample was stored as a 24-bit value, 
+                        // the remaining 8 bits in the 32-bit integer will be filled with zeros. 
+                        // Therefore, dividing the value by 256 (which is equivalent to shifting the value right by 8 bits) 
+                        // effectively discards the extra zeros and converts the 32-bit value to a 24-bit value.
+                        // l / 256 = l >> 8
+                        sample /= 256;
+                        byte[] bytes = BitConverter.GetBytes(sample);
+                        fsWriter.Write(bytes, 0, 3);
                     }
                 }
             }
@@ -531,8 +538,16 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_32BIT);
-                        fsWriter.Write(BitConverter.GetBytes(sample), 0, 4);
+                        if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_PCM)
+                        {
+                            int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_32BIT);
+                            fsWriter.Write(BitConverter.GetBytes(sample), 0, 4);
+                        }
+                        else if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_IEEE_FLOAT)
+                        {
+                            float sample = data[i * wavHeader.nChannels + j];
+                            fsWriter.Write(BitConverter.GetBytes(sample), 0, 4);
+                        }
                     }
                 }
             }
@@ -551,49 +566,49 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             // --- 8 bit ---
-            if (WavHeader.wBitsPerSample == 8)
+            if (wavHeader.wBitsPerSample == 8)
             {
-                for (int i = 0; i < WavHeader.numOfPoints; i++)
+                for (int i = 0; i < wavHeader.numOfPoints; i++)
                 {
-                    for (int j = 0; j < WavHeader.nChannels; j++)
+                    for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        int sample = data[i * WavHeader.nChannels + j];
+                        int sample = data[i * wavHeader.nChannels + j];
                         fsWriter.WriteByte((byte)sample);
                     }
                 }
             }
             // --- 16 bit ---
-            else if (WavHeader.wBitsPerSample == 16)
+            else if (wavHeader.wBitsPerSample == 16)
             {
-                for (int i = 0; i < WavHeader.numOfPoints; i++)
+                for (int i = 0; i < wavHeader.numOfPoints; i++)
                 {
-                    for (int j = 0; j < WavHeader.nChannels; j++)
+                    for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        int sample = data[i * WavHeader.nChannels + j];
+                        int sample = data[i * wavHeader.nChannels + j];
                         fsWriter.Write(BitConverter.GetBytes((short)sample), 0, 2);
                     }
                 }
             }
             // --- 24 bit ---
-            else if (WavHeader.wBitsPerSample == 24)
+            else if (wavHeader.wBitsPerSample == 24)
             {
-                for (int i = 0; i < WavHeader.numOfPoints; i++)
+                for (int i = 0; i < wavHeader.numOfPoints; i++)
                 {
-                    for (int j = 0; j < WavHeader.nChannels; j++)
+                    for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        int sample = data[i * WavHeader.nChannels + j];
+                        int sample = data[i * wavHeader.nChannels + j];
                         fsWriter.Write(BitConverter.GetBytes(sample), 0, 3);
                     }
                 }
             }
             // --- 32 bit ---
-            else if (WavHeader.wBitsPerSample == 32)
+            else if (wavHeader.wBitsPerSample == 32)
             {
-                for (int i = 0; i < WavHeader.numOfPoints; i++)
+                for (int i = 0; i < wavHeader.numOfPoints; i++)
                 {
-                    for (int j = 0; j < WavHeader.nChannels; j++)
+                    for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        int sample = data[i * WavHeader.nChannels + j];
+                        int sample = data[i * wavHeader.nChannels + j];
                         fsWriter.Write(BitConverter.GetBytes(sample), 0, 4);
                     }
                 }
@@ -626,18 +641,17 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
-            WriteHeader();
-
-            return true;
+            return WriteHeader();
         }
 
         public bool WriteHeader()
         {
-            if (wavHeader.wFormatTag == 1)
+            if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_PCM
+            || wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_IEEE_FLOAT)
             {
                 return WriteStandardHeader();
             }
-            else if (wavHeader.wFormatTag == 0xFFFE)
+            else if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_EXTENSIBLE)
             {
                 return WriteExtendedHeader();
             }

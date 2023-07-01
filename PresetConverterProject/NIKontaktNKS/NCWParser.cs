@@ -16,22 +16,27 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static bool NCW2Wav(string inputFilePath, string outputDirectoryPath, bool doList, bool doVerbose)
         {
-            // read wave file
-            var wp = new WAVParser();
-            var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB.wav";
-            wp.OpenWav(wavInPath);
+            // // read wave file
+            // var wp = new WAVParser();
+            // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB.wav";
+            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - u8bit.wav";
+            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 16bit.wav";
+            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 32bit.wav";
+            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 24bit.wav";
+            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 32bit float.wav";
+            // wp.OpenWav(wavInPath);
 
-            // ints
-            int[] ints = new int[wp.WavHeader.numOfPoints * wp.WavHeader.nChannels];
-            wp.ReadToIntegers(ref ints);
-            var wavOutPath = "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB - ints.wav";
-            wp.SaveWAVFromIntegers(wavOutPath, ref ints);
+            // // ints
+            // int[] ints = new int[wp.WavHeader.numOfPoints * wp.WavHeader.nChannels];
+            // wp.ReadToIntegers(ref ints);
+            // var wavOutPathInts = "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB - ints.wav";
+            // wp.SaveWAVFromIntegers(wavOutPathInts, ref ints);
 
-            // floats
+            // // floats
             // float[] floats = new float[wp.WavHeader.numOfPoints * wp.WavHeader.nChannels];
             // wp.ReadToFloats(ref floats, (uint)wp.WavHeader.numOfPoints);
-            // var wavOutPath = "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB - floats.wav";
-            // wp.SaveStandardWAVMulti(wavOutPath, ref floats);
+            // var wavOutPathFloats = "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB - floats.wav";
+            // wp.SaveStandardWAVMulti(wavOutPathFloats, ref floats);
 
             // Convert file
             var ncwParser = new NCWParser();
@@ -141,9 +146,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public void SaveToWAV(string filename)
         {
-            var wp = new WAVParser();
             var waveHeader = new WAVParser.TMyWAVHeader();
-            wp.WavHeader = waveHeader;
 
             waveHeader.wFormatTag = 1; // Standard wav
             waveHeader.nChannels = Header.Channels;
@@ -156,6 +159,8 @@ namespace PresetConverterProject.NIKontaktNKS
             waveHeader.numOfPoints = (int)Header.numSamples;
             waveHeader.dataPos = 44;
 
+            var wp = new WAVParser();
+            wp.WavHeader = waveHeader;
             wp.StartSaveBlocks(filename);
 
             int block_size = 1024;
@@ -254,6 +259,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 wp.WriteBlock(buf, block_size);
                 buf = buf.Skip(block_size).ToArray();
             }
+
             if (nrem != 0)
             {
                 wp.WriteBlock(buf, nrem);

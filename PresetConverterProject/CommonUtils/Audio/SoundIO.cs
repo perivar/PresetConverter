@@ -74,22 +74,24 @@ namespace CommonUtils.Audio
 
         public static void Read8Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
-            // read unsigned 8-bit int and convert to 32-bit float
-            // convert [0x0, 0xFF] to [-1.0, 1.0]
+            // read signed 8-bit int and convert to 32-bit float
+            // signed 8-bit value (-128 to +127)
+            // convert [0x00, 0xFF] to [-1.0, 1.0]
             for (int i = 0; i < sampleCount; i++)
             {
                 for (int ic = 0; ic < channels; ic++)
                 {
                     byte b = waveFile.ReadByte();
-                    sound[ic][i] = (float)b / (float)(128 - 1);
+                    sound[ic][i] = b / (float)(128 - 1);
                 }
             }
         }
 
         public static void Write8Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
-            // write 32-bit float as unsigned 8-bit int
-            // convert [-1.0, 1.0] to [0x0, 0xFF]
+            // write 32-bit float as signed 8-bit int
+            // signed 8-bit value (-128 to +127)
+            // convert [-1.0, 1.0] to [0x00, 0xFF]
             // values outside the range [-1.0, 1.0] are properly clamped to 0 and 255
             for (int i = 0; i < sampleCount; i++)
             {
@@ -111,13 +113,14 @@ namespace CommonUtils.Audio
         public static void Read16Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
             // read signed 16-bit int and convert to 32-bit float
+            // signed 16-bit value (-32768 to 32767)
             // convert [0x8000, 0x7FFF] to [-1.0, 1.0] 
             for (int i = 0; i < sampleCount; i++)
             {
                 for (int ic = 0; ic < channels; ic++)
                 {
-                    float f = (float)waveFile.ReadInt16();
-                    f /= (float)32768; // 0x8000  
+                    float f = waveFile.ReadInt16();
+                    f /= 32768; // 0x8000  
                     sound[ic][i] = f;
                 }
             }
@@ -126,6 +129,7 @@ namespace CommonUtils.Audio
         public static void Write16Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
             // write 32-bit float as signed 16-bit int
+            // signed 16-bit value (-32768 to 32767)
             // convert [-1.0, 1.0] to [0x8000, 0x7FFF]
             // values outside the range [-1.0, 1.0] are properly clamped to -32768 and 32767
             for (int i = 0; i < sampleCount; i++)
@@ -147,6 +151,7 @@ namespace CommonUtils.Audio
         public static void Read24Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
             // read signed 24-bit int and convert to 32-bit float
+            // signed 24-bit value (-8388608 to 8388607)
             // convert [0x800000, 0x7FFFFF] to [-1.0, 1.0]
             for (int i = 0; i < sampleCount; i++)
             {
@@ -162,6 +167,7 @@ namespace CommonUtils.Audio
         public static void Write24Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
             // write 32-bit float as signed 24-bit int
+            // signed 24-bit value (-8388608 to 8388607)
             // convert [-1.0, 1.0] to [0x800000, 0x7FFFFF]
             // values outside the range [-1.0, 1.0] are properly clamped to -8388608 and 8388607
             for (int i = 0; i < sampleCount; i++)
@@ -176,7 +182,7 @@ namespace CommonUtils.Audio
                     if (sample32 < -1.0f)
                         sample32 = -1.0f;
 
-                    var sample24 = (int)(sample32 * (float)8388608); // 0x800000
+                    var sample24 = (int)(sample32 * 8388608); // 0x800000
                     byte[] buffer = BitConverter.GetBytes(sample24);
                     waveFile.Write(new[] { buffer[0], buffer[1], buffer[2] });
                 }
@@ -186,13 +192,14 @@ namespace CommonUtils.Audio
         public static void Read32Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
             // read signed 32-bit int and convert to 32-bit float
+            // signed 32-bit value (-2147483648 to +2147483647)
             // convert [0x80000000, 0x7FFFFFFF] to [-1.0, 1.0]
             for (int i = 0; i < sampleCount; i++)
             {
                 for (int ic = 0; ic < channels; ic++)
                 {
-                    float f = (float)waveFile.ReadInt32();
-                    f /= (float)2147483648; // 0x80000000
+                    float f = waveFile.ReadInt32();
+                    f /= 2147483648; // 0x80000000
                     sound[ic][i] = f;
                 }
             }
@@ -201,6 +208,7 @@ namespace CommonUtils.Audio
         public static void Write32Bit(BinaryFile waveFile, float[][] sound, int sampleCount, int channels)
         {
             // write 32-bit float as signed 32-bit int
+            // signed 32-bit value (-2147483648 to +2147483647)
             // convert [-1.0, 1.0] to [0x80000000, 0x7fffffff]
             // values outside the range [-1.0, 1.0] are properly clamped to -2147483648 and 2147483647,
             for (int i = 0; i < sampleCount; i++)
@@ -214,7 +222,7 @@ namespace CommonUtils.Audio
                     if (val < -2147483648) // -0x80000000 
                         val = -2147483648;
 
-                    waveFile.Write((int)val);
+                    waveFile.Write(val);
                 }
             }
         }
