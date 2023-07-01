@@ -790,29 +790,29 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(source, sBuffer, 0, n);
             dBuffer[0] = (short)baseValue;
 
-            int bitsleft = 8;
+            int bitsLeft = 8;
             byte tb = sBuffer[0];
 
             for (int i = 1; i < n; i++)
             {
                 short dw = 0;
-                int bitsneeded = bits;
+                int bitsNeeded = bits;
 
-                while (bitsneeded > 0)
+                while (bitsNeeded > 0)
                 {
-                    if (bitsneeded >= bitsleft)
+                    if (bitsNeeded >= bitsLeft)
                     {
-                        dw |= (short)((tb & (0xFF >> (8 - bitsleft))) << (bits - bitsneeded));
+                        dw |= (short)((tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded));
                         tb = sBuffer[i];
-                        bitsneeded -= bitsleft;
-                        bitsleft = 8;
+                        bitsNeeded -= bitsLeft;
+                        bitsLeft = 8;
                     }
                     else
                     {
-                        dw |= (short)((tb & (0xFF >> (8 - bitsneeded))) << (bits - bitsneeded));
-                        tb >>= bitsneeded;
-                        bitsleft -= bitsneeded;
-                        bitsneeded = 0;
+                        dw |= (short)((tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded));
+                        tb >>= bitsNeeded;
+                        bitsLeft -= bitsNeeded;
+                        bitsNeeded = 0;
                     }
                 }
 
@@ -824,6 +824,26 @@ namespace PresetConverterProject.NIKontaktNKS
             }
 
             Marshal.Copy(dBuffer, 0, dest, n);
+        }
+
+        public static void Fill24V2(int n, int bits, byte[] source, int base_value, int[] dest, bool relative)
+        {
+            if (relative)
+                switch (bits)
+                {
+                    // case 8: Fill24_8rel(n, source, dest, (int)base_value); break;
+                    // case 16: Fill24_16rel(n, source, dest, (int)base_value); break;
+                    default: Fill24_bitsV2(n, bits, source, dest, base_value); break;
+                }
+            else
+            {
+                Fill24absV2(n, source, dest);
+            }
+        }
+
+        public static void Fill24absV2(int n, byte[] source, int[] dest)
+        {
+            Buffer.BlockCopy(source, 0, dest, 0, n);
         }
 
         public static void Fill24_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
@@ -839,33 +859,38 @@ namespace PresetConverterProject.NIKontaktNKS
             dBuffer[2] = (ti >> 16) & 0xFF;
 
             byte tb = sBuffer[0];
-            int bitsleft = 8;
+            int bitsLeft = 8;
 
             for (int i = 1; i < n; i++)
             {
                 int dd = 0;
-                int bitsneeded = bits;
+                int bitsNeeded = bits;
 
-                while (bitsneeded > 0)
+                while (bitsNeeded > 0)
                 {
-                    if (bitsneeded >= bitsleft)
+                    if (bitsNeeded >= bitsLeft)
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsleft))) << (bits - bitsneeded);
+                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
                         tb = sBuffer[i];
-                        bitsneeded -= bitsleft;
-                        bitsleft = 8;
+                        bitsNeeded -= bitsLeft;
+                        bitsLeft = 8;
                     }
                     else
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsneeded))) << (bits - bitsneeded);
-                        tb >>= bitsneeded;
-                        bitsleft -= bitsneeded;
-                        bitsneeded = 0;
+                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
+                        tb >>= bitsNeeded;
+                        bitsLeft -= bitsNeeded;
+                        bitsNeeded = 0;
                     }
                 }
 
+                // checks if the most significant bit of dd is set, 
+                // and if it is, it sets all the bits above the bits position to 1. 
                 if ((dd & (1 << (bits - 1))) != 0)
-                    dd |= unchecked((int)0xFFFFFFFF << bits);
+                {
+                    // dd |= unchecked((int)0xFFFFFFFF << bits);
+                    dd |= (int)(0xFFFFFFFF << bits);
+                }
 
                 ti += dd;
                 dBuffer[i * 3] = ti & 0xFF;
@@ -876,6 +901,53 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(dBuffer, 0, dest, n);
         }
 
+        public static void Fill24_bitsV2(int n, int bits, byte[] source, int[] dest, int baseValue)
+        {
+            int ti = baseValue;
+            dest[0] = ti & 0xFF;
+            dest[1] = (ti >> 8) & 0xFF;
+            dest[2] = (ti >> 16) & 0xFF;
+
+            byte tb = source[0];
+            int bitsLeft = 8;
+
+            for (int i = 1; i < n; i++)
+            {
+                int dd = 0;
+                int bitsNeeded = bits;
+
+                while (bitsNeeded > 0 && i < source.Length)
+                {
+                    if (bitsNeeded >= bitsLeft)
+                    {
+                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
+                        tb = source[i];
+                        bitsNeeded -= bitsLeft;
+                        bitsLeft = 8;
+                    }
+                    else
+                    {
+                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
+                        tb >>= bitsNeeded;
+                        bitsLeft -= bitsNeeded;
+                        bitsNeeded = 0;
+                    }
+                }
+
+                // checks if the most significant bit of dd is set, 
+                // and if it is, it sets all the bits above the bits position to 1. 
+                // if ((dd & (1 << (bits - 1))) != 0)
+                // {
+                //     dd |= (int)(0xFFFFFFFF << bits);
+                // }
+
+                ti += dd;
+                dest[i * 3] = ti & 0xFF;
+                dest[i * 3 + 1] = (ti >> 8) & 0xFF;
+                dest[i * 3 + 2] = (ti >> 16) & 0xFF;
+            }
+        }
+
         public static void Fill32_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
             byte[] sBuffer = new byte[n];
@@ -884,29 +956,29 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(source, sBuffer, 0, n);
             dBuffer[0] = baseValue;
 
-            int bitsleft = 8;
+            int bitsLeft = 8;
             byte tb = sBuffer[0];
 
             for (int i = 1; i < n; i++)
             {
                 int dd = 0;
-                int bitsneeded = bits;
+                int bitsNeeded = bits;
 
-                while (bitsneeded > 0)
+                while (bitsNeeded > 0)
                 {
-                    if (bitsneeded >= bitsleft)
+                    if (bitsNeeded >= bitsLeft)
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsleft))) << (bits - bitsneeded);
+                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
                         tb = sBuffer[i];
-                        bitsneeded -= bitsleft;
-                        bitsleft = 8;
+                        bitsNeeded -= bitsLeft;
+                        bitsLeft = 8;
                     }
                     else
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsneeded))) << (bits - bitsneeded);
-                        tb >>= bitsneeded;
-                        bitsleft -= bitsneeded;
-                        bitsneeded = 0;
+                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
+                        tb >>= bitsNeeded;
+                        bitsLeft -= bitsNeeded;
+                        bitsNeeded = 0;
                     }
                 }
 
@@ -994,8 +1066,9 @@ namespace PresetConverterProject.NIKontaktNKS
                     default: Fill24_bits(n, bits, source, dest, (int)base_value); break;
                 }
             else
+            {
                 Fill24abs(n, source, dest);
-
+            }
         }
 
         public static void Fill32(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
@@ -1009,8 +1082,9 @@ namespace PresetConverterProject.NIKontaktNKS
                     default: Fill32_bits(n, bits, source, dest, (int)base_value); break;
                 }
             else
+            {
                 Fill32abs(n, (IntPtr)(source), (IntPtr)(dest));
-
+            }
         }
 
         public static void Encode_8(int n, int bits, IntPtr source,
