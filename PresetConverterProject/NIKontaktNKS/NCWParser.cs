@@ -42,6 +42,7 @@ namespace PresetConverterProject.NIKontaktNKS
             ncwParser.Clear();
             ncwParser.OpenNCWFile(inputFilePath);
             ncwParser.ReadNCW();
+            ncwParser.ReadNCWIntegers();
 
             // Output file to wav
             var wavtype = WavType.Standard;
@@ -558,7 +559,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     // LEFT = MID+SIDE, RIGHT = MID-SIDE.
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        // Considering stereo samples
+
                         int ti1 = (temp24[0, k * 3] + (temp24[0, k * 3 + 1] << 8) + (temp24[0, k * 3 + 2] << 16)) << 8;
                         int ti2 = (temp24[1, k * 3] + (temp24[1, k * 3 + 1] << 8) + (temp24[1, k * 3 + 2] << 16)) << 8;
                         int ti3 = ti1 + ti2;
@@ -640,7 +641,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        // Considering stereo samples
                         datai[curoffset] = temp32[0, k] + temp32[1, k];
                         curoffset++;
                         datai[curoffset] = temp32[0, k] - temp32[1, k];
@@ -698,8 +698,8 @@ namespace PresetConverterProject.NIKontaktNKS
             int curoffset = 0;
             uint cursample = 0;
 
-            byte[][] tempb = new byte[header.Channels][];
-            int[][] tempi = new int[5][];
+            IntPtr input_buf = Marshal.AllocHGlobal(header.Bits * 64);
+            int[][] tempi = new int[MAX_CHANNELS][];
 
             for (int i = 0; i < blocksDefList.Length - 1; i++)
             {
@@ -712,17 +712,18 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bHeader.bits < 0)
                     {
                         int nbits = Math.Abs(bHeader.bits);
-                        tempb[j] = ReadBytes(fs, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
                         tempi[j] = new int[NCW_SAMPLES];
-                        BitProcess.FillIntegersAbs(NCW_SAMPLES, nbits, GetIntPtr(tempb, j), bHeader.BaseValue, ref tempi[j]);
+                        BitProcess.FillIntegersAbs(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, ref tempi[j]);
                     }
+
                     else
                     {
                         int nbits = (bHeader.bits == 0) ? header.Bits : bHeader.bits;
-                        tempb[j] = ReadBytes(fs, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
                         bool nrelative = bHeader.bits != 0;
                         tempi[j] = new int[NCW_SAMPLES];
-                        BitProcess.FillIntegers(NCW_SAMPLES, nbits, GetIntPtr(tempb, j), bHeader.BaseValue, ref tempi[j], nrelative);
+                        BitProcess.FillIntegers(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, ref tempi[j], nrelative);
                     }
                 }
 
@@ -730,7 +731,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        // Considering stereo samples
                         datai[curoffset] = tempi[0][k] + tempi[1][k];
                         curoffset++;
                         datai[curoffset] = tempi[0][k] - tempi[1][k];
@@ -756,14 +756,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
             }
         ex:
-            for (int i = 0; i < header.Channels; i++)
-            {
-                tempb[i] = null;
-                tempi[i] = null;
-            }
-
-            tempb = null;
-            tempi = null;
+            Marshal.FreeHGlobal(input_buf);
         }
     }
 }
