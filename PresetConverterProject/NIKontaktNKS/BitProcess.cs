@@ -641,49 +641,55 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(destArray, 0, dest, n);
         }
 
-        public static void Fill24_8rel(int n, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill24_8rel(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
+            byte[] sourceArray = new byte[bits * 64];
+            Marshal.Copy(source, sourceArray, 0, bits * 64);
 
-            byte[] destArray = new byte[n * 3];
+            int[] destArray = new int[n * 3];
 
             int it1 = baseValue;
-            destArray[0] = (byte)(it1 & 0xFF);
-            destArray[1] = (byte)((it1 >> 8) & 0xFF);
-            destArray[2] = (byte)((it1 >> 16) & 0xFF);
+            destArray[0] = it1 & 0xFF;
+            destArray[1] = (it1 >> 8) & 0xFF;
+            destArray[2] = (it1 >> 16) & 0xFF;
+
+            int sourceIndex = 1;
 
             for (int i = 1; i < n; i++)
             {
-                int it2 = sourceArray[i - 1];
+                int it2 = sourceArray[sourceIndex];
                 it1 += it2;
-                destArray[i * 3] = (byte)(it1 & 0xFF);
-                destArray[i * 3 + 1] = (byte)((it1 >> 8) & 0xFF);
-                destArray[i * 3 + 2] = (byte)((it1 >> 16) & 0xFF);
+                destArray[i * 3] = it1 & 0xFF;
+                destArray[i * 3 + 1] = (it1 >> 8) & 0xFF;
+                destArray[i * 3 + 2] = (it1 >> 16) & 0xFF;
+                sourceIndex++;
             }
 
             Marshal.Copy(destArray, 0, dest, n * 3);
         }
 
-        public static void Fill24_16rel(int n, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill24_16rel(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(source, sourceArray, 0, n);
+            short[] sourceArray = new short[bits * 64];
+            Marshal.Copy(source, sourceArray, 0, bits * 64);
 
-            byte[] destArray = new byte[n * 3];
+            int[] destArray = new int[n * 3];
 
             int it1 = baseValue;
-            destArray[0] = (byte)(it1 & 0xFF);
-            destArray[1] = (byte)((it1 >> 8) & 0xFF);
-            destArray[2] = (byte)((it1 >> 16) & 0xFF);
+            destArray[0] = it1 & 0xFF;
+            destArray[1] = (it1 >> 8) & 0xFF;
+            destArray[2] = (it1 >> 16) & 0xFF;
+
+            int sourceIndex = 1;
 
             for (int i = 1; i < n; i++)
             {
-                int it2 = sourceArray[i - 1];
+                int it2 = sourceArray[sourceIndex];
                 it1 += it2;
-                destArray[i * 3] = (byte)(it1 & 0xFF);
-                destArray[i * 3 + 1] = (byte)((it1 >> 8) & 0xFF);
-                destArray[i * 3 + 2] = (byte)((it1 >> 16) & 0xFF);
+                destArray[i * 3] = it1 & 0xFF;
+                destArray[i * 3 + 1] = (it1 >> 8) & 0xFF;
+                destArray[i * 3 + 2] = (it1 >> 16) & 0xFF;
+                sourceIndex++;
             }
 
             Marshal.Copy(destArray, 0, dest, n * 3);
@@ -735,7 +741,10 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                int it = (sourceArray[i * 3]) | (sourceArray[i * 3 + 1] << 8) | (sourceArray[i * 3 + 2] << 16);
+                int it = (sourceArray[i * 3]) |
+                        (sourceArray[i * 3 + 1] << 8) |
+                        (sourceArray[i * 3 + 2] << 16);
+
                 if ((sourceArray[i * 3 + 2] & 0x80) != 0)
                 {
                     it |= unchecked((int)0xFF000000);
@@ -762,11 +771,11 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(buffer, 0, dest, n);
         }
 
-        public static void Fill24abs(int n, IntPtr source, IntPtr dest)
+        public static void Fill24abs(int n, int bits, IntPtr source, IntPtr dest)
         {
-            int[] buffer = new int[n];
-            Marshal.Copy(source, buffer, 0, n);
-            Marshal.Copy(buffer, 0, dest, n);
+            int[] buffer = new int[bits * 64];
+            Marshal.Copy(source, buffer, 0, bits * 64);
+            Marshal.Copy(buffer, 0, dest, bits * 64);
         }
 
         public static void Fill32abs(int n, IntPtr source, IntPtr dest)
@@ -868,8 +877,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill24_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
+            byte[] sourceArray = new byte[bits * 64];
+            Marshal.Copy(source, sourceArray, 0, bits * 64);
 
             int[] destArray = new int[n * 3];
 
@@ -887,7 +896,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 int dd = 0;
                 int bitsNeeded = bits;
 
-                while (bitsNeeded > 0 && sourceIndex < sourceArray.Length)
+                while (bitsNeeded > 0)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
@@ -907,7 +916,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
 
                 // checks if the most significant bit of dd is set, 
-                // and if it is, it sets all the bits above the bits position to 1. 
+                // and if it is, set all the bits above the bits position to 1. 
                 if ((dd & (1 << (bits - 1))) != 0)
                 {
                     dd = (int)((uint)dd | (0xFFFFFFFF << bits));
@@ -1053,14 +1062,14 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 switch (bits)
                 {
-                    case 8: Fill24_8rel(n, source, dest, base_value); break;
-                    case 16: Fill24_16rel(n, source, dest, base_value); break;
+                    // case 8: Fill24_8rel(n, bits, source, dest, base_value); break;
+                    // case 16: Fill24_16rel(n, bits, source, dest, base_value); break;
                     default: Fill24_bits(n, bits, source, dest, base_value); break;
                 }
             }
             else
             {
-                Fill24abs(n, source, dest);
+                Fill24abs(n, bits, source, dest);
             }
         }
 
@@ -1155,76 +1164,6 @@ namespace PresetConverterProject.NIKontaktNKS
             else
             {
                 EncodeL_32(n, bits, source, dest);
-            }
-        }
-
-        // TODO: PIN DELETE THIS
-        public static void Fill24V2(int n, int bits, byte[] source, int base_value, int[] dest, bool relative)
-        {
-            if (relative)
-            {
-                switch (bits)
-                {
-                    // case 8: Fill24_8rel(n, source, dest, (int)base_value); break;
-                    // case 16: Fill24_16rel(n, source, dest, (int)base_value); break;
-                    default: Fill24_bitsV2(n, bits, source, dest, base_value); break;
-                }
-            }
-            else
-            {
-                Fill24absV2(n, source, dest);
-            }
-        }
-
-        public static void Fill24absV2(int n, byte[] source, int[] dest)
-        {
-            Buffer.BlockCopy(source, 0, dest, 0, n);
-        }
-
-        public static void Fill24_bitsV2(int n, int bits, byte[] source, int[] dest, int baseValue)
-        {
-            int ti = baseValue;
-            dest[0] = ti & 0xFF;
-            dest[1] = (ti >> 8) & 0xFF;
-            dest[2] = (ti >> 16) & 0xFF;
-
-            byte tb = source[0];
-            int bitsLeft = 8;
-
-            for (int i = 1; i < n; i++)
-            {
-                int dd = 0;
-                int bitsNeeded = bits;
-
-                while (bitsNeeded > 0 && i < source.Length)
-                {
-                    if (bitsNeeded >= bitsLeft)
-                    {
-                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = source[i];
-                        bitsNeeded -= bitsLeft;
-                        bitsLeft = 8;
-                    }
-                    else
-                    {
-                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
-                        tb >>= bitsNeeded;
-                        bitsLeft -= bitsNeeded;
-                        bitsNeeded = 0;
-                    }
-                }
-
-                // checks if the most significant bit of dd is set, 
-                // and if it is, it sets all the bits above the bits position to 1. 
-                // if ((dd & (1 << (bits - 1))) != 0)
-                // {
-                //     dd |= (int)(0xFFFFFFFF << bits);
-                // }
-
-                ti += dd;
-                dest[i * 3] = ti & 0xFF;
-                dest[i * 3 + 1] = (ti >> 8) & 0xFF;
-                dest[i * 3 + 2] = (ti >> 16) & 0xFF;
             }
         }
     }
