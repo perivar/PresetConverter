@@ -619,7 +619,7 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        public bool StartSaveBlocks(string filename)
+        public bool StartSaveBlocks(string filename, uint chnkSize = 16)
         {
             if (File.Exists(filename))
             {
@@ -641,15 +641,15 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
-            return WriteHeader();
+            return WriteHeader(chnkSize);
         }
 
-        public bool WriteHeader()
+        public bool WriteHeader(uint chnkSize = 16)
         {
             if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_PCM
             || wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_IEEE_FLOAT)
             {
-                return WriteStandardHeader();
+                return WriteStandardHeader(chnkSize);
             }
             else if (wavHeader.wFormatTag == SoundIO.WAVE_FORMAT_EXTENSIBLE)
             {
@@ -661,17 +661,29 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public bool WriteStandardHeader()
+        public bool WriteStandardHeader(uint chnkSize = 16)
         {
+            // calculate extra bytes if chunk size is more tha 16
+            // this will normally be zero
+            uint extraChunkSizeBytes = chnkSize - 16;
+
             wavHeader.RIFFtag = "RIFF".ToCharArray();
-            wavHeader.fileSize = wavHeader.dataSize + 44 - 8;
+            wavHeader.fileSize = wavHeader.dataSize + 44 - 8 + extraChunkSizeBytes;
             wavHeader.WAVEtag = "WAVE".ToCharArray();
             wavHeader.FMTtag = "fmt ".ToCharArray();
-            wavHeader.chnkSize = 16;
+            wavHeader.chnkSize = chnkSize;
             wavHeader.extended = false;
 
             byte[] headerBytes = NCWParser.StructureToBytes(wavHeader);
             fsWriter.Write(headerBytes, 0, 36);
+
+            if (extraChunkSizeBytes > 0)
+            {
+                for (int i = 0; i < extraChunkSizeBytes; i++)
+                {
+                    fsWriter.WriteByte(0);
+                }
+            }
 
             // --- Record data chunk
             byte[] dataChunkTag = Encoding.ASCII.GetBytes("data");
@@ -707,7 +719,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public void WriteBlock(byte[] source, int size)
         {
-            fsWriter.Write(source, 0, source.Length < size ? source.Length : size);
+            fsWriter.Write(source, 0, size);
         }
 
         public void CloseWav()

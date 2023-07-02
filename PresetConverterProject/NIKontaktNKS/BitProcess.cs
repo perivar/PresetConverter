@@ -6,155 +6,165 @@ namespace PresetConverterProject.NIKontaktNKS
     {
         public static byte nbits8(int n)
         {
-            int i;
-            if (n > 8) return 0xFF;
-            else if (n == 0) return 0;
+            if (n > 8)
+            {
+                return 0xFF;
+            }
+            else if (n == 0)
+            {
+                return 0;
+            }
             else
             {
                 byte result = 1;
-                for (i = 2; i <= n; i++)
+                for (int i = 2; i <= n; i++)
+                {
                     result = (byte)(result << 1 + 1);
+                }
+
                 return result;
             }
         }
 
         public static ushort nbits16(int n)
         {
-            int i;
-            if (n > 16) return 0xFFFF;
-            else if (n == 0) return 0;
+            if (n > 16)
+            {
+                return 0xFFFF;
+            }
+            else if (n == 0)
+            {
+                return 0;
+            }
             else
             {
                 ushort result = 1;
-                for (i = 2; i <= n; i++)
+                for (int i = 2; i <= n; i++)
+                {
                     result = (ushort)(result << 1 + 1);
+                }
+
                 return result;
             }
         }
 
         public static uint nbits32(int n)
         {
-            int i;
-            if (n > 32) return 0xFFFFFFFF;
-            else if (n == 0) return 0;
-            else
+            if (n > 32)
             {
-                uint result = 1;
-                for (i = 2; i <= n; i++)
-                    result = result << 1 + 1;
-                return result;
+                return 0xFFFFFFFF;
             }
-        }
-
-        public static uint nbits32old(int n)
-        {
-            int i;
-            if (n > 16) return 0xFFFFFFFF;
-            else if (n == 0) return 0;
+            else if (n == 0)
+            {
+                return 0;
+            }
             else
             {
                 uint result = 1;
-                for (i = 2; i <= n; i++)
+                for (int i = 2; i <= n; i++)
+                {
                     result <<= 1 + 1;
+                }
+
                 return result;
             }
         }
 
         public static int ChangeIntSign(int i, int sbit)
         {
-            uint dw;
             if ((i & (1 << (sbit - 1))) != 0)
             {
-                dw = (uint)i;
+                uint dw = (uint)i;
                 dw |= nbits32(32 - sbit) << sbit;
                 return (int)dw;
             }
             else
+            {
                 return i;
+            }
         }
 
-        public static void FillIntegers8(int n, IntPtr data, ref int[] ints, bool abs_)
+        public static void FillIntegers8(int n, IntPtr data, ref int[] ints, bool abs)
         {
-            int cur;
             short[] s = new short[n];
             Marshal.Copy(data, s, 0, n);
 
-            int start = abs_ ? 0 : 1;
+            int start = abs ? 0 : 1;
 
-            for (cur = start; cur < n; cur++)
+            for (int cur = start; cur < n; cur++)
             {
                 ints[cur] = s[cur];
             }
 
-            if (!abs_)
+            if (!abs)
             {
                 ints[0] = 0;
             }
         }
 
-        public static void FillIntegers16(int n, IntPtr data, ref int[] ints, bool abs_)
+        public static void FillIntegers16(int n, IntPtr data, ref int[] ints, bool abs)
         {
-            int cur;
             short[] s = new short[n];
             Marshal.Copy(data, s, 0, n);
 
-            int start = abs_ ? 0 : 1;
+            int start = abs ? 0 : 1;
 
-            for (cur = start; cur < n; cur++)
+            for (int cur = start; cur < n; cur++)
             {
                 ints[cur] = s[cur];
             }
 
-            if (!abs_)
+            if (!abs)
             {
                 ints[0] = 0;
             }
         }
 
-        public static void FillIntegers24(int n, IntPtr data, ref int[] ints, bool abs_)
+        public static void FillIntegers24(int n, IntPtr data, ref int[] ints, bool abs)
         {
-            int t;
-            uint dw;
-            int cur;
             byte[] b = new byte[n * sizeof(byte)];
             Marshal.Copy(data, b, 0, b.Length);
 
-            int start = abs_ ? 0 : 1;
+            int start = abs ? 0 : 1;
 
-            for (cur = start; cur < n; cur++)
+            int t;
+            for (int cur = start; cur < n; cur++)
             {
-                dw = b[cur];
+                uint dw = b[cur];
                 dw += (uint)(b[cur + 1] << 8);
                 dw += (uint)(b[cur + 2] << 16);
 
                 if ((b[cur] & 128) == 0)
+                {
                     t = (int)dw;
+                }
                 else
+                {
                     t = ChangeIntSign((int)dw, 24);
+                }
 
                 ints[cur] = t;
             }
 
-            if (!abs_)
+            if (!abs)
             {
                 ints[0] = 0;
             }
         }
 
-        public static void FillIntegers32(int n, IntPtr data, ref int[] ints, bool abs_)
+        public static void FillIntegers32(int n, IntPtr data, ref int[] ints, bool abs)
         {
-            int cur;
             int[] ip = new int[n];
             Marshal.Copy(data, ip, 0, n);
 
-            int start = abs_ ? 0 : 1;
+            int start = abs ? 0 : 1;
 
-            for (cur = start; cur < n; cur++)
+            for (int cur = start; cur < n; cur++)
             {
                 ints[cur] = ip[cur];
             }
 
-            if (!abs_)
+            if (!abs)
             {
                 ints[0] = 0;
             }
@@ -162,20 +172,16 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void FillIntegersL8(int n, int bits, IntPtr data, ref int[] ints)
         {
-            int j;
-            int t;
-            uint dw;
-            int cur;
             byte[] b = new byte[n];
             Marshal.Copy(data, b, 0, n);
 
             byte tb = b[0];
             int bitstotal = 0;
 
-            for (cur = 1; cur < n; cur++)
+            for (int cur = 1; cur < n; cur++)
             {
-                dw = 0;
-                for (j = 0; j < bits; j++)
+                uint dw = 0;
+                for (int j = 0; j < bits; j++)
                 {
                     dw += (uint)(tb & 1) << j;
                     tb >>= 1;
@@ -186,13 +192,15 @@ namespace PresetConverterProject.NIKontaktNKS
                         bitstotal = 0;
                     }
                 }
-                t = ChangeIntSign((int)dw, bits);
+
+                int t = ChangeIntSign((int)dw, bits);
                 ints[cur] = t;
             }
+
             ints[0] = 0;
         }
 
-        public static void FillBits8(int n, int[] ints, IntPtr data, bool abs_)
+        public static void FillBits8(int n, int[] ints, IntPtr data, bool abs)
         {
             short[] s = new short[n];
             Marshal.Copy(data, s, 0, n);
@@ -205,7 +213,7 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(s, 0, data, n);
         }
 
-        public static void FillBits16(int n, int[] ints, IntPtr data, bool abs_)
+        public static void FillBits16(int n, int[] ints, IntPtr data, bool abs)
         {
             short[] s = new short[n];
             Marshal.Copy(data, s, 0, n);
@@ -218,7 +226,7 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(s, 0, data, n);
         }
 
-        public static void FillBits24(int n, int[] ints, IntPtr data, bool abs_)
+        public static void FillBits24(int n, int[] ints, IntPtr data, bool abs)
         {
             byte[] b = new byte[n * 3];
             Marshal.Copy(data, b, 0, n * 3);
@@ -232,13 +240,16 @@ namespace PresetConverterProject.NIKontaktNKS
                 b[cur * 3 + 1] = (byte)(t & 0xFF);
                 t >>= 8;
                 b[cur * 3 + 2] = (byte)(t & 0xFF);
+
                 if (ints[cur] < 0)
+                {
                     b[cur * 3 + 2] |= 0x80;
+                }
             }
             Marshal.Copy(b, 0, data, n * 3);
         }
 
-        public static void FillBits32(int n, int[] ints, IntPtr data, bool abs_)
+        public static void FillBits32(int n, int[] ints, IntPtr data, bool abs)
         {
             int[] ip = new int[n];
             Marshal.Copy(data, ip, 0, n);
@@ -290,6 +301,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             short[] sourceArray = new short[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n];
 
             for (int i = 0; i < n; i++)
@@ -304,6 +316,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             int[] sourceArray = new int[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n * 3];
 
             for (int i = 0; i < n; i++)
@@ -320,6 +333,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             int[] sourceArray = new int[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n * 4];
 
             for (int i = 0; i < n; i++)
@@ -335,6 +349,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             short[] sourceArray = new short[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             short[] destArray = new short[n];
 
             Array.Copy(sourceArray, destArray, n);
@@ -346,6 +361,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             short[] sourceArray = new short[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n * 3];
 
             for (int i = 0; i < n; i++)
@@ -365,6 +381,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             short[] sourceArray = new short[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             int[] destArray = new int[n];
 
             for (int i = 0; i < n; i++)
@@ -379,6 +396,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             byte[] sourceArray = new byte[n * 3];
             Marshal.Copy(source, sourceArray, 0, n * 3);
+
             byte[] destArray = new byte[n * 3];
 
             Array.Copy(sourceArray, destArray, n * 3);
@@ -390,6 +408,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             byte[] sourceArray = new byte[n * 3];
             Marshal.Copy(source, sourceArray, 0, n * 3);
+
             int[] destArray = new int[n];
 
             for (int i = 0; i < n; i++)
@@ -419,6 +438,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             byte[] sourceArray = new byte[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n];
 
             byte b = 0;
@@ -437,7 +457,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         byte tb = (byte)((db & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
                         b |= (byte)(tb << (8 - bitsLeft));
-                        bitsLeft -= (bits - bitsWritten);
+                        bitsLeft -= bits - bitsWritten;
                         bitsWritten = bits;
                     }
                     else
@@ -465,6 +485,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             short[] sourceArray = new short[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n];
 
             byte b = 0;
@@ -483,7 +504,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         byte tb = (byte)((dw & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
                         b |= (byte)(tb << (8 - bitsLeft));
-                        bitsLeft -= (bits - bitsWritten);
+                        bitsLeft -= bits - bitsWritten;
                         bitsWritten = bits;
                     }
                     else
@@ -511,6 +532,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             byte[] sourceArray = new byte[n * 3];
             Marshal.Copy(source, sourceArray, 0, n * 3);
+
             byte[] destArray = new byte[n];
 
             byte b = 0;
@@ -528,9 +550,9 @@ namespace PresetConverterProject.NIKontaktNKS
                     if ((bits - bitsWritten) <= bitsLeft)
                     {
                         byte tb = (byte)(d24 & (0xFF >> (8 - (bits - bitsWritten))));
-                        d24 >>= (bits - bitsWritten);
+                        d24 >>= bits - bitsWritten;
                         b |= (byte)(tb << (8 - bitsLeft));
-                        bitsLeft -= (bits - bitsWritten);
+                        bitsLeft -= bits - bitsWritten;
                         bitsWritten = bits;
                     }
                     else
@@ -559,6 +581,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             int[] sourceArray = new int[n];
             Marshal.Copy(source, sourceArray, 0, n);
+
             byte[] destArray = new byte[n];
 
             byte b = 0;
@@ -577,7 +600,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         byte tb = (byte)((dw & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
                         b |= (byte)(tb << (8 - bitsLeft));
-                        bitsLeft -= (bits - bitsWritten);
+                        bitsLeft -= bits - bitsWritten;
                         bitsWritten = bits;
                     }
                     else
@@ -603,93 +626,98 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill16_8rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            short[] ss = new short[n];
-            Marshal.Copy(source, ss, 0, n);
-            short[] sd = new short[n];
+            short[] sourceShorts = new short[n];
+            Marshal.Copy(source, sourceShorts, 0, n);
 
-            sd[0] = (short)baseValue;
+            short[] destShorts = new short[n];
+
+            destShorts[0] = (short)baseValue;
 
             for (int i = 1; i < n; i++)
             {
-                sd[i] = (short)(ss[i - 1] + sd[i - 1]);
+                destShorts[i] = (short)(sourceShorts[i - 1] + destShorts[i - 1]);
             }
 
-            Marshal.Copy(sd, 0, dest, n);
+            Marshal.Copy(destShorts, 0, dest, n);
         }
 
         public static void Fill24_8rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] ss = new byte[n];
-            Marshal.Copy(source, ss, 0, n);
-            byte[] sd = new byte[n * 3];
+            byte[] sourceBytes = new byte[n];
+            Marshal.Copy(source, sourceBytes, 0, n);
+
+            byte[] destBytes = new byte[n * 3];
 
             int it1 = baseValue;
-            sd[0] = (byte)(it1 & 0xFF);
-            sd[1] = (byte)((it1 >> 8) & 0xFF);
-            sd[2] = (byte)((it1 >> 16) & 0xFF);
+            destBytes[0] = (byte)(it1 & 0xFF);
+            destBytes[1] = (byte)((it1 >> 8) & 0xFF);
+            destBytes[2] = (byte)((it1 >> 16) & 0xFF);
 
             for (int i = 1; i < n; i++)
             {
-                int it2 = ss[i - 1];
+                int it2 = sourceBytes[i - 1];
                 it1 += it2;
-                sd[i * 3] = (byte)(it1 & 0xFF);
-                sd[i * 3 + 1] = (byte)((it1 >> 8) & 0xFF);
-                sd[i * 3 + 2] = (byte)((it1 >> 16) & 0xFF);
+                destBytes[i * 3] = (byte)(it1 & 0xFF);
+                destBytes[i * 3 + 1] = (byte)((it1 >> 8) & 0xFF);
+                destBytes[i * 3 + 2] = (byte)((it1 >> 16) & 0xFF);
             }
 
-            Marshal.Copy(sd, 0, dest, n * 3);
+            Marshal.Copy(destBytes, 0, dest, n * 3);
         }
 
         public static void Fill24_16rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            short[] ss = new short[n];
-            Marshal.Copy(source, ss, 0, n);
-            byte[] sd = new byte[n * 3];
+            short[] sourceShorts = new short[n];
+            Marshal.Copy(source, sourceShorts, 0, n);
+
+            byte[] destBytes = new byte[n * 3];
 
             int it1 = baseValue;
-            sd[0] = (byte)(it1 & 0xFF);
-            sd[1] = (byte)((it1 >> 8) & 0xFF);
-            sd[2] = (byte)((it1 >> 16) & 0xFF);
+            destBytes[0] = (byte)(it1 & 0xFF);
+            destBytes[1] = (byte)((it1 >> 8) & 0xFF);
+            destBytes[2] = (byte)((it1 >> 16) & 0xFF);
 
             for (int i = 1; i < n; i++)
             {
-                int it2 = ss[i - 1];
+                int it2 = sourceShorts[i - 1];
                 it1 += it2;
-                sd[i * 3] = (byte)(it1 & 0xFF);
-                sd[i * 3 + 1] = (byte)((it1 >> 8) & 0xFF);
-                sd[i * 3 + 2] = (byte)((it1 >> 16) & 0xFF);
+                destBytes[i * 3] = (byte)(it1 & 0xFF);
+                destBytes[i * 3 + 1] = (byte)((it1 >> 8) & 0xFF);
+                destBytes[i * 3 + 2] = (byte)((it1 >> 16) & 0xFF);
             }
 
-            Marshal.Copy(sd, 0, dest, n * 3);
+            Marshal.Copy(destBytes, 0, dest, n * 3);
         }
 
         public static void Fill32_8rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            short[] ss = new short[n];
-            Marshal.Copy(source, ss, 0, n);
-            int[] sd = new int[n];
+            short[] sourceBytes = new short[n];
+            Marshal.Copy(source, sourceBytes, 0, n);
 
-            sd[0] = baseValue;
+            int[] destInts = new int[n];
+
+            destInts[0] = baseValue;
 
             for (int i = 1; i < n; i++)
             {
-                sd[i] = ss[i - 1] + sd[i - 1];
+                destInts[i] = sourceBytes[i - 1] + destInts[i - 1];
             }
 
-            Marshal.Copy(sd, 0, dest, n);
+            Marshal.Copy(destInts, 0, dest, n);
         }
 
         public static void Fill32_16rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            short[] ss = new short[n];
-            Marshal.Copy(source, ss, 0, n);
+            short[] sourceShorts = new short[n];
+            Marshal.Copy(source, sourceShorts, 0, n);
+
             int[] sd = new int[n];
 
             sd[0] = baseValue;
 
             for (int i = 1; i < n; i++)
             {
-                sd[i] = ss[i - 1] + sd[i - 1];
+                sd[i] = sourceShorts[i - 1] + sd[i - 1];
             }
 
             Marshal.Copy(sd, 0, dest, n);
@@ -697,8 +725,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill32_24rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] ss = new byte[n * 3];
-            Marshal.Copy(source, ss, 0, n * 3);
+            byte[] sourceBytes = new byte[n * 3];
+            Marshal.Copy(source, sourceBytes, 0, n * 3);
+
             int[] sd = new int[n];
 
             int it1 = baseValue;
@@ -706,11 +735,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                int it = (ss[i * 3]) | (ss[i * 3 + 1] << 8) | (ss[i * 3 + 2] << 16);
-                if ((ss[i * 3 + 2] & 0x80) != 0)
+                int it = (sourceBytes[i * 3]) | (sourceBytes[i * 3 + 1] << 8) | (sourceBytes[i * 3 + 2] << 16);
+                if ((sourceBytes[i * 3 + 2] & 0x80) != 0)
                 {
-                    it = it | unchecked((int)0xFF000000);
+                    it |= unchecked((int)0xFF000000);
                 }
+
                 it += sd[i - 1];
                 sd[i] = it;
             }
@@ -748,14 +778,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill8_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] sBuffer = new byte[n];
-            byte[] dBuffer = new byte[n];
+            byte[] sourceArray = new byte[n];
+            Marshal.Copy(source, sourceArray, 0, n);
 
-            Marshal.Copy(source, sBuffer, 0, n);
-            dBuffer[0] = (byte)baseValue;
+            byte[] destArray = new byte[n];
+            destArray[0] = (byte)baseValue;
 
             int bitstotal = 0;
-            byte tb = sBuffer[0];
+            byte tb = sourceArray[0];
 
             for (int i = 1; i < n; i++)
             {
@@ -768,30 +798,32 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bitstotal == 8)
                     {
                         bitstotal = 0;
-                        tb = sBuffer[i];
+                        tb = sourceArray[i];
                     }
                 }
 
                 if ((db & (1 << (bits - 1))) != 0)
+                {
                     db |= (short)(0xFF << bits);
+                }
 
-                db += dBuffer[i - 1];
-                dBuffer[i] = (byte)db;
+                db += destArray[i - 1];
+                destArray[i] = (byte)db;
             }
 
-            Marshal.Copy(dBuffer, 0, dest, n);
+            Marshal.Copy(destArray, 0, dest, n);
         }
 
         public static void Fill16_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] sBuffer = new byte[n];
-            short[] dBuffer = new short[n];
+            byte[] sourceArray = new byte[n];
+            Marshal.Copy(source, sourceArray, 0, n);
 
-            Marshal.Copy(source, sBuffer, 0, n);
-            dBuffer[0] = (short)baseValue;
+            short[] destArray = new short[n];
+            destArray[0] = (short)baseValue;
 
             int bitsLeft = 8;
-            byte tb = sBuffer[0];
+            byte tb = sourceArray[0];
 
             for (int i = 1; i < n; i++)
             {
@@ -803,7 +835,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bitsNeeded >= bitsLeft)
                     {
                         dw |= (short)((tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded));
-                        tb = sBuffer[i];
+                        tb = sourceArray[i];
                         bitsNeeded -= bitsLeft;
                         bitsLeft = 8;
                     }
@@ -817,61 +849,45 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
 
                 if ((dw & (1 << (bits - 1))) != 0)
-                    dw |= (short)(0xFFFF << bits);
-
-                dw += dBuffer[i - 1];
-                dBuffer[i] = dw;
-            }
-
-            Marshal.Copy(dBuffer, 0, dest, n);
-        }
-
-        public static void Fill24V2(int n, int bits, byte[] source, int base_value, int[] dest, bool relative)
-        {
-            if (relative)
-                switch (bits)
                 {
-                    // case 8: Fill24_8rel(n, source, dest, (int)base_value); break;
-                    // case 16: Fill24_16rel(n, source, dest, (int)base_value); break;
-                    default: Fill24_bitsV2(n, bits, source, dest, base_value); break;
+                    dw |= (short)(0xFFFF << bits);
                 }
-            else
-            {
-                Fill24absV2(n, source, dest);
-            }
-        }
 
-        public static void Fill24absV2(int n, byte[] source, int[] dest)
-        {
-            Buffer.BlockCopy(source, 0, dest, 0, n);
+                dw += destArray[i - 1];
+                destArray[i] = dw;
+            }
+
+            Marshal.Copy(destArray, 0, dest, n);
         }
 
         public static void Fill24_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] sBuffer = new byte[n];
-            int[] dBuffer = new int[n * 3];
+            byte[] sourceBytes = new byte[n];
+            Marshal.Copy(source, sourceBytes, 0, n);
 
-            Marshal.Copy(source, sBuffer, 0, n);
+            int[] destInts = new int[n * 3];
 
+            int tb = sourceBytes[0];
             int ti = baseValue;
-            dBuffer[0] = ti & 0xFF;
-            dBuffer[1] = (ti >> 8) & 0xFF;
-            dBuffer[2] = (ti >> 16) & 0xFF;
+            destInts[0] = ti & 0xFF;
+            destInts[1] = (ti >> 8) & 0xFF;
+            destInts[2] = (ti >> 16) & 0xFF;
 
-            byte tb = sBuffer[0];
             int bitsLeft = 8;
+            int sourceIndex = 1;
 
             for (int i = 1; i < n; i++)
             {
                 int dd = 0;
                 int bitsNeeded = bits;
 
-                while (bitsNeeded > 0)
+                while (bitsNeeded > 0 && sourceIndex < sourceBytes.Length)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
                         dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = sBuffer[i];
+                        tb = sourceBytes[sourceIndex];
+                        sourceIndex++;
                         bitsNeeded -= bitsLeft;
                         bitsLeft = 8;
                     }
@@ -888,17 +904,272 @@ namespace PresetConverterProject.NIKontaktNKS
                 // and if it is, it sets all the bits above the bits position to 1. 
                 if ((dd & (1 << (bits - 1))) != 0)
                 {
-                    // dd |= unchecked((int)0xFFFFFFFF << bits);
-                    dd |= (int)(0xFFFFFFFF << bits);
+                    dd = (int)((uint)dd | (0xFFFFFFFF << bits));
                 }
 
                 ti += dd;
-                dBuffer[i * 3] = ti & 0xFF;
-                dBuffer[i * 3 + 1] = (ti >> 8) & 0xFF;
-                dBuffer[i * 3 + 2] = (ti >> 16) & 0xFF;
+                destInts[i * 3] = ti & 0xFF;
+                destInts[i * 3 + 1] = (ti >> 8) & 0xFF;
+                destInts[i * 3 + 2] = (ti >> 16) & 0xFF;
             }
 
-            Marshal.Copy(dBuffer, 0, dest, n);
+            Marshal.Copy(destInts, 0, dest, n * 3);
+        }
+
+        public static void Fill32_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        {
+            byte[] sourceArray = new byte[n];
+            Marshal.Copy(source, sourceArray, 0, n);
+
+            int[] destArray = new int[n];
+            destArray[0] = baseValue;
+
+            int bitsLeft = 8;
+            byte tb = sourceArray[0];
+
+            for (int i = 1; i < n; i++)
+            {
+                int dd = 0;
+                int bitsNeeded = bits;
+
+                while (bitsNeeded > 0)
+                {
+                    if (bitsNeeded >= bitsLeft)
+                    {
+                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
+                        tb = sourceArray[i];
+                        bitsNeeded -= bitsLeft;
+                        bitsLeft = 8;
+                    }
+                    else
+                    {
+                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
+                        tb >>= bitsNeeded;
+                        bitsLeft -= bitsNeeded;
+                        bitsNeeded = 0;
+                    }
+                }
+
+                if ((dd & (1 << (bits - 1))) != 0)
+                {
+                    dd |= unchecked((int)0xFFFFFFFF << bits);
+                }
+
+                dd += destArray[i - 1];
+                destArray[i] = dd;
+            }
+
+            Marshal.Copy(destArray, 0, dest, n);
+        }
+
+        public static void FillIntegers(int n, int bits, IntPtr data, int start, ref int[] ints, bool relative)
+        {
+            if (bits == 8) FillIntegers8(n, data, ref ints, false);
+            else if (bits == 16) FillIntegers16(n, data, ref ints, false);
+            else if (bits == 24) FillIntegers24(n, data, ref ints, false);
+            else if (bits == 32) FillIntegers32(n, data, ref ints, false);
+            else FillIntegersL8(n, bits, data, ref ints);
+
+            if (relative)
+            {
+                ints[0] = start + ints[0];
+                for (int i = 1; i < n; i++)
+                {
+                    ints[i] = ints[i - 1] + ints[i];
+                }
+            }
+        }
+
+        public static void FillIntegersAbs(int n, int bits, IntPtr data, int start, ref int[] ints)
+        {
+            if (bits == 8) FillIntegers8(n, data, ref ints, true);
+            else if (bits == 16) FillIntegers16(n, data, ref ints, true);
+            else if (bits == 24) FillIntegers24(n, data, ref ints, true);
+            else if (bits == 32) FillIntegers32(n, data, ref ints, true);
+        }
+
+        public static void FillBits(int n, int bits, IntPtr data, int[] ints)
+        {
+            if (bits == 8) FillBits8(n, ints, data, false);
+            else if (bits == 16) FillBits16(n, ints, data, false);
+            else if (bits == 24) FillBits24(n, ints, data, false);
+            else if (bits == 32) FillBits32(n, ints, data, false);
+            else FillBitsL8(n, bits, ints, data);
+
+        }
+
+        public static void FillBitsAbs(int n, int bits, IntPtr data, int[] ints)
+        {
+            if (bits == 8) FillBits8(n, ints, data, true);
+            else if (bits == 16) FillBits16(n, ints, data, true);
+            else if (bits == 24) FillBits24(n, ints, data, true);
+            else if (bits == 32) FillBits32(n, ints, data, true);
+
+        }
+
+        public static void Fill8(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        {
+            if (relative)
+            {
+                Fill8_bits(n, bits, source, dest, base_value);
+            }
+            else
+            {
+                Fill8abs(n, source, dest);
+            }
+        }
+
+        public static void Fill16(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        {
+            if (relative)
+            {
+                if (bits == 8)
+                {
+                    Fill16_8rel(n, source, dest, base_value);
+                }
+                else
+                {
+                    Fill16_bits(n, bits, source, dest, base_value);
+                }
+            }
+            else
+            {
+                Fill16abs(n, source, dest);
+            }
+        }
+
+        public static void Fill24(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        {
+            if (relative)
+            {
+                switch (bits)
+                {
+                    case 8: Fill24_8rel(n, source, dest, base_value); break;
+                    case 16: Fill24_16rel(n, source, dest, base_value); break;
+                    default: Fill24_bits(n, bits, source, dest, base_value); break;
+                }
+            }
+            else
+            {
+                Fill24abs(n, source, dest);
+            }
+        }
+
+        public static void Fill32(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        {
+            if (relative)
+            {
+                switch (bits)
+                {
+                    case 8: Fill32_8rel(n, source, dest, base_value); break;
+                    case 16: Fill32_16rel(n, source, dest, base_value); break;
+                    case 24: Fill32_24rel(n, source, dest, base_value); break;
+                    default: Fill32_bits(n, bits, source, dest, base_value); break;
+                }
+            }
+            else
+            {
+                Fill32abs(n, source, dest);
+            }
+        }
+
+        public static void Encode_8(int n, int bits, IntPtr source,
+                                        IntPtr dest)
+        {
+            if (bits == 8)
+            {
+                Encode8_8(n, source, dest);
+            }
+            else
+            {
+                EncodeL_8(n, bits, source, dest);
+            }
+        }
+
+        public static void Encode_16(int n, int bits, IntPtr source,
+                                        IntPtr dest)
+        {
+            if (bits == 8)
+            {
+                Encode8_16(n, source, dest);
+            }
+            else if (bits == 16)
+            {
+                Encode16_16(n, source, dest);
+            }
+            else
+            {
+                EncodeL_16(n, bits, source, dest);
+            }
+
+        }
+
+        public static void Encode_24(int n, int bits, IntPtr source,
+                                        IntPtr dest)
+        {
+            if (bits == 8)
+            {
+                Encode8_24(n, source, dest);
+            }
+            else if (bits == 16)
+            {
+                Encode16_24(n, source, dest);
+            }
+            else if (bits == 24)
+            {
+                Encode24_24(n, source, dest);
+            }
+            else
+            {
+                EncodeL_24(n, bits, source, dest);
+            }
+        }
+
+        public static void Encode_32(int n, int bits, IntPtr source, IntPtr dest)
+        {
+            if (bits == 8)
+            {
+                Encode8_32(n, source, dest);
+            }
+            else if (bits == 16)
+            {
+                Encode16_32(n, source, dest);
+            }
+            else if (bits == 24)
+            {
+                Encode24_32(n, source, dest);
+            }
+            else if (bits == 32)
+            {
+                Encode32_32(n, source, dest);
+            }
+            else
+            {
+                EncodeL_32(n, bits, source, dest);
+            }
+        }
+
+        // TODO: PIN DELETE THIS
+        public static void Fill24V2(int n, int bits, byte[] source, int base_value, int[] dest, bool relative)
+        {
+            if (relative)
+            {
+                switch (bits)
+                {
+                    // case 8: Fill24_8rel(n, source, dest, (int)base_value); break;
+                    // case 16: Fill24_16rel(n, source, dest, (int)base_value); break;
+                    default: Fill24_bitsV2(n, bits, source, dest, base_value); break;
+                }
+            }
+            else
+            {
+                Fill24absV2(n, source, dest);
+            }
+        }
+
+        public static void Fill24absV2(int n, byte[] source, int[] dest)
+        {
+            Buffer.BlockCopy(source, 0, dest, 0, n);
         }
 
         public static void Fill24_bitsV2(int n, int bits, byte[] source, int[] dest, int baseValue)
@@ -947,194 +1218,5 @@ namespace PresetConverterProject.NIKontaktNKS
                 dest[i * 3 + 2] = (ti >> 16) & 0xFF;
             }
         }
-
-        public static void Fill32_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
-        {
-            byte[] sBuffer = new byte[n];
-            int[] dBuffer = new int[n];
-
-            Marshal.Copy(source, sBuffer, 0, n);
-            dBuffer[0] = baseValue;
-
-            int bitsLeft = 8;
-            byte tb = sBuffer[0];
-
-            for (int i = 1; i < n; i++)
-            {
-                int dd = 0;
-                int bitsNeeded = bits;
-
-                while (bitsNeeded > 0)
-                {
-                    if (bitsNeeded >= bitsLeft)
-                    {
-                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = sBuffer[i];
-                        bitsNeeded -= bitsLeft;
-                        bitsLeft = 8;
-                    }
-                    else
-                    {
-                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
-                        tb >>= bitsNeeded;
-                        bitsLeft -= bitsNeeded;
-                        bitsNeeded = 0;
-                    }
-                }
-
-                if ((dd & (1 << (bits - 1))) != 0)
-                    dd |= unchecked((int)0xFFFFFFFF << bits);
-
-                dd += dBuffer[i - 1];
-                dBuffer[i] = dd;
-            }
-
-            Marshal.Copy(dBuffer, 0, dest, n);
-        }
-
-        public static void FillIntegers(int n, int bits, IntPtr data, int start, ref int[] ints, bool relative)
-        {
-            if (bits == 8) FillIntegers8(n, data, ref ints, false);
-            else if (bits == 16) FillIntegers16(n, data, ref ints, false);
-            else if (bits == 24) FillIntegers24(n, data, ref ints, false);
-            else if (bits == 32) FillIntegers32(n, data, ref ints, false);
-            else FillIntegersL8(n, bits, data, ref ints);
-
-            if (relative)
-            {
-                ints[0] = start + ints[0];
-                for (int i = 1; i < n; i++)
-                    ints[i] = ints[i - 1] + ints[i];
-            }
-        }
-
-        public static void FillIntegersAbs(int n, int bits, IntPtr data, int start, ref int[] ints)
-        {
-            if (bits == 8) FillIntegers8(n, data, ref ints, true);
-            else if (bits == 16) FillIntegers16(n, data, ref ints, true);
-            else if (bits == 24) FillIntegers24(n, data, ref ints, true);
-            else if (bits == 32) FillIntegers32(n, data, ref ints, true);
-        }
-
-        public static void FillBits(int n, int bits, IntPtr data, int[] ints)
-        {
-            if (bits == 8) FillBits8(n, ints, data, false);
-            else if (bits == 16) FillBits16(n, ints, data, false);
-            else if (bits == 24) FillBits24(n, ints, data, false);
-            else if (bits == 32) FillBits32(n, ints, data, false);
-            else FillBitsL8(n, bits, ints, data);
-
-        }
-
-        public static void FillBitsAbs(int n, int bits, IntPtr data, int[] ints)
-        {
-            if (bits == 8) FillBits8(n, ints, data, true);
-            else if (bits == 16) FillBits16(n, ints, data, true);
-            else if (bits == 24) FillBits24(n, ints, data, true);
-            else if (bits == 32) FillBits32(n, ints, data, true);
-
-        }
-
-        public static void Fill8(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
-        {
-            if (relative)
-                Fill8_bits(n, bits, source, dest, (int)base_value);
-            else
-                Fill8abs(n, source, dest);
-
-        }
-
-        public static void Fill16(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
-        {
-            if (relative)
-                if (bits == 8)
-                    Fill16_8rel(n, source, dest, (int)base_value);
-                else
-                    Fill16_bits(n, bits, source, dest, (int)base_value);
-            else
-                Fill16abs(n, source, dest);
-
-        }
-
-        public static void Fill24(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
-        {
-            if (relative)
-                switch (bits)
-                {
-                    case 8: Fill24_8rel(n, source, dest, (int)base_value); break;
-                    case 16: Fill24_16rel(n, source, dest, (int)base_value); break;
-                    default: Fill24_bits(n, bits, source, dest, (int)base_value); break;
-                }
-            else
-            {
-                Fill24abs(n, source, dest);
-            }
-        }
-
-        public static void Fill32(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
-        {
-            if (relative)
-                switch (bits)
-                {
-                    case 8: Fill32_8rel(n, source, dest, (int)base_value); break;
-                    case 16: Fill32_16rel(n, source, dest, (int)base_value); break;
-                    case 24: Fill32_24rel(n, source, dest, (int)base_value); break;
-                    default: Fill32_bits(n, bits, source, dest, (int)base_value); break;
-                }
-            else
-            {
-                Fill32abs(n, (IntPtr)(source), (IntPtr)(dest));
-            }
-        }
-
-        public static void Encode_8(int n, int bits, IntPtr source,
-                                        IntPtr dest)
-        {
-            if (bits == 8)
-                Encode8_8(n, source, dest);
-            else
-                EncodeL_8(n, bits, source, dest);
-
-        }
-
-        public static void Encode_16(int n, int bits, IntPtr source,
-                                        IntPtr dest)
-        {
-            if (bits == 8)
-                Encode8_16(n, source, dest);
-            else if (bits == 16)
-                Encode16_16(n, source, dest);
-            else
-                EncodeL_16(n, bits, source, dest);
-
-        }
-
-        public static void Encode_24(int n, int bits, IntPtr source,
-                                        IntPtr dest)
-        {
-            if (bits == 8)
-                Encode8_24(n, source, dest);
-            else if (bits == 16)
-                Encode16_24(n, source, dest);
-            else if (bits == 24)
-                Encode24_24(n, source, dest);
-            else
-                EncodeL_24(n, bits, source, dest);
-
-        }
-
-        public static void Encode_32(int n, int bits, IntPtr source, IntPtr dest)
-        {
-            if (bits == 8)
-                Encode8_32(n, source, dest);
-            else if (bits == 16)
-                Encode16_32(n, source, dest);
-            else if (bits == 24)
-                Encode24_32(n, source, dest);
-            else if (bits == 32)
-                Encode32_32(n, source, dest);
-            else EncodeL_32(n, bits, source, dest);
-        }
-
     }
 }
