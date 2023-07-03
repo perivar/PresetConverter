@@ -565,6 +565,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
+            Log.Debug("Writing {0} integers to output stream.", data.Length);
+
             // --- 8 bit ---
             if (wavHeader.wBitsPerSample == 8)
             {
