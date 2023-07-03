@@ -664,10 +664,10 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(destArray, 0, dest, n);
         }
 
-        public static void Fill24_8rel(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill24_8rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            byte[] sourceArray = new byte[bits * 64];
-            Marshal.Copy(source, sourceArray, 0, bits * 64);
+            byte[] sourceArray = new byte[n * 8];
+            Marshal.Copy(source, sourceArray, 0, n * 8);
 
             int[] destArray = new int[n * 3];
 
@@ -694,10 +694,10 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(destArray, 0, dest, n * 3);
         }
 
-        public static void Fill24_16rel(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill24_16rel(int n, IntPtr source, IntPtr dest, int baseValue)
         {
-            short[] sourceArray = new short[bits * 64];
-            Marshal.Copy(source, sourceArray, 0, bits * 64);
+            short[] sourceArray = new short[n * 16];
+            Marshal.Copy(source, sourceArray, 0, n * 16);
 
             int[] destArray = new int[n * 3];
 
@@ -768,16 +768,19 @@ namespace PresetConverterProject.NIKontaktNKS
             int it1 = baseValue;
             destArray[0] = it1;
 
+            int sourceIndex = 0;
+
             for (int i = 1; i < n; i++)
             {
-                int it = (sourceArray[i * 3]) |
-                        (sourceArray[i * 3 + 1] << 8) |
-                        (sourceArray[i * 3 + 2] << 16);
+                int it = (sourceArray[sourceIndex] & 0xFF) |
+                ((sourceArray[sourceIndex + 1] & 0xFF) << 8) |
+                ((sourceArray[sourceIndex + 2] & 0xFF) << 16);
 
-                if ((sourceArray[i * 3 + 2] & 0x80) != 0)
+                if ((sourceArray[sourceIndex + 2] & 0x80) != 0)
                 {
-                    it |= unchecked((int)0xFF000000);
+                    it = (int)((uint)it | 0xFF000000);
                 }
+                sourceIndex += 3;
 
                 it += destArray[i - 1];
                 destArray[i] = it;
@@ -1109,8 +1112,8 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 switch (bits)
                 {
-                    // case 8: Fill24_8rel(n, bits, source, dest, base_value); break;
-                    // case 16: Fill24_16rel(n, bits, source, dest, base_value); break;
+                    // case 8: Fill24_8rel(n, source, dest, base_value); break;
+                    // case 16: Fill24_16rel(n, source, dest, base_value); break;
                     default: Fill24_bits(n, bits, source, dest, base_value); break;
                 }
             }
