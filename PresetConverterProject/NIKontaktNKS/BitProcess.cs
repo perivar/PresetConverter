@@ -50,6 +50,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static uint nbits32(int n)
         {
+            // Calculates the bitmask for 'n' bits
             if (n > 32)
             {
                 return 0xFFFFFFFF;
@@ -63,21 +64,21 @@ namespace PresetConverterProject.NIKontaktNKS
                 uint result = 1;
                 for (int i = 2; i <= n; i++)
                 {
-                    result <<= 1 + 1;
+                    result = (result << 1) + 1;
                 }
-
                 return result;
             }
         }
 
         public static int ChangeIntSign(int i, int sbit)
         {
-            // checks if the most significant bit of i is set, 
-            // and if it means the integer value is negative
+            // Checks if the most significant bit of 'i' is set
             if ((i & (1 << (sbit - 1))) != 0)
             {
                 uint dw = (uint)i;
                 dw |= nbits32(32 - sbit) << sbit;
+                // Changes the sign of 'dw' by applying a bitmask
+                // to the upper bits based on the value of 'sbit'
                 return (int)dw;
             }
             else
@@ -88,14 +89,20 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void FillIntegers8(int n, IntPtr data, ref int[] ints, bool abs)
         {
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(data, sourceArray, 0, n);
+            byte[] sourceArray = new byte[n * 4];
+            Marshal.Copy(data, sourceArray, 0, n * 4);
 
             int start = abs ? 0 : 1;
 
+            int sourceIndex = 0;
+
             for (int cur = start; cur < n; cur++)
             {
-                ints[cur] = sourceArray[cur];
+                byte tb = sourceArray[sourceIndex];
+                sourceIndex++;
+
+                int t = ChangeIntSign(tb, 8);
+                ints[cur] = t;
             }
 
             if (!abs)
@@ -111,9 +118,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int start = abs ? 0 : 1;
 
+            int sourceIndex = 0;
+
             for (int cur = start; cur < n; cur++)
             {
-                ints[cur] = sourceArray[cur];
+                short ts = sourceArray[sourceIndex];
+                sourceIndex++;
+
+                int t = ChangeIntSign(ts, 16);
+                ints[cur] = t;
             }
 
             if (!abs)
@@ -129,22 +142,16 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int start = abs ? 0 : 1;
 
-            int t;
+            int sourceIndex = 0;
+
             for (int cur = start; cur < n; cur++)
             {
-                uint dw = sourceArray[cur];
-                dw += (uint)(sourceArray[cur + 1] << 8);
-                dw += (uint)(sourceArray[cur + 2] << 16);
+                int ti = (sourceArray[sourceIndex] & 0xFF) |
+               ((sourceArray[sourceIndex + 1] & 0xFF) << 8) |
+               ((sourceArray[sourceIndex + 2] & 0xFF) << 16);
+                sourceIndex += 3;
 
-                if ((sourceArray[cur] & 128) == 0)
-                {
-                    t = (int)dw;
-                }
-                else
-                {
-                    t = ChangeIntSign((int)dw, 24);
-                }
-
+                int t = ChangeIntSign(ti, 24);
                 ints[cur] = t;
             }
 
@@ -161,9 +168,15 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int start = abs ? 0 : 1;
 
+            int sourceIndex = 0;
+
             for (int cur = start; cur < n; cur++)
             {
-                ints[cur] = sourceArray[cur];
+                int ti = sourceArray[sourceIndex];
+                sourceIndex++;
+
+                int t = ChangeIntSign(ti, 32);
+                ints[cur] = t;
             }
 
             if (!abs)
@@ -172,25 +185,30 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
+        // can be used for all bits: L8 = not divisible by 8
         public static void FillIntegersL8(int n, int bits, IntPtr data, ref int[] ints)
         {
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(data, sourceArray, 0, n);
+            byte[] sourceArray = new byte[bits * 64];
+            Marshal.Copy(data, sourceArray, 0, bits * 64);
 
-            byte tb = sourceArray[0];
             int bitsTotal = 0;
+            int sourceIndex = 0;
+            byte tb = sourceArray[sourceIndex];
+            sourceIndex++;
 
             for (int cur = 1; cur < n; cur++)
             {
                 uint dw = 0;
                 for (int j = 0; j < bits; j++)
                 {
+                    // Extracts 'bits' number of bits from 'tb'
                     dw += (uint)(tb & 1) << j;
                     tb >>= 1;
                     bitsTotal++;
                     if (bitsTotal == 8)
                     {
-                        tb = sourceArray[cur];
+                        tb = sourceArray[sourceIndex];
+                        sourceIndex++;
                         bitsTotal = 0;
                     }
                 }
@@ -264,27 +282,28 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(ip, 0, data, n);
         }
 
+        // can be used for all bits: L8 = not divisible by 8
         public static void FillBitsL8(int n, int bits, int[] ints, IntPtr data)
         {
             byte[] b = new byte[n];
             Marshal.Copy(data, b, 0, n);
 
             int tb = 0;
-            int bitswritten = 0;
+            int bitsWritten = 0;
 
             for (int cur = 0; cur < n; cur++)
             {
                 uint dw = (uint)ints[cur];
                 for (int j = 0; j < bits; j++)
                 {
-                    tb += (byte)((dw & 1) << bitswritten);
+                    tb += (byte)((dw & 1) << bitsWritten);
                     dw >>= 1;
-                    bitswritten++;
-                    if (bitswritten == 8)
+                    bitsWritten++;
+                    if (bitsWritten == 8)
                     {
                         b[cur] = (byte)tb;
                         tb = 0;
-                        bitswritten = 0;
+                        bitsWritten = 0;
                         cur++;
                     }
                 }
@@ -543,7 +562,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int cur = 0; cur < n; cur++)
             {
-                int d24 = (sourceArray[cur * 3]) | (sourceArray[cur * 3 + 1] << 8) | (sourceArray[cur * 3 + 2] << 16);
+                int d24 = (sourceArray[cur * 3]) |
+                          (sourceArray[cur * 3 + 1] << 8) |
+                          (sourceArray[cur * 3 + 2] << 16);
 
                 bitsWritten = 0;
 
@@ -659,19 +680,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                int dd = sourceArray[sourceIndex];
+                int di = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                // checks if the most significant bit of dd is set, 
-                // and if it is, set all the bits above the bits position to 1. 
-                // 0x80 represents the 8th bit (most significant bit) of a 32-bit integer, 
-                // and 0xFFFFFF00 represents setting all the bits above the 8th bit to 1.
-                if ((dd & 0x80) != 0)
-                {
-                    dd = (int)((uint)dd | 0xFFFFFF00);
-                }
+                di = ChangeIntSign(di, 8);
 
-                ti += dd;
+                ti += di;
                 destArray[i * 3] = ti & 0xFF;
                 destArray[i * 3 + 1] = (ti >> 8) & 0xFF;
                 destArray[i * 3 + 2] = (ti >> 16) & 0xFF;
@@ -696,19 +710,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                int dd = sourceArray[sourceIndex];
+                int di = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                // checks if the most significant bit of dd is set, 
-                // and if it is, set all the bits above the bits position to 1. 
-                // 0x8000 represents the 16th bit (most significant bit) of a 32-bit integer, 
-                // and 0xFFFF0000 represents setting all the bits above the 16th bit to 1.
-                if ((dd & 0x8000) != 0)
-                {
-                    dd = (int)((uint)dd | 0xFFFF0000);
-                }
+                di = ChangeIntSign(di, 16);
 
-                ti += dd;
+                ti += di;
                 destArray[i * 3] = ti & 0xFF;
                 destArray[i * 3 + 1] = (ti >> 8) & 0xFF;
                 destArray[i * 3 + 2] = (ti >> 16) & 0xFF;
@@ -816,9 +823,9 @@ namespace PresetConverterProject.NIKontaktNKS
             destArray[0] = (byte)baseValue;
 
             int bitsTotal = 0;
-            int sourceIndex = 1;
-
-            byte tb = sourceArray[0];
+            int sourceIndex = 0;
+            byte tb = sourceArray[sourceIndex];
+            sourceIndex++;
 
             for (int i = 1; i < n; i++)
             {
@@ -857,9 +864,9 @@ namespace PresetConverterProject.NIKontaktNKS
             destArray[0] = (short)baseValue;
 
             int bitsLeft = 8;
-            int sourceIndex = 1;
-
-            byte tb = sourceArray[0];
+            int sourceIndex = 0;
+            byte tb = sourceArray[sourceIndex];
+            sourceIndex++;
 
             for (int i = 1; i < n; i++)
             {
@@ -912,8 +919,9 @@ namespace PresetConverterProject.NIKontaktNKS
             destArray[2] = (ti >> 16) & 0xFF;
 
             int bitsLeft = 8;
-            int sourceIndex = 1;
-            int tb = sourceArray[0];
+            int sourceIndex = 0;
+            byte tb = sourceArray[sourceIndex];
+            sourceIndex++;
 
             for (int i = 1; i < n; i++)
             {
@@ -964,9 +972,9 @@ namespace PresetConverterProject.NIKontaktNKS
             destArray[0] = baseValue;
 
             int bitsLeft = 8;
-            int sourceIndex = 1;
-
-            byte tb = sourceArray[0];
+            int sourceIndex = 0;
+            byte tb = sourceArray[sourceIndex];
+            sourceIndex++;
 
             for (int i = 1; i < n; i++)
             {

@@ -42,7 +42,13 @@ namespace PresetConverterProject.NIKontaktNKS
             ncwParser.Clear();
             ncwParser.OpenNCWFile(inputFilePath);
             ncwParser.ReadNCW();
-            ncwParser.ReadNCWIntegers();
+
+            // test using integers
+            // ncwParser.ReadNCWIntegers();
+            // string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
+            // string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
+            // Log.Information("Writing file {0} ...", outputFilePathInt);
+            // ncwParser.SaveToWAVIntegers(outputFilePathInt);
 
             // Output file to wav
             var wavtype = WavType.Standard;
@@ -73,7 +79,6 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
             }
 
-            ncwParser = null;
             return true;
         }
     }
@@ -158,7 +163,7 @@ namespace PresetConverterProject.NIKontaktNKS
         public void SaveToWAV(string filename)
         {
             WAVParser.TMyWAVHeader wavHeader = new();
-            wavHeader.wFormatTag = 1; // Standard wav
+            wavHeader.wFormatTag = SoundIO.WAVE_FORMAT_PCM; // Standard wav
             wavHeader.nChannels = header.Channels;
             wavHeader.nSamplesPerSec = header.Samplerate;
             wavHeader.wBitsPerSample = header.Bits;
@@ -215,6 +220,7 @@ namespace PresetConverterProject.NIKontaktNKS
             //     wp.WriteBlock(buf, nrem);
             // }
 
+            // write everything in one go
             wp.WriteBlock(buf, buf.Length);
 
             wp.CloseWav();
@@ -282,9 +288,33 @@ namespace PresetConverterProject.NIKontaktNKS
             //     wp.WriteBlock(buf, nrem);
             // }
 
+            // write everything in one go
             wp.WriteBlock(buf, buf.Length);
 
             wp.CloseWav();
+        }
+
+        public void SaveToWAVIntegers(string filename)
+        {
+            WAVParser.TMyWAVHeader wavHeader = new();
+            wavHeader.wFormatTag = SoundIO.WAVE_FORMAT_PCM; // Standard wav
+            wavHeader.nChannels = header.Channels;
+            wavHeader.nSamplesPerSec = header.Samplerate;
+            wavHeader.wBitsPerSample = header.Bits;
+            wavHeader.nBlockAlign = (ushort)(wavHeader.nChannels * wavHeader.wBitsPerSample / 8);
+            wavHeader.nAvgBytesPerSec = wavHeader.nSamplesPerSec * wavHeader.nBlockAlign;
+            wavHeader.cbSize = 0;
+            wavHeader.dataSize = wavHeader.nBlockAlign * header.numSamples;
+            wavHeader.numOfPoints = (int)header.numSamples;
+            wavHeader.dataPos = 44;
+
+            WAVParser wp = new()
+            {
+                WavHeader = wavHeader
+            };
+
+            // use chnkSize = 20
+            wp.SaveWAVFromIntegers(filename, ref datai, 20);
         }
 
         public void OpenNCWFile(string filename)
@@ -720,8 +750,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     else
                     {
                         int nbits = (bHeader.bits == 0) ? header.Bits : bHeader.bits;
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
                         bool nrelative = bHeader.bits != 0;
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
                         tempi[j] = new int[NCW_SAMPLES];
                         BitProcess.FillIntegers(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, ref tempi[j], nrelative);
                     }
