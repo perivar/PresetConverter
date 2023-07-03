@@ -44,11 +44,11 @@ namespace PresetConverterProject.NIKontaktNKS
             ncwParser.ReadNCW();
 
             // test using integers
-            // ncwParser.ReadNCWIntegers();
-            // string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
-            // string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
-            // Log.Information("Writing file {0} ...", outputFilePathInt);
-            // ncwParser.SaveToWAVIntegers(outputFilePathInt);
+            ncwParser.ReadNCWIntegers();
+            string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
+            string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
+            Log.Information("Writing file {0} ...", outputFilePathInt);
+            ncwParser.SaveToWAVIntegers(outputFilePathInt);
 
             // Output file to wav
             var wavtype = WavType.Standard;

@@ -146,12 +146,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int cur = start; cur < n; cur++)
             {
-                int ti = (sourceArray[sourceIndex] & 0xFF) |
+                uint dw = (uint)((sourceArray[sourceIndex] & 0xFF) |
                ((sourceArray[sourceIndex + 1] & 0xFF) << 8) |
-               ((sourceArray[sourceIndex + 2] & 0xFF) << 16);
+               ((sourceArray[sourceIndex + 2] & 0xFF) << 16));
                 sourceIndex += 3;
 
-                int t = ChangeIntSign(ti, 24);
+                int t = ChangeIntSign((int)dw, 24);
                 ints[cur] = t;
             }
 
@@ -829,10 +829,10 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                short db = 0;
+                short ds = 0;
                 for (int j = 0; j < bits; j++)
                 {
-                    db |= (short)((tb & 1) << j);
+                    ds |= (short)((tb & 1) << j);
                     tb >>= 1;
                     bitsTotal++;
                     if (bitsTotal == 8)
@@ -843,13 +843,16 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
 
-                if ((db & (1 << (bits - 1))) != 0)
-                {
-                    db |= (short)(0xFF << bits);
-                }
+                // checks if the most significant bit of dd is set, 
+                // and if it is, set all the bits above the bits position to 1. 
+                // if ((ds & (1 << (bits - 1))) != 0)
+                // {
+                //     ds |= (short)(0xFF << bits);
+                // }
+                ds = (short)ChangeIntSign(ds, bits);
 
-                db += destArray[i - 1];
-                destArray[i] = (byte)db;
+                ds += destArray[i - 1];
+                destArray[i] = (byte)ds;
             }
 
             Marshal.Copy(destArray, 0, dest, n);
@@ -870,14 +873,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                short dw = 0;
+                short ds = 0;
                 int bitsNeeded = bits;
 
                 while (bitsNeeded > 0)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
-                        dw |= (short)((tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded));
+                        ds |= (short)((tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded));
                         tb = sourceArray[sourceIndex];
                         sourceIndex++;
                         bitsNeeded -= bitsLeft;
@@ -885,7 +888,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                     else
                     {
-                        dw |= (short)((tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded));
+                        ds |= (short)((tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded));
                         tb >>= bitsNeeded;
                         bitsLeft -= bitsNeeded;
                         bitsNeeded = 0;
@@ -894,13 +897,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 // checks if the most significant bit of dd is set, 
                 // and if it is, set all the bits above the bits position to 1. 
-                if ((dw & (1 << (bits - 1))) != 0)
-                {
-                    dw |= (short)(0xFFFF << bits);
-                }
+                // if ((ds & (1 << (bits - 1))) != 0)
+                // {
+                //     ds |= (short)(0xFFFF << bits);
+                // }
+                ds = (short)ChangeIntSign(ds, bits);
 
-                dw += destArray[i - 1];
-                destArray[i] = dw;
+                ds += destArray[i - 1];
+                destArray[i] = ds;
             }
 
             Marshal.Copy(destArray, 0, dest, n);
@@ -925,14 +929,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                int dd = 0;
+                int di = 0;
                 int bitsNeeded = bits;
 
                 while (bitsNeeded > 0)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
+                        di |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
                         tb = sourceArray[sourceIndex];
                         sourceIndex++;
                         bitsNeeded -= bitsLeft;
@@ -940,7 +944,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                     else
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
+                        di |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
                         tb >>= bitsNeeded;
                         bitsLeft -= bitsNeeded;
                         bitsNeeded = 0;
@@ -949,12 +953,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 // checks if the most significant bit of dd is set, 
                 // and if it is, set all the bits above the bits position to 1. 
-                if ((dd & (1 << (bits - 1))) != 0)
-                {
-                    dd = (int)((uint)dd | (0xFFFFFFFF << bits));
-                }
+                // if ((di & (1 << (bits - 1))) != 0)
+                // {
+                //     di = (int)((uint)di | (0xFFFFFFFF << bits));
+                // }
+                di = ChangeIntSign(di, bits);
 
-                ti += dd;
+                ti += di;
                 destArray[i * 3] = ti & 0xFF;
                 destArray[i * 3 + 1] = (ti >> 8) & 0xFF;
                 destArray[i * 3 + 2] = (ti >> 16) & 0xFF;
@@ -978,14 +983,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                int dd = 0;
+                int di = 0;
                 int bitsNeeded = bits;
 
                 while (bitsNeeded > 0)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
+                        di |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
                         tb = sourceArray[sourceIndex];
                         sourceIndex++;
                         bitsNeeded -= bitsLeft;
@@ -993,20 +998,23 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                     else
                     {
-                        dd |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
+                        di |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
                         tb >>= bitsNeeded;
                         bitsLeft -= bitsNeeded;
                         bitsNeeded = 0;
                     }
                 }
 
-                if ((dd & (1 << (bits - 1))) != 0)
-                {
-                    dd |= unchecked((int)0xFFFFFFFF << bits);
-                }
+                // checks if the most significant bit of dd is set, 
+                // and if it is, set all the bits above the bits position to 1. 
+                // if ((di & (1 << (bits - 1))) != 0)
+                // {
+                //     di = (int)((uint)di | (0xFFFFFFFF << bits));
+                // }
+                di = ChangeIntSign(di, bits);
 
-                dd += destArray[i - 1];
-                destArray[i] = dd;
+                di += destArray[i - 1];
+                destArray[i] = di;
             }
 
             Marshal.Copy(destArray, 0, dest, n);
@@ -1014,11 +1022,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void FillIntegers(int n, int bits, IntPtr data, int start, ref int[] ints, bool relative)
         {
-            if (bits == 8) FillIntegers8(n, data, ref ints, false);
-            else if (bits == 16) FillIntegers16(n, data, ref ints, false);
-            else if (bits == 24) FillIntegers24(n, data, ref ints, false);
-            else if (bits == 32) FillIntegers32(n, data, ref ints, false);
-            else FillIntegersL8(n, bits, data, ref ints);
+            switch (bits)
+            {
+                // case 8: FillIntegers8(n, data, ref ints, false); break;
+                // case 16: FillIntegers16(n, data, ref ints, false); break;
+                // case 24: FillIntegers24(n, data, ref ints, false); break;
+                // case 32: FillIntegers32(n, data, ref ints, false); break;
+                default: FillIntegersL8(n, bits, data, ref ints); break;
+            }
 
             if (relative)
             {
@@ -1032,29 +1043,36 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void FillIntegersAbs(int n, int bits, IntPtr data, int start, ref int[] ints)
         {
-            if (bits == 8) FillIntegers8(n, data, ref ints, true);
-            else if (bits == 16) FillIntegers16(n, data, ref ints, true);
-            else if (bits == 24) FillIntegers24(n, data, ref ints, true);
-            else if (bits == 32) FillIntegers32(n, data, ref ints, true);
+            switch (bits)
+            {
+                case 8: FillIntegers8(n, data, ref ints, true); break;
+                case 16: FillIntegers16(n, data, ref ints, true); break;
+                case 24: FillIntegers24(n, data, ref ints, true); break;
+                case 32: FillIntegers32(n, data, ref ints, true); break;
+            }
         }
 
         public static void FillBits(int n, int bits, IntPtr data, int[] ints)
         {
-            if (bits == 8) FillBits8(n, ints, data, false);
-            else if (bits == 16) FillBits16(n, ints, data, false);
-            else if (bits == 24) FillBits24(n, ints, data, false);
-            else if (bits == 32) FillBits32(n, ints, data, false);
-            else FillBitsL8(n, bits, ints, data);
-
+            switch (bits)
+            {
+                // case 8: FillBits8(n, ints, data, false); break;
+                // case 16: FillBits16(n, ints, data, false); break;
+                // case 24: FillBits24(n, ints, data, false); break;
+                // case 32: FillBits32(n, ints, data, false); break;
+                default: FillBitsL8(n, bits, ints, data); break;
+            }
         }
 
         public static void FillBitsAbs(int n, int bits, IntPtr data, int[] ints)
         {
-            if (bits == 8) FillBits8(n, ints, data, true);
-            else if (bits == 16) FillBits16(n, ints, data, true);
-            else if (bits == 24) FillBits24(n, ints, data, true);
-            else if (bits == 32) FillBits32(n, ints, data, true);
-
+            switch (bits)
+            {
+                case 8: FillBits8(n, ints, data, true); break;
+                case 16: FillBits16(n, ints, data, true); break;
+                case 24: FillBits24(n, ints, data, true); break;
+                case 32: FillBits32(n, ints, data, true); break;
+            }
         }
 
         public static void Fill8(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
@@ -1073,13 +1091,10 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             if (relative)
             {
-                if (bits == 8)
+                switch (bits)
                 {
-                    Fill16_8rel(n, source, dest, base_value);
-                }
-                else
-                {
-                    Fill16_bits(n, bits, source, dest, base_value);
+                    // case 8: Fill16_8rel(n, source, dest, base_value); break;
+                    default: Fill16_bits(n, bits, source, dest, base_value); break;
                 }
             }
             else
@@ -1094,8 +1109,8 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 switch (bits)
                 {
-                    case 8: Fill24_8rel(n, bits, source, dest, base_value); break;
-                    case 16: Fill24_16rel(n, bits, source, dest, base_value); break;
+                    // case 8: Fill24_8rel(n, bits, source, dest, base_value); break;
+                    // case 16: Fill24_16rel(n, bits, source, dest, base_value); break;
                     default: Fill24_bits(n, bits, source, dest, base_value); break;
                 }
             }
@@ -1111,9 +1126,9 @@ namespace PresetConverterProject.NIKontaktNKS
             {
                 switch (bits)
                 {
-                    case 8: Fill32_8rel(n, source, dest, base_value); break;
-                    case 16: Fill32_16rel(n, source, dest, base_value); break;
-                    case 24: Fill32_24rel(n, source, dest, base_value); break;
+                    // case 8: Fill32_8rel(n, source, dest, base_value); break;
+                    // case 16: Fill32_16rel(n, source, dest, base_value); break;
+                    // case 24: Fill32_24rel(n, source, dest, base_value); break;
                     default: Fill32_bits(n, bits, source, dest, base_value); break;
                 }
             }
