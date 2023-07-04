@@ -819,10 +819,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill8_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
+            // Create a byte array to hold the source data
             byte[] sourceArray = new byte[n];
             Marshal.Copy(source, sourceArray, 0, n);
 
+            // Create an integer array to hold the destination data
             byte[] destArray = new byte[n];
+
+            // Set the initial value in the destination array based on the baseValue
             destArray[0] = (byte)baseValue;
 
             int bitsTotal = 0;
@@ -830,14 +834,23 @@ namespace PresetConverterProject.NIKontaktNKS
             byte tb = sourceArray[sourceIndex];
             sourceIndex++;
 
+            // Extract 'bits' number of bits from the 'tb' variable and accumulate them in 'ds'
             for (int i = 1; i < n; i++)
             {
                 short ds = 0;
                 for (int j = 0; j < bits; j++)
                 {
+                    // Extract the least significant bit from 'tb' and shift it to the appropriate position in 'ds'
                     ds |= (short)((tb & 1) << j);
+
+                    // Shift the bits of 'tb' to the right by 1 position to discard the consumed bit
                     tb >>= 1;
+
+                    // Increment the counter to keep track of the number of bits consumed
                     bitsTotal++;
+
+                    // If we have consumed all the bits in the current byte (8 bits),
+                    // fetch the next byte from the 'sourceArray' and reset the counter
                     if (bitsTotal == 8)
                     {
                         bitsTotal = 0;
@@ -863,10 +876,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill16_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
+            // Create a byte array to hold the source data
             byte[] sourceArray = new byte[n];
             Marshal.Copy(source, sourceArray, 0, n);
 
+            // Create a short array to hold the destination data
             short[] destArray = new short[n];
+
+            // Set the initial value of the first element in the destArray based on the baseValue
             destArray[0] = (short)baseValue;
 
             int bitsLeft = 8;
@@ -874,27 +891,34 @@ namespace PresetConverterProject.NIKontaktNKS
             byte tb = sourceArray[sourceIndex];
             sourceIndex++;
 
+            // Loop through each element of the destArray, starting from the second element (i = 1)
             for (int i = 1; i < n; i++)
             {
                 short ds = 0;
                 int bitsNeeded = bits;
 
+                // Extract bits from the source array and accumulate them in ds until bitsNeeded becomes zero
                 while (bitsNeeded > 0)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
+                        // If we need more bits than what's left in the current byte,
+                        // we take the remaining bits from the current byte and combine them
+                        // with the next byte to fulfill the bit requirement.
                         ds |= (short)((tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded));
-                        tb = sourceArray[sourceIndex];
-                        sourceIndex++;
-                        bitsNeeded -= bitsLeft;
-                        bitsLeft = 8;
+                        tb = sourceArray[sourceIndex];// Get the next byte from sourceArray
+                        sourceIndex++; // Move to the next byte in sourceArray
+                        bitsNeeded -= bitsLeft; // Reduce the remaining bit requirement by the number of bits taken
+                        bitsLeft = 8; // Reset the number of bits left in the current byte to 8
                     }
                     else
                     {
+                        // If we have enough bits left in the current byte to fulfill the remaining bit requirement,
+                        // we take the required number of bits and shift them to their final position in the destination integer.
                         ds |= (short)((tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded));
-                        tb >>= bitsNeeded;
-                        bitsLeft -= bitsNeeded;
-                        bitsNeeded = 0;
+                        tb >>= bitsNeeded; // Shift the remaining bits in the current byte to the right
+                        bitsLeft -= bitsNeeded; // Reduce the number of bits left in the current byte by the number of bits taken
+                        bitsNeeded = 0; // No more bits needed, the requirement is fulfilled
                     }
                 }
 
@@ -915,11 +939,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill24_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
+            // Create a byte array to hold the source data
             byte[] sourceArray = new byte[bits * 64];
             Marshal.Copy(source, sourceArray, 0, bits * 64);
 
+            // Create an integer array to hold the destination data
             int[] destArray = new int[n * 3];
 
+            // Set the initial value in the destination array based on the baseValue
             int ti = baseValue;
             destArray[0] = ti & 0xFF;
             destArray[1] = (ti >> 8) & 0xFF;
@@ -935,22 +962,28 @@ namespace PresetConverterProject.NIKontaktNKS
                 int di = 0;
                 int bitsNeeded = bits;
 
+                // Extract the necessary bits from the source array and accumulate them in di
                 while (bitsNeeded > 0)
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
+                        // If we need more bits than what's left in the current byte,
+                        // we take the remaining bits from the current byte and combine them
+                        // with the next byte to fulfill the bit requirement.
                         di |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = sourceArray[sourceIndex];
-                        sourceIndex++;
-                        bitsNeeded -= bitsLeft;
-                        bitsLeft = 8;
+                        tb = sourceArray[sourceIndex];// Get the next byte from sourceArray
+                        sourceIndex++; // Move to the next byte in sourceArray
+                        bitsNeeded -= bitsLeft; // Reduce the remaining bit requirement by the number of bits taken
+                        bitsLeft = 8; // Reset the number of bits left in the current byte to 8
                     }
                     else
                     {
+                        // If we have enough bits left in the current byte to fulfill the remaining bit requirement,
+                        // we take the required number of bits and shift them to their final position in the destination integer.
                         di |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
-                        tb >>= bitsNeeded;
-                        bitsLeft -= bitsNeeded;
-                        bitsNeeded = 0;
+                        tb >>= bitsNeeded; // Shift the remaining bits in the current byte to the right
+                        bitsLeft -= bitsNeeded; // Reduce the number of bits left in the current byte by the number of bits taken
+                        bitsNeeded = 0; // No more bits needed, the requirement is fulfilled
                     }
                 }
 
@@ -973,10 +1006,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill32_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
         {
+            // Create a byte array to hold the source data
             byte[] sourceArray = new byte[n];
             Marshal.Copy(source, sourceArray, 0, n);
 
+            // Create an integer array to hold the destination data
             int[] destArray = new int[n];
+
+            // Set the initial value in the destination array based on the baseValue
             destArray[0] = baseValue;
 
             int bitsLeft = 8;
@@ -993,18 +1030,23 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     if (bitsNeeded >= bitsLeft)
                     {
+                        // If we need more bits than what's left in the current byte,
+                        // we take the remaining bits from the current byte and combine them
+                        // with the next byte to fulfill the bit requirement.
                         di |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = sourceArray[sourceIndex];
-                        sourceIndex++;
-                        bitsNeeded -= bitsLeft;
-                        bitsLeft = 8;
+                        tb = sourceArray[sourceIndex];// Get the next byte from sourceArray
+                        sourceIndex++; // Move to the next byte in sourceArray
+                        bitsNeeded -= bitsLeft; // Reduce the remaining bit requirement by the number of bits taken
+                        bitsLeft = 8; // Reset the number of bits left in the current byte to 8
                     }
                     else
                     {
+                        // If we have enough bits left in the current byte to fulfill the remaining bit requirement,
+                        // we take the required number of bits and shift them to their final position in the destination integer.
                         di |= (tb & (0xFF >> (8 - bitsNeeded))) << (bits - bitsNeeded);
-                        tb >>= bitsNeeded;
-                        bitsLeft -= bitsNeeded;
-                        bitsNeeded = 0;
+                        tb >>= bitsNeeded; // Shift the remaining bits in the current byte to the right
+                        bitsLeft -= bitsNeeded; // Reduce the number of bits left in the current byte by the number of bits taken
+                        bitsNeeded = 0; // No more bits needed, the requirement is fulfilled
                     }
                 }
 

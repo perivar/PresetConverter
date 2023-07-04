@@ -620,7 +620,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-
                         int ti1 = (temp24[0, k * 3] + (temp24[0, k * 3 + 1] << 8) + (temp24[0, k * 3 + 2] << 16)) << 8;
                         int ti2 = (temp24[1, k * 3] + (temp24[1, k * 3 + 1] << 8) + (temp24[1, k * 3 + 2] << 16)) << 8;
                         int ti3 = ti1 + ti2;
