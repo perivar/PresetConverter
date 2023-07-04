@@ -402,20 +402,22 @@ namespace PresetConverterProject.NIKontaktNKS
 
             data8 = new sbyte[header.NumSamples * header.Channels];
 
-            int curoffset = 0;
-            uint cursample = 0;
+            int curOffset = 0;
+            uint curSample = 0;
 
-            IntPtr input_buf = Marshal.AllocHGlobal(header.Bits * 64);
+            IntPtr inputBuf = Marshal.AllocHGlobal(header.Bits * 64);
             sbyte[,] temp8 = new sbyte[MAX_CHANNELS, NCW_SAMPLES];
 
             for (int i = 0; i < blocksDefList.Length - 1; i++)
             {
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+
                 fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing block {0} and channel {1}", i + 1, j + 1));
+                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
@@ -424,15 +426,15 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bHeader.Bits < 0)
                     {
                         int nbits = Math.Abs(bHeader.Bits);
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
-                        BitProcess.Fill8(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp8, j), false);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
+                        BitProcess.Fill8(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp8, j), false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
                         bool nrelative = bHeader.Bits != 0;
-                        BitProcess.Fill8(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp8, j), nrelative);
+                        BitProcess.Fill8(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp8, j), nrelative);
                     }
                 }
 
@@ -443,13 +445,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        data8[curoffset] = (sbyte)(temp8[0, k] + temp8[1, k]);
-                        curoffset++;
-                        data8[curoffset] = (sbyte)(temp8[0, k] - temp8[1, k]);
-                        curoffset++;
-                        cursample++;
+                        data8[curOffset] = (sbyte)(temp8[0, k] + temp8[1, k]);
+                        curOffset++;
+                        data8[curOffset] = (sbyte)(temp8[0, k] - temp8[1, k]);
+                        curOffset++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
                 else
@@ -461,17 +463,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         for (int j = 0; j < header.Channels; j++)
                         {
-                            data8[curoffset] = temp8[j, k];
-                            curoffset++;
+                            data8[curOffset] = temp8[j, k];
+                            curOffset++;
                         }
-                        cursample++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
+
+                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 1));
             }
         ex:
-            Marshal.FreeHGlobal(input_buf);
+            Marshal.FreeHGlobal(inputBuf);
         }
 
         public void ReadNCW16()
@@ -480,20 +484,22 @@ namespace PresetConverterProject.NIKontaktNKS
 
             data16 = new short[header.NumSamples * header.Channels];
 
-            int curoffset = 0;
-            uint cursample = 0;
+            int curOffset = 0;
+            uint curSample = 0;
 
-            IntPtr input_buf = Marshal.AllocHGlobal(header.Bits * 64);
+            IntPtr inputBuf = Marshal.AllocHGlobal(header.Bits * 64);
             short[,] temp16 = new short[MAX_CHANNELS, NCW_SAMPLES];
 
             for (int i = 0; i < blocksDefList.Length - 1; i++)
             {
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+
                 fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing block {0} and channel {1}", i + 1, j + 1));
+                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
@@ -502,15 +508,15 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bHeader.Bits < 0)
                     {
                         int nbits = Math.Abs(bHeader.Bits);
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
-                        BitProcess.Fill16(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp16, j), false);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
+                        BitProcess.Fill16(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp16, j), false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
                         bool nrelative = bHeader.Bits != 0;
-                        BitProcess.Fill16(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp16, j), nrelative);
+                        BitProcess.Fill16(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp16, j), nrelative);
                     }
                 }
 
@@ -521,13 +527,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        data16[curoffset] = (short)(temp16[0, k] + temp16[1, k]);
-                        curoffset++;
-                        data16[curoffset] = (short)(temp16[0, k] - temp16[1, k]);
-                        curoffset++;
-                        cursample++;
+                        data16[curOffset] = (short)(temp16[0, k] + temp16[1, k]);
+                        curOffset++;
+                        data16[curOffset] = (short)(temp16[0, k] - temp16[1, k]);
+                        curOffset++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
                 else
@@ -539,17 +545,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         for (int j = 0; j < header.Channels; j++)
                         {
-                            data16[curoffset] = temp16[j, k];
-                            curoffset++;
+                            data16[curOffset] = temp16[j, k];
+                            curOffset++;
                         }
-                        cursample++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
+
+                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 2));
             }
         ex:
-            Marshal.FreeHGlobal(input_buf);
+            Marshal.FreeHGlobal(inputBuf);
         }
 
         public void ReadNCW24()
@@ -558,20 +566,22 @@ namespace PresetConverterProject.NIKontaktNKS
 
             data24 = new byte[header.NumSamples * header.Channels, 3];
 
-            int curoffset = 0;
-            uint cursample = 0;
+            int curOffset = 0;
+            uint curSample = 0;
 
-            IntPtr input_buf = Marshal.AllocHGlobal(header.Bits * 64);
+            IntPtr inputBuf = Marshal.AllocHGlobal(header.Bits * 64);
             int[,] temp24 = new int[MAX_CHANNELS, NCW_SAMPLES * 3];
 
             for (int i = 0; i < blocksDefList.Length - 1; i++)
             {
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+
                 fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing block {0} and channel {1}", i + 1, j + 1));
+                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
@@ -584,8 +594,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         // This is used for 8, 16, 24, and 32 bits.
                         int nbits = Math.Abs(bHeader.Bits);
 
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
-                        BitProcess.Fill24(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp24, j), false);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
+                        BitProcess.Fill24(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp24, j), false);
                     }
 
                     else
@@ -598,8 +608,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         // If 'Bits' > 0 then data stored in block are not sample values, but deltas (differences)
                         bool nrelative = bHeader.Bits != 0;
 
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
-                        BitProcess.Fill24(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp24, j), nrelative);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
+                        BitProcess.Fill24(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp24, j), nrelative);
                     }
                 }
 
@@ -624,22 +634,22 @@ namespace PresetConverterProject.NIKontaktNKS
                         int ti2 = (temp24[1, k * 3] + (temp24[1, k * 3 + 1] << 8) + (temp24[1, k * 3 + 2] << 16)) << 8;
                         int ti3 = ti1 + ti2;
 
-                        data24[curoffset, 0] = (byte)((ti3 >> 8) & 0xFF);
-                        data24[curoffset, 1] = (byte)((ti3 >> 16) & 0xFF);
-                        data24[curoffset, 2] = (byte)((ti3 >> 24) & 0xFF);
-                        curoffset++;
+                        data24[curOffset, 0] = (byte)((ti3 >> 8) & 0xFF);
+                        data24[curOffset, 1] = (byte)((ti3 >> 16) & 0xFF);
+                        data24[curOffset, 2] = (byte)((ti3 >> 24) & 0xFF);
+                        curOffset++;
 
                         ti1 = (temp24[0, k * 3] + (temp24[0, k * 3 + 1] << 8) + (temp24[0, k * 3 + 2] << 16)) << 8;
                         ti2 = (temp24[1, k * 3] + (temp24[1, k * 3 + 1] << 8) + (temp24[1, k * 3 + 2] << 16)) << 8;
                         ti3 = ti1 - ti2;
 
-                        data24[curoffset, 0] = (byte)((ti3 >> 8) & 0xFF);
-                        data24[curoffset, 1] = (byte)((ti3 >> 16) & 0xFF);
-                        data24[curoffset, 2] = (byte)((ti3 >> 24) & 0xFF);
-                        curoffset++;
-                        cursample++;
+                        data24[curOffset, 0] = (byte)((ti3 >> 8) & 0xFF);
+                        data24[curOffset, 1] = (byte)((ti3 >> 16) & 0xFF);
+                        data24[curOffset, 2] = (byte)((ti3 >> 24) & 0xFF);
+                        curOffset++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
                 else
@@ -651,19 +661,21 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         for (int j = 0; j < header.Channels; j++)
                         {
-                            data24[curoffset, 0] = (byte)temp24[j, k * 3];
-                            data24[curoffset, 1] = (byte)temp24[j, k * 3 + 1];
-                            data24[curoffset, 2] = (byte)temp24[j, k * 3 + 2];
-                            curoffset++;
+                            data24[curOffset, 0] = (byte)temp24[j, k * 3];
+                            data24[curOffset, 1] = (byte)temp24[j, k * 3 + 1];
+                            data24[curOffset, 2] = (byte)temp24[j, k * 3 + 2];
+                            curOffset++;
                         }
-                        cursample++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
+
+                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 3));
             }
         ex:
-            Marshal.FreeHGlobal(input_buf);
+            Marshal.FreeHGlobal(inputBuf);
         }
 
         public void ReadNCW32()
@@ -672,20 +684,22 @@ namespace PresetConverterProject.NIKontaktNKS
 
             datai = new int[header.NumSamples * header.Channels];
 
-            int curoffset = 0;
-            uint cursample = 0;
+            int curOffset = 0;
+            uint curSample = 0;
 
-            IntPtr input_buf = Marshal.AllocHGlobal(header.Bits * 64);
+            IntPtr inputBuf = Marshal.AllocHGlobal(header.Bits * 64);
             int[,] temp32 = new int[MAX_CHANNELS, NCW_SAMPLES];
 
             for (int i = 0; i < blocksDefList.Length - 1; i++)
             {
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+
                 fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing block {0} and channel {1}", i + 1, j + 1));
+                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
@@ -694,15 +708,15 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bHeader.Bits < 0)
                     {
                         int nbits = Math.Abs(bHeader.Bits);
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
-                        BitProcess.Fill32(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp32, j), false);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
+                        BitProcess.Fill32(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp32, j), false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
                         bool nrelative = bHeader.Bits != 0;
-                        BitProcess.Fill32(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, GetIntPtr(temp32, j), nrelative);
+                        BitProcess.Fill32(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, GetIntPtr(temp32, j), nrelative);
                     }
                 }
 
@@ -713,13 +727,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        datai[curoffset] = temp32[0, k] + temp32[1, k];
-                        curoffset++;
-                        datai[curoffset] = temp32[0, k] - temp32[1, k];
-                        curoffset++;
-                        cursample++;
+                        datai[curOffset] = temp32[0, k] + temp32[1, k];
+                        curOffset++;
+                        datai[curOffset] = temp32[0, k] - temp32[1, k];
+                        curOffset++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
                 else
@@ -731,17 +745,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         for (int j = 0; j < header.Channels; j++)
                         {
-                            datai[curoffset] = temp32[j, k];
-                            curoffset++;
+                            datai[curOffset] = temp32[j, k];
+                            curOffset++;
                         }
-                        cursample++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
+
+                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
             }
         ex:
-            Marshal.FreeHGlobal(input_buf);
+            Marshal.FreeHGlobal(inputBuf);
         }
 
         public void ReadNCW()
@@ -771,20 +787,22 @@ namespace PresetConverterProject.NIKontaktNKS
 
             datai = new int[header.NumSamples * header.Channels];
 
-            int curoffset = 0;
-            uint cursample = 0;
+            int curOffset = 0;
+            uint curSample = 0;
 
-            IntPtr input_buf = Marshal.AllocHGlobal(header.Bits * 64);
+            IntPtr inputBuf = Marshal.AllocHGlobal(header.Bits * 64);
             int[][] tempi = new int[MAX_CHANNELS][];
 
             for (int i = 0; i < blocksDefList.Length - 1; i++)
             {
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+
                 fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing block {0} and channel {1}", i + 1, j + 1));
+                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
@@ -793,18 +811,18 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bHeader.Bits < 0)
                     {
                         int nbits = Math.Abs(bHeader.Bits);
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
                         tempi[j] = new int[NCW_SAMPLES];
-                        BitProcess.FillIntegersAbs(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, ref tempi[j]);
+                        BitProcess.FillIntegersAbs(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, ref tempi[j]);
                     }
 
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
                         bool nrelative = bHeader.Bits != 0;
-                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, input_buf, nbits * 64);
+                        Marshal.Copy(ReadBytes(fs, nbits * 64), 0, inputBuf, nbits * 64);
                         tempi[j] = new int[NCW_SAMPLES];
-                        BitProcess.FillIntegers(NCW_SAMPLES, nbits, input_buf, bHeader.BaseValue, ref tempi[j], nrelative);
+                        BitProcess.FillIntegers(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, ref tempi[j], nrelative);
                     }
                 }
 
@@ -815,13 +833,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        datai[curoffset] = tempi[0][k] + tempi[1][k];
-                        curoffset++;
-                        datai[curoffset] = tempi[0][k] - tempi[1][k];
-                        curoffset++;
-                        cursample++;
+                        datai[curOffset] = tempi[0][k] + tempi[1][k];
+                        curOffset++;
+                        datai[curOffset] = tempi[0][k] - tempi[1][k];
+                        curOffset++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
                 else
@@ -833,17 +851,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         for (int j = 0; j < header.Channels; j++)
                         {
-                            datai[curoffset] = tempi[j][k];
-                            curoffset++;
+                            datai[curOffset] = tempi[j][k];
+                            curOffset++;
                         }
-                        cursample++;
+                        curSample++;
 
-                        if (cursample >= header.NumSamples) goto ex;
+                        if (curSample >= header.NumSamples) goto ex;
                     }
                 }
+
+                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
             }
         ex:
-            Marshal.FreeHGlobal(input_buf);
+            Marshal.FreeHGlobal(inputBuf);
         }
     }
 }
