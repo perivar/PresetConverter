@@ -87,34 +87,31 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void FillIntegers8(int n, IntPtr data, ref int[] ints, bool abs)
+        public static void FillIntegers8(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, bool abs)
         {
-            byte[] sourceArray = new byte[n * 4];
-            Marshal.Copy(data, sourceArray, 0, n * 4);
-
             int start = abs ? 0 : 1;
 
             int sourceIndex = 0;
 
             for (int cur = start; cur < n; cur++)
             {
-                byte tb = sourceArray[sourceIndex];
+                byte tb = sourceSpan[sourceIndex];
                 sourceIndex++;
 
                 int t = ChangeIntSign(tb, 8);
-                ints[cur] = t;
+                destSpan[cur] = t;
             }
 
             if (!abs)
             {
-                ints[0] = 0;
+                destSpan[0] = 0;
             }
         }
 
-        public static void FillIntegers16(int n, IntPtr data, ref int[] ints, bool abs)
+        public static void FillIntegers16(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, bool abs)
         {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(data, sourceArray, 0, n);
+            // convert byte span into short span
+            ReadOnlySpan<short> sourceArray = MemoryMarshal.Cast<byte, short>(sourceSpan);
 
             int start = abs ? 0 : 1;
 
@@ -126,45 +123,42 @@ namespace PresetConverterProject.NIKontaktNKS
                 sourceIndex++;
 
                 int t = ChangeIntSign(ts, 16);
-                ints[cur] = t;
+                destSpan[cur] = t;
             }
 
             if (!abs)
             {
-                ints[0] = 0;
+                destSpan[0] = 0;
             }
         }
 
-        public static void FillIntegers24(int n, IntPtr data, ref int[] ints, bool abs)
+        public static void FillIntegers24(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, bool abs)
         {
-            byte[] sourceArray = new byte[n * 3];
-            Marshal.Copy(data, sourceArray, 0, n * 3);
-
             int start = abs ? 0 : 1;
 
             int sourceIndex = 0;
 
             for (int cur = start; cur < n; cur++)
             {
-                uint dw = (uint)((sourceArray[sourceIndex] & 0xFF) |
-               ((sourceArray[sourceIndex + 1] & 0xFF) << 8) |
-               ((sourceArray[sourceIndex + 2] & 0xFF) << 16));
+                uint dw = (uint)((sourceSpan[sourceIndex] & 0xFF) |
+               ((sourceSpan[sourceIndex + 1] & 0xFF) << 8) |
+               ((sourceSpan[sourceIndex + 2] & 0xFF) << 16));
                 sourceIndex += 3;
 
                 int t = ChangeIntSign((int)dw, 24);
-                ints[cur] = t;
+                destSpan[cur] = t;
             }
 
             if (!abs)
             {
-                ints[0] = 0;
+                destSpan[0] = 0;
             }
         }
 
-        public static void FillIntegers32(int n, IntPtr data, ref int[] ints, bool abs)
+        public static void FillIntegers32(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, bool abs)
         {
-            int[] sourceArray = new int[n];
-            Marshal.Copy(data, sourceArray, 0, n);
+            // convert byte span into int span
+            ReadOnlySpan<int> sourceArray = MemoryMarshal.Cast<byte, int>(sourceSpan);
 
             int start = abs ? 0 : 1;
 
@@ -176,24 +170,21 @@ namespace PresetConverterProject.NIKontaktNKS
                 sourceIndex++;
 
                 int t = ChangeIntSign(ti, 32);
-                ints[cur] = t;
+                destSpan[cur] = t;
             }
 
             if (!abs)
             {
-                ints[0] = 0;
+                destSpan[0] = 0;
             }
         }
 
         // can be used for all bits: L8 = not divisible by 8
-        public static void FillIntegersL8(int n, int bits, IntPtr data, ref int[] ints)
+        public static void FillIntegersL8(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
         {
-            byte[] sourceArray = new byte[bits * 64];
-            Marshal.Copy(data, sourceArray, 0, bits * 64);
-
             int bitsTotal = 0;
             int sourceIndex = 0;
-            byte tb = sourceArray[sourceIndex];
+            byte tb = sourceSpan[sourceIndex];
             sourceIndex++;
 
             for (int cur = 1; cur < n; cur++)
@@ -207,93 +198,85 @@ namespace PresetConverterProject.NIKontaktNKS
                     bitsTotal++;
                     if (bitsTotal == 8)
                     {
-                        tb = sourceArray[sourceIndex];
+                        tb = sourceSpan[sourceIndex];
                         sourceIndex++;
                         bitsTotal = 0;
                     }
                 }
 
                 int t = ChangeIntSign((int)dw, bits);
-                ints[cur] = t;
+                destSpan[cur] = t;
             }
 
-            ints[0] = 0;
+            destSpan[0] = 0;
         }
 
-        public static void FillBits8(int n, int[] ints, IntPtr data, bool abs)
+        public static void FillBits8(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
+        {
+            for (int cur = 0; cur < n; cur++)
+            {
+                destSpan[cur] = (byte)sourceSpan[cur];
+            }
+        }
+
+        public static void FillBits16(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
         {
             short[] s = new short[n];
-            Marshal.Copy(data, s, 0, n);
 
-            int start = 0;
-            for (int cur = start; cur < n; cur++)
+            for (int cur = 0; cur < n; cur++)
             {
-                s[cur] = (short)ints[cur];
+                s[cur] = (short)sourceSpan[cur];
             }
-            Marshal.Copy(s, 0, data, n);
+
+            MemoryMarshal.Cast<short, byte>(s).CopyTo(destSpan);
         }
 
-        public static void FillBits16(int n, int[] ints, IntPtr data, bool abs)
+        public static void FillBits24(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
         {
-            short[] s = new short[n];
-            Marshal.Copy(data, s, 0, n);
-
-            int start = 0;
-            for (int cur = start; cur < n; cur++)
+            for (int cur = 0; cur < n; cur++)
             {
-                s[cur] = (short)ints[cur];
-            }
-            Marshal.Copy(s, 0, data, n);
-        }
-
-        public static void FillBits24(int n, int[] ints, IntPtr data, bool abs)
-        {
-            byte[] b = new byte[n * 3];
-            Marshal.Copy(data, b, 0, n * 3);
-
-            int start = 0;
-            for (int cur = start; cur < n; cur++)
-            {
-                int t = ints[cur];
-                b[cur * 3] = (byte)(t & 0xFF);
+                int t = sourceSpan[cur];
+                destSpan[cur * 3] = (byte)(t & 0xFF);
                 t >>= 8;
-                b[cur * 3 + 1] = (byte)(t & 0xFF);
+                destSpan[cur * 3 + 1] = (byte)(t & 0xFF);
                 t >>= 8;
-                b[cur * 3 + 2] = (byte)(t & 0xFF);
+                destSpan[cur * 3 + 2] = (byte)(t & 0xFF);
 
-                if (ints[cur] < 0)
+                if (sourceSpan[cur] < 0)
                 {
-                    b[cur * 3 + 2] |= 0x80;
+                    destSpan[cur * 3 + 2] |= 0x80;
                 }
             }
-            Marshal.Copy(b, 0, data, n * 3);
         }
 
-        public static void FillBits32(int n, int[] ints, IntPtr data, bool abs)
+        public static void FillBits32(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
         {
-            int[] ip = new int[n];
-            Marshal.Copy(data, ip, 0, n);
+            // Span<int> intSpan = MemoryMarshal.Cast<byte, int>(destSpan.Slice(0, n));
+            Span<int> intSpan = MemoryMarshal.Cast<byte, int>(destSpan);
 
-            int start = 0;
-            for (int cur = start; cur < n; cur++)
+            for (int cur = 0; cur < n; cur++)
             {
-                ip[cur] = ints[cur];
+                intSpan[cur] = sourceSpan[cur];
             }
-            Marshal.Copy(ip, 0, data, n);
+
+            if (intSpan.Length > destSpan.Length)
+            {
+                intSpan = intSpan.Slice(0, destSpan.Length);
+            }
+
+            MemoryMarshal.Cast<int, byte>(intSpan).CopyTo(destSpan);
         }
 
         // can be used for all bits: L8 = not divisible by 8
-        public static void FillBitsL8(int n, int bits, int[] ints, IntPtr data)
+        // https://gist.github.com/BastianBlokland/f97f832dafa4461f091a6d2851c3e46d
+        public static void FillBitsL8(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            byte[] b = new byte[n];
-            Marshal.Copy(data, b, 0, n);
-
             int tb = 0;
             int bitsWritten = 0;
 
             for (int cur = 0; cur < n; cur++)
             {
-                uint dw = (uint)ints[cur];
+                uint dw = (uint)sourceSpan[cur];
                 for (int j = 0; j < bits; j++)
                 {
                     tb += (byte)((dw & 1) << bitsWritten);
@@ -301,14 +284,13 @@ namespace PresetConverterProject.NIKontaktNKS
                     bitsWritten++;
                     if (bitsWritten == 8)
                     {
-                        b[cur] = (byte)tb;
+                        destSpan[cur] = (byte)tb;
                         tb = 0;
                         bitsWritten = 0;
                         cur++;
                     }
                 }
             }
-            Marshal.Copy(b, 0, data, n);
         }
 
         public static void Encode8_8(int n, IntPtr source, IntPtr dest)
@@ -789,49 +771,46 @@ namespace PresetConverterProject.NIKontaktNKS
             Marshal.Copy(destArray, 0, dest, n * 3);
         }
 
-        public static void Fill8abs(int n, IntPtr source, IntPtr dest)
+        public static void Fill8abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
         {
-            byte[] buffer = new byte[n];
-            Marshal.Copy(source, buffer, 0, n);
-            Marshal.Copy(buffer, 0, dest, n);
+            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n));
+            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+
+            sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill16abs(int n, IntPtr source, IntPtr dest)
+        public static void Fill16abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
         {
-            byte[] buffer = new byte[n * 2];
-            Marshal.Copy(source, buffer, 0, n * 2);
-            Marshal.Copy(buffer, 0, dest, n * 2);
+            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 2));
+            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+
+            sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill24abs(int n, IntPtr source, IntPtr dest)
+        public static void Fill24abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
         {
-            byte[] buffer = new byte[n * 3];
-            Marshal.Copy(source, buffer, 0, n * 3);
-            Marshal.Copy(buffer, 0, dest, n * 3);
+            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 3));
+            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+
+            sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill32abs(int n, IntPtr source, IntPtr dest)
+        public static void Fill32abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
         {
-            byte[] buffer = new byte[n * 4];
-            Marshal.Copy(source, buffer, 0, n * 4);
-            Marshal.Copy(buffer, 0, dest, n * 4);
+            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 4));
+            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+
+            sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill8_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill8_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
-            // Create a byte array to hold the source data
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            // Create an integer array to hold the destination data
-            byte[] destArray = new byte[n];
-
             // Set the initial value in the destination array based on the baseValue
-            destArray[0] = (byte)baseValue;
+            destSpan[0] = (byte)baseValue;
 
             int bitsTotal = 0;
             int sourceIndex = 0;
-            byte tb = sourceArray[sourceIndex];
+            byte tb = sourceSpan[sourceIndex];
             sourceIndex++;
 
             // Extract 'bits' number of bits from the 'tb' variable and accumulate them in 'ds'
@@ -854,7 +833,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     if (bitsTotal == 8)
                     {
                         bitsTotal = 0;
-                        tb = sourceArray[sourceIndex];
+                        tb = sourceSpan[sourceIndex];
                         sourceIndex++;
                     }
                 }
@@ -867,28 +846,19 @@ namespace PresetConverterProject.NIKontaktNKS
                 // }
                 ds = (short)ChangeIntSign(ds, bits);
 
-                ds += destArray[i - 1];
-                destArray[i] = (byte)ds;
+                ds += (short)destSpan[i - 1];
+                destSpan[i] = (byte)ds;
             }
-
-            Marshal.Copy(destArray, 0, dest, n);
         }
 
-        public static void Fill16_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill16_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
-            // Create a byte array to hold the source data
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            // Create a short array to hold the destination data
-            short[] destArray = new short[n];
-
             // Set the initial value of the first element in the destArray based on the baseValue
-            destArray[0] = (short)baseValue;
+            destSpan[0] = (short)baseValue;
 
             int bitsLeft = 8;
             int sourceIndex = 0;
-            byte tb = sourceArray[sourceIndex];
+            byte tb = sourceSpan[sourceIndex];
             sourceIndex++;
 
             // Loop through each element of the destArray, starting from the second element (i = 1)
@@ -906,7 +876,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         // we take the remaining bits from the current byte and combine them
                         // with the next byte to fulfill the bit requirement.
                         ds |= (short)((tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded));
-                        tb = sourceArray[sourceIndex];// Get the next byte from sourceArray
+                        tb = sourceSpan[sourceIndex];// Get the next byte from sourceArray
                         sourceIndex++; // Move to the next byte in sourceArray
                         bitsNeeded -= bitsLeft; // Reduce the remaining bit requirement by the number of bits taken
                         bitsLeft = 8; // Reset the number of bits left in the current byte to 8
@@ -930,31 +900,22 @@ namespace PresetConverterProject.NIKontaktNKS
                 // }
                 ds = (short)ChangeIntSign(ds, bits);
 
-                ds += destArray[i - 1];
-                destArray[i] = ds;
+                ds += (short)destSpan[i - 1];
+                destSpan[i] = ds;
             }
-
-            Marshal.Copy(destArray, 0, dest, n);
         }
 
-        public static void Fill24_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill24_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
-            // Create a byte array to hold the source data
-            byte[] sourceArray = new byte[bits * 64];
-            Marshal.Copy(source, sourceArray, 0, bits * 64);
-
-            // Create an integer array to hold the destination data
-            int[] destArray = new int[n * 3];
-
             // Set the initial value in the destination array based on the baseValue
             int ti = baseValue;
-            destArray[0] = ti & 0xFF;
-            destArray[1] = (ti >> 8) & 0xFF;
-            destArray[2] = (ti >> 16) & 0xFF;
+            destSpan[0] = ti & 0xFF;
+            destSpan[1] = (ti >> 8) & 0xFF;
+            destSpan[2] = (ti >> 16) & 0xFF;
 
             int bitsLeft = 8;
             int sourceIndex = 0;
-            byte tb = sourceArray[sourceIndex];
+            byte tb = sourceSpan[sourceIndex];
             sourceIndex++;
 
             for (int i = 1; i < n; i++)
@@ -971,7 +932,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         // we take the remaining bits from the current byte and combine them
                         // with the next byte to fulfill the bit requirement.
                         di |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = sourceArray[sourceIndex];// Get the next byte from sourceArray
+                        tb = sourceSpan[sourceIndex]; // Get the next byte from sourceArray
                         sourceIndex++; // Move to the next byte in sourceArray
                         bitsNeeded -= bitsLeft; // Reduce the remaining bit requirement by the number of bits taken
                         bitsLeft = 8; // Reset the number of bits left in the current byte to 8
@@ -996,29 +957,20 @@ namespace PresetConverterProject.NIKontaktNKS
                 di = ChangeIntSign(di, bits);
 
                 ti += di;
-                destArray[i * 3] = ti & 0xFF;
-                destArray[i * 3 + 1] = (ti >> 8) & 0xFF;
-                destArray[i * 3 + 2] = (ti >> 16) & 0xFF;
+                destSpan[i * 3] = ti & 0xFF;
+                destSpan[i * 3 + 1] = (ti >> 8) & 0xFF;
+                destSpan[i * 3 + 2] = (ti >> 16) & 0xFF;
             }
-
-            Marshal.Copy(destArray, 0, dest, n * 3);
         }
 
-        public static void Fill32_bits(int n, int bits, IntPtr source, IntPtr dest, int baseValue)
+        public static void Fill32_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
-            // Create a byte array to hold the source data
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            // Create an integer array to hold the destination data
-            int[] destArray = new int[n];
-
             // Set the initial value in the destination array based on the baseValue
-            destArray[0] = baseValue;
+            destSpan[0] = baseValue;
 
             int bitsLeft = 8;
             int sourceIndex = 0;
-            byte tb = sourceArray[sourceIndex];
+            byte tb = sourceSpan[sourceIndex];
             sourceIndex++;
 
             for (int i = 1; i < n; i++)
@@ -1034,7 +986,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         // we take the remaining bits from the current byte and combine them
                         // with the next byte to fulfill the bit requirement.
                         di |= (tb & (0xFF >> (8 - bitsLeft))) << (bits - bitsNeeded);
-                        tb = sourceArray[sourceIndex];// Get the next byte from sourceArray
+                        tb = sourceSpan[sourceIndex];// Get the next byte from sourceArray
                         sourceIndex++; // Move to the next byte in sourceArray
                         bitsNeeded -= bitsLeft; // Reduce the remaining bit requirement by the number of bits taken
                         bitsLeft = 8; // Reset the number of bits left in the current byte to 8
@@ -1058,128 +1010,126 @@ namespace PresetConverterProject.NIKontaktNKS
                 // }
                 di = ChangeIntSign(di, bits);
 
-                di += destArray[i - 1];
-                destArray[i] = di;
+                di += destSpan[i - 1];
+                destSpan[i] = di;
             }
-
-            Marshal.Copy(destArray, 0, dest, n);
         }
 
-        public static void FillIntegers(int n, int bits, IntPtr data, int start, ref int[] ints, bool relative)
+        public static void FillIntegers(int n, int bits, ReadOnlySpan<byte> sourceSpan, int start, Span<int> destSpan, bool relative)
         {
             switch (bits)
             {
-                // case 8: FillIntegers8(n, data, ref ints, false); break;
-                // case 16: FillIntegers16(n, data, ref ints, false); break;
-                // case 24: FillIntegers24(n, data, ref ints, false); break;
-                // case 32: FillIntegers32(n, data, ref ints, false); break;
-                default: FillIntegersL8(n, bits, data, ref ints); break;
+                case 8: FillIntegers8(n, sourceSpan, destSpan, false); break;
+                case 16: FillIntegers16(n, sourceSpan, destSpan, false); break;
+                case 24: FillIntegers24(n, sourceSpan, destSpan, false); break;
+                case 32: FillIntegers32(n, sourceSpan, destSpan, false); break;
+                default: FillIntegersL8(n, bits, sourceSpan, destSpan); break;
             }
 
             if (relative)
             {
-                ints[0] = start + ints[0];
+                destSpan[0] = start + destSpan[0];
                 for (int i = 1; i < n; i++)
                 {
-                    ints[i] = ints[i - 1] + ints[i];
+                    destSpan[i] = destSpan[i - 1] + destSpan[i];
                 }
             }
         }
 
-        public static void FillIntegersAbs(int n, int bits, IntPtr data, int start, ref int[] ints)
+        public static void FillIntegersAbs(int n, int bits, ReadOnlySpan<byte> sourceSpan, int start, Span<int> destSpan)
         {
             switch (bits)
             {
-                case 8: FillIntegers8(n, data, ref ints, true); break;
-                case 16: FillIntegers16(n, data, ref ints, true); break;
-                case 24: FillIntegers24(n, data, ref ints, true); break;
-                case 32: FillIntegers32(n, data, ref ints, true); break;
+                case 8: FillIntegers8(n, sourceSpan, destSpan, true); break;
+                case 16: FillIntegers16(n, sourceSpan, destSpan, true); break;
+                case 24: FillIntegers24(n, sourceSpan, destSpan, true); break;
+                case 32: FillIntegers32(n, sourceSpan, destSpan, true); break;
             }
         }
 
-        public static void FillBits(int n, int bits, IntPtr data, int[] ints)
+        public static void FillBits(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
             switch (bits)
             {
-                // case 8: FillBits8(n, ints, data, false); break;
-                // case 16: FillBits16(n, ints, data, false); break;
-                // case 24: FillBits24(n, ints, data, false); break;
-                // case 32: FillBits32(n, ints, data, false); break;
-                default: FillBitsL8(n, bits, ints, data); break;
+                case 8: FillBits8(n, sourceSpan, destSpan, false); break;
+                case 16: FillBits16(n, sourceSpan, destSpan, false); break;
+                case 24: FillBits24(n, sourceSpan, destSpan, false); break;
+                case 32: FillBits32(n, sourceSpan, destSpan, false); break;
+                default: FillBitsL8(n, bits, sourceSpan, destSpan); break;
             }
         }
 
-        public static void FillBitsAbs(int n, int bits, IntPtr data, int[] ints)
+        public static void FillBitsAbs(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
             switch (bits)
             {
-                case 8: FillBits8(n, ints, data, true); break;
-                case 16: FillBits16(n, ints, data, true); break;
-                case 24: FillBits24(n, ints, data, true); break;
-                case 32: FillBits32(n, ints, data, true); break;
+                case 8: FillBits8(n, sourceSpan, destSpan, true); break;
+                case 16: FillBits16(n, sourceSpan, destSpan, true); break;
+                case 24: FillBits24(n, sourceSpan, destSpan, true); break;
+                case 32: FillBits32(n, sourceSpan, destSpan, true); break;
             }
         }
 
-        public static void Fill8(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        public static void Fill8(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
         {
             if (relative)
             {
-                Fill8_bits(n, bits, source, dest, base_value);
+                Fill8_bits(n, bits, sourceSpan, destSpan, baseValue);
             }
             else
             {
-                Fill8abs(n, source, dest);
+                Fill8abs(n, sourceSpan, destSpan);
             }
         }
 
-        public static void Fill16(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        public static void Fill16(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
         {
             if (relative)
             {
                 switch (bits)
                 {
-                    // case 8: Fill16_8rel(n, source, dest, base_value); break;
-                    default: Fill16_bits(n, bits, source, dest, base_value); break;
+                    // case 8: Fill16_8rel(n, sourceSpan, destSpan, baseValue); break;
+                    default: Fill16_bits(n, bits, sourceSpan, destSpan, baseValue); break;
                 }
             }
             else
             {
-                Fill16abs(n, source, dest);
+                Fill16abs(n, sourceSpan, destSpan);
             }
         }
 
-        public static void Fill24(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        public static void Fill24(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
         {
             if (relative)
             {
                 switch (bits)
                 {
-                    // case 8: Fill24_8rel(n, source, dest, base_value); break;
-                    // case 16: Fill24_16rel(n, source, dest, base_value); break;
-                    default: Fill24_bits(n, bits, source, dest, base_value); break;
+                    // case 8: Fill24_8rel(n, sourceSpan, destSpan, baseValue); break;
+                    // case 16: Fill24_16rel(n, sourceSpan, destSpan, baseValue); break;
+                    default: Fill24_bits(n, bits, sourceSpan, destSpan, baseValue); break;
                 }
             }
             else
             {
-                Fill24abs(n, source, dest);
+                Fill24abs(n, sourceSpan, destSpan);
             }
         }
 
-        public static void Fill32(int n, int bits, IntPtr source, int base_value, IntPtr dest, bool relative)
+        public static void Fill32(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
         {
             if (relative)
             {
                 switch (bits)
                 {
-                    // case 8: Fill32_8rel(n, source, dest, base_value); break;
-                    // case 16: Fill32_16rel(n, source, dest, base_value); break;
-                    // case 24: Fill32_24rel(n, source, dest, base_value); break;
-                    default: Fill32_bits(n, bits, source, dest, base_value); break;
+                    // case 8: Fill32_8rel(n, sourceSpan, destSpan, baseValue); break;
+                    // case 16: Fill32_16rel(n, sourceSpan, destSpan, baseValue); break;
+                    // case 24: Fill32_24rel(n, sourceSpan, destSpan, baseValue); break;
+                    default: Fill32_bits(n, bits, sourceSpan, destSpan, baseValue); break;
                 }
             }
             else
             {
-                Fill32abs(n, source, dest);
+                Fill32abs(n, sourceSpan, destSpan);
             }
         }
 
