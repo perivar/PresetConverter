@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using CommonUtils.Audio;
 using Serilog;
+using static PresetConverterProject.NIKontaktNKS.BitProcess;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -44,11 +45,11 @@ namespace PresetConverterProject.NIKontaktNKS
             ncwParser.ReadNCW();
 
             // test using integers
-            ncwParser.ReadNCWIntegers();
-            string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
-            string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
-            Log.Information("Writing file {0} ...", outputFilePathInt);
-            ncwParser.SaveToWAVIntegers(outputFilePathInt);
+            // ncwParser.ReadNCWIntegers();
+            // string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
+            // string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
+            // Log.Information("Writing file {0} ...", outputFilePathInt);
+            // ncwParser.SaveToWAVIntegers(outputFilePathInt);
 
             // Output file to wav
             var wavtype = WavType.Standard;
@@ -79,6 +80,22 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
             }
 
+            WAVParser.TMyWAVHeader wavHeader = new()
+            {
+                wFormatTag = SoundIO.WAVE_FORMAT_PCM, // Standard wav
+                nChannels = ncwParser.Header.Channels,
+                nSamplesPerSec = ncwParser.Header.SampleRate,
+                wBitsPerSample = ncwParser.Header.Bits,
+                numOfPoints = (int)ncwParser.Header.NumSamples
+            };
+
+
+            string outputFileNameNCW24 = Path.GetFileNameWithoutExtension(inputFilePath) + "_24.ncw";
+            string outputFilePathNCW24 = Path.Combine(outputDirectoryPath, outputFileNameNCW24);
+            Log.Information("Writing file {0} ...", outputFilePathNCW24);
+            ncwParser.WriteNCW24(wavHeader);
+            ncwParser.SaveToNCW(outputFilePathNCW24);
+
             return true;
         }
     }
@@ -105,14 +122,14 @@ namespace PresetConverterProject.NIKontaktNKS
             public uint BlocksOffset;
             public uint BlocksSize;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 88)]
-            public char[] SomeData;
+            public byte[] SomeData;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct TBlockHeader
         {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-            public char[] Signature;
+            public byte[] Signature;
             public int BaseValue;
             public short Bits;
             public ushort Flags;
@@ -130,13 +147,14 @@ namespace PresetConverterProject.NIKontaktNKS
         private TNCWHeader header;
         public TNCWHeader Header { get => header; set => header = value; }
 
-        private int[]? blocksDefList;
+        private int[]? blocksDefArray;
         private int[]? datai;
         private sbyte[]? data8;
         private short[]? data16;
         private byte[,]? data24; // x 3
 
         private FileStream? fs;
+        private MemoryStream? ms;
 
         public void Clear()
         {
@@ -157,7 +175,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 fs = null;
             }
 
-            blocksDefList = Array.Empty<int>();
+            blocksDefArray = Array.Empty<int>();
         }
 
         public void SaveToWAV(string filename)
@@ -345,11 +363,11 @@ namespace PresetConverterProject.NIKontaktNKS
                     throw new Exception("Wrong file signature");
             }
 
-            blocksDefList = new int[(header.BlocksOffset - header.BlockDefOffset) / 4];
+            blocksDefArray = new int[(header.BlocksOffset - header.BlockDefOffset) / 4];
             fs.Seek(header.BlockDefOffset, SeekOrigin.Begin);
-            byte[] blocksDefListBytes = new byte[blocksDefList.Length * 4];
+            byte[] blocksDefListBytes = new byte[blocksDefArray.Length * 4];
             fs.Read(blocksDefListBytes, 0, blocksDefListBytes.Length);
-            Buffer.BlockCopy(blocksDefListBytes, 0, blocksDefList, 0, blocksDefListBytes.Length);
+            Buffer.BlockCopy(blocksDefListBytes, 0, blocksDefArray, 0, blocksDefListBytes.Length);
         }
 
         public static T ByteArrayToStructure<T>(byte[] bytes) where T : struct
@@ -407,11 +425,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int[][] temp8 = new int[MAX_CHANNELS][];
 
-            for (int i = 0; i < blocksDefList.Length - 1; i++)
+            for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
-                fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
+                fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
@@ -491,11 +509,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int[][] temp16 = new int[MAX_CHANNELS][];
 
-            for (int i = 0; i < blocksDefList.Length - 1; i++)
+            for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
-                fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
+                fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
@@ -575,11 +593,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int[][] temp24 = new int[MAX_CHANNELS][];
 
-            for (int i = 0; i < blocksDefList.Length - 1; i++)
+            for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
-                fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
+                fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
@@ -694,11 +712,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int[][] temp32 = new int[MAX_CHANNELS][];
 
-            for (int i = 0; i < blocksDefList.Length - 1; i++)
+            for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
-                fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
+                fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
@@ -798,11 +816,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             int[][] tempi = new int[MAX_CHANNELS][];
 
-            for (int i = 0; i < blocksDefList.Length - 1; i++)
+            for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefList.Length));
+                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
-                fs.Seek(header.BlocksOffset + blocksDefList[i], SeekOrigin.Begin);
+                fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
@@ -869,6 +887,357 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
             }
+        }
+
+        public void SaveToNCW(string filename)
+        {
+            using (fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+            {
+                byte[] headerBytes = StructureToBytes(header);
+                // fs.Write(headerBytes, 0, Marshal.SizeOf(typeof(TNCWHeader)));
+                fs.Write(headerBytes);
+
+                foreach (int blockDef in blocksDefArray)
+                {
+                    byte[] blockDefBytes = BitConverter.GetBytes(blockDef);
+                    fs.Write(blockDefBytes, 0, blockDefBytes.Length);
+                }
+
+                // write everything in MemoryStream
+                ms.Position = 0; // You have to rewind the MemoryStream before copying
+                ms.CopyTo(fs);
+                fs.Flush();
+            }
+        }
+
+        public void WriteNCW24(WAVParser.TMyWAVHeader wavHeader)
+        {
+            // Fill header
+            header = new TNCWHeader()
+            {
+                Signature = NCW_SIGNATURE1,
+                Channels = wavHeader.nChannels,
+                Bits = wavHeader.wBitsPerSample,
+                SampleRate = wavHeader.nSamplesPerSec,
+                NumSamples = (uint)wavHeader.numOfPoints,
+                SomeData = new byte[] {
+                    0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x42, 0x01, 0x00, 0x00, 0x04, 0x01, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00
+                },
+                BlockDefOffset = 120 // 0x78
+            };
+
+            int nblocks = wavHeader.numOfPoints / 512 + 1;
+            if (wavHeader.numOfPoints % 512 != 0)
+                nblocks++;
+
+            Log.Debug("Processing {0} number of blocks.", nblocks);
+
+            header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+            Log.Debug("Setting initial BlocksOffset: " + header.BlocksOffset);
+
+            ms = new MemoryStream();
+
+            List<int> blocksDefList = new();
+            int curBlockOffset = 0;
+
+            // initialize temporary arrays
+            Int24[][] temp24 = new Int24[header.Channels][];
+            Int24[][] temp24dif = new Int24[header.Channels][];
+            byte[] tempB = new byte[header.Bits * 64 * 3];
+
+            for (int j = 0; j < header.Channels; j++)
+            {
+                temp24[j] = new Int24[NCW_SAMPLES];
+                temp24dif[j] = new Int24[NCW_SAMPLES];
+            }
+
+            for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
+            {
+                Log.Debug(string.Format("Processing block {0}/{1} at offset: {2}.", curBlockNumber + 1, nblocks, curBlockOffset));
+
+                blocksDefList.Add(curBlockOffset);
+
+                // Fill 512 samples arrays
+                for (int i = 0; i < NCW_SAMPLES; i++)
+                {
+                    for (int j = 0; j < header.Channels; j++)
+                    {
+                        int curIndex = curBlockNumber * 512 * header.Channels + i * header.Channels + j;
+                        if (curIndex < data24.GetLength(0))
+                        {
+                            temp24[j][i] = new Int24(data24[curIndex, 0], data24[curIndex, 1], data24[curIndex, 2]);
+                        }
+                        else
+                        {
+                            temp24[j][i] = Int24.Zero;
+                        }
+                    }
+                }
+
+                for (int j = 0; j < header.Channels; j++)
+                {
+                    DifArray24(temp24[j], temp24dif[j], out int max, out int min);
+                    int nbits = Math.Max(MinBits(min), MinBits(max));
+
+                    TBlockHeader bHeader = new();
+                    FillBlockHeader(ref bHeader);
+
+                    bHeader.BaseValue = temp24[j][0];
+
+                    if (nbits >= header.Bits)
+                    {
+                        bHeader.Bits = (short)-header.Bits;
+                        nbits = header.Bits;
+                    }
+                    else
+                    {
+                        bHeader.Bits = (short)nbits;
+                    }
+
+                    int blockSize = nbits * 64;
+
+                    if (bHeader.Bits < 0)
+                    {
+                        BitProcess.Encode_24(NCW_SAMPLES, nbits, temp24[j], tempB);
+                    }
+                    else
+                    {
+                        BitProcess.Encode_24(NCW_SAMPLES, nbits, temp24dif[j], tempB);
+                    }
+
+                    byte[] bHeaderBytes = StructureToBytes(bHeader);
+                    ms.Write(bHeaderBytes);
+
+                    // add bytes according to blockSize
+                    ms.Write(tempB, 0, blockSize);
+
+                    curBlockOffset += bHeaderBytes.Length + blockSize;
+                }
+            }
+
+            blocksDefList.Add(curBlockOffset);
+            blocksDefArray = blocksDefList.ToArray();
+
+            header.BlocksSize = (uint)curBlockOffset;
+            header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
+
+            Log.Information(string.Format("Creating file-header [{0} hz, {1} bits, {2} ch, {3} samples]", header.SampleRate, header.Bits, header.Channels, header.NumSamples));
+            Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
+            Log.Debug("BlocksOffset: " + header.BlocksOffset);
+            Log.Debug("BlocksSize: " + header.BlocksSize);
+        }
+
+        private void WriteNCW32(WAVParser.TMyWAVHeader wavHeader)
+        {
+            // Fill header
+            header = new TNCWHeader()
+            {
+                Signature = NCW_SIGNATURE1,
+                Channels = wavHeader.nChannels,
+                Bits = wavHeader.wBitsPerSample,
+                SampleRate = wavHeader.nSamplesPerSec,
+                NumSamples = (uint)wavHeader.numOfPoints,
+                SomeData = new byte[88],
+                BlockDefOffset = 120 // 0x78
+            };
+
+            int nblocks = wavHeader.numOfPoints / 512 + 1;
+            if (wavHeader.numOfPoints % 512 != 0)
+                nblocks++;
+
+            header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+
+            ms = new MemoryStream();
+
+            List<int> blocksDefList = new();
+            int curBlockOffset = 0;
+
+            int[][] temp32 = new int[header.Channels][];
+            int[][] temp32dif = new int[header.Channels][];
+            byte[] tempB = new byte[header.Bits * 64 * 4];
+
+            for (int j = 0; j < header.Channels; j++)
+            {
+                temp32[j] = new int[NCW_SAMPLES];
+                temp32dif[j] = new int[NCW_SAMPLES];
+            }
+
+            for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
+            {
+                blocksDefList.Add(curBlockOffset);
+
+                // Fill 512 samples arrays
+                for (int i = 0; i < NCW_SAMPLES; i++)
+                {
+                    for (int j = 0; j < header.Channels; j++)
+                    {
+                        if (curBlockNumber * 512 * header.Channels + i * header.Channels + j < datai.Length)
+                        {
+                            temp32[j][i] = datai[curBlockNumber * 512 * header.Channels + i * header.Channels + j];
+                        }
+                        else
+                        {
+                            temp32[j][i] = 0;
+                        }
+                    }
+                }
+
+                for (int j = 0; j < header.Channels; j++)
+                {
+                    DifArray32(temp32[j], temp32dif[j], out int max, out int min);
+                    int nbits = Math.Max(MinBits(min), MinBits(max));
+
+                    TBlockHeader bHeader = new();
+                    FillBlockHeader(ref bHeader);
+                    bHeader.BaseValue = temp32[j][0];
+
+                    if (nbits >= header.Bits)
+                    {
+                        bHeader.Bits = (short)-header.Bits;
+                        nbits = header.Bits;
+                    }
+                    else
+                    {
+                        bHeader.Bits = (short)nbits;
+                    }
+
+                    int blockSize = nbits * 64;
+
+                    if (bHeader.Bits < 0)
+                    {
+                        BitProcess.Encode_32(NCW_SAMPLES, nbits, temp32[j], tempB);
+                    }
+                    else
+                    {
+                        BitProcess.Encode_32(NCW_SAMPLES, nbits, temp32dif[j], tempB);
+                    }
+
+                    // ms.Write(MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref bHeader, 1)));
+                    byte[] bHeaderBytes = StructureToBytes(bHeader);
+                    ms.Write(bHeaderBytes);
+
+                    ms.Write(tempB.AsSpan().Slice(0, blockSize));
+
+                    // curBlockOffset += Marshal.SizeOf(bHeader) + blockSize;
+                    curBlockOffset += bHeaderBytes.Length + blockSize;
+                }
+            }
+
+            blocksDefList.Add(curBlockOffset);
+            blocksDefArray = blocksDefList.ToArray();
+
+            header.BlocksSize = (uint)curBlockOffset;
+            header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
+        }
+
+        private void FillBlockHeader(ref TBlockHeader bheader)
+        {
+            bheader.Signature = BLOCK_SIGNATURE;
+            bheader.Flags = 0;
+            bheader.Zeros2 = 0;
+        }
+
+        /// <summary>
+        /// Calculate the minimum number of bits required to represent the absolute value of an integer.
+        /// </summary>
+        /// <param name="x">integer</param>
+        /// <returns>minimum number of bits required</returns>
+        private static int MinBits(int x)
+        {
+            int bits; // Variable to store the minimum number of bits required
+
+            if (x == 0)
+                bits = 2; // If x is zero, minimum bits required is 2 (to represent 0 or 1)
+            else if (x > 0)
+            {
+                bits = 32; // Initialize bits to 32 for positive values of x (assuming 32-bit integers)
+                while (bits > 2)  // Iterate until minimum bits is greater than 2
+                {
+                    x <<= 1; // Left shift x by 1 (equivalent to multiplying by 2)
+                    if ((x & 0x80000000) != 0)  // Check if the most significant bit is set
+                        goto ex; // If the most significant bit is set, go to the label 'ex'
+                    bits--; // Decrement bits by 1
+                }
+                goto ex; // After the loop, go to the label 'ex'
+            }
+            else
+            {
+                bits = 32; // Initialize bits to 32 for negative values of x (assuming 32-bit integers)
+                while (bits > 2)  // Iterate until minimum bits is greater than 2
+                {
+                    x <<= 1; // Left shift x by 1 (equivalent to multiplying by 2)
+                    if ((x & 0x80000000) == 0)  // Check if the most significant bit is not set
+                        goto ex; // If the most significant bit is not set, go to the label 'ex'
+                    bits--; // Decrement bits by 1
+                }
+            }
+
+        ex:
+            return bits; // Return the minimum number of bits required
+        }
+
+        public static void DifArray24(Int24[] ars, Int24[] ard, out int max, out int min)
+        {
+            // Initialize max and min variables
+            max = int.MinValue;
+            min = int.MaxValue;
+
+            for (int i = 0; i < ars.Length - 1; i++)
+            {
+                // Calculate the differences between consecutive Int24 values
+                int ti1 = ars[i] << 8;
+                int ti2 = ars[i + 1] << 8;
+                ti2 -= ti1;
+
+                // Update max and min values
+                if (ti2 > max)
+                    max = ti2;
+                if (ti2 < min)
+                    min = ti2;
+
+                // Shift and assign the differences to ard
+                ti2 >>= 8;
+
+                ard[i] = (Int24)ti2;
+            }
+
+            // Adjust the max and min values
+            if (max < 0)
+                max = (int)(((uint)max >> 8) | 0xFF000000);
+            else
+                max >>= 8;
+
+            if (min < 0)
+                min = (int)(((uint)min >> 8) | 0xFF000000);
+            else
+                min >>= 8;
+
+            // Assign Int24.Zero to the last element of ard
+            ard[ars.Length - 1] = Int24.Zero;
+        }
+
+        private void DifArray32(int[] ars, int[] ard, out int max, out int min)
+        {
+            max = int.MinValue;
+            min = int.MaxValue;
+
+            for (int i = 0; i < ars.Length - 1; i++)
+            {
+                ard[i] = ars[i + 1] - ars[i];
+                if (ard[i] > max)
+                    max = ard[i];
+                if (ard[i] < min)
+                    min = ard[i];
+            }
+
+            ard[ars.Length - 1] = 0;
         }
     }
 }

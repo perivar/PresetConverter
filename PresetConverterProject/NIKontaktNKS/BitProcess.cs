@@ -4,6 +4,151 @@ namespace PresetConverterProject.NIKontaktNKS
 {
     public static class BitProcess
     {
+        // Signed 24-bit value (-8388608 to 8388607) = (-0x800000 to 0x7FFFFF) 
+        // References:
+        // https://github.com/Gota7/GotaSoundIO/blob/master/Int24.cs
+        // but also
+        // https://github.com/rubendal/BitStream/blob/master/Int24.cs
+        // https://github.com/GridProtectionAlliance/gsf/blob/master/Source/Libraries/GSF.Core.Shared/Int24.cs
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct Int24
+        {
+            private byte b0 = 0x00;
+            private byte b1 = 0x00;
+            private byte b2 = 0x00;
+
+            /// <summary>
+            /// Max value.
+            /// </summary>
+            public const int MaxValue = 8388607; // 0x7FFFFF
+
+            /// <summary>
+            /// Min value.
+            /// </summary>
+            public const int MinValue = -8388608; // -0x800000
+
+            // <summary>
+            /// Get this as an int.
+            /// </summary>
+            /// <returns>This as an int.</returns>
+            private readonly int GetInt()
+            {
+                int ret = 0;
+
+                // Combine the bytes of the Int24 struct to form the 32-bit integer
+                ret |= b0;                    // Lower 8 bits
+                ret |= b1 << 8;               // Middle 8 bits
+                ret |= (b2 & 0x7F) << 16;     // Upper 7 bits (excluding the sign bit)
+
+                // Check if the sign bit is set and adjust the value accordingly
+                if ((b2 & 0x80) > 0) { ret = MinValue + ret; }
+
+                return ret;
+            }
+
+            /// <summary>
+            /// Convert an int to an Int24.
+            /// </summary>
+            /// <param name="val">Value to convert.</param>
+            /// <returns>Value as an Int24.</returns>
+            private static Int24 FromInt(int val)
+            {
+                Int24 ret = new();
+
+                // Clamp the value to the valid range of Int24
+                if (val > MaxValue) { val = MaxValue; }
+                if (val < MinValue) { val = MinValue; }
+
+                uint un = (uint)val; // Treat the value as an unsigned integer
+
+                // If the value is negative, convert it to its two's complement representation
+                if (val < 0) { un = (uint)(val - MinValue); }
+
+                // Store the 24-bit value in three bytes
+                ret.b0 = (byte)(un & 0xFF);           // Lower 8 bits
+                ret.b1 = (byte)((un >> 8) & 0xFF);    // Middle 8 bits
+                ret.b2 = (byte)((un >> 16) & 0x7F);   // Upper 7 bits
+
+                // Set the sign bit if the original value was negative
+                if (val < 0) { ret.b2 |= 0x80; }
+
+                return ret;
+            }
+
+            /// <summary>
+            /// Create an Int24 using three bytes
+            /// </summary>
+            /// <param name="byte0">byte 0</param>
+            /// <param name="byte1">byte 1</param>
+            /// <param name="byte2">byte 2</param>
+            public Int24(byte byte0, byte byte1, byte byte2)
+            {
+                b0 = byte0;
+                b1 = byte1;
+                b2 = byte2;
+            }
+
+            /// <summary>
+            /// Create and Int24 using int
+            /// Note you can also create this using a cast
+            /// Int24 v = (Int24) val;
+            /// </summary>
+            /// <param name="val">int value</param>
+            public Int24(int val)
+            {
+                Int24 dest = (Int24)val;
+
+                b0 = dest.b0;
+                b1 = dest.b1;
+                b2 = dest.b2;
+            }
+
+            /// <summary>
+            /// Zero
+            /// </summary>
+            /// <returns>Zero version</returns>
+            public static Int24 Zero => new(0, 0, 0);
+
+            /// <summary>
+            /// Get this as an int.
+            /// </summary>
+            /// <param name="val">Value.</param>
+            public static implicit operator int(Int24 val) => val.GetInt();
+
+            /// <summary>
+            /// Convert from an int.
+            /// </summary>
+            /// <param name="val">Value.</param>
+            public static explicit operator Int24(int val) => FromInt(val);
+
+            /// <summary>
+            /// Convert from a uint.
+            /// </summary>
+            /// <param name="val">Value.</param>
+            public static explicit operator Int24(uint val) => FromInt((int)val);
+
+            /// <summary>
+            /// Convert from a float.
+            /// </summary>
+            /// <param name="val">Value.</param>
+            public static explicit operator Int24(float val) => FromInt((int)val);
+
+            /// <summary>
+            /// Get String representation of this Int24 value
+            /// </summary>
+            /// <returns>string representation</returns>
+            public override string ToString()
+            {
+                int res = GetInt();
+                return string.Format("{0}: 0x{1:X2},0x{2:X2},0x{3:X2}", res, b0, b1, b2);
+            }
+
+            public static implicit operator string(Int24 value)
+            {
+                return value.ToString();
+            }
+        }
+
         /// <summary>
         /// Calculates the bitmask for 'n' bits.
         /// This returns a byte where n number of bytes are set to 1.
@@ -316,163 +461,154 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode8_8(int n, IntPtr source, IntPtr dest)
+        public static void Encode8_8(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-            Marshal.Copy(sourceArray, 0, dest, n);
+            for (int i = 0; i < n; i++)
+            {
+                int value = sourceSpan[i];
+
+                // truncate the int value to fit within the range of a byte
+                // signed 8-bit value  (-128 to +127)               = (-0x80 to 0x7F)
+                // unsigned 8-bit value (0 to 255)                  = (0x00 to 0xFF)
+                destSpan[i] = (byte)(value & 0xFF);
+            }
         }
 
-        public static void Encode8_16(int n, IntPtr source, IntPtr dest)
+        public static void Encode8_16(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(source, sourceArray, 0, n);
+            for (int i = 0; i < n; i++)
+            {
+                int value = sourceSpan[i];
 
-            byte[] destArray = new byte[n];
+                // truncate the int value to fit within the range of two bytes, i.e. a short
+                // signed 16-bit value (-32768 to 32767)            = (-0x8000 to 0x7FFF)
+                destSpan[i * 2] = (byte)(value & 0xFF);
+                destSpan[i * 2 + 1] = (byte)((value >> 8) & 0xFF);
+            }
+        }
+
+        public static void Encode8_24(int n, ReadOnlySpan<byte[]> sourceSpan, Span<byte> destSpan)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                byte[] byteArray = sourceSpan[i];
+
+                destSpan[i * 3] = byteArray[0];
+                destSpan[i * 3 + 1] = byteArray[1];
+                destSpan[i * 3 + 2] = byteArray[2];
+            }
+        }
+
+        public static void Encode8_32(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                int value = sourceSpan[i];
+
+                // truncate the int value to fit within the range of four bytes
+                // signed 32-bit value (-2147483648 to +2147483647) = (-0x80000000 to +0x7FFFFFFF)
+                destSpan[i * 4] = (byte)(value & 0xFF);
+                destSpan[i * 4 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 4 + 2] = (byte)((value >> 16) & 0xFF);
+                destSpan[i * 4 + 3] = (byte)((value >> 32) & 0xFF);
+            }
+        }
+
+        public static void Encode16_16(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                int value = sourceSpan[i];
+
+                // truncate the int value to fit within the range of two bytes, i.e. a short
+                // signed 16-bit value (-32768 to 32767)            = (-0x8000 to 0x7FFF)
+                destSpan[i * 2] = (byte)(value & 0xFF);
+                destSpan[i * 2 + 1] = (byte)((value >> 8) & 0xFF);
+            }
+        }
+
+        public static void Encode16_24(int n, ReadOnlySpan<byte[]> sourceSpan, Span<byte> destSpan)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                byte[] byteArray = sourceSpan[i];
+
+                destSpan[i * 3] = byteArray[0];
+                destSpan[i * 3 + 1] = byteArray[1];
+                destSpan[i * 3 + 2] = byteArray[2];
+            }
+        }
+
+        public static void Encode16_32(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                int value = sourceSpan[i];
+
+                // truncate the int value to fit within the range of four bytes
+                // signed 32-bit value (-2147483648 to +2147483647) = (-0x80000000 to +0x7FFFFFFF)
+                destSpan[i * 4] = (byte)(value & 0xFF);
+                destSpan[i * 4 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 4 + 2] = (byte)((value >> 16) & 0xFF);
+                destSpan[i * 4 + 3] = (byte)((value >> 32) & 0xFF);
+            }
+        }
+
+        public static void Encode24_24(int n, ReadOnlySpan<byte[]> sourceSpan, Span<byte> destSpan)
+        {
+            // TODO: PIN - is this needed?
+            // var destShort = MemoryMarshal.Cast<byte, short>(destSpan);
+            // var destBytes = MemoryMarshal.Cast<short, byte>(destShort);
+            // destBytes.CopyTo(destSpan);
 
             for (int i = 0; i < n; i++)
             {
-                destArray[i] = (byte)sourceArray[i];
-            }
+                byte[] byteArray = sourceSpan[i];
 
-            Marshal.Copy(destArray, 0, dest, n);
+                destSpan[i * 3] = byteArray[0];
+                destSpan[i * 3 + 1] = byteArray[1];
+                destSpan[i * 3 + 2] = byteArray[2];
+            }
         }
 
-        public static void Encode8_24(int n, IntPtr source, IntPtr dest)
+        public static void Encode24_32(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            int[] sourceArray = new int[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            byte[] destArray = new byte[n * 3];
-
             for (int i = 0; i < n; i++)
             {
-                destArray[i * 3] = (byte)(sourceArray[i] & 0xFF);
-                destArray[i * 3 + 1] = (byte)((sourceArray[i] >> 8) & 0xFF);
-                destArray[i * 3 + 2] = (byte)((sourceArray[i] >> 16) & 0xFF);
-            }
+                int value = sourceSpan[i];
 
-            Marshal.Copy(destArray, 0, dest, n * 3);
+                // copy the int into four bytes
+                // signed 32-bit value (-2147483648 to +2147483647) = (-0x80000000 to +0x7FFFFFFF)
+                destSpan[i * 4] = (byte)(value & 0xFF);
+                destSpan[i * 4 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 4 + 2] = (byte)((value >> 16) & 0xFF);
+                destSpan[i * 4 + 3] = (byte)((value >> 24) & 0xFF);
+            }
         }
 
-        public static void Encode8_32(int n, IntPtr source, IntPtr dest)
+        public static void Encode32_32(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            int[] sourceArray = new int[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            byte[] destArray = new byte[n * 4];
-
             for (int i = 0; i < n; i++)
             {
-                byte[] bytes = BitConverter.GetBytes(sourceArray[i]);
-                Array.Copy(bytes, 0, destArray, i * 4, 4);
+                int value = sourceSpan[i];
+
+                // copy the int into four bytes
+                // signed 32-bit value (-2147483648 to +2147483647) = (-0x80000000 to +0x7FFFFFFF)
+                destSpan[i * 4] = (byte)(value & 0xFF);
+                destSpan[i * 4 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 4 + 2] = (byte)((value >> 16) & 0xFF);
+                destSpan[i * 4 + 3] = (byte)((value >> 24) & 0xFF);
             }
-
-            Marshal.Copy(destArray, 0, dest, n * 4);
         }
 
-        public static void Encode16_16(int n, IntPtr source, IntPtr dest)
+        public static void EncodeL_8(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            short[] destArray = new short[n];
-
-            Array.Copy(sourceArray, destArray, n);
-
-            Marshal.Copy(destArray, 0, dest, n);
-        }
-
-        public static void Encode16_24(int n, IntPtr source, IntPtr dest)
-        {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            byte[] destArray = new byte[n * 3];
-
-            for (int i = 0; i < n; i++)
-            {
-                int destIndex = i * 3;
-                int sourceIndex = i * 2;
-
-                destArray[destIndex] = (byte)(sourceArray[sourceIndex] & 0xFF);
-                destArray[destIndex + 1] = (byte)((sourceArray[sourceIndex] >> 8) & 0xFF);
-                destArray[destIndex + 2] = (byte)(sourceArray[sourceIndex + 1] & 0xFF);
-            }
-
-            Marshal.Copy(destArray, 0, dest, n * 3);
-        }
-
-        public static void Encode16_32(int n, IntPtr source, IntPtr dest)
-        {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            int[] destArray = new int[n];
-
-            for (int i = 0; i < n; i++)
-            {
-                destArray[i] = sourceArray[i];
-            }
-
-            Marshal.Copy(destArray, 0, dest, n);
-        }
-
-        public static void Encode24_24(int n, IntPtr source, IntPtr dest)
-        {
-            byte[] sourceArray = new byte[n * 3];
-            Marshal.Copy(source, sourceArray, 0, n * 3);
-
-            byte[] destArray = new byte[n * 3];
-
-            Array.Copy(sourceArray, destArray, n * 3);
-
-            Marshal.Copy(destArray, 0, dest, n * 3);
-        }
-
-        public static void Encode24_32(int n, IntPtr source, IntPtr dest)
-        {
-            byte[] sourceArray = new byte[n * 3];
-            Marshal.Copy(source, sourceArray, 0, n * 3);
-
-            int[] destArray = new int[n];
-
-            for (int i = 0; i < n; i++)
-            {
-                int sourceIndex = i * 3;
-
-                destArray[i] = (sourceArray[sourceIndex] & 0xFF) |
-                               ((sourceArray[sourceIndex + 1] & 0xFF) << 8) |
-                               ((sourceArray[sourceIndex + 2] & 0xFF) << 16);
-            }
-
-            Marshal.Copy(destArray, 0, dest, n);
-        }
-
-        public static void Encode32_32(int n, IntPtr source, IntPtr dest)
-        {
-            int[] sourceArray = new int[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-            int[] destArray = new int[n];
-
-            Array.Copy(sourceArray, destArray, n);
-
-            Marshal.Copy(destArray, 0, dest, n);
-        }
-
-        public static void EncodeL_8(int n, int bits, IntPtr source, IntPtr dest)
-        {
-            byte[] sourceArray = new byte[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            byte[] destArray = new byte[n];
-
             byte destByte = 0;
             int bitsLeft = 8;
 
-            for (int cur = 0; cur < n; cur++)
+            for (int i = 0; i < n; i++)
             {
-                byte curSrc8 = sourceArray[cur];
+                int sourceValue = sourceSpan[i];
 
                 int bitsWritten = 0;
 
@@ -480,172 +616,151 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     if ((bits - bitsWritten) <= bitsLeft)
                     {
-                        byte srcByte = (byte)((curSrc8 & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
+                        byte tb = (byte)((sourceValue & ((1 << (bits - bitsWritten)) - 1)) >> bitsWritten);
+                        destByte |= (byte)(tb << (8 - bitsLeft));
                         bitsLeft -= bits - bitsWritten;
                         bitsWritten = bits;
                     }
                     else
                     {
-                        byte srcByte = (byte)((curSrc8 & ((0xFF >> (8 - bitsLeft)) << bitsWritten)) >> bitsWritten);
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
+                        byte tb = (byte)((sourceValue & ((1 << bitsLeft) - 1)) << bitsWritten);
+                        destByte |= (byte)(tb << (8 - bitsLeft));
                         bitsWritten += bitsLeft;
                         bitsLeft = 0;
                     }
 
                     if (bitsLeft == 0)
                     {
-                        destArray[cur] = destByte;
+                        destSpan[i] = destByte;
                         destByte = 0;
                         bitsLeft = 8;
-                        cur++;
                     }
                 }
             }
 
-            Marshal.Copy(destArray, 0, dest, n);
+            if (bitsLeft < 8)
+            {
+                destSpan[n - 1] = destByte;
+            }
         }
 
-        public static void EncodeL_16(int n, int bits, IntPtr source, IntPtr dest)
+        public static void EncodeL_16(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            short[] sourceArray = new short[n];
-            Marshal.Copy(source, sourceArray, 0, n);
+            int bitsWritten = 0;
+            int bitsLeft = 8;
 
-            byte[] destArray = new byte[n];
+            for (int i = 0; i < n; i++)
+            {
+                int value = sourceSpan[i];
+                int bitsToWrite = Math.Min(bits - bitsWritten, bitsLeft);
+                byte tempByte = (byte)((value >> bitsWritten) & ((1 << bitsToWrite) - 1));
+                destSpan[i] |= (byte)(tempByte << (8 - bitsLeft));
 
-            byte destByte = 0;
+                bitsWritten += bitsToWrite;
+                bitsLeft -= bitsToWrite;
+                if (bitsWritten == bits)
+                {
+                    bitsWritten = 0;
+                    bitsLeft = 8;
+                }
+                else if (bitsLeft == 0)
+                {
+                    bitsLeft = 8;
+                }
+            }
+        }
+
+        public static void EncodeL_24(int n, int bits, ReadOnlySpan<Int24> sourceSpan, Span<byte> destSpan)
+        {
+            int destIndex = 0;          // Index of the current position in the destination span
+            byte destByte = 0;          // Accumulator for the bits to be written to the destination
+            int bitsLeft = 8;           // Number of bits remaining in the current destination byte
+
+            for (int i = 0; i < n; i++)
+            {
+                int srcInt24 = sourceSpan[i];   // Get the current Int24 value from the source span
+                int bitsWritten = 0;            // Number of bits written for the current Int24 value
+
+                while (bitsWritten < bits)
+                {
+                    // If the remaining bits to be written fit in the current destination byte
+                    if ((bits - bitsWritten) <= bitsLeft)
+                    {
+                        // Extract the bits from the Int24 value and update the destination byte
+                        byte curByte = (byte)(srcInt24 & (0xFF >> (8 - (bits - bitsWritten))));
+                        srcInt24 >>= bits - bitsWritten;
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
+                        bitsLeft -= bits - bitsWritten;
+                        bitsWritten = bits; // All bits have been written for the current value
+                    }
+                    else
+                    {
+                        // Extract the bits from the Int24 value and update the destination byte
+                        byte curByte = (byte)(srcInt24 & (0xFF >> (8 - bitsLeft)));
+                        srcInt24 >>= bitsLeft;
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
+                        bitsWritten += bitsLeft;
+                        bitsLeft = 0;
+                    }
+
+                    // If the current destination byte is full, write it to the destination span
+                    if (bitsLeft == 0)
+                    {
+                        destSpan[destIndex] = destByte;
+                        destIndex++;
+                        destByte = 0;       // Reset the accumulator
+                        bitsLeft = 8;       // Reset the number of bits remaining in the destination byte
+                    }
+                }
+            }
+
+            // If there are remaining bits in the last destination byte, write it to the destination span
+            if (bitsLeft < 8)
+            {
+                destSpan[destIndex] = destByte;
+            }
+        }
+
+        public static void EncodeL_32(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        {
+            int destIndex = 0;
+            int bitsWritten = 0;
             int bitsLeft = 8;
 
             for (int cur = 0; cur < n; cur++)
             {
-                short curSrc16 = sourceArray[cur];
+                int value = sourceSpan[cur];
+                byte[] valueBytes = BitConverter.GetBytes(value);
 
-                int bitsWritten = 0;
-
-                while (bitsWritten < bits)
+                for (int i = 0; i < valueBytes.Length; i++)
                 {
-                    if ((bits - bitsWritten) <= bitsLeft)
+                    byte destByte;
+
+                    if (bitsWritten < bits)
                     {
-                        byte srcByte = (byte)((curSrc16 & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
-                        bitsLeft -= bits - bitsWritten;
-                        bitsWritten = bits;
+                        int bitsToWrite = Math.Min(bits - bitsWritten, bitsLeft);
+                        destByte = (byte)((valueBytes[i] >> bitsWritten) & ((1 << bitsToWrite) - 1));
+                        destSpan[destIndex] |= (byte)(destByte << (8 - bitsLeft));
+                        bitsWritten += bitsToWrite;
+                        bitsLeft -= bitsToWrite;
                     }
-                    else
+
+                    if (bitsWritten == bits)
                     {
-                        byte srcByte = (byte)((curSrc16 & ((0xFF >> (8 - bitsLeft)) << bitsWritten)) >> bitsWritten);
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
-                        bitsWritten += bitsLeft;
-                        bitsLeft = 0;
+                        destIndex++;
+                        destSpan[destIndex] = 0;
+                        bitsWritten = 0;
+                        bitsLeft = 8;
                     }
 
                     if (bitsLeft == 0)
                     {
-                        destArray[cur] = destByte;
-                        destByte = 0;
+                        destIndex++;
+                        destSpan[destIndex] = 0;
                         bitsLeft = 8;
-                        cur++;
                     }
                 }
             }
-
-            Marshal.Copy(destArray, 0, dest, n);
-        }
-
-        public static void EncodeL_24(int n, int bits, IntPtr source, IntPtr dest)
-        {
-            byte[] sourceArray = new byte[n * 3];
-            Marshal.Copy(source, sourceArray, 0, n * 3);
-
-            byte[] destArray = new byte[n];
-
-            byte destByte = 0;
-            int bitsLeft = 8;
-
-            for (int cur = 0; cur < n; cur++)
-            {
-                int curSrc24 = (sourceArray[cur * 3]) |
-                          (sourceArray[cur * 3 + 1] << 8) |
-                          (sourceArray[cur * 3 + 2] << 16);
-
-                int bitsWritten = 0;
-
-                while (bitsWritten < bits)
-                {
-                    if ((bits - bitsWritten) <= bitsLeft)
-                    {
-                        byte srcByte = (byte)(curSrc24 & (0xFF >> (8 - (bits - bitsWritten))));
-                        curSrc24 >>= bits - bitsWritten;
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
-                        bitsLeft -= bits - bitsWritten;
-                        bitsWritten = bits;
-                    }
-                    else
-                    {
-                        byte srcByte = (byte)(curSrc24 & (0xFF >> (8 - bitsLeft)));
-                        curSrc24 >>= bitsLeft;
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
-                        bitsWritten += bitsLeft;
-                        bitsLeft = 0;
-                    }
-
-                    if (bitsLeft == 0)
-                    {
-                        destArray[cur] = destByte;
-                        destByte = 0;
-                        bitsLeft = 8;
-                        cur++;
-                    }
-                }
-            }
-
-            Marshal.Copy(destArray, 0, dest, n);
-        }
-
-        public static void EncodeL_32(int n, int bits, IntPtr source, IntPtr dest)
-        {
-            int[] sourceArray = new int[n];
-            Marshal.Copy(source, sourceArray, 0, n);
-
-            byte[] destArray = new byte[n];
-
-            byte destByte = 0;
-            int bitsLeft = 8;
-
-            for (int cur = 0; cur < n; cur++)
-            {
-                int curSrc32 = sourceArray[cur];
-
-                int bitsWritten = 0;
-
-                while (bitsWritten < bits)
-                {
-                    if ((bits - bitsWritten) <= bitsLeft)
-                    {
-                        byte srcByte = (byte)((curSrc32 & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
-                        bitsLeft -= bits - bitsWritten;
-                        bitsWritten = bits;
-                    }
-                    else
-                    {
-                        byte srcByte = (byte)((curSrc32 & ((0xFF >> (8 - bitsLeft)) << bitsWritten)) >> bitsWritten);
-                        destByte |= (byte)(srcByte << (8 - bitsLeft));
-                        bitsWritten += bitsLeft;
-                        bitsLeft = 0;
-                    }
-
-                    if (bitsLeft == 0)
-                    {
-                        destArray[cur] = destByte;
-                        destByte = 0;
-                        bitsLeft = 8;
-                        cur++;
-                    }
-                }
-            }
-
-            Marshal.Copy(destArray, 0, dest, n);
         }
 
         public static void Fill16_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
@@ -1120,79 +1235,45 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode_8(int n, int bits, IntPtr source,
-                                        IntPtr dest)
+        public static void Encode_8(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            if (bits == 8)
+            switch (bits)
             {
-                Encode8_8(n, source, dest);
-            }
-            else
-            {
-                EncodeL_8(n, bits, source, dest);
+                case 8: Encode8_8(n, sourceSpan, destSpan); break;
+                default: EncodeL_8(n, bits, sourceSpan, destSpan); break;
             }
         }
 
-        public static void Encode_16(int n, int bits, IntPtr source,
-                                        IntPtr dest)
+        public static void Encode_16(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
-            if (bits == 8)
+            switch (bits)
             {
-                Encode8_16(n, source, dest);
-            }
-            else if (bits == 16)
-            {
-                Encode16_16(n, source, dest);
-            }
-            else
-            {
-                EncodeL_16(n, bits, source, dest);
-            }
-
-        }
-
-        public static void Encode_24(int n, int bits, IntPtr source,
-                                        IntPtr dest)
-        {
-            if (bits == 8)
-            {
-                Encode8_24(n, source, dest);
-            }
-            else if (bits == 16)
-            {
-                Encode16_24(n, source, dest);
-            }
-            else if (bits == 24)
-            {
-                Encode24_24(n, source, dest);
-            }
-            else
-            {
-                EncodeL_24(n, bits, source, dest);
+                case 8: Encode8_16(n, sourceSpan, destSpan); break;
+                case 16: Encode16_16(n, sourceSpan, destSpan); break;
+                default: EncodeL_16(n, bits, sourceSpan, destSpan); break;
             }
         }
 
-        public static void Encode_32(int n, int bits, IntPtr source, IntPtr dest)
+        public static void Encode_24(int n, int bits, ReadOnlySpan<Int24> sourceSpan, Span<byte> destSpan)
         {
-            if (bits == 8)
+            switch (bits)
             {
-                Encode8_32(n, source, dest);
+                // case 8: Encode8_24(n, sourceSpan, destSpan); break;
+                // case 16: Encode16_24(n, sourceSpan, destSpan); break;
+                // case 24: Encode24_24(n, sourceSpan, destSpan); break;
+                default: EncodeL_24(n, bits, sourceSpan, destSpan); break;
             }
-            else if (bits == 16)
+        }
+
+        public static void Encode_32(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        {
+            switch (bits)
             {
-                Encode16_32(n, source, dest);
-            }
-            else if (bits == 24)
-            {
-                Encode24_32(n, source, dest);
-            }
-            else if (bits == 32)
-            {
-                Encode32_32(n, source, dest);
-            }
-            else
-            {
-                EncodeL_32(n, bits, source, dest);
+                case 8: Encode8_32(n, sourceSpan, destSpan); break;
+                case 16: Encode16_32(n, sourceSpan, destSpan); break;
+                case 24: Encode24_32(n, sourceSpan, destSpan); break;
+                case 32: Encode32_32(n, sourceSpan, destSpan); break;
+                default: EncodeL_32(n, bits, sourceSpan, destSpan); break;
             }
         }
     }
