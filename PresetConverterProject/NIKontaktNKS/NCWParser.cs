@@ -15,27 +15,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static bool NCW2Wav(string inputFilePath, string outputDirectoryPath, bool doList, bool doVerbose)
         {
-            // // read wave file
-            // var wp = new WAVParser();
-            // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB.wav";
-            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - u8bit.wav";
-            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 16bit.wav";
-            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 32bit.wav";
-            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 24bit.wav";
-            // // var wavInPath = "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 32bit float.wav";
-            // wp.OpenWav(wavInPath);
-
-            // // ints
-            // int[] ints = new int[wp.WavHeader.numOfPoints * wp.WavHeader.nChannels];
-            // wp.ReadToIntegers(ints);
-            // var wavOutPathInts = "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB - ints.wav";
-            // wp.SaveWAVFromIntegers(wavOutPathInts, ints);
-
-            // // floats
-            // float[] floats = new float[wp.WavHeader.numOfPoints * wp.WavHeader.nChannels];
-            // wp.ReadToFloats(ref floats, (uint)wp.WavHeader.numOfPoints);
-            // var wavOutPathFloats = "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB - floats.wav";
-            // wp.SaveStandardWAVMulti(wavOutPathFloats, ref floats);
+            // Output file to standard wav
+            var wavtype = WavType.Standard;
 
             // Convert file
             var ncwParser = new NCWParser(doVerbose);
@@ -43,21 +24,11 @@ namespace PresetConverterProject.NIKontaktNKS
             ncwParser.OpenNCWFile(inputFilePath);
             ncwParser.ReadNCW();
 
-            // test using integers
-            ncwParser.ReadNCWIntegers();
-            string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
-            string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
-            Log.Information("Writing file {0} ...", outputFilePathInt);
-            ncwParser.SaveToWAVIntegers(outputFilePathInt);
-
             if (!doList)
             {
-                // Output file to wav
-                var wavtype = WavType.Standard;
-
                 string outputFileName = Path.GetFileNameWithoutExtension(inputFilePath) + ".wav";
                 string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
-                Log.Information("Writing file {0} ...", outputFilePath);
+                Log.Information("Writing WAV file ({0}) as {1} ...", wavtype, outputFilePath);
 
                 if (wavtype == WavType.Standard)
                 {
@@ -81,29 +52,6 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
             }
-
-
-            // test writing NCW
-            WAVParser.TMyWAVHeader wavHeader = new()
-            {
-                wFormatTag = SoundIO.WAVE_FORMAT_PCM, // Standard wav
-                nChannels = ncwParser.Header.Channels,
-                nSamplesPerSec = ncwParser.Header.SampleRate,
-                wBitsPerSample = ncwParser.Header.Bits,
-                numOfPoints = (int)ncwParser.Header.NumSamples
-            };
-
-            string outputFileNameNCW24 = Path.GetFileNameWithoutExtension(inputFilePath) + "_24.ncw";
-            string outputFilePathNCW24 = Path.Combine(outputDirectoryPath, outputFileNameNCW24);
-            Log.Information("Writing file {0} ...", outputFilePathNCW24);
-            ncwParser.WriteNCW24(wavHeader);
-            ncwParser.SaveToNCW(outputFilePathNCW24);
-
-            string outputFileNameNCW32 = Path.GetFileNameWithoutExtension(inputFilePath) + "_32.ncw";
-            string outputFilePathNCW32 = Path.Combine(outputDirectoryPath, outputFileNameNCW32);
-            Log.Information("Writing file {0} ...", outputFilePathNCW32);
-            ncwParser.WriteNCW32(wavHeader);
-            ncwParser.SaveToNCW(outputFilePathNCW32);
 
             return true;
         }

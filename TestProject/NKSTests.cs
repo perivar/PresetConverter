@@ -1,10 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-
 using CommonUtils;
-using PresetConverter;
 using PresetConverterProject.NIKontaktNKS;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,7 +32,6 @@ namespace TestProject
             toBytes[12] = 0x45;
 
             Assert.Equal(fromBytes, toBytes, new JaggedByteComparer(0.001));
-
         }
     }
 }

@@ -17,32 +17,32 @@ namespace TestProject
         [Fact]
         public void TestFromUnixFileNames()
         {
-            string windowsUnixName1 = NICNT.FromUnixFileNames(".PAResources|database|PAL|PAL.meta");
+            string windowsUnixName1 = NI.FromUnixFileNames(".PAResources|database|PAL|PAL.meta");
             Assert.Equal(".PAResources[pipe]database[pipe]PAL[pipe]PAL.meta", windowsUnixName1);
 
-            string windowsUnixName2 = NICNT.FromUnixFileNames("[more][music][less][noise].aif");
+            string windowsUnixName2 = NI.FromUnixFileNames("[more][music][less][noise].aif");
             Assert.Equal("[more][music][[less][noise].aif", windowsUnixName2);
 
-            string windowsUnixName3 = NICNT.FromUnixFileNames("[[pipe]]organ[:]A#.aiff");
+            string windowsUnixName3 = NI.FromUnixFileNames("[[pipe]]organ[:]A#.aiff");
             Assert.Equal("[[[[pipe]]organ[[[colon]]A#.aiff", windowsUnixName3);
 
-            string windowsUnixName4 = NICNT.FromUnixFileNames("pipeorgan:A#.aiff");
+            string windowsUnixName4 = NI.FromUnixFileNames("pipeorgan:A#.aiff");
             Assert.Equal("pipeorgan[colon]A#.aiff", windowsUnixName4);
         }
 
         [Fact]
         public void TestToUnixFileNames()
         {
-            string unixName1 = NICNT.ToUnixFileName(".PAResources[pipe]database[pipe]PAL[pipe]PAL.meta");
+            string unixName1 = NI.ToUnixFileName(".PAResources[pipe]database[pipe]PAL[pipe]PAL.meta");
             Assert.Equal(".PAResources|database|PAL|PAL.meta", unixName1);
 
-            string unixName2 = NICNT.ToUnixFileName("[more][music][[less][noise].aif");
+            string unixName2 = NI.ToUnixFileName("[more][music][[less][noise].aif");
             Assert.Equal("[more][music][less][noise].aif", unixName2);
 
-            string unixName3 = NICNT.ToUnixFileName("[[[[pipe]]organ[[[colon]]A#.aiff");
+            string unixName3 = NI.ToUnixFileName("[[[[pipe]]organ[[[colon]]A#.aiff");
             Assert.Equal("[[pipe]]organ[:]A#.aiff", unixName3);
 
-            string unixName4 = NICNT.ToUnixFileName("pipeorgan[colon]A#.aiff");
+            string unixName4 = NI.ToUnixFileName("pipeorgan[colon]A#.aiff");
             Assert.Equal("pipeorgan:A#.aiff", unixName4);
         }
 

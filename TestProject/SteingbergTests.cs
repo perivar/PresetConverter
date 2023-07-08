@@ -16,7 +16,7 @@ namespace TestProject
         // [InlineData(@"REVerence\Bricasti - Small Room 27.vstpreset")]
         public void Test2(string fileName)
         {
-            string outputDirectoryPath = @"C:\Users\per.nerseth\OneDrive\DevProjects\Steinberg Media Technologies";
+            string outputDirectoryPath = @"C:\Users\periv\OneDrive\DevProjects\Steinberg Media Technologies";
             string filePath = Path.Combine(outputDirectoryPath, fileName);
 
             var readBytes = File.ReadAllBytes(filePath);

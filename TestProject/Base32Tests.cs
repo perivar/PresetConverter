@@ -1,5 +1,4 @@
 using Xunit;
-using CommonUtils;
 using PresetConverterProject.NIKontaktNKS;
 
 namespace TestProject
