@@ -734,11 +734,14 @@ namespace PresetConverterProject.NIKontaktNKS
             return true;
         }
 
-        public void WriteBlock(byte[] source, int size)
+        public void WriteBlock(Span<byte> source, int count)
         {
-            if (doVerbose) Log.Debug("Writing {0} bytes to output stream.", size);
+            if (doVerbose) Log.Debug("Writing {0} bytes to output stream.", count);
 
-            fsWriter.Write(source, 0, size);
+            if (fsWriter != null)
+            {
+                fsWriter.Write(source.Slice(0, count));
+            }
         }
 
         public void CloseWav()

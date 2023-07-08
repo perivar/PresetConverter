@@ -248,6 +248,13 @@ namespace PresetConverterProject.NIKontaktNKS
             data8 = Array.Empty<sbyte>();
             data16 = Array.Empty<short>();
             data24 = Array.Empty<Int24>();
+
+            if (ms != null)
+            {
+                ms.Close();
+                ms.Dispose();
+                ms = null;
+            }
         }
 
         public void CloseFile()
@@ -264,11 +271,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public void SaveToWAV(string filename)
         {
-            WAVParser.TMyWAVHeader wavHeader = new();
-            wavHeader.wFormatTag = SoundIO.WAVE_FORMAT_PCM; // Standard wav
-            wavHeader.nChannels = header.Channels;
-            wavHeader.nSamplesPerSec = header.SampleRate;
-            wavHeader.wBitsPerSample = header.Bits;
+            WAVParser.TMyWAVHeader wavHeader = new()
+            {
+                wFormatTag = SoundIO.WAVE_FORMAT_PCM, // Standard wav
+                nChannels = header.Channels,
+                nSamplesPerSec = header.SampleRate,
+                wBitsPerSample = header.Bits
+            };
+
             wavHeader.nBlockAlign = (ushort)(wavHeader.nChannels * wavHeader.wBitsPerSample / 8);
             wavHeader.nAvgBytesPerSec = wavHeader.nSamplesPerSec * wavHeader.nBlockAlign;
             wavHeader.cbSize = 0;
@@ -303,34 +313,25 @@ namespace PresetConverterProject.NIKontaktNKS
                     throw new Exception("NCWPARSER.SaveToWAV: Unsupported BitsPerSample");
             }
 
-            // int block_size = 1024;
-            // int nblocks = (int)wavHeader.dataSize / block_size;
-            // int nrem = (int)wavHeader.dataSize - nblocks * block_size;
-
-            // for (int i = 0; i < nblocks; i++)
-            // {
-            //     wp.WriteBlock(buf, block_size);
-            //     buf = buf.Skip(block_size).ToArray();
-            // }
-
-            // if (nrem != 0)
-            // {
-            //     wp.WriteBlock(buf, nrem);
-            // }
+            // write in blocks
+            // WriteInBlocks(wavHeader, wp, buf);
 
             // write everything in one go
-            wp.WriteBlock(buf.ToArray(), buf.Length);
+            wp.WriteBlock(buf, buf.Length);
 
             wp.CloseWav();
         }
 
         public void SaveToWAVEx(string filename)
         {
-            WAVParser.TMyWAVHeader wavHeader = new();
-            wavHeader.wFormatTag = SoundIO.WAVE_FORMAT_EXTENSIBLE; // Extended wav
-            wavHeader.nChannels = header.Channels;
-            wavHeader.nSamplesPerSec = header.SampleRate;
-            wavHeader.wBitsPerSample = header.Bits;
+            WAVParser.TMyWAVHeader wavHeader = new()
+            {
+                wFormatTag = SoundIO.WAVE_FORMAT_EXTENSIBLE, // Extended wav
+                nChannels = header.Channels,
+                nSamplesPerSec = header.SampleRate,
+                wBitsPerSample = header.Bits
+            };
+
             wavHeader.nBlockAlign = (ushort)(wavHeader.nChannels * wavHeader.wBitsPerSample / 8);
             wavHeader.nAvgBytesPerSec = wavHeader.nSamplesPerSec * wavHeader.nBlockAlign;
             wavHeader.cbSize = 0;
@@ -367,34 +368,25 @@ namespace PresetConverterProject.NIKontaktNKS
                     throw new Exception("NCWPARSER.SaveToWAVEx: Unsupported BitsPerSample");
             }
 
-            // int block_size = 1024;
-            // int nblocks = (int)wavHeader.dataSize / block_size;
-            // int nrem = (int)wavHeader.dataSize - nblocks * block_size;
-
-            // for (int i = 0; i < nblocks; i++)
-            // {
-            //     wp.WriteBlock(buf, block_size);
-            //     buf = buf.Skip(block_size).ToArray();
-            // }
-
-            // if (nrem != 0)
-            // {
-            //     wp.WriteBlock(buf, nrem);
-            // }
+            // write in blocks
+            // WriteInBlocks(wavHeader, wp, buf);
 
             // write everything in one go
-            wp.WriteBlock(buf.ToArray(), buf.Length);
+            wp.WriteBlock(buf, buf.Length);
 
             wp.CloseWav();
         }
 
         public void SaveToWAVIntegers(string filename)
         {
-            WAVParser.TMyWAVHeader wavHeader = new();
-            wavHeader.wFormatTag = SoundIO.WAVE_FORMAT_PCM; // Standard wav
-            wavHeader.nChannels = header.Channels;
-            wavHeader.nSamplesPerSec = header.SampleRate;
-            wavHeader.wBitsPerSample = header.Bits;
+            WAVParser.TMyWAVHeader wavHeader = new()
+            {
+                wFormatTag = SoundIO.WAVE_FORMAT_PCM, // Standard wav
+                nChannels = header.Channels,
+                nSamplesPerSec = header.SampleRate,
+                wBitsPerSample = header.Bits
+            };
+
             wavHeader.nBlockAlign = (ushort)(wavHeader.nChannels * wavHeader.wBitsPerSample / 8);
             wavHeader.nAvgBytesPerSec = wavHeader.nSamplesPerSec * wavHeader.nBlockAlign;
             wavHeader.cbSize = 0;
@@ -409,6 +401,42 @@ namespace PresetConverterProject.NIKontaktNKS
 
             // use chnkSize = 20
             wp.SaveWAVFromIntegers(filename, ref datai, 20);
+        }
+
+        private static void WriteInBlocks(WAVParser.TMyWAVHeader wavHeader, WAVParser wp, byte[] buf)
+        {
+            int blockSize = 1024;
+            int nblocks = (int)wavHeader.dataSize / blockSize;
+            int nrem = (int)wavHeader.dataSize - nblocks * blockSize;
+
+            for (int i = 0; i < nblocks; i++)
+            {
+                wp.WriteBlock(buf, blockSize);
+                buf = buf.Skip(blockSize).ToArray();
+            }
+
+            if (nrem != 0)
+            {
+                wp.WriteBlock(buf, nrem);
+            }
+        }
+
+        private static void WriteInBlocks(WAVParser.TMyWAVHeader wavHeader, WAVParser wp, Span<byte> source)
+        {
+            int blockSize = 1024;
+            int nblocks = (int)wavHeader.dataSize / blockSize;
+            int nrem = (int)wavHeader.dataSize - nblocks * blockSize;
+
+            for (int i = 0; i < nblocks; i++)
+            {
+                wp.WriteBlock(source, blockSize);
+                source = source.Slice(blockSize);
+            }
+
+            if (nrem != 0)
+            {
+                wp.WriteBlock(source, nrem);
+            }
         }
 
         public void OpenNCWFile(string filename)
@@ -503,8 +531,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
+                        // left
                         data8[curOffset] = (sbyte)(temp8[0][k] + temp8[1][k]);
                         curOffset++;
+
+                        // right
                         data8[curOffset] = (sbyte)(temp8[0][k] - temp8[1][k]);
                         curOffset++;
                         curSample++;
@@ -586,12 +617,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
+                        // left
                         data16[curOffset] = (short)(temp16[0][k] + temp16[1][k]);
                         curOffset++;
+
+                        // right
                         data16[curOffset] = (short)(temp16[0][k] - temp16[1][k]);
                         curOffset++;
                         curSample++;
-
 
                         if (curSample >= header.NumSamples)
                             break;
@@ -691,8 +724,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
+                        // left
                         data24[curOffset] = temp24[0][k] + temp24[1][k];
                         curOffset++;
+
+                        // right
                         data24[curOffset] = temp24[0][k] - temp24[1][k];
                         curOffset++;
                         curSample++;
@@ -774,8 +810,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
+                        // left
                         datai[curOffset] = temp32[0][k] + temp32[1][k];
                         curOffset++;
+
+                        // right
                         datai[curOffset] = temp32[0][k] - temp32[1][k];
                         curOffset++;
                         curSample++;
@@ -1174,16 +1213,28 @@ namespace PresetConverterProject.NIKontaktNKS
                 Bits = wavHeader.wBitsPerSample,
                 SampleRate = wavHeader.nSamplesPerSec,
                 NumSamples = (uint)wavHeader.numOfPoints,
+                // SomeData = new byte[] {
+                //     0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00, 0x42, 0x01, 0x00, 0x00, 0x04, 0x01, 0x00, 0x00,
+                //     0x00, 0x00, 0x00, 0x00
+                // },
+
                 SomeData = new byte[] {
-                    0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00, 0x42, 0x01, 0x00, 0x00, 0x04, 0x01, 0x00, 0x00,
-                    0x00, 0x00, 0x00, 0x00
+                    0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x14, 0xFA, 0x4B, 0x11,
+                    0x01, 0x00, 0x00, 0x00, 0x85, 0x16, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x14, 0x5A, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x68, 0xC8, 0x10,
+                    0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x80, 0x67, 0xC8, 0x10, 0x01, 0x00, 0x00, 0x00, 0x82, 0xA1, 0xAA, 0x00,
+                    0x01, 0x00, 0x00, 0x00, 0x7C, 0x67, 0xC8, 0x10, 0x01, 0x00, 0x00, 0x00,
+                    0x14, 0xDA, 0xD4, 0x11, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x67, 0xC8, 0x10,
+                    0x01, 0x00, 0x00, 0x00
                 },
+
                 BlockDefOffset = 120 // 0x78
             };
 
