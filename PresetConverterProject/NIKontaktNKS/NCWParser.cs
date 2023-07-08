@@ -511,15 +511,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         int nbits = Math.Abs(bHeader.Bits);
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer with compression [nbits: {0}, blockSize: {1}]", nbits, nbits * 64));
+
                         temp8[j] = new sbyte[NCW_SAMPLES];
                         BitProcess.Fill8(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp8[j], false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
-                        byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp8[j] = new sbyte[NCW_SAMPLES];
                         bool nrelative = bHeader.Bits != 0;
+                        byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer no compression [nbits: {0}, blockSize: {1}, nrelative: {2}]", nbits, nbits * 64, nrelative));
+
+                        temp8[j] = new sbyte[NCW_SAMPLES];
                         BitProcess.Fill8(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp8[j], nrelative);
                     }
                 }
@@ -597,15 +601,19 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         int nbits = Math.Abs(bHeader.Bits);
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer with compression [nbits: {0}, blockSize: {1}]", nbits, nbits * 64));
+
                         temp16[j] = new short[NCW_SAMPLES];
                         BitProcess.Fill16(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp16[j], false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
-                        byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp16[j] = new short[NCW_SAMPLES];
                         bool nrelative = bHeader.Bits != 0;
+                        byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer no compression [nbits: {0}, blockSize: {1}, nrelative: {2}]", nbits, nbits * 64, nrelative));
+
+                        temp16[j] = new short[NCW_SAMPLES];
                         BitProcess.Fill16(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp16[j], nrelative);
                     }
                 }
@@ -687,6 +695,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         int nbits = Math.Abs(bHeader.Bits);
 
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer with compression [nbits: {0}, blockSize: {1}]", nbits, nbits * 64));
+
                         temp24[j] = new Int24[NCW_SAMPLES];
                         BitProcess.Fill24(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp24[j], false);
                     }
@@ -702,6 +712,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         bool nrelative = bHeader.Bits != 0;
 
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer no compression [nbits: {0}, blockSize: {1}, nrelative: {2}]", nbits, nbits * 64, nrelative));
+
                         temp24[j] = new Int24[NCW_SAMPLES];
                         BitProcess.Fill24(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp24[j], nrelative);
                     }
@@ -790,6 +802,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         int nbits = Math.Abs(bHeader.Bits);
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer with compression [nbits: {0}, blockSize: {1}]", nbits, nbits * 64));
+
                         temp32[j] = new int[NCW_SAMPLES];
                         BitProcess.Fill32(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp32[j], false);
                     }
@@ -798,6 +812,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
                         bool nrelative = bHeader.Bits != 0;
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer no compression [nbits: {0}, blockSize: {1}, nrelative: {2}]", nbits, nbits * 64, nrelative));
+
                         temp32[j] = new int[NCW_SAMPLES];
                         BitProcess.Fill32(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp32[j], nrelative);
                     }
@@ -897,6 +913,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         int nbits = Math.Abs(bHeader.Bits);
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer with compression [nbits: {0}, blockSize: {1}]", nbits, nbits * 64));
+
                         tempi[j] = new int[NCW_SAMPLES];
                         BitProcess.FillIntegersAbs(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, tempi[j]);
                     }
@@ -906,6 +924,8 @@ namespace PresetConverterProject.NIKontaktNKS
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
                         bool nrelative = bHeader.Bits != 0;
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
+                        if (doVerbose) Log.Debug(string.Format("Filling input buffer no compression [nbits: {0}, blockSize: {1}, nrelative: {2}]", nbits, nbits * 64, nrelative));
+
                         tempi[j] = new int[NCW_SAMPLES];
                         BitProcess.FillIntegers(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, tempi[j], nrelative);
                     }
@@ -1253,14 +1273,21 @@ namespace PresetConverterProject.NIKontaktNKS
             int curBlockOffset = 0;
 
             // initialize temporary arrays
-            Int24[][] temp24 = new Int24[header.Channels][];
+            Int24[][] temp24 = new Int24[header.Channels][]; // Left/Right
             Int24[][] temp24dif = new Int24[header.Channels][];
+
+            // Int24[][] temp24MS = new Int24[header.Channels][]; // Mid/Side
+            // Int24[][] temp24difMS = new Int24[header.Channels][];
+
             byte[] tempB = new byte[header.Bits * 64 * 3];
 
             for (int j = 0; j < header.Channels; j++)
             {
                 temp24[j] = new Int24[NCW_SAMPLES];
                 temp24dif[j] = new Int24[NCW_SAMPLES];
+
+                // temp24MS[j] = new Int24[NCW_SAMPLES];
+                // temp24difMS[j] = new Int24[NCW_SAMPLES];
             }
 
             for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
@@ -1274,6 +1301,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < header.Channels; j++)
                     {
+                        // fill Left/Right samples
                         int curIndex = curBlockNumber * 512 * header.Channels + i * header.Channels + j;
                         if (curIndex < data24.Length)
                         {
@@ -1284,16 +1312,74 @@ namespace PresetConverterProject.NIKontaktNKS
                             temp24[j][i] = Int24.Zero;
                         }
                     }
+
+                    // also fill Mid/Side
+                    // Int24 left = temp24[0][i];
+                    // Int24 right = temp24[1][i];
+
+                    // int mid = (left + right) / 2;
+                    // int side = (left - right) / 2;
+
+                    // temp24MS[0][i] = (Int24)mid;
+                    // temp24MS[1][i] = (Int24)side;
                 }
 
+                // bool useMS = false;
                 for (int j = 0; j < header.Channels; j++)
                 {
+                    // temp24 contains left/right samples, fill the temp diff array with deltas
                     DiffArray24(temp24[j], temp24dif[j], out int max, out int min);
                     int nbits = Math.Max(MinBits(min), MinBits(max));
+
+                    // check whether we can compress to less bits when using mid side and not left/right
+                    // DiffArray24(temp24MS[j], temp24difMS[j], out int maxMS, out int minMS);
+                    // int nbitsMS = Math.Max(MinBits(minMS), MinBits(maxMS));
+
+                    // if (nbitsMS < nbits)
+                    // {
+                    //     useMS = true;
+                    // }
+                    // else
+                    // {
+                    //     // turn of MS if not already set for this block
+                    //     if (!useMS) useMS = false;
+                    // }
 
                     TBlockHeader bHeader = new();
                     FillBlockHeader(ref bHeader);
 
+                    int blockSize;
+                    // if (useMS)
+                    // {
+                    //     // set Mid/Side flag
+                    //     bHeader.Flags = 1;
+                    //     bHeader.BaseValue = temp24MS[j][0];
+
+                    //     if (nbitsMS >= header.Bits)
+                    //     {
+                    //         bHeader.Bits = (short)-header.Bits;
+                    //         nbitsMS = header.Bits;
+                    //     }
+                    //     else
+                    //     {
+                    //         bHeader.Bits = (short)nbitsMS;
+                    //     }
+
+                    //     blockSize = nbitsMS * 64;
+
+                    //     if (doVerbose) Log.Debug(string.Format("Encoding 24bit block M/S @ position {0} [blockSize: {1}, base: {2}, bits: {3}, flags: {4} = {5}]", ms.Position, blockSize, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
+
+                    //     if (bHeader.Bits < 0)
+                    //     {
+                    //         BitProcess.Encode_24(NCW_SAMPLES, nbitsMS, temp24MS[j], tempB);
+                    //     }
+                    //     else
+                    //     {
+                    //         BitProcess.Encode_24(NCW_SAMPLES, nbitsMS, temp24difMS[j], tempB);
+                    //     }
+                    // }
+                    // else
+                    // {
                     bHeader.BaseValue = temp24[j][0];
 
                     if (nbits >= header.Bits)
@@ -1306,7 +1392,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         bHeader.Bits = (short)nbits;
                     }
 
-                    int blockSize = nbits * 64;
+                    blockSize = nbits * 64;
 
                     if (doVerbose) Log.Debug(string.Format("Encoding 24bit block @ position {0} [blockSize: {1}, base: {2}, bits: {3}, flags: {4} = {5}]", ms.Position, blockSize, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
@@ -1318,6 +1404,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         BitProcess.Encode_24(NCW_SAMPLES, nbits, temp24dif[j], tempB);
                     }
+                    // }
 
                     byte[] bHeaderBytes = StructureToBytes(bHeader);
                     ms.Write(bHeaderBytes);
@@ -1560,7 +1647,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < sourceArray.Length - 1; i++)
             {
-                diffArray[i] = (Int24)(sourceArray[i + 1] - sourceArray[i]);
+                diffArray[i] = sourceArray[i + 1] - sourceArray[i];
 
                 // Update max and min values
                 if (diffArray[i] > max)
