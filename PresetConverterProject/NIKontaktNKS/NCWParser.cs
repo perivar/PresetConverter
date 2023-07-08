@@ -45,11 +45,11 @@ namespace PresetConverterProject.NIKontaktNKS
             ncwParser.ReadNCW();
 
             // test using integers
-            // ncwParser.ReadNCWIntegers();
-            // string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
-            // string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
-            // Log.Information("Writing file {0} ...", outputFilePathInt);
-            // ncwParser.SaveToWAVIntegers(outputFilePathInt);
+            ncwParser.ReadNCWIntegers();
+            string outputFileNameInt = Path.GetFileNameWithoutExtension(inputFilePath) + "_ints.wav";
+            string outputFilePathInt = Path.Combine(outputDirectoryPath, outputFileNameInt);
+            Log.Information("Writing file {0} ...", outputFilePathInt);
+            ncwParser.SaveToWAVIntegers(outputFilePathInt);
 
             // Output file to wav
             var wavtype = WavType.Standard;
@@ -148,10 +148,11 @@ namespace PresetConverterProject.NIKontaktNKS
         public TNCWHeader Header { get => header; set => header = value; }
 
         private int[]? blocksDefArray;
-        private int[]? datai;
-        private sbyte[]? data8;
-        private short[]? data16;
-        private byte[,]? data24; // x 3
+
+        private sbyte[]? data8; // 1 byte
+        private short[]? data16; // 2 bytes
+        private Int24[]? data24; // 3 bytes
+        private int[]? datai; // 4 bytes
 
         private FileStream? fs;
         private MemoryStream? ms;
@@ -163,7 +164,7 @@ namespace PresetConverterProject.NIKontaktNKS
             datai = Array.Empty<int>();
             data8 = Array.Empty<sbyte>();
             data16 = Array.Empty<short>();
-            data24 = new byte[0, 0];
+            data24 = Array.Empty<Int24>();
         }
 
         public void CloseFile()
@@ -200,27 +201,23 @@ namespace PresetConverterProject.NIKontaktNKS
             // use chnkSize = 20
             wp.StartSaveBlocks(filename, 20);
 
-            byte[] buf;
+            Span<byte> buf;
             switch (header.Bits)
             {
                 case 8:
-                    buf = new byte[(int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(data8, 0), buf, 0, (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<sbyte, byte>(data8);
                     break;
                 case 16:
-                    buf = new byte[2 * (int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(data16, 0), buf, 0, 2 * (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<short, byte>(data16);
                     break;
                 case 24:
-                    buf = new byte[3 * (int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(data24, 0), buf, 0, 3 * (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<Int24, byte>(data24);
                     break;
                 case 32:
-                    buf = new byte[4 * (int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(datai, 0), buf, 0, 4 * (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<int, byte>(datai);
                     break;
                 default:
-                    throw new Exception("NCWPARSER.SaveToWav: Unsupported BitsPerSample");
+                    throw new Exception("NCWPARSER.SaveToWAV: Unsupported BitsPerSample");
             }
 
             // int block_size = 1024;
@@ -239,7 +236,7 @@ namespace PresetConverterProject.NIKontaktNKS
             // }
 
             // write everything in one go
-            wp.WriteBlock(buf, buf.Length);
+            wp.WriteBlock(buf.ToArray(), buf.Length);
 
             wp.CloseWav();
         }
@@ -268,27 +265,23 @@ namespace PresetConverterProject.NIKontaktNKS
             };
             wp.StartSaveBlocks(filename);
 
-            byte[] buf;
+            Span<byte> buf;
             switch (header.Bits)
             {
                 case 8:
-                    buf = new byte[(int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(data8, 0), buf, 0, (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<sbyte, byte>(data8);
                     break;
                 case 16:
-                    buf = new byte[2 * (int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(data16, 0), buf, 0, 2 * (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<short, byte>(data16);
                     break;
                 case 24:
-                    buf = new byte[3 * (int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(data24, 0), buf, 0, 3 * (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<Int24, byte>(data24);
                     break;
                 case 32:
-                    buf = new byte[4 * (int)header.NumSamples * header.Channels];
-                    Marshal.Copy(GetIntPtr(datai, 0), buf, 0, 4 * (int)header.NumSamples * header.Channels);
+                    buf = MemoryMarshal.Cast<int, byte>(datai);
                     break;
                 default:
-                    throw new Exception("NCWPARSER.SaveToWav: Unsupported BitsPerSample");
+                    throw new Exception("NCWPARSER.SaveToWAVEx: Unsupported BitsPerSample");
             }
 
             // int block_size = 1024;
@@ -307,7 +300,7 @@ namespace PresetConverterProject.NIKontaktNKS
             // }
 
             // write everything in one go
-            wp.WriteBlock(buf, buf.Length);
+            wp.WriteBlock(buf.ToArray(), buf.Length);
 
             wp.CloseWav();
         }
@@ -423,7 +416,7 @@ namespace PresetConverterProject.NIKontaktNKS
             int curOffset = 0;
             uint curSample = 0;
 
-            int[][] temp8 = new int[MAX_CHANNELS][];
+            sbyte[][] temp8 = new sbyte[MAX_CHANNELS][];
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
@@ -444,14 +437,14 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         int nbits = Math.Abs(bHeader.Bits);
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp8[j] = new int[NCW_SAMPLES];
+                        temp8[j] = new sbyte[NCW_SAMPLES];
                         BitProcess.Fill8(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp8[j], false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp8[j] = new int[NCW_SAMPLES];
+                        temp8[j] = new sbyte[NCW_SAMPLES];
                         bool nrelative = bHeader.Bits != 0;
                         BitProcess.Fill8(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp8[j], nrelative);
                     }
@@ -469,7 +462,6 @@ namespace PresetConverterProject.NIKontaktNKS
                         data8[curOffset] = (sbyte)(temp8[0][k] - temp8[1][k]);
                         curOffset++;
                         curSample++;
-
 
                         if (curSample >= header.NumSamples)
                             break;
@@ -507,7 +499,7 @@ namespace PresetConverterProject.NIKontaktNKS
             int curOffset = 0;
             uint curSample = 0;
 
-            int[][] temp16 = new int[MAX_CHANNELS][];
+            short[][] temp16 = new short[MAX_CHANNELS][];
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
@@ -528,14 +520,14 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         int nbits = Math.Abs(bHeader.Bits);
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp16[j] = new int[NCW_SAMPLES];
+                        temp16[j] = new short[NCW_SAMPLES];
                         BitProcess.Fill16(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp16[j], false);
                     }
                     else
                     {
                         int nbits = (bHeader.Bits == 0) ? header.Bits : bHeader.Bits;
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp16[j] = new int[NCW_SAMPLES];
+                        temp16[j] = new short[NCW_SAMPLES];
                         bool nrelative = bHeader.Bits != 0;
                         BitProcess.Fill16(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp16[j], nrelative);
                     }
@@ -586,12 +578,12 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             Log.Information("Reading NCW 24 bit...");
 
-            data24 = new byte[header.NumSamples * header.Channels, 3];
+            data24 = new Int24[header.NumSamples * header.Channels];
 
             int curOffset = 0;
             uint curSample = 0;
 
-            int[][] temp24 = new int[MAX_CHANNELS][];
+            Int24[][] temp24 = new Int24[MAX_CHANNELS][];
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
@@ -616,7 +608,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         int nbits = Math.Abs(bHeader.Bits);
 
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp24[j] = new int[NCW_SAMPLES * 3];
+                        temp24[j] = new Int24[NCW_SAMPLES];
                         BitProcess.Fill24(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp24[j], false);
                     }
 
@@ -631,7 +623,7 @@ namespace PresetConverterProject.NIKontaktNKS
                         bool nrelative = bHeader.Bits != 0;
 
                         byte[] inputBuf = ReadBytes(fs, nbits * 64);
-                        temp24[j] = new int[NCW_SAMPLES * 3];
+                        temp24[j] = new Int24[NCW_SAMPLES];
                         BitProcess.Fill24(NCW_SAMPLES, nbits, inputBuf, bHeader.BaseValue, temp24[j], nrelative);
                     }
                 }
@@ -653,22 +645,9 @@ namespace PresetConverterProject.NIKontaktNKS
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
-                        int ti1 = (temp24[0][k * 3] + (temp24[0][k * 3 + 1] << 8) + (temp24[0][k * 3 + 2] << 16)) << 8;
-                        int ti2 = (temp24[1][k * 3] + (temp24[1][k * 3 + 1] << 8) + (temp24[1][k * 3 + 2] << 16)) << 8;
-                        int ti3 = ti1 + ti2;
-
-                        data24[curOffset, 0] = (byte)((ti3 >> 8) & 0xFF);
-                        data24[curOffset, 1] = (byte)((ti3 >> 16) & 0xFF);
-                        data24[curOffset, 2] = (byte)((ti3 >> 24) & 0xFF);
+                        data24[curOffset] = temp24[0][k] + temp24[1][k];
                         curOffset++;
-
-                        ti1 = (temp24[0][k * 3] + (temp24[0][k * 3 + 1] << 8) + (temp24[0][k * 3 + 2] << 16)) << 8;
-                        ti2 = (temp24[1][k * 3] + (temp24[1][k * 3 + 1] << 8) + (temp24[1][k * 3 + 2] << 16)) << 8;
-                        ti3 = ti1 - ti2;
-
-                        data24[curOffset, 0] = (byte)((ti3 >> 8) & 0xFF);
-                        data24[curOffset, 1] = (byte)((ti3 >> 16) & 0xFF);
-                        data24[curOffset, 2] = (byte)((ti3 >> 24) & 0xFF);
+                        data24[curOffset] = temp24[0][k] - temp24[1][k];
                         curOffset++;
                         curSample++;
 
@@ -685,9 +664,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     {
                         for (int j = 0; j < header.Channels; j++)
                         {
-                            data24[curOffset, 0] = (byte)temp24[j][k * 3];
-                            data24[curOffset, 1] = (byte)temp24[j][k * 3 + 1];
-                            data24[curOffset, 2] = (byte)temp24[j][k * 3 + 2];
+                            data24[curOffset] = temp24[j][k];
                             curOffset++;
                         }
                         curSample++;
@@ -894,7 +871,6 @@ namespace PresetConverterProject.NIKontaktNKS
             using (fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
             {
                 byte[] headerBytes = StructureToBytes(header);
-                // fs.Write(headerBytes, 0, Marshal.SizeOf(typeof(TNCWHeader)));
                 fs.Write(headerBytes);
 
                 foreach (int blockDef in blocksDefArray)
@@ -908,6 +884,212 @@ namespace PresetConverterProject.NIKontaktNKS
                 ms.CopyTo(fs);
                 fs.Flush();
             }
+        }
+
+        public void WriteNCW8(WAVParser.TMyWAVHeader wavHeader)
+        {
+            // Fill header
+            header = new TNCWHeader()
+            {
+                Signature = NCW_SIGNATURE1,
+                Channels = wavHeader.nChannels,
+                Bits = wavHeader.wBitsPerSample,
+                SampleRate = wavHeader.nSamplesPerSec,
+                NumSamples = (uint)wavHeader.numOfPoints,
+                SomeData = new byte[88],
+                BlockDefOffset = 120 // 0x78
+            };
+
+            int nblocks = wavHeader.numOfPoints / 512 + 1;
+            if (wavHeader.numOfPoints % 512 != 0)
+                nblocks++;
+
+            header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+
+            ms = new MemoryStream();
+
+            List<int> blocksDefList = new();
+            int curBlockOffset = 0;
+
+            sbyte[][] temp8 = new sbyte[header.Channels][];
+            sbyte[][] temp8dif = new sbyte[header.Channels][];
+            byte[] tempB = new byte[header.Bits * 64];
+
+            for (int j = 0; j < header.Channels; j++)
+            {
+                temp8[j] = new sbyte[NCW_SAMPLES];
+                temp8dif[j] = new sbyte[NCW_SAMPLES];
+            }
+
+            for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
+            {
+                blocksDefList.Add(curBlockOffset);
+
+                // Fill 512 samples arrays
+                for (int i = 0; i < NCW_SAMPLES; i++)
+                {
+                    for (int j = 0; j < header.Channels; j++)
+                    {
+                        int curIndex = curBlockNumber * 512 * header.Channels + i * header.Channels + j;
+                        if (curIndex < data8.Length)
+                        {
+                            temp8[j][i] = data8[curIndex];
+                        }
+                        else
+                        {
+                            temp8[j][i] = 0;
+                        }
+                    }
+                }
+
+                for (int j = 0; j < header.Channels; j++)
+                {
+                    DifArray8(temp8[j], temp8dif[j], out int max, out int min);
+                    int nbits = Math.Max(MinBits(min), MinBits(max));
+
+                    TBlockHeader bHeader = new();
+                    FillBlockHeader(ref bHeader);
+                    bHeader.BaseValue = temp8[j][0];
+
+                    if (nbits >= header.Bits)
+                    {
+                        bHeader.Bits = (short)-header.Bits;
+                        nbits = header.Bits;
+                    }
+                    else
+                    {
+                        bHeader.Bits = (short)nbits;
+                    }
+
+                    int blockSize = nbits * 64;
+
+                    if (bHeader.Bits < 0)
+                    {
+                        BitProcess.Encode_8(NCW_SAMPLES, nbits, temp8[j], tempB);
+                    }
+                    else
+                    {
+                        BitProcess.Encode_8(NCW_SAMPLES, nbits, temp8dif[j], tempB);
+                    }
+
+                    byte[] bHeaderBytes = StructureToBytes(bHeader);
+                    ms.Write(bHeaderBytes);
+
+                    // add bytes according to blockSize
+                    ms.Write(tempB, 0, blockSize);
+
+                    curBlockOffset += bHeaderBytes.Length + blockSize;
+                }
+            }
+
+            blocksDefList.Add(curBlockOffset);
+            blocksDefArray = blocksDefList.ToArray();
+
+            header.BlocksSize = (uint)curBlockOffset;
+            header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
+        }
+
+        public void WriteNCW16(WAVParser.TMyWAVHeader wavHeader)
+        {
+            // Fill header
+            header = new TNCWHeader()
+            {
+                Signature = NCW_SIGNATURE1,
+                Channels = wavHeader.nChannels,
+                Bits = wavHeader.wBitsPerSample,
+                SampleRate = wavHeader.nSamplesPerSec,
+                NumSamples = (uint)wavHeader.numOfPoints,
+                SomeData = new byte[88],
+                BlockDefOffset = 120 // 0x78
+            };
+
+            int nblocks = wavHeader.numOfPoints / 512 + 1;
+            if (wavHeader.numOfPoints % 512 != 0)
+                nblocks++;
+
+            header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+
+            ms = new MemoryStream();
+
+            List<int> blocksDefList = new();
+            int curBlockOffset = 0;
+
+            short[][] temp16 = new short[header.Channels][];
+            short[][] temp16dif = new short[header.Channels][];
+            byte[] tempB = new byte[header.Bits * 64 * 2];
+
+            for (int j = 0; j < header.Channels; j++)
+            {
+                temp16[j] = new short[NCW_SAMPLES];
+                temp16dif[j] = new short[NCW_SAMPLES];
+            }
+
+            for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
+            {
+                blocksDefList.Add(curBlockOffset);
+
+                // Fill 512 samples arrays
+                for (int i = 0; i < NCW_SAMPLES; i++)
+                {
+                    for (int j = 0; j < header.Channels; j++)
+                    {
+                        int curIndex = curBlockNumber * 512 * header.Channels + i * header.Channels + j;
+                        if (curIndex < data16.Length)
+                        {
+                            temp16[j][i] = data16[curIndex];
+                        }
+                        else
+                        {
+                            temp16[j][i] = 0;
+                        }
+                    }
+                }
+
+                for (int j = 0; j < header.Channels; j++)
+                {
+                    DifArray16(temp16[j], temp16dif[j], out int max, out int min);
+                    int nbits = Math.Max(MinBits(min), MinBits(max));
+
+                    TBlockHeader bHeader = new();
+                    FillBlockHeader(ref bHeader);
+                    bHeader.BaseValue = temp16[j][0];
+
+                    if (nbits >= header.Bits)
+                    {
+                        bHeader.Bits = (short)-header.Bits;
+                        nbits = header.Bits;
+                    }
+                    else
+                    {
+                        bHeader.Bits = (short)nbits;
+                    }
+
+                    int blockSize = nbits * 64;
+
+                    if (bHeader.Bits < 0)
+                    {
+                        BitProcess.Encode_16(NCW_SAMPLES, nbits, temp16[j], tempB);
+                    }
+                    else
+                    {
+                        BitProcess.Encode_16(NCW_SAMPLES, nbits, temp16dif[j], tempB);
+                    }
+
+                    byte[] bHeaderBytes = StructureToBytes(bHeader);
+                    ms.Write(bHeaderBytes);
+
+                    // add bytes according to blockSize
+                    ms.Write(tempB, 0, blockSize);
+
+                    curBlockOffset += bHeaderBytes.Length + blockSize;
+                }
+            }
+
+            blocksDefList.Add(curBlockOffset);
+            blocksDefArray = blocksDefList.ToArray();
+
+            header.BlocksSize = (uint)curBlockOffset;
+            header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
         }
 
         public void WriteNCW24(WAVParser.TMyWAVHeader wavHeader)
@@ -970,9 +1152,9 @@ namespace PresetConverterProject.NIKontaktNKS
                     for (int j = 0; j < header.Channels; j++)
                     {
                         int curIndex = curBlockNumber * 512 * header.Channels + i * header.Channels + j;
-                        if (curIndex < data24.GetLength(0))
+                        if (curIndex < data24.Length)
                         {
-                            temp24[j][i] = new Int24(data24[curIndex, 0], data24[curIndex, 1], data24[curIndex, 2]);
+                            temp24[j][i] = data24[curIndex];
                         }
                         else
                         {
@@ -1034,7 +1216,7 @@ namespace PresetConverterProject.NIKontaktNKS
             Log.Debug("BlocksSize: " + header.BlocksSize);
         }
 
-        private void WriteNCW32(WAVParser.TMyWAVHeader wavHeader)
+        public void WriteNCW32(WAVParser.TMyWAVHeader wavHeader)
         {
             // Fill header
             header = new TNCWHeader()
@@ -1078,9 +1260,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < header.Channels; j++)
                     {
-                        if (curBlockNumber * 512 * header.Channels + i * header.Channels + j < datai.Length)
+                        int curIndex = curBlockNumber * 512 * header.Channels + i * header.Channels + j;
+                        if (curIndex < datai.Length)
                         {
-                            temp32[j][i] = datai[curBlockNumber * 512 * header.Channels + i * header.Channels + j];
+                            temp32[j][i] = datai[curIndex];
                         }
                         else
                         {
@@ -1119,13 +1302,12 @@ namespace PresetConverterProject.NIKontaktNKS
                         BitProcess.Encode_32(NCW_SAMPLES, nbits, temp32dif[j], tempB);
                     }
 
-                    // ms.Write(MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref bHeader, 1)));
                     byte[] bHeaderBytes = StructureToBytes(bHeader);
                     ms.Write(bHeaderBytes);
 
-                    ms.Write(tempB.AsSpan().Slice(0, blockSize));
+                    // add bytes according to blockSize
+                    ms.Write(tempB, 0, blockSize);
 
-                    // curBlockOffset += Marshal.SizeOf(bHeader) + blockSize;
                     curBlockOffset += bHeaderBytes.Length + blockSize;
                 }
             }
@@ -1154,15 +1336,19 @@ namespace PresetConverterProject.NIKontaktNKS
             int bits; // Variable to store the minimum number of bits required
 
             if (x == 0)
+            {
                 bits = 2; // If x is zero, minimum bits required is 2 (to represent 0 or 1)
+            }
             else if (x > 0)
             {
                 bits = 32; // Initialize bits to 32 for positive values of x (assuming 32-bit integers)
-                while (bits > 2)  // Iterate until minimum bits is greater than 2
+                while (bits > 2) // Iterate until minimum bits is greater than 2
                 {
                     x <<= 1; // Left shift x by 1 (equivalent to multiplying by 2)
-                    if ((x & 0x80000000) != 0)  // Check if the most significant bit is set
+                    if ((x & 0x80000000) != 0) // Check if the most significant bit is set
+                    {
                         goto ex; // If the most significant bit is set, go to the label 'ex'
+                    }
                     bits--; // Decrement bits by 1
                 }
                 goto ex; // After the loop, go to the label 'ex'
@@ -1173,8 +1359,10 @@ namespace PresetConverterProject.NIKontaktNKS
                 while (bits > 2)  // Iterate until minimum bits is greater than 2
                 {
                     x <<= 1; // Left shift x by 1 (equivalent to multiplying by 2)
-                    if ((x & 0x80000000) == 0)  // Check if the most significant bit is not set
+                    if ((x & 0x80000000) == 0) // Check if the most significant bit is not set
+                    {
                         goto ex; // If the most significant bit is not set, go to the label 'ex'
+                    }
                     bits--; // Decrement bits by 1
                 }
             }
@@ -1183,54 +1371,77 @@ namespace PresetConverterProject.NIKontaktNKS
             return bits; // Return the minimum number of bits required
         }
 
-        public static void DifArray24(Int24[] ars, Int24[] ard, out int max, out int min)
+        private static void DifArray8(sbyte[] ars, sbyte[] ard, out int max, out int min)
         {
-            // Initialize max and min variables
-            max = int.MinValue;
-            min = int.MaxValue;
+            // signed 8 - bit value(-128 to + 127) = (-0x80 to 0x7F)
+            max = sbyte.MinValue; // -128;
+            min = sbyte.MaxValue; // 127
 
             for (int i = 0; i < ars.Length - 1; i++)
             {
-                // Calculate the differences between consecutive Int24 values
-                int ti1 = ars[i] << 8;
-                int ti2 = ars[i + 1] << 8;
-                ti2 -= ti1;
+                ard[i] = (sbyte)(ars[i + 1] - ars[i]);
 
                 // Update max and min values
-                if (ti2 > max)
-                    max = ti2;
-                if (ti2 < min)
-                    min = ti2;
-
-                // Shift and assign the differences to ard
-                ti2 >>= 8;
-
-                ard[i] = (Int24)ti2;
+                if (ard[i] > max)
+                    max = ard[i];
+                if (ard[i] < min)
+                    min = ard[i];
             }
 
-            // Adjust the max and min values
-            if (max < 0)
-                max = (int)(((uint)max >> 8) | 0xFF000000);
-            else
-                max >>= 8;
+            ard[ars.Length - 1] = 0;
+        }
 
-            if (min < 0)
-                min = (int)(((uint)min >> 8) | 0xFF000000);
-            else
-                min >>= 8;
+        private static void DifArray16(short[] ars, short[] ard, out int max, out int min)
+        {
+            // signed 16 - bit value(-32768 to 32767) = (-0x8000 to 0x7FFF)
+            max = short.MinValue; // -32768;
+            min = short.MaxValue; // 32767;
 
-            // Assign Int24.Zero to the last element of ard
+            for (int i = 0; i < ars.Length - 1; i++)
+            {
+                ard[i] = (short)(ars[i + 1] - ars[i]);
+
+                // Update max and min values
+                if (ard[i] > max)
+                    max = ard[i];
+                if (ard[i] < min)
+                    min = ard[i];
+            }
+
+            ard[ars.Length - 1] = 0;
+        }
+
+        private static void DifArray24(Int24[] ars, Int24[] ard, out int max, out int min)
+        {
+            // signed 24 - bit value(-8388608 to 8388607) = (-0x800000 to 0x7FFFFF) 
+            max = Int24.MinValue; // -8388608
+            min = Int24.MaxValue; // 8388607
+
+            for (int i = 0; i < ars.Length - 1; i++)
+            {
+                ard[i] = (Int24)(ars[i + 1] - ars[i]);
+
+                // Update max and min values
+                if (ard[i] > max)
+                    max = ard[i];
+                if (ard[i] < min)
+                    min = ard[i];
+            }
+
             ard[ars.Length - 1] = Int24.Zero;
         }
 
-        private void DifArray32(int[] ars, int[] ard, out int max, out int min)
+        private static void DifArray32(int[] ars, int[] ard, out int max, out int min)
         {
-            max = int.MinValue;
-            min = int.MaxValue;
+            // signed 32 - bit value(-2147483648 to + 2147483647) = (-0x80000000 to + 0x7FFFFFFF)
+            max = int.MinValue; // -2147483648
+            min = int.MaxValue; // 2147483647
 
             for (int i = 0; i < ars.Length - 1; i++)
             {
                 ard[i] = ars[i + 1] - ars[i];
+
+                // Update max and min values
                 if (ard[i] > max)
                     max = ard[i];
                 if (ard[i] < min)

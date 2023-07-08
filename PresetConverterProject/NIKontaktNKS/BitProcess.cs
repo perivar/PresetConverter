@@ -122,7 +122,7 @@ namespace PresetConverterProject.NIKontaktNKS
             public static explicit operator Int24(int val) => FromInt(val);
 
             /// <summary>
-            /// Convert from a uint.
+            /// Convert from an uint.
             /// </summary>
             /// <param name="val">Value.</param>
             public static explicit operator Int24(uint val) => FromInt((int)val);
@@ -132,6 +132,10 @@ namespace PresetConverterProject.NIKontaktNKS
             /// </summary>
             /// <param name="val">Value.</param>
             public static explicit operator Int24(float val) => FromInt((int)val);
+
+            // + and - operators
+            public static Int24 operator +(Int24 a, Int24 b) => FromInt((int)a + (int)b);
+            public static Int24 operator -(Int24 a, Int24 b) => FromInt((int)a - (int)b);
 
             /// <summary>
             /// Get String representation of this Int24 value
@@ -382,86 +386,7 @@ namespace PresetConverterProject.NIKontaktNKS
             destSpan[0] = 0;
         }
 
-        public static void FillBits8(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
-        {
-            for (int cur = 0; cur < n; cur++)
-            {
-                destSpan[cur] = (byte)sourceSpan[cur];
-            }
-        }
-
-        public static void FillBits16(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
-        {
-            short[] destArray = new short[n];
-
-            for (int cur = 0; cur < n; cur++)
-            {
-                destArray[cur] = (short)sourceSpan[cur];
-            }
-
-            MemoryMarshal.Cast<short, byte>(destArray).CopyTo(destSpan);
-        }
-
-        public static void FillBits24(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
-        {
-            for (int cur = 0; cur < n; cur++)
-            {
-                int srcInt = sourceSpan[cur];
-                destSpan[cur * 3] = (byte)(srcInt & 0xFF);
-                srcInt >>= 8;
-                destSpan[cur * 3 + 1] = (byte)(srcInt & 0xFF);
-                srcInt >>= 8;
-                destSpan[cur * 3 + 2] = (byte)(srcInt & 0xFF);
-
-                // make sure to preserve the minus sign
-                if (sourceSpan[cur] < 0)
-                {
-                    destSpan[cur * 3 + 2] |= 0x80; // 0b10000000
-                }
-            }
-        }
-
-        public static void FillBits32(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan, bool abs)
-        {
-            // Reinterpret the memory of the source span as a span of bytes
-            ReadOnlySpan<byte> sourceBytes = MemoryMarshal.Cast<int, byte>(sourceSpan);
-
-            // Check if the destination span has enough capacity to hold all the bytes
-            if (destSpan.Length < n * 4)
-            {
-                throw new ArgumentException("Destination span is not large enough to hold all the bytes.");
-            }
-
-            // Copy the desired number of bytes from the source to the destination
-            sourceBytes.Slice(0, n * 4).CopyTo(destSpan);
-        }
-
-        // can be used for all bits: L8 = not divisible by 8
-        public static void FillBitsL8(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
-        {
-            int destInt = 0;
-            int bitsWritten = 0;
-
-            for (int cur = 0; cur < n; cur++)
-            {
-                uint suint = (uint)sourceSpan[cur];
-                for (int j = 0; j < bits; j++)
-                {
-                    destInt += (byte)((suint & 1) << bitsWritten);
-                    suint >>= 1;
-                    bitsWritten++;
-                    if (bitsWritten == 8)
-                    {
-                        destSpan[cur] = (byte)destInt;
-                        destInt = 0;
-                        bitsWritten = 0;
-                        cur++;
-                    }
-                }
-            }
-        }
-
-        public static void Encode8_8(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void Encode8_8(int n, ReadOnlySpan<sbyte> sourceSpan, Span<byte> destSpan)
         {
             for (int i = 0; i < n; i++)
             {
@@ -474,7 +399,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode8_16(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void Encode8_16(int n, ReadOnlySpan<short> sourceSpan, Span<byte> destSpan)
         {
             for (int i = 0; i < n; i++)
             {
@@ -487,15 +412,17 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode8_24(int n, ReadOnlySpan<byte[]> sourceSpan, Span<byte> destSpan)
+        public static void Encode8_24(int n, ReadOnlySpan<Int24> sourceSpan, Span<byte> destSpan)
         {
             for (int i = 0; i < n; i++)
             {
-                byte[] byteArray = sourceSpan[i];
+                Int24 value = sourceSpan[i];
 
-                destSpan[i * 3] = byteArray[0];
-                destSpan[i * 3 + 1] = byteArray[1];
-                destSpan[i * 3 + 2] = byteArray[2];
+                // truncate the int value to fit within the range of three bytes
+                // signed 24-bit value (-8388608 to 8388607)        = (-0x800000 to 0x7FFFFF) 
+                destSpan[i * 3] = (byte)(value & 0xFF);
+                destSpan[i * 3 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 3 + 2] = (byte)((value >> 16) & 0xFF);
             }
         }
 
@@ -514,7 +441,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode16_16(int n, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void Encode16_16(int n, ReadOnlySpan<short> sourceSpan, Span<byte> destSpan)
         {
             for (int i = 0; i < n; i++)
             {
@@ -527,15 +454,17 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode16_24(int n, ReadOnlySpan<byte[]> sourceSpan, Span<byte> destSpan)
+        public static void Encode16_24(int n, ReadOnlySpan<Int24> sourceSpan, Span<byte> destSpan)
         {
             for (int i = 0; i < n; i++)
             {
-                byte[] byteArray = sourceSpan[i];
+                Int24 value = sourceSpan[i];
 
-                destSpan[i * 3] = byteArray[0];
-                destSpan[i * 3 + 1] = byteArray[1];
-                destSpan[i * 3 + 2] = byteArray[2];
+                // truncate the int value to fit within the range of three bytes
+                // signed 24-bit value (-8388608 to 8388607)        = (-0x800000 to 0x7FFFFF) 
+                destSpan[i * 3] = (byte)(value & 0xFF);
+                destSpan[i * 3 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 3 + 2] = (byte)((value >> 16) & 0xFF);
             }
         }
 
@@ -554,7 +483,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode24_24(int n, ReadOnlySpan<byte[]> sourceSpan, Span<byte> destSpan)
+        public static void Encode24_24(int n, ReadOnlySpan<Int24> sourceSpan, Span<byte> destSpan)
         {
             // TODO: PIN - is this needed?
             // var destShort = MemoryMarshal.Cast<byte, short>(destSpan);
@@ -563,11 +492,13 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < n; i++)
             {
-                byte[] byteArray = sourceSpan[i];
+                Int24 value = sourceSpan[i];
 
-                destSpan[i * 3] = byteArray[0];
-                destSpan[i * 3 + 1] = byteArray[1];
-                destSpan[i * 3 + 2] = byteArray[2];
+                // truncate the int value to fit within the range of three bytes
+                // signed 24-bit value (-8388608 to 8388607)        = (-0x800000 to 0x7FFFFF) 
+                destSpan[i * 3] = (byte)(value & 0xFF);
+                destSpan[i * 3 + 1] = (byte)((value >> 8) & 0xFF);
+                destSpan[i * 3 + 2] = (byte)((value >> 16) & 0xFF);
             }
         }
 
@@ -601,72 +532,91 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void EncodeL_8(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void EncodeL_8(int n, int bits, ReadOnlySpan<sbyte> sourceSpan, Span<byte> destSpan)
         {
+            int destIndex = 0;
             byte destByte = 0;
             int bitsLeft = 8;
 
             for (int i = 0; i < n; i++)
             {
-                int sourceValue = sourceSpan[i];
-
+                int src8 = sourceSpan[i];
                 int bitsWritten = 0;
 
                 while (bitsWritten < bits)
                 {
                     if ((bits - bitsWritten) <= bitsLeft)
                     {
-                        byte tb = (byte)((sourceValue & ((1 << (bits - bitsWritten)) - 1)) >> bitsWritten);
-                        destByte |= (byte)(tb << (8 - bitsLeft));
+                        byte curByte = (byte)((src8 & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
                         bitsLeft -= bits - bitsWritten;
                         bitsWritten = bits;
                     }
                     else
                     {
-                        byte tb = (byte)((sourceValue & ((1 << bitsLeft) - 1)) << bitsWritten);
-                        destByte |= (byte)(tb << (8 - bitsLeft));
+                        byte curByte = (byte)((src8 & ((0xFF >> (8 - bitsLeft)) << bitsWritten)) >> bitsWritten);
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
                         bitsWritten += bitsLeft;
                         bitsLeft = 0;
                     }
 
                     if (bitsLeft == 0)
                     {
-                        destSpan[i] = destByte;
+                        destSpan[destIndex] = destByte;
                         destByte = 0;
                         bitsLeft = 8;
+                        destIndex++;
                     }
                 }
             }
 
             if (bitsLeft < 8)
             {
-                destSpan[n - 1] = destByte;
+                destSpan[destIndex] = destByte;
             }
         }
 
-        public static void EncodeL_16(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void EncodeL_16(int n, int bits, ReadOnlySpan<short> sourceSpan, Span<byte> destSpan)
         {
-            int bitsWritten = 0;
+            int destIndex = 0;
+            byte destByte = 0;
             int bitsLeft = 8;
 
             for (int i = 0; i < n; i++)
             {
-                int value = sourceSpan[i];
-                int bitsToWrite = Math.Min(bits - bitsWritten, bitsLeft);
-                byte tempByte = (byte)((value >> bitsWritten) & ((1 << bitsToWrite) - 1));
-                destSpan[i] |= (byte)(tempByte << (8 - bitsLeft));
+                short src16 = sourceSpan[i];
+                int bitsWritten = 0;
 
-                bitsWritten += bitsToWrite;
-                bitsLeft -= bitsToWrite;
-                if (bitsWritten == bits)
+                while (bitsWritten < bits)
                 {
-                    bitsWritten = 0;
-                    bitsLeft = 8;
+                    if ((bits - bitsWritten) <= bitsLeft)
+                    {
+                        byte curByte = (byte)((src16 & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
+                        bitsLeft -= bits - bitsWritten;
+                        bitsWritten = bits;
+                    }
+                    else
+                    {
+                        byte curByte = (byte)((src16 & ((0xFF >> (8 - bitsLeft)) << bitsWritten)) >> bitsWritten);
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
+                        bitsWritten += bitsLeft;
+                        bitsLeft = 0;
+                    }
+
+                    if (bitsLeft == 0)
+                    {
+                        destSpan[destIndex] = destByte;
+                        destByte = 0;
+                        bitsLeft = 8;
+                        destIndex++;
+                    }
                 }
-                else if (bitsLeft == 0)
-                {
-                    bitsLeft = 8;
-                }
+            }
+
+            if (bitsLeft < 8)
+            {
+                destSpan[destIndex] = destByte;
             }
         }
 
@@ -724,46 +674,48 @@ namespace PresetConverterProject.NIKontaktNKS
         public static void EncodeL_32(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
         {
             int destIndex = 0;
-            int bitsWritten = 0;
+            byte destByte = 0;
             int bitsLeft = 8;
 
-            for (int cur = 0; cur < n; cur++)
+            for (int i = 0; i < n; i++)
             {
-                int value = sourceSpan[cur];
-                byte[] valueBytes = BitConverter.GetBytes(value);
+                int src32 = sourceSpan[i];
+                int bitsWritten = 0;
 
-                for (int i = 0; i < valueBytes.Length; i++)
+                while (bitsWritten < bits)
                 {
-                    byte destByte;
-
-                    if (bitsWritten < bits)
+                    if ((bits - bitsWritten) <= bitsLeft)
                     {
-                        int bitsToWrite = Math.Min(bits - bitsWritten, bitsLeft);
-                        destByte = (byte)((valueBytes[i] >> bitsWritten) & ((1 << bitsToWrite) - 1));
-                        destSpan[destIndex] |= (byte)(destByte << (8 - bitsLeft));
-                        bitsWritten += bitsToWrite;
-                        bitsLeft -= bitsToWrite;
+                        byte curByte = (byte)((src32 & ((0xFF >> (8 - (bits - bitsWritten))) << bitsWritten)) >> bitsWritten);
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
+                        bitsLeft -= bits - bitsWritten;
+                        bitsWritten = bits;
                     }
-
-                    if (bitsWritten == bits)
+                    else
                     {
-                        destIndex++;
-                        destSpan[destIndex] = 0;
-                        bitsWritten = 0;
-                        bitsLeft = 8;
+                        byte curByte = (byte)((src32 & ((0xFF >> (8 - bitsLeft)) << bitsWritten)) >> bitsWritten);
+                        destByte |= (byte)(curByte << (8 - bitsLeft));
+                        bitsWritten += bitsLeft;
+                        bitsLeft = 0;
                     }
 
                     if (bitsLeft == 0)
                     {
-                        destIndex++;
-                        destSpan[destIndex] = 0;
+                        destSpan[destIndex] = destByte;
+                        destByte = 0;
                         bitsLeft = 8;
+                        destIndex++;
                     }
                 }
             }
+
+            if (bitsLeft < 8)
+            {
+                destSpan[destIndex] = destByte;
+            }
         }
 
-        public static void Fill16_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
+        public static void Fill16_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<short> destSpan, int baseValue)
         {
             destSpan[0] = (short)baseValue;
 
@@ -778,52 +730,38 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Fill24_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
+        public static void Fill24_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan, int baseValue)
         {
-            int destInt = baseValue;
-            destSpan[0] = destInt & 0xFF;
-            destSpan[1] = (destInt >> 8) & 0xFF;
-            destSpan[2] = (destInt >> 16) & 0xFF;
+            destSpan[0] = (Int24)baseValue;
 
             int sourceIndex = 0;
 
             for (int i = 1; i < n; i++)
             {
-                int srcByteAsInt = sourceSpan[sourceIndex];
+                byte srcByte = sourceSpan[sourceIndex];
                 sourceIndex++;
 
-                srcByteAsInt = ChangeIntSign(srcByteAsInt, 8);
-
-                destInt += srcByteAsInt;
-                destSpan[i * 3] = destInt & 0xFF;
-                destSpan[i * 3 + 1] = (destInt >> 8) & 0xFF;
-                destSpan[i * 3 + 2] = (destInt >> 16) & 0xFF;
+                destSpan[i] = (Int24)(srcByte + destSpan[i - 1]);
             }
         }
 
-        public static void Fill24_16rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
+        public static void Fill24_16rel(int n, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan, int baseValue)
         {
-            // convert byte span into short span
-            ReadOnlySpan<short> sourceArray = MemoryMarshal.Cast<byte, short>(sourceSpan);
+            // convert byte span into Int24 span
+            ReadOnlySpan<Int24> sourceArray = MemoryMarshal.Cast<byte, Int24>(sourceSpan);
 
-            int destInt = baseValue;
-            destSpan[0] = destInt & 0xFF;
-            destSpan[1] = (destInt >> 8) & 0xFF;
-            destSpan[2] = (destInt >> 16) & 0xFF;
+            destSpan[0] = (Int24)baseValue;
 
             int sourceIndex = 0;
 
             for (int i = 1; i < n; i++)
             {
-                short srcShort = sourceArray[sourceIndex];
+                Int24 srcInt24 = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                srcShort = (short)ChangeIntSign(srcShort, 16);
+                srcInt24 = (Int24)ChangeIntSign(srcInt24, 16);
 
-                destInt += srcShort;
-                destSpan[i * 3] = destInt & 0xFF;
-                destSpan[i * 3 + 1] = (destInt >> 8) & 0xFF;
-                destSpan[i * 3 + 2] = (destInt >> 16) & 0xFF;
+                destSpan[i] = (Int24)(srcInt24 + destSpan[i - 1]);
             }
         }
 
@@ -884,26 +822,26 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Fill8abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
+        public static void Fill8abs(int n, ReadOnlySpan<byte> sourceSpan, Span<sbyte> destSpan)
         {
             var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n));
-            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+            var destIntegers = MemoryMarshal.Cast<sbyte, int>(destSpan.Slice(0, n));
 
             sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill16abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
+        public static void Fill16abs(int n, ReadOnlySpan<byte> sourceSpan, Span<short> destSpan)
         {
             var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 2));
-            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+            var destIntegers = MemoryMarshal.Cast<short, int>(destSpan.Slice(0, n));
 
             sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill24abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
+        public static void Fill24abs(int n, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan)
         {
             var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 3));
-            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
+            var destIntegers = MemoryMarshal.Cast<Int24, int>(destSpan.Slice(0, n));
 
             sourceBytes.CopyTo(destIntegers);
         }
@@ -916,10 +854,10 @@ namespace PresetConverterProject.NIKontaktNKS
             sourceBytes.CopyTo(destIntegers);
         }
 
-        public static void Fill8_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
+        public static void Fill8_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<sbyte> destSpan, int baseValue)
         {
             // Set the initial value in the destination array based on the baseValue
-            destSpan[0] = baseValue;
+            destSpan[0] = (sbyte)baseValue;
 
             int bitsTotal = 0;
             int sourceIndex = 0;
@@ -957,14 +895,14 @@ namespace PresetConverterProject.NIKontaktNKS
                 destInt = ChangeIntSign(destInt, bits);
 
                 destInt += destSpan[i - 1];
-                destSpan[i] = destInt;
+                destSpan[i] = (sbyte)destInt;
             }
         }
 
-        public static void Fill16_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
+        public static void Fill16_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<short> destSpan, int baseValue)
         {
             // Set the initial value of the first element in the destArray based on the baseValue
-            destSpan[0] = baseValue;
+            destSpan[0] = (short)baseValue;
 
             int bitsLeft = 8;
             int sourceIndex = 0;
@@ -1008,17 +946,14 @@ namespace PresetConverterProject.NIKontaktNKS
                 destInt = ChangeIntSign(destInt, bits);
 
                 destInt += destSpan[i - 1];
-                destSpan[i] = destInt;
+                destSpan[i] = (short)destInt;
             }
         }
 
-        public static void Fill24_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
+        public static void Fill24_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan, int baseValue)
         {
-            // Set the initial value in the destination array based on the baseValue
-            int intValue = baseValue;
-            destSpan[0] = intValue & 0xFF;
-            destSpan[1] = (intValue >> 8) & 0xFF;
-            destSpan[2] = (intValue >> 16) & 0xFF;
+            // Set the initial value of the first element in the destArray based on the baseValue
+            destSpan[0] = (Int24)baseValue;
 
             int bitsLeft = 8;
             int sourceIndex = 0;
@@ -1060,10 +995,8 @@ namespace PresetConverterProject.NIKontaktNKS
                 // this ensures that the resulting 24-bit Int32 preserves the correct negative value.
                 destInt = ChangeIntSign(destInt, bits);
 
-                intValue += destInt;
-                destSpan[i * 3] = intValue & 0xFF;
-                destSpan[i * 3 + 1] = (intValue >> 8) & 0xFF;
-                destSpan[i * 3 + 2] = (intValue >> 16) & 0xFF;
+                destInt += destSpan[i - 1];
+                destSpan[i] = (Int24)destInt;
             }
         }
 
@@ -1149,30 +1082,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void FillBits(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
-        {
-            switch (bits)
-            {
-                case 8: FillBits8(n, sourceSpan, destSpan, false); break;
-                case 16: FillBits16(n, sourceSpan, destSpan, false); break;
-                case 24: FillBits24(n, sourceSpan, destSpan, false); break;
-                case 32: FillBits32(n, sourceSpan, destSpan, false); break;
-                default: FillBitsL8(n, bits, sourceSpan, destSpan); break;
-            }
-        }
-
-        public static void FillBitsAbs(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
-        {
-            switch (bits)
-            {
-                case 8: FillBits8(n, sourceSpan, destSpan, true); break;
-                case 16: FillBits16(n, sourceSpan, destSpan, true); break;
-                case 24: FillBits24(n, sourceSpan, destSpan, true); break;
-                case 32: FillBits32(n, sourceSpan, destSpan, true); break;
-            }
-        }
-
-        public static void Fill8(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
+        public static void Fill8(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<sbyte> destSpan, bool relative)
         {
             if (relative)
             {
@@ -1184,7 +1094,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Fill16(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
+        public static void Fill16(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<short> destSpan, bool relative)
         {
             if (relative)
             {
@@ -1200,7 +1110,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Fill24(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<int> destSpan, bool relative)
+        public static void Fill24(int n, int bits, ReadOnlySpan<byte> sourceSpan, int baseValue, Span<Int24> destSpan, bool relative)
         {
             if (relative)
             {
@@ -1235,21 +1145,21 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public static void Encode_8(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void Encode_8(int n, int bits, ReadOnlySpan<sbyte> sourceSpan, Span<byte> destSpan)
         {
             switch (bits)
             {
-                case 8: Encode8_8(n, sourceSpan, destSpan); break;
+                // case 8: Encode8_8(n, sourceSpan, destSpan); break;
                 default: EncodeL_8(n, bits, sourceSpan, destSpan); break;
             }
         }
 
-        public static void Encode_16(int n, int bits, ReadOnlySpan<int> sourceSpan, Span<byte> destSpan)
+        public static void Encode_16(int n, int bits, ReadOnlySpan<short> sourceSpan, Span<byte> destSpan)
         {
             switch (bits)
             {
-                case 8: Encode8_16(n, sourceSpan, destSpan); break;
-                case 16: Encode16_16(n, sourceSpan, destSpan); break;
+                // case 8: Encode8_16(n, sourceSpan, destSpan); break;
+                // case 16: Encode16_16(n, sourceSpan, destSpan); break;
                 default: EncodeL_16(n, bits, sourceSpan, destSpan); break;
             }
         }
@@ -1269,10 +1179,10 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             switch (bits)
             {
-                case 8: Encode8_32(n, sourceSpan, destSpan); break;
-                case 16: Encode16_32(n, sourceSpan, destSpan); break;
-                case 24: Encode24_32(n, sourceSpan, destSpan); break;
-                case 32: Encode32_32(n, sourceSpan, destSpan); break;
+                // case 8: Encode8_32(n, sourceSpan, destSpan); break;
+                // case 16: Encode16_32(n, sourceSpan, destSpan); break;
+                // case 24: Encode24_32(n, sourceSpan, destSpan); break;
+                // case 32: Encode32_32(n, sourceSpan, destSpan); break;
                 default: EncodeL_32(n, bits, sourceSpan, destSpan); break;
             }
         }
