@@ -94,8 +94,15 @@ namespace PresetConverterProject.NIKontaktNKS
         private TMyWAVHeader wavHeader;
         public TMyWAVHeader WavHeader { get => wavHeader; set => wavHeader = value; }
 
-        private FileStream fsWriter;
-        private BinaryFile bfReader;
+        private FileStream? fsWriter;
+        private BinaryFile? bfReader;
+
+        private readonly bool doVerbose = false;
+
+        public WAVParser(bool doVerbose = false)
+        {
+            this.doVerbose = doVerbose;
+        }
 
         // Reading
         public void OpenWav(string filename)
@@ -565,7 +572,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 return false;
             }
 
-            Log.Debug("Writing {0} integers to output stream.", data.Length);
+            if (doVerbose) Log.Debug("Writing {0} integers to output stream.", data.Length);
 
             // --- 8 bit ---
             if (wavHeader.wBitsPerSample == 8)
@@ -625,7 +632,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             if (File.Exists(filename))
             {
-                Log.Debug("Found existing file. Deleting: " + filename);
+                if (doVerbose) Log.Debug("Found existing file. Deleting: " + filename);
                 File.Delete(filename);
             }
 
@@ -666,8 +673,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public bool WriteStandardHeader(uint chnkSize = 16)
         {
-            Log.Information("Writing WAV standard header with chunksize: " + chnkSize);
-
             // calculate extra bytes if chunk size is more tha 16
             // this will normally be zero
             uint extraChunkSizeBytes = chnkSize - 16;
@@ -679,13 +684,15 @@ namespace PresetConverterProject.NIKontaktNKS
             wavHeader.chnkSize = chnkSize;
             wavHeader.extended = false;
 
+            Log.Information(string.Format("Creating WAV standard file-header {0}[{1} hz, {2} bits, {3} ch, {4} samples]", wavHeader.chnkSize != 16 ? "(chunk size: " + wavHeader.chnkSize + ") " : "", wavHeader.nSamplesPerSec, wavHeader.wBitsPerSample, wavHeader.nChannels, wavHeader.numOfPoints));
+
             byte[] headerBytes = NCWParser.StructureToBytes(wavHeader);
-            Log.Debug("Writing header bytes: " + StringUtils.ToHexAndAsciiString(headerBytes));
+            if (doVerbose) Log.Debug("Writing header bytes: " + StringUtils.ToHexAndAsciiString(headerBytes));
             fsWriter.Write(headerBytes, 0, 36);
 
             if (extraChunkSizeBytes > 0)
             {
-                Log.Debug("Writing {0} extra chunk-size bytes.", extraChunkSizeBytes);
+                if (doVerbose) Log.Debug("Writing {0} extra chunk-size bytes.", extraChunkSizeBytes);
                 for (int i = 0; i < extraChunkSizeBytes; i++)
                 {
                     fsWriter.WriteByte(0);
@@ -702,8 +709,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public bool WriteExtendedHeader()
         {
-            Log.Information("Writing WAV extended header.");
-
             wavHeader.RIFFtag = "RIFF".ToCharArray();
             wavHeader.fileSize = wavHeader.dataSize + 60;
             wavHeader.WAVEtag = "WAVE".ToCharArray();
@@ -715,8 +720,10 @@ namespace PresetConverterProject.NIKontaktNKS
             wavHeader.GUID = WAV_TEST_GUID;
             wavHeader.extended = true;
 
+            Log.Information(string.Format("Creating WAV extended file-header (chunk size {0}) [{1} hz, {2} bits, {3} ch, {4} samples]", wavHeader.chnkSize, wavHeader.nSamplesPerSec, wavHeader.wBitsPerSample, wavHeader.nChannels, wavHeader.numOfPoints));
+
             byte[] headerBytes = NCWParser.StructureToBytes(wavHeader);
-            Log.Debug("Writing header bytes: " + StringUtils.ToHexAndAsciiString(headerBytes));
+            if (doVerbose) Log.Debug("Writing header bytes: " + StringUtils.ToHexAndAsciiString(headerBytes));
             fsWriter.Write(headerBytes, 0, 60);
 
             // --- Record data chunk
@@ -729,7 +736,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public void WriteBlock(byte[] source, int size)
         {
-            Log.Debug("Writing {0} bytes to output stream.", size);
+            if (doVerbose) Log.Debug("Writing {0} bytes to output stream.", size);
 
             fsWriter.Write(source, 0, size);
         }
@@ -738,7 +745,7 @@ namespace PresetConverterProject.NIKontaktNKS
         {
             if (fsWriter != null)
             {
-                Log.Debug("Closing output stream.");
+                if (doVerbose) Log.Debug("Closing output stream.");
 
                 fsWriter.Close();
                 fsWriter.Dispose();

@@ -513,7 +513,7 @@
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-comp Samples\\viola_sus_short-portato_64-127_E4 - AB.ncw",
         // "-i",
         // "C:\\Users\\periv\\Projects\\Temp\\Bass Trombones a2\\BML Bones - Bass A2 MM_5 Samples\\BMLBONES_basstrombsA2_trpltongue_ff_RR2_a_F#4.ncw",
-        // "-i",
+        // // "-i",
         // "C:\\Users\\periv\\Projects\\Temp\\Bass Trombones a2\\BML Bones - Bass A2 MM_5 Samples\\BMLBONES_basstrombsA2_trpltongue_ff_RR2_t_F#4.ncw",
         "-o",
         "C:\\Users\\periv\\Projects\\Temp",

@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using CommonUtils.Audio;
 using Serilog;
-using static PresetConverterProject.NIKontaktNKS.BitProcess;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -39,7 +38,7 @@ namespace PresetConverterProject.NIKontaktNKS
             // wp.SaveStandardWAVMulti(wavOutPathFloats, ref floats);
 
             // Convert file
-            var ncwParser = new NCWParser();
+            var ncwParser = new NCWParser(doVerbose);
             ncwParser.Clear();
             ncwParser.OpenNCWFile(inputFilePath);
             ncwParser.ReadNCW();
@@ -51,35 +50,40 @@ namespace PresetConverterProject.NIKontaktNKS
             Log.Information("Writing file {0} ...", outputFilePathInt);
             ncwParser.SaveToWAVIntegers(outputFilePathInt);
 
-            // Output file to wav
-            var wavtype = WavType.Standard;
+            if (!doList)
+            {
+                // Output file to wav
+                var wavtype = WavType.Standard;
 
-            string outputFileName = Path.GetFileNameWithoutExtension(inputFilePath) + ".wav";
-            string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
-            Log.Information("Writing file {0} ...", outputFilePath);
+                string outputFileName = Path.GetFileNameWithoutExtension(inputFilePath) + ".wav";
+                string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
+                Log.Information("Writing file {0} ...", outputFilePath);
 
-            if (wavtype == WavType.Standard)
-            {
-                ncwParser.SaveToWAV(outputFilePath);
-            }
-            else if (wavtype == WavType.Extended)
-            {
-                ncwParser.SaveToWAVEx(outputFilePath);
-            }
-            else
-            {
-                if (ncwParser.Header.Channels > 2 ||
-                    ncwParser.Header.Bits > 16 ||
-                    ncwParser.Header.SampleRate > 44100)
+                if (wavtype == WavType.Standard)
+                {
+                    ncwParser.SaveToWAV(outputFilePath);
+                }
+                else if (wavtype == WavType.Extended)
                 {
                     ncwParser.SaveToWAVEx(outputFilePath);
                 }
                 else
                 {
-                    ncwParser.SaveToWAV(outputFilePath);
+                    if (ncwParser.Header.Channels > 2 ||
+                        ncwParser.Header.Bits > 16 ||
+                        ncwParser.Header.SampleRate > 44100)
+                    {
+                        ncwParser.SaveToWAVEx(outputFilePath);
+                    }
+                    else
+                    {
+                        ncwParser.SaveToWAV(outputFilePath);
+                    }
                 }
             }
 
+
+            // test writing NCW
             WAVParser.TMyWAVHeader wavHeader = new()
             {
                 wFormatTag = SoundIO.WAVE_FORMAT_PCM, // Standard wav
@@ -89,12 +93,17 @@ namespace PresetConverterProject.NIKontaktNKS
                 numOfPoints = (int)ncwParser.Header.NumSamples
             };
 
-
             string outputFileNameNCW24 = Path.GetFileNameWithoutExtension(inputFilePath) + "_24.ncw";
             string outputFilePathNCW24 = Path.Combine(outputDirectoryPath, outputFileNameNCW24);
             Log.Information("Writing file {0} ...", outputFilePathNCW24);
             ncwParser.WriteNCW24(wavHeader);
             ncwParser.SaveToNCW(outputFilePathNCW24);
+
+            string outputFileNameNCW32 = Path.GetFileNameWithoutExtension(inputFilePath) + "_32.ncw";
+            string outputFilePathNCW32 = Path.Combine(outputDirectoryPath, outputFileNameNCW32);
+            Log.Information("Writing file {0} ...", outputFilePathNCW32);
+            ncwParser.WriteNCW32(wavHeader);
+            ncwParser.SaveToNCW(outputFilePathNCW32);
 
             return true;
         }
@@ -157,6 +166,80 @@ namespace PresetConverterProject.NIKontaktNKS
         private FileStream? fs;
         private MemoryStream? ms;
 
+        private readonly bool doVerbose = false;
+
+        public NCWParser(bool doVerbose = false)
+        {
+            this.doVerbose = doVerbose;
+        }
+
+        /// <summary>
+        /// Convert a byte array to a given structure
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));         /// </code>
+        /// </example>
+        /// <typeparam name="T">Stuct type</typeparam>
+        /// <param name="bytes">byte array</param>
+        /// <returns>a structure</returns> 
+        public static T ByteArrayToStructure<T>(byte[] bytes) where T : struct
+        {
+            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            try
+            {
+                return (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        /// <summary>
+        /// Convert a structure to its byte array
+        /// </summary>
+        /// <typeparam name="T">Stuct type</typeparam>
+        /// <param name="structure">a strucure</param>
+        /// <returns>byte array</returns>
+        /// </summary>
+        public static byte[] StructureToBytes<T>(T structure) where T : struct
+        {
+            int size = Marshal.SizeOf(structure);
+            byte[] bytes = new byte[size];
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+            Marshal.StructureToPtr(structure, ptr, true);
+            Marshal.Copy(ptr, bytes, 0, size);
+            Marshal.FreeHGlobal(ptr);
+            return bytes;
+        }
+
+        /// <summary>
+        /// Get the int pointer for an array.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// private byte[,]? data24; // x 3
+        /// var buf = new byte[3 * (int)header.NumSamples * header.Channels];
+        /// Marshal.Copy(GetIntPtr(data24, 0), buf, 0, 3 * (int)header.NumSamples * header.Channels);
+        /// </code>
+        /// </example>
+        /// <param name="array">array</param>
+        /// <param name="index">index</param>
+        /// <returns>a int pointer</returns>
+        public static IntPtr GetIntPtr(Array array, int index)
+        {
+            GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
+            try
+            {
+                return Marshal.UnsafeAddrOfPinnedArrayElement(array, index * array.GetLength(1));
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
         public void Clear()
         {
             CloseFile();
@@ -193,7 +276,7 @@ namespace PresetConverterProject.NIKontaktNKS
             wavHeader.numOfPoints = (int)header.NumSamples;
             wavHeader.dataPos = 44;
 
-            WAVParser wp = new()
+            WAVParser wp = new(doVerbose)
             {
                 WavHeader = wavHeader
             };
@@ -259,7 +342,7 @@ namespace PresetConverterProject.NIKontaktNKS
             wavHeader.speakers = 0;
             wavHeader.GUID = WAVParser.WAV_TEST_GUID;
 
-            WAVParser wp = new()
+            WAVParser wp = new(doVerbose)
             {
                 WavHeader = wavHeader
             };
@@ -319,7 +402,7 @@ namespace PresetConverterProject.NIKontaktNKS
             wavHeader.numOfPoints = (int)header.NumSamples;
             wavHeader.dataPos = 44;
 
-            WAVParser wp = new()
+            WAVParser wp = new(doVerbose)
             {
                 WavHeader = wavHeader
             };
@@ -345,9 +428,9 @@ namespace PresetConverterProject.NIKontaktNKS
             header = ByteArrayToStructure<TNCWHeader>(headerBytes);
 
             Log.Information(string.Format("Found file-header @ position {0} [{1} hz, {2} bits, {3} ch, {4} samples]", position, header.SampleRate, header.Bits, header.Channels, header.NumSamples));
-            Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
-            Log.Debug("BlocksOffset: " + header.BlocksOffset);
-            Log.Debug("BlocksSize: " + header.BlocksSize);
+            if (doVerbose) Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
+            if (doVerbose) Log.Debug("BlocksOffset: " + header.BlocksOffset);
+            if (doVerbose) Log.Debug("BlocksSize: " + header.BlocksSize);
 
             // check if matches either ncw signature 1 or 2
             for (int i = 0; i < 8; i++)
@@ -363,30 +446,6 @@ namespace PresetConverterProject.NIKontaktNKS
             Buffer.BlockCopy(blocksDefListBytes, 0, blocksDefArray, 0, blocksDefListBytes.Length);
         }
 
-        public static T ByteArrayToStructure<T>(byte[] bytes) where T : struct
-        {
-            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-            try
-            {
-                return (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-            }
-            finally
-            {
-                handle.Free();
-            }
-        }
-
-        public static byte[] StructureToBytes<T>(T structure) where T : struct
-        {
-            int size = Marshal.SizeOf(structure);
-            byte[] bytes = new byte[size];
-            IntPtr ptr = Marshal.AllocHGlobal(size);
-            Marshal.StructureToPtr(structure, ptr, true);
-            Marshal.Copy(ptr, bytes, 0, size);
-            Marshal.FreeHGlobal(ptr);
-            return bytes;
-        }
-
         public static byte[] ReadBytes(FileStream fs, int count)
         {
             byte[] bytes = new byte[count];
@@ -394,22 +453,9 @@ namespace PresetConverterProject.NIKontaktNKS
             return bytes;
         }
 
-        public static IntPtr GetIntPtr(Array array, int index)
-        {
-            GCHandle handle = GCHandle.Alloc(array, GCHandleType.Pinned);
-            try
-            {
-                return Marshal.UnsafeAddrOfPinnedArrayElement(array, index * array.GetLength(1));
-            }
-            finally
-            {
-                handle.Free();
-            }
-        }
-
         public void ReadNCW8()
         {
-            Log.Information("Reading NCW 8 bit...");
+            Log.Information("Reading NCW 8 bit ...");
 
             data8 = new sbyte[header.NumSamples * header.Channels];
 
@@ -420,18 +466,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
                 fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
+                    if (doVerbose) Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
-                    Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
+                    if (doVerbose) Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -453,7 +499,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (bHeader.Flags == 1)
                 {
                     // Data stored in the block are MID/SIDE
-                    Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
+                    if (doVerbose) Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -470,7 +516,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 else
                 {
                     // Data stored in the block are LEFT/RIGHT
-                    Log.Debug("Processing LEFT/RIGHT data...");
+                    if (doVerbose) Log.Debug("Processing LEFT/RIGHT data...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -486,13 +532,13 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
 
-                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 1));
+                if (doVerbose) Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 1));
             }
         }
 
         public void ReadNCW16()
         {
-            Log.Information("Reading NCW 16 bit...");
+            Log.Information("Reading NCW 16 bit ...");
 
             data16 = new short[header.NumSamples * header.Channels];
 
@@ -503,18 +549,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
                 fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
+                    if (doVerbose) Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
-                    Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
+                    if (doVerbose) Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -536,7 +582,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (bHeader.Flags == 1)
                 {
                     // Data stored in the block are MID/SIDE
-                    Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
+                    if (doVerbose) Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -554,7 +600,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 else
                 {
                     // Data stored in the block are LEFT/RIGHT
-                    Log.Debug("Processing LEFT/RIGHT data...");
+                    if (doVerbose) Log.Debug("Processing LEFT/RIGHT data...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -570,13 +616,13 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
 
-                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 2));
+                if (doVerbose) Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 2));
             }
         }
 
         public void ReadNCW24()
         {
-            Log.Information("Reading NCW 24 bit...");
+            Log.Information("Reading NCW 24 bit ...");
 
             data24 = new Int24[header.NumSamples * header.Channels];
 
@@ -587,18 +633,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
                 fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
+                    if (doVerbose) Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
-                    Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
+                    if (doVerbose) Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -638,7 +684,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (bHeader.Flags == 1)
                 {
                     // Data stored in the block are MID/SIDE
-                    Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
+                    if (doVerbose) Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
                     // MID = (LEFT+RIGHT)/2, SIDE = (LEFT-RIGHT)/2. 
                     // To get LEFT/RIGHT channels, you have to reverse the operation: 
                     // LEFT = MID+SIDE, RIGHT = MID-SIDE.
@@ -658,7 +704,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 else
                 {
                     // Data stored in the block are LEFT/RIGHT
-                    Log.Debug("Processing LEFT/RIGHT data...");
+                    if (doVerbose) Log.Debug("Processing LEFT/RIGHT data...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -674,13 +720,13 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
 
-                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 3));
+                if (doVerbose) Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 3));
             }
         }
 
         public void ReadNCW32()
         {
-            Log.Information("Reading NCW 32 bit...");
+            Log.Information("Reading NCW 32 bit ...");
 
             datai = new int[header.NumSamples * header.Channels];
 
@@ -691,18 +737,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
                 fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
+                    if (doVerbose) Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
-                    Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
+                    if (doVerbose) Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -724,7 +770,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (bHeader.Flags == 1)
                 {
                     // Data stored in the block are MID/SIDE
-                    Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
+                    if (doVerbose) Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -741,7 +787,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 else
                 {
                     // Data stored in the block are LEFT/RIGHT
-                    Log.Debug("Processing LEFT/RIGHT data...");
+                    if (doVerbose) Log.Debug("Processing LEFT/RIGHT data...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -757,7 +803,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
 
-                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
+                if (doVerbose) Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
             }
         }
 
@@ -795,18 +841,18 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 0; i < blocksDefArray.Length - 1; i++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1}...", i + 1, blocksDefArray.Length));
 
                 fs.Seek(header.BlocksOffset + blocksDefArray[i], SeekOrigin.Begin);
 
                 TBlockHeader bHeader = new();
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
+                    if (doVerbose) Log.Debug(string.Format("Processing channel {0} @ block {1}...", j + 1, i + 1));
 
                     long position = fs.Position;
                     bHeader = ByteArrayToStructure<TBlockHeader>(ReadBytes(fs, Marshal.SizeOf(typeof(TBlockHeader))));
-                    Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
+                    if (doVerbose) Log.Debug(string.Format("Found block-header @ position {0} [base: {1}, bits: {2}, flags: {3} = {4}]", position, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -829,7 +875,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 if (bHeader.Flags == 1)
                 {
                     // Data stored in the block are MID/SIDE
-                    Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
+                    if (doVerbose) Log.Debug("Processing MID/SIDE data. Converting to LEFT/RIGHT...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -846,7 +892,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 else
                 {
                     // Data stored in the block are LEFT/RIGHT
-                    Log.Debug("Processing LEFT/RIGHT data...");
+                    if (doVerbose) Log.Debug("Processing LEFT/RIGHT data...");
 
                     for (int k = 0; k < NCW_SAMPLES; k++)
                     {
@@ -862,7 +908,7 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
                 }
 
-                Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
+                if (doVerbose) Log.Debug(string.Format("Processed block {0}. [CurSample: {1}, CurOffset: {2}, BytePos: {3}]", i + 1, curSample, curOffset, curOffset * 4));
             }
         }
 
@@ -904,7 +950,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (wavHeader.numOfPoints % 512 != 0)
                 nblocks++;
 
+            if (doVerbose) Log.Debug("Processing {0} number of blocks.", nblocks);
+
             header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+            if (doVerbose) Log.Debug("Setting initial BlocksOffset: " + header.BlocksOffset);
 
             ms = new MemoryStream();
 
@@ -923,6 +972,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
             {
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1} at offset: {2}.", curBlockNumber + 1, nblocks, curBlockOffset));
+
                 blocksDefList.Add(curBlockOffset);
 
                 // Fill 512 samples arrays
@@ -944,11 +995,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    DifArray8(temp8[j], temp8dif[j], out int max, out int min);
+                    DiffArray8(temp8[j], temp8dif[j], out int max, out int min);
                     int nbits = Math.Max(MinBits(min), MinBits(max));
 
                     TBlockHeader bHeader = new();
                     FillBlockHeader(ref bHeader);
+
                     bHeader.BaseValue = temp8[j][0];
 
                     if (nbits >= header.Bits)
@@ -962,6 +1014,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
 
                     int blockSize = nbits * 64;
+
+                    if (doVerbose) Log.Debug(string.Format("Encoding 8bit block @ position {0} [blockSize: {1}, base: {2}, bits: {3}, flags: {4} = {5}]", ms.Position, blockSize, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -987,6 +1041,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             header.BlocksSize = (uint)curBlockOffset;
             header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
+
+            Log.Information(string.Format("Creating NCW file-header [{0} hz, {1} bits, {2} ch, {3} samples]", header.SampleRate, header.Bits, header.Channels, header.NumSamples));
+            if (doVerbose) Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
+            if (doVerbose) Log.Debug("BlocksOffset: " + header.BlocksOffset);
+            if (doVerbose) Log.Debug("BlocksSize: " + header.BlocksSize);
         }
 
         public void WriteNCW16(WAVParser.TMyWAVHeader wavHeader)
@@ -1007,7 +1066,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (wavHeader.numOfPoints % 512 != 0)
                 nblocks++;
 
+            if (doVerbose) Log.Debug("Processing {0} number of blocks.", nblocks);
+
             header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+            if (doVerbose) Log.Debug("Setting initial BlocksOffset: " + header.BlocksOffset);
 
             ms = new MemoryStream();
 
@@ -1026,6 +1088,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
             {
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1} at offset: {2}.", curBlockNumber + 1, nblocks, curBlockOffset));
+
                 blocksDefList.Add(curBlockOffset);
 
                 // Fill 512 samples arrays
@@ -1047,11 +1111,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    DifArray16(temp16[j], temp16dif[j], out int max, out int min);
+                    DiffArray16(temp16[j], temp16dif[j], out int max, out int min);
                     int nbits = Math.Max(MinBits(min), MinBits(max));
 
                     TBlockHeader bHeader = new();
                     FillBlockHeader(ref bHeader);
+
                     bHeader.BaseValue = temp16[j][0];
 
                     if (nbits >= header.Bits)
@@ -1065,6 +1130,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
 
                     int blockSize = nbits * 64;
+
+                    if (doVerbose) Log.Debug(string.Format("Encoding 16bit block @ position {0} [blockSize: {1}, base: {2}, bits: {3}, flags: {4} = {5}]", ms.Position, blockSize, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -1090,6 +1157,11 @@ namespace PresetConverterProject.NIKontaktNKS
 
             header.BlocksSize = (uint)curBlockOffset;
             header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
+
+            Log.Information(string.Format("Creating NCW file-header [{0} hz, {1} bits, {2} ch, {3} samples]", header.SampleRate, header.Bits, header.Channels, header.NumSamples));
+            if (doVerbose) Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
+            if (doVerbose) Log.Debug("BlocksOffset: " + header.BlocksOffset);
+            if (doVerbose) Log.Debug("BlocksSize: " + header.BlocksSize);
         }
 
         public void WriteNCW24(WAVParser.TMyWAVHeader wavHeader)
@@ -1119,10 +1191,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (wavHeader.numOfPoints % 512 != 0)
                 nblocks++;
 
-            Log.Debug("Processing {0} number of blocks.", nblocks);
+            if (doVerbose) Log.Debug("Processing {0} number of blocks.", nblocks);
 
             header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
-            Log.Debug("Setting initial BlocksOffset: " + header.BlocksOffset);
+            if (doVerbose) Log.Debug("Setting initial BlocksOffset: " + header.BlocksOffset);
 
             ms = new MemoryStream();
 
@@ -1142,7 +1214,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
             {
-                Log.Debug(string.Format("Processing block {0}/{1} at offset: {2}.", curBlockNumber + 1, nblocks, curBlockOffset));
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1} at offset: {2}.", curBlockNumber + 1, nblocks, curBlockOffset));
 
                 blocksDefList.Add(curBlockOffset);
 
@@ -1165,7 +1237,7 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    DifArray24(temp24[j], temp24dif[j], out int max, out int min);
+                    DiffArray24(temp24[j], temp24dif[j], out int max, out int min);
                     int nbits = Math.Max(MinBits(min), MinBits(max));
 
                     TBlockHeader bHeader = new();
@@ -1184,6 +1256,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
 
                     int blockSize = nbits * 64;
+
+                    if (doVerbose) Log.Debug(string.Format("Encoding 24bit block @ position {0} [blockSize: {1}, base: {2}, bits: {3}, flags: {4} = {5}]", ms.Position, blockSize, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -1210,10 +1284,10 @@ namespace PresetConverterProject.NIKontaktNKS
             header.BlocksSize = (uint)curBlockOffset;
             header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
 
-            Log.Information(string.Format("Creating file-header [{0} hz, {1} bits, {2} ch, {3} samples]", header.SampleRate, header.Bits, header.Channels, header.NumSamples));
-            Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
-            Log.Debug("BlocksOffset: " + header.BlocksOffset);
-            Log.Debug("BlocksSize: " + header.BlocksSize);
+            Log.Information(string.Format("Creating NCW file-header [{0} hz, {1} bits, {2} ch, {3} samples]", header.SampleRate, header.Bits, header.Channels, header.NumSamples));
+            if (doVerbose) Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
+            if (doVerbose) Log.Debug("BlocksOffset: " + header.BlocksOffset);
+            if (doVerbose) Log.Debug("BlocksSize: " + header.BlocksSize);
         }
 
         public void WriteNCW32(WAVParser.TMyWAVHeader wavHeader)
@@ -1234,7 +1308,10 @@ namespace PresetConverterProject.NIKontaktNKS
             if (wavHeader.numOfPoints % 512 != 0)
                 nblocks++;
 
+            if (doVerbose) Log.Debug("Processing {0} number of blocks.", nblocks);
+
             header.BlocksOffset = header.BlockDefOffset + (uint)nblocks * 4;
+            if (doVerbose) Log.Debug("Setting initial BlocksOffset: " + header.BlocksOffset);
 
             ms = new MemoryStream();
 
@@ -1253,6 +1330,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int curBlockNumber = 0; curBlockNumber < nblocks - 1; curBlockNumber++)
             {
+                if (doVerbose) Log.Debug(string.Format("Processing block {0}/{1} at offset: {2}.", curBlockNumber + 1, nblocks, curBlockOffset));
+
                 blocksDefList.Add(curBlockOffset);
 
                 // Fill 512 samples arrays
@@ -1274,11 +1353,12 @@ namespace PresetConverterProject.NIKontaktNKS
 
                 for (int j = 0; j < header.Channels; j++)
                 {
-                    DifArray32(temp32[j], temp32dif[j], out int max, out int min);
+                    DiffArray32(temp32[j], temp32dif[j], out int max, out int min);
                     int nbits = Math.Max(MinBits(min), MinBits(max));
 
                     TBlockHeader bHeader = new();
                     FillBlockHeader(ref bHeader);
+
                     bHeader.BaseValue = temp32[j][0];
 
                     if (nbits >= header.Bits)
@@ -1292,6 +1372,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     }
 
                     int blockSize = nbits * 64;
+
+                    if (doVerbose) Log.Debug(string.Format("Encoding 32bit block @ position {0} [blockSize: {1}, base: {2}, bits: {3}, flags: {4} = {5}]", ms.Position, blockSize, bHeader.BaseValue, bHeader.Bits, bHeader.Flags, bHeader.Flags == 1 ? "mid/side" : "left/right"));
 
                     if (bHeader.Bits < 0)
                     {
@@ -1317,9 +1399,14 @@ namespace PresetConverterProject.NIKontaktNKS
 
             header.BlocksSize = (uint)curBlockOffset;
             header.BlocksOffset = (uint)(Marshal.SizeOf(header) + blocksDefList.Count * 4);
+
+            Log.Information(string.Format("Creating NCW file-header [{0} hz, {1} bits, {2} ch, {3} samples]", header.SampleRate, header.Bits, header.Channels, header.NumSamples));
+            if (doVerbose) Log.Debug("BlockDefOffset: " + header.BlockDefOffset);
+            if (doVerbose) Log.Debug("BlocksOffset: " + header.BlocksOffset);
+            if (doVerbose) Log.Debug("BlocksSize: " + header.BlocksSize);
         }
 
-        private void FillBlockHeader(ref TBlockHeader bheader)
+        private static void FillBlockHeader(ref TBlockHeader bheader)
         {
             bheader.Signature = BLOCK_SIGNATURE;
             bheader.Flags = 0;
@@ -1371,84 +1458,88 @@ namespace PresetConverterProject.NIKontaktNKS
             return bits; // Return the minimum number of bits required
         }
 
-        private static void DifArray8(sbyte[] ars, sbyte[] ard, out int max, out int min)
+        // create a delta array from the source array, as well as returning the min and max value
+        private static void DiffArray8(sbyte[] sourceArray, sbyte[] diffArray, out int max, out int min)
         {
             // signed 8 - bit value(-128 to + 127) = (-0x80 to 0x7F)
             max = sbyte.MinValue; // -128;
             min = sbyte.MaxValue; // 127
 
-            for (int i = 0; i < ars.Length - 1; i++)
+            for (int i = 0; i < sourceArray.Length - 1; i++)
             {
-                ard[i] = (sbyte)(ars[i + 1] - ars[i]);
+                diffArray[i] = (sbyte)(sourceArray[i + 1] - sourceArray[i]);
 
                 // Update max and min values
-                if (ard[i] > max)
-                    max = ard[i];
-                if (ard[i] < min)
-                    min = ard[i];
+                if (diffArray[i] > max)
+                    max = diffArray[i];
+                if (diffArray[i] < min)
+                    min = diffArray[i];
             }
 
-            ard[ars.Length - 1] = 0;
+            diffArray[sourceArray.Length - 1] = 0;
         }
 
-        private static void DifArray16(short[] ars, short[] ard, out int max, out int min)
+        // create a delta array from the source array, as well as returning the min and max value
+        private static void DiffArray16(short[] sourceArray, short[] diffArray, out int max, out int min)
         {
             // signed 16 - bit value(-32768 to 32767) = (-0x8000 to 0x7FFF)
             max = short.MinValue; // -32768;
             min = short.MaxValue; // 32767;
 
-            for (int i = 0; i < ars.Length - 1; i++)
+            for (int i = 0; i < sourceArray.Length - 1; i++)
             {
-                ard[i] = (short)(ars[i + 1] - ars[i]);
+                diffArray[i] = (short)(sourceArray[i + 1] - sourceArray[i]);
 
                 // Update max and min values
-                if (ard[i] > max)
-                    max = ard[i];
-                if (ard[i] < min)
-                    min = ard[i];
+                if (diffArray[i] > max)
+                    max = diffArray[i];
+                if (diffArray[i] < min)
+                    min = diffArray[i];
             }
 
-            ard[ars.Length - 1] = 0;
+            diffArray[sourceArray.Length - 1] = 0;
         }
 
-        private static void DifArray24(Int24[] ars, Int24[] ard, out int max, out int min)
+        // create a delta array from the source array, as well as returning the min and max value
+        private static void DiffArray24(Int24[] sourceArray, Int24[] diffArray, out int max, out int min)
         {
             // signed 24 - bit value(-8388608 to 8388607) = (-0x800000 to 0x7FFFFF) 
             max = Int24.MinValue; // -8388608
             min = Int24.MaxValue; // 8388607
 
-            for (int i = 0; i < ars.Length - 1; i++)
+            for (int i = 0; i < sourceArray.Length - 1; i++)
             {
-                ard[i] = (Int24)(ars[i + 1] - ars[i]);
+                diffArray[i] = (Int24)(sourceArray[i + 1] - sourceArray[i]);
 
                 // Update max and min values
-                if (ard[i] > max)
-                    max = ard[i];
-                if (ard[i] < min)
-                    min = ard[i];
+                if (diffArray[i] > max)
+                    max = diffArray[i];
+                if (diffArray[i] < min)
+                    min = diffArray[i];
             }
 
-            ard[ars.Length - 1] = Int24.Zero;
+            diffArray[sourceArray.Length - 1] = Int24.Zero;
         }
 
-        private static void DifArray32(int[] ars, int[] ard, out int max, out int min)
+        // create a delta array from the source array, as well as returning the min and max value
+        private static void DiffArray32(int[] sourceArray, int[] diffArray, out int max, out int min)
         {
             // signed 32 - bit value(-2147483648 to + 2147483647) = (-0x80000000 to + 0x7FFFFFFF)
             max = int.MinValue; // -2147483648
             min = int.MaxValue; // 2147483647
 
-            for (int i = 0; i < ars.Length - 1; i++)
+            for (int i = 0; i < sourceArray.Length - 1; i++)
             {
-                ard[i] = ars[i + 1] - ars[i];
+                diffArray[i] = sourceArray[i + 1] - sourceArray[i];
 
                 // Update max and min values
-                if (ard[i] > max)
-                    max = ard[i];
-                if (ard[i] < min)
-                    min = ard[i];
+                if (diffArray[i] > max)
+                    max = diffArray[i];
+                if (diffArray[i] < min)
+                    min = diffArray[i];
             }
 
-            ard[ars.Length - 1] = 0;
+            diffArray[sourceArray.Length - 1] = 0;
         }
     }
 }
