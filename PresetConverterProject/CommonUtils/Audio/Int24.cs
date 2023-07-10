@@ -15,6 +15,11 @@ namespace CommonUtils.Audio
         private byte b1 = 0x00;
         private byte b2 = 0x00;
 
+        public readonly byte[] GetBytes()
+        {
+            return new byte[] { b0, b1, b2 };
+        }
+
         /// <summary>
         /// Max value.
         /// </summary>
@@ -38,8 +43,12 @@ namespace CommonUtils.Audio
             ret |= b1 << 8;               // Middle 8 bits
             ret |= (b2 & 0x7F) << 16;     // Upper 7 bits (excluding the sign bit)
 
-            // Check if the sign bit is set and adjust the value accordingly
-            if ((b2 & 0x80) > 0) { ret = MinValue + ret; }
+            // Check if the most significant bit (bit 23) is set to determine if the value is negative.
+            if ((b2 & 0x80) > 0)
+            {
+                // If the value is negative, sign-extend it to a 32-bit signed integer
+                ret = MinValue + ret;
+            }
 
             return ret;
         }

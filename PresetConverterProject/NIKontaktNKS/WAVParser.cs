@@ -329,7 +329,10 @@ namespace PresetConverterProject.NIKontaktNKS
                         // 0 - 255
                         byte b = (byte)bfReader.ReadByte();
                         bytesRead += 1;
-                        data[i * wavHeader.nChannels + j] = (float)(b - MAX_8BIT + 1) / MAX_8BIT;
+                        // convert from byte to sbyte before storing
+                        // (-128 to +127)
+                        // Shift the range of b from 0-255 to -128-127 then scale the shifted value to the range of -1 to 1.
+                        data[i * wavHeader.nChannels + j] = (float)(b - MAX_8BIT) / MAX_8BIT;
                     }
                 }
             }
@@ -362,10 +365,9 @@ namespace PresetConverterProject.NIKontaktNKS
                         // convert [0x800000, 0x7FFFFF] to [-1.0, 1.0]
                         // -8388608 to 8388607
                         byte[] bytes = bfReader.ReadBytes(3);
-                        int l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
                         bytesRead += 3;
-                        // l <<= 8;
-                        data[i * wavHeader.nChannels + j] = (float)l / MAX_24BIT;
+                        Int24 i24 = new(bytes[0], bytes[1], bytes[2]);
+                        data[i * wavHeader.nChannels + j] = (float)i24 / MAX_24BIT;
                     }
                 }
             }
@@ -452,14 +454,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
                         byte[] bytes = bfReader.ReadBytes(3);
-                        // Combine the three bytes into a 32-bit signed int
-                        int l = (bytes[0] << 8) | (bytes[1] << 16) | (bytes[2] << 24);
-                        // Since the original sample was stored as a 24-bit value, 
-                        // the remaining 8 bits in the 32-bit integer will be filled with zeros. 
-                        // Therefore, dividing the value by 256 (which is equivalent to shifting the value right by 8 bits) 
-                        // effectively discards the extra zeros and converts the 32-bit value to a 24-bit value.
-                        // l / 256 = l >> 8
-                        data[i * wavHeader.nChannels + j] = l / 256;
+                        Int24 i24 = new(bytes[0], bytes[1], bytes[2]);
+                        data[i * wavHeader.nChannels + j] = i24;
                     }
                 }
             }
@@ -502,7 +498,11 @@ namespace PresetConverterProject.NIKontaktNKS
                 {
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
-                        int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_8BIT + MAX_8BIT - 1);
+                        // convert from sbyte to byte before saving
+                        // convert from byte to sbyte before storing
+                        // (-128 to +127)
+                        // Multiply by 128 to scale it within the range of -128 to 127. Add the offset value of 128 to shift the range back to 0-255.
+                        int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_8BIT + MAX_8BIT);
                         fsWriter.WriteByte((byte)sample);
                     }
                 }
@@ -527,14 +527,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
                         int sample = (int)Math.Round(data[i * wavHeader.nChannels + j] * MAX_24BIT);
-                        // Since the original sample was stored as a 24-bit value, 
-                        // the remaining 8 bits in the 32-bit integer will be filled with zeros. 
-                        // Therefore, dividing the value by 256 (which is equivalent to shifting the value right by 8 bits) 
-                        // effectively discards the extra zeros and converts the 32-bit value to a 24-bit value.
-                        // l / 256 = l >> 8
-                        sample /= 256;
-                        byte[] bytes = BitConverter.GetBytes(sample);
-                        fsWriter.Write(bytes, 0, 3);
+                        Int24 i24 = (Int24)sample;
+                        fsWriter.Write(i24.GetBytes(), 0, 3);
                     }
                 }
             }
@@ -559,7 +553,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
             }
 
-            CloseWav();
+            CloseWriter();
 
             return true;
         }
@@ -606,7 +600,8 @@ namespace PresetConverterProject.NIKontaktNKS
                     for (int j = 0; j < wavHeader.nChannels; j++)
                     {
                         int sample = data[i * wavHeader.nChannels + j];
-                        fsWriter.Write(BitConverter.GetBytes(sample), 0, 3);
+                        Int24 i24 = (Int24)sample;
+                        fsWriter.Write(i24.GetBytes(), 0, 3);
                     }
                 }
             }
@@ -623,7 +618,7 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
             }
 
-            CloseWav();
+            CloseWriter();
 
             return true;
         }
@@ -744,7 +739,7 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
-        public void CloseWav()
+        public void CloseWriter()
         {
             if (fsWriter != null)
             {
@@ -755,5 +750,15 @@ namespace PresetConverterProject.NIKontaktNKS
             }
         }
 
+        public void CloseReader()
+        {
+            if (bfReader != null)
+            {
+                if (doVerbose) Log.Debug("Closing input stream.");
+
+                bfReader.Close();
+                bfReader.Dispose();
+            }
+        }
     }
 }
