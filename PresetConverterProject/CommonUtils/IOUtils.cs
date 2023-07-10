@@ -75,7 +75,7 @@ namespace CommonUtils
         /// <returns>IEnumerable array of filenames</returns>
         public static IEnumerable<string> GetFilesRecursive(string path, string searchPattern)
         {
-            return Directory.GetFiles(path, searchPattern, SearchOption.AllDirectories);
+            return Directory.EnumerateFiles(path, searchPattern, SearchOption.AllDirectories);
         }
 
         /// <summary>

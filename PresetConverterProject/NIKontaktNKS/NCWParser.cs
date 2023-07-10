@@ -22,6 +22,12 @@ namespace PresetConverterProject.NIKontaktNKS
             var ncwParser = new NCWParser(doVerbose);
             ncwParser.Clear();
             ncwParser.OpenNCWFile(inputFilePath);
+
+            // if (ncwParser.Header.Bits != 24)
+            // {
+            //     Log.Information("Found != 24 bit: {0}", inputFilePath);
+            // }
+
             ncwParser.ReadNCW();
 
             if (!doList)
@@ -1228,6 +1234,7 @@ namespace PresetConverterProject.NIKontaktNKS
             Int24[][] temp24 = new Int24[header.Channels][]; // Left/Right
             Int24[][] temp24dif = new Int24[header.Channels][];
 
+            // TODO: Currently we only support saving to Left/Right even when Mid/Side might compress better
             // Int24[][] temp24MS = new Int24[header.Channels][]; // Mid/Side
             // Int24[][] temp24difMS = new Int24[header.Channels][];
 
