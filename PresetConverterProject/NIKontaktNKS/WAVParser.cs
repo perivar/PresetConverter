@@ -760,5 +760,11 @@ namespace PresetConverterProject.NIKontaktNKS
                 bfReader.Dispose();
             }
         }
+
+        public void Close()
+        {
+            CloseReader();
+            CloseWriter();
+        }
     }
 }
