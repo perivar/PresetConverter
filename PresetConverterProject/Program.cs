@@ -184,6 +184,8 @@ namespace PresetConverter
         {
             var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
+            Console.WriteLine("Using Environment (DOTNET_ENVIRONMENT): {0}", environmentName);
+
             IConfiguration config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
@@ -294,6 +296,8 @@ namespace PresetConverter
                         ;
                     logConfig.MinimumLevel.Verbose();
                     Log.Logger = logConfig.CreateLogger();
+
+                    Log.Information("Using Environment (DOTNET_ENVIRONMENT): {0}", environmentName);
 
                     if (!doPack)
                     {
@@ -1469,6 +1473,8 @@ namespace PresetConverter
                 var appExecutionPath = IOUtils.GetApplicationExecutionPath();
                 var wcxPluginPath = Path.Combine(appExecutionPath, "WCXPlugins", "nkx.wcx64");
 
+                Log.Information("Processing Kontakt file with WCX using path: {0}", wcxPluginPath);
+
                 if (doVerbose)
                 {
                     WCXUtils.Call64BitWCXPlugin(wcxPluginPath, inputDirectoryOrFilePath, outputDirectory, WCXUtils.TodoOperations.TODO_FLIST);
@@ -1498,6 +1504,30 @@ namespace PresetConverter
             else
             {
                 // use internal methods 
+                Log.Information("Processing Kontakt file normally using config: {0}", config["NksSettingsPath"]);
+
+                if (doVerbose)
+                {
+                    Log.Debug("Debug information for all settings:");
+
+                    var memStream = new MemoryStream();
+                    var streamWriter = new StreamWriter(memStream);
+
+                    streamWriter.WriteLine("\nRegistryLibraryInfo:");
+                    NKS.PrintRegistryLibraryInfo(streamWriter);
+
+                    streamWriter.WriteLine("SettingsLibraryInfo:");
+                    NKS.PrintSettingsLibraryInfo(config["NksSettingsPath"], streamWriter);
+
+                    streamWriter.WriteLine("NKLibsLibraryInfo:");
+                    NKS.PrintNKLibsLibraryInfo(streamWriter);
+
+                    streamWriter.Flush();
+                    string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
+
+                    Log.Debug(libraryInfo);
+                    memStream.Close();
+                }
 
                 // read the library info (keys and ids etc.)
                 NKS.NksReadLibrariesInfo(config["NksSettingsPath"]);
@@ -1527,24 +1557,6 @@ namespace PresetConverter
                     {
                         if (doVerbose)
                         {
-                            var memStream = new MemoryStream();
-                            var streamWriter = new StreamWriter(memStream);
-
-                            streamWriter.WriteLine("\nRegistryLibraryInfo:");
-                            NKS.PrintRegistryLibraryInfo(streamWriter);
-
-                            streamWriter.WriteLine("SettingsLibraryInfo:");
-                            NKS.PrintSettingsLibraryInfo(config["NksSettingsPath"], streamWriter);
-
-                            streamWriter.WriteLine("NKLibsLibraryInfo:");
-                            NKS.PrintNKLibsLibraryInfo(streamWriter);
-
-                            streamWriter.Flush();
-                            string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
-
-                            Log.Debug(libraryInfo);
-                            memStream.Close();
-
                             NKS.Scan(inputDirectoryOrFilePath);
                         }
                         else if (doList)

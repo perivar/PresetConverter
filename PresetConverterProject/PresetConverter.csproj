@@ -18,17 +18,17 @@
 
   </ItemGroup>
   <ItemGroup>
-    <Content Include="WCXPlugins\*.*">
+    <None Include="WCXPlugins\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
     <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
     <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(OutDir)" />
-
   </Target>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
-
+    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(PublishDir)" />
   </Target>
 </Project>

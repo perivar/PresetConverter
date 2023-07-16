@@ -480,11 +480,25 @@ namespace CommonUtils
         /// Return the path where the executable is running from
         /// </summary>
         /// <see cref="http://codebuckets.com/2017/10/19/getting-the-root-directory-path-for-net-core-applications/"></see>
+        /// <see cref="https://www.hanselman.com/blog/how-do-i-find-which-directory-my-net-core-console-application-was-started-in-or-is-running-from"/> 
+        /// <see cref="https://www.softwaredeveloper.blog/executing-assembly-location-in-a-single-file-app"/> 
         /// <returns>the path where the executable is running from</returns>
         public static string GetApplicationExecutionPath()
         {
             // get the application execution path
-            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            // this solution does not work any longer when publishing to an executable (single file app)
+            // var executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            // instead use AppContext.BaseDirectory
+            var executableDirectory = AppContext.BaseDirectory;
+
+            if (string.IsNullOrEmpty(executableDirectory))
+            {
+                throw new Exception("Could not find out executable directory!");
+            }
+
+            return executableDirectory;
         }
 
         /// <summary>

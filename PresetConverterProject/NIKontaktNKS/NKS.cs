@@ -93,6 +93,8 @@ namespace PresetConverterProject.NIKontaktNKS
 
         private static List<NksLibraryDesc>? NksGetSettingsLibraries(string nksSettingsPath, bool includeNonEncryptedLibs = false, bool useIntegerIds = false)
         {
+            Log.Information("Reading NKS Settings (Settings.cfg) using path: {0}", nksSettingsPath);
+
             Regex sectionRegex = new Regex(@"\[([\w\d\s\.\-]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=sz\:(.*?)$");
 
@@ -108,82 +110,89 @@ namespace PresetConverterProject.NIKontaktNKS
 
             List<NksLibraryDesc>? settingsList = null;
 
-            using (var reader = new StreamReader(nksSettingsPath))
+            try
             {
-                string? line = null;
-                string? sectionName = null;
-                bool isProcessingSection = false;
-                NksLibraryDesc? libDesc = null;
-                while ((line = reader.ReadLine()) != null)
+                using (var reader = new StreamReader(nksSettingsPath))
                 {
-                    if (isProcessingSection)
+                    string? line = null;
+                    string? sectionName = null;
+                    bool isProcessingSection = false;
+                    NksLibraryDesc? libDesc = null;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        Match elementMatch = elementRegex.Match(line);
-
-                        // found new section
-                        if (elementMatch.Success)
+                        if (isProcessingSection)
                         {
-                            string key = elementMatch.Groups[1].Value;
-                            string value = elementMatch.Groups[2].Value;
+                            Match elementMatch = elementRegex.Match(line);
 
-                            if (keyElements.Contains(key))
+                            // found new section
+                            if (elementMatch.Success)
                             {
-                                if (libDesc == null) libDesc = new NksLibraryDesc();
+                                string key = elementMatch.Groups[1].Value;
+                                string value = elementMatch.Groups[2].Value;
 
-                                switch (key)
+                                if (keyElements.Contains(key))
                                 {
-                                    case "Name":
-                                        libDesc.Name = value; // .ToUpper();
-                                        break;
-                                    case "SNPID":
-                                        libDesc.Id = value.ToUpper();
+                                    if (libDesc == null) libDesc = new NksLibraryDesc();
 
-                                        // check if we are using only integer ids
-                                        if (useIntegerIds)
-                                        {
-                                            libDesc.Id = ConvertToBase10(libDesc.Id);
-                                        }
+                                    switch (key)
+                                    {
+                                        case "Name":
+                                            libDesc.Name = value; // .ToUpper();
+                                            break;
+                                        case "SNPID":
+                                            libDesc.Id = value.ToUpper();
 
-                                        break;
-                                    case "Company":
-                                        libDesc.Company = value;
-                                        break;
-                                    case "ContentDir":
-                                        break;
-                                    case "JDX":
-                                        NksGeneratingKeySetKeyStr(libDesc.GenKey, value);
-                                        break;
-                                    case "HU":
-                                        NksGeneratingKeySetIvStr(libDesc.GenKey, value);
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException("Key not supported: " + key);
+                                            // check if we are using only integer ids
+                                            if (useIntegerIds)
+                                            {
+                                                libDesc.Id = ConvertToBase10(libDesc.Id);
+                                            }
+
+                                            break;
+                                        case "Company":
+                                            libDesc.Company = value;
+                                            break;
+                                        case "ContentDir":
+                                            break;
+                                        case "JDX":
+                                            NksGeneratingKeySetKeyStr(libDesc.GenKey, value);
+                                            break;
+                                        case "HU":
+                                            NksGeneratingKeySetIvStr(libDesc.GenKey, value);
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException("Key not supported: " + key);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    Match sectionMatch = sectionRegex.Match(line);
+                        Match sectionMatch = sectionRegex.Match(line);
 
-                    // found new section
-                    if (sectionMatch.Success)
-                    {
-                        sectionName = sectionMatch.Groups[1].Value;
-                        isProcessingSection = true;
-
-                        // store previously finished libDesc if found new section
-                        if (libDesc != null
-                        && libDesc.Id != null
-                        && ((!includeNonEncryptedLibs && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0) || includeNonEncryptedLibs)
-                        )
+                        // found new section
+                        if (sectionMatch.Success)
                         {
-                            if (settingsList == null) settingsList = new List<NksLibraryDesc>();
-                            settingsList.Add(libDesc);
+                            sectionName = sectionMatch.Groups[1].Value;
+                            isProcessingSection = true;
 
-                            libDesc = null;
+                            // store previously finished libDesc if found new section
+                            if (libDesc != null
+                            && libDesc.Id != null
+                            && ((!includeNonEncryptedLibs && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0) || includeNonEncryptedLibs)
+                            )
+                            {
+                                if (settingsList == null) settingsList = new List<NksLibraryDesc>();
+                                settingsList.Add(libDesc);
+
+                                libDesc = null;
+                            }
                         }
                     }
                 }
+            }
+            catch (System.Exception e)
+            {
+                Log.Error("Failed reading NKS Settings (Settings.cfg)", e);
             }
 
             return settingsList;
@@ -217,6 +226,8 @@ namespace PresetConverterProject.NIKontaktNKS
             var appExecutionPath = IOUtils.GetApplicationExecutionPath();
             var nksLibsPath = Path.Combine(appExecutionPath, "WCXPlugins", "nklibs_info.userdb");
 
+            Log.Information("Reading NKS Libraries (nklibs_info.userdb) using path: {0}", nksLibsPath);
+
             Regex sectionRegex = new Regex(@"\[([\w\d]+)\]");
             Regex elementRegex = new Regex(@"(.*?)=(.*?)$");
 
@@ -230,83 +241,91 @@ namespace PresetConverterProject.NIKontaktNKS
 
             List<NksLibraryDesc>? nkLibsList = null;
 
-            using (var reader = new StreamReader(nksLibsPath))
+            try
             {
-                string? line = null;
-                string? sectionName = null;
-                bool isProcessingSection = false;
-                NksLibraryDesc? libDesc = null;
-                while ((line = reader.ReadLine()) != null)
+                using (var reader = new StreamReader(nksLibsPath))
                 {
-                    if (isProcessingSection)
+                    string? line = null;
+                    string? sectionName = null;
+                    bool isProcessingSection = false;
+                    NksLibraryDesc? libDesc = null;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        if (libDesc == null) libDesc = new NksLibraryDesc();
-
-                        // Set SNPID if its not already set
-                        if (libDesc.Id == null)
+                        if (isProcessingSection)
                         {
-                            libDesc.Id = sectionName.ToUpper();
+                            if (libDesc == null) libDesc = new NksLibraryDesc();
 
-                            // check if we are using only integer ids
-                            if (useIntegerIds)
+                            // Set SNPID if its not already set
+                            if (libDesc.Id == null)
                             {
-                                libDesc.Id = ConvertToBase10(libDesc.Id);
-                            }
-                        }
+                                libDesc.Id = sectionName.ToUpper();
 
-                        Match elementMatch = elementRegex.Match(line);
-
-                        // found new section
-                        if (elementMatch.Success)
-                        {
-                            string key = elementMatch.Groups[1].Value;
-                            string value = elementMatch.Groups[2].Value;
-
-                            if (keyElements.Contains(key))
-                            {
-                                switch (key)
+                                // check if we are using only integer ids
+                                if (useIntegerIds)
                                 {
-                                    case "RegKey":
-                                        libDesc.Name = value; // .ToUpper();
-                                        break;
-                                    case "Company":
-                                        libDesc.Company = value;
-                                        break;
-                                    case "JDX":
-                                        NksGeneratingKeySetKeyStr(libDesc.GenKey, value);
-                                        break;
-                                    case "HU":
-                                        NksGeneratingKeySetIvStr(libDesc.GenKey, value);
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException("Key not supported: " + key);
+                                    libDesc.Id = ConvertToBase10(libDesc.Id);
+                                }
+                            }
+
+                            Match elementMatch = elementRegex.Match(line);
+
+                            // found new section
+                            if (elementMatch.Success)
+                            {
+                                string key = elementMatch.Groups[1].Value;
+                                string value = elementMatch.Groups[2].Value;
+
+                                if (keyElements.Contains(key))
+                                {
+                                    switch (key)
+                                    {
+                                        case "RegKey":
+                                            libDesc.Name = value; // .ToUpper();
+                                            break;
+                                        case "Company":
+                                            libDesc.Company = value;
+                                            break;
+                                        case "JDX":
+                                            NksGeneratingKeySetKeyStr(libDesc.GenKey, value);
+                                            break;
+                                        case "HU":
+                                            NksGeneratingKeySetIvStr(libDesc.GenKey, value);
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException("Key not supported: " + key);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    Match sectionMatch = sectionRegex.Match(line);
+                        Match sectionMatch = sectionRegex.Match(line);
 
-                    // found new section
-                    if (sectionMatch.Success)
-                    {
-                        sectionName = sectionMatch.Groups[1].Value;
-
-                        isProcessingSection = true;
-
-                        // store previously finished libDesc if found new section
-                        if (libDesc != null
-                        && libDesc.Id != null
-                        && ((!includeNonEncryptedLibs && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0) || includeNonEncryptedLibs)
-                        )
+                        // found new section
+                        if (sectionMatch.Success)
                         {
-                            if (nkLibsList == null) nkLibsList = new List<NksLibraryDesc>();
-                            nkLibsList.Add(libDesc);
+                            sectionName = sectionMatch.Groups[1].Value;
 
-                            libDesc = null;
+                            isProcessingSection = true;
+
+                            // store previously finished libDesc if found new section
+                            if (libDesc != null
+                            && libDesc.Id != null
+                            && ((!includeNonEncryptedLibs && libDesc.GenKey.KeyLength != 0 && libDesc.GenKey.IVLength != 0) || includeNonEncryptedLibs)
+                            )
+                            {
+                                if (nkLibsList == null) nkLibsList = new List<NksLibraryDesc>();
+                                nkLibsList.Add(libDesc);
+
+                                libDesc = null;
+                            }
                         }
                     }
                 }
+
+            }
+            catch (System.Exception e)
+            {
+                Log.Error("Failed reading NKS Libraries (nklibs_info.userdb)", e);
             }
 
             return nkLibsList;
