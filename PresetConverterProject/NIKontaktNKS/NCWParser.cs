@@ -1556,7 +1556,7 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         // create a delta array from the source array, as well as returning the min and max value
-        private static void DiffArray8(sbyte[] sourceArray, sbyte[] diffArray, out int max, out int min)
+        public static void DiffArray8(sbyte[] sourceArray, sbyte[] diffArray, out int max, out int min)
         {
             // signed 8 - bit value(-128 to + 127) = (-0x80 to 0x7F)
             max = sbyte.MinValue; // -128;
@@ -1577,7 +1577,7 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         // create a delta array from the source array, as well as returning the min and max value
-        private static void DiffArray16(short[] sourceArray, short[] diffArray, out int max, out int min)
+        public static void DiffArray16(short[] sourceArray, short[] diffArray, out int max, out int min)
         {
             // signed 16 - bit value(-32768 to 32767) = (-0x8000 to 0x7FFF)
             max = short.MinValue; // -32768;
@@ -1598,7 +1598,7 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         // create a delta array from the source array, as well as returning the min and max value
-        private static void DiffArray24(Int24[] sourceArray, Int24[] diffArray, out int max, out int min)
+        public static void DiffArray24(Int24[] sourceArray, Int24[] diffArray, out int max, out int min)
         {
             // signed 24 - bit value(-8388608 to 8388607) = (-0x800000 to 0x7FFFFF) 
             max = Int24.MinValue; // -8388608
@@ -1619,7 +1619,7 @@ namespace PresetConverterProject.NIKontaktNKS
         }
 
         // create a delta array from the source array, as well as returning the min and max value
-        private static void DiffArray32(int[] sourceArray, int[] diffArray, out int max, out int min)
+        public static void DiffArray32(int[] sourceArray, int[] diffArray, out int max, out int min)
         {
             // signed 32 - bit value(-2147483648 to + 2147483647) = (-0x80000000 to + 0x7FFFFFFF)
             max = int.MinValue; // -2147483648

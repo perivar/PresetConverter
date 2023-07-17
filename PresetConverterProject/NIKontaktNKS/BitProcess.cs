@@ -337,11 +337,6 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Encode24_24(int n, ReadOnlySpan<Int24> sourceSpan, Span<byte> destSpan)
         {
-            // TODO: PIN - is this needed?
-            // var destShort = MemoryMarshal.Cast<byte, short>(destSpan);
-            // var destBytes = MemoryMarshal.Cast<short, byte>(destShort);
-            // destBytes.CopyTo(destSpan);
-
             for (int i = 0; i < n; i++)
             {
                 Int24 value = sourceSpan[i];
@@ -569,38 +564,44 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill16_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<short> destSpan, int baseValue)
         {
+            // convert byte span into sbyte span
+            var sourceArray = MemoryMarshal.Cast<byte, sbyte>(sourceSpan);
+
             destSpan[0] = (short)baseValue;
 
             int sourceIndex = 0;
 
             for (int i = 1; i < n; i++)
             {
-                byte srcByte = sourceSpan[sourceIndex];
+                sbyte srcSByte = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                destSpan[i] = (short)(srcByte + destSpan[i - 1]);
+                destSpan[i] = (short)(srcSByte + destSpan[i - 1]);
             }
         }
 
         public static void Fill24_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan, int baseValue)
         {
+            // convert byte span into sbyte span
+            var sourceArray = MemoryMarshal.Cast<byte, sbyte>(sourceSpan);
+
             destSpan[0] = (Int24)baseValue;
 
             int sourceIndex = 0;
 
             for (int i = 1; i < n; i++)
             {
-                byte srcByte = sourceSpan[sourceIndex];
+                sbyte srcSByte = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                destSpan[i] = (Int24)(srcByte + destSpan[i - 1]);
+                destSpan[i] = (Int24)srcSByte + destSpan[i - 1];
             }
         }
 
         public static void Fill24_16rel(int n, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan, int baseValue)
         {
-            // convert byte span into Int24 span
-            ReadOnlySpan<Int24> sourceArray = MemoryMarshal.Cast<byte, Int24>(sourceSpan);
+            // convert byte span into short span
+            var sourceArray = MemoryMarshal.Cast<byte, short>(sourceSpan);
 
             destSpan[0] = (Int24)baseValue;
 
@@ -608,34 +609,35 @@ namespace PresetConverterProject.NIKontaktNKS
 
             for (int i = 1; i < n; i++)
             {
-                Int24 srcInt24 = sourceArray[sourceIndex];
+                short srcShort = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                srcInt24 = (Int24)ChangeIntSign(srcInt24, 16);
-
-                destSpan[i] = (Int24)(srcInt24 + destSpan[i - 1]);
+                destSpan[i] = (Int24)srcShort + destSpan[i - 1];
             }
         }
 
         public static void Fill32_8rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
+            // convert byte span into sbyte span
+            var sourceArray = MemoryMarshal.Cast<byte, sbyte>(sourceSpan);
+
             destSpan[0] = baseValue;
 
             int sourceIndex = 0;
 
             for (int i = 1; i < n; i++)
             {
-                byte srcByte = sourceSpan[sourceIndex];
+                sbyte srcSByte = sourceArray[sourceIndex];
                 sourceIndex++;
 
-                destSpan[i] = srcByte + destSpan[i - 1];
+                destSpan[i] = srcSByte + destSpan[i - 1];
             }
         }
 
         public static void Fill32_16rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
             // convert byte span into short span
-            ReadOnlySpan<short> sourceArray = MemoryMarshal.Cast<byte, short>(sourceSpan);
+            var sourceArray = MemoryMarshal.Cast<byte, short>(sourceSpan);
 
             destSpan[0] = baseValue;
 
@@ -652,58 +654,44 @@ namespace PresetConverterProject.NIKontaktNKS
 
         public static void Fill32_24rel(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan, int baseValue)
         {
+            // convert byte span into Int24 span
+            var sourceArray = MemoryMarshal.Cast<byte, Int24>(sourceSpan);
+
             destSpan[0] = baseValue;
 
             int sourceIndex = 0;
 
             for (int i = 1; i < n; i++)
             {
-                // extract a 24-bit integer value from three consecutive bytes in little-endian format.
-                int destInt = (sourceSpan[sourceIndex] & 0xFF) |
-                ((sourceSpan[sourceIndex + 1] & 0xFF) << 8) |
-                ((sourceSpan[sourceIndex + 2] & 0xFF) << 16);
-                sourceIndex += 3;
+                Int24 srcInt24 = sourceArray[sourceIndex];
+                sourceIndex++;
 
-                // checks if the most significant bit of destInt is set, 
-                // and if it is, set all the bits above the bits position to 1. 
-                // this ensures that the resulting 32-bit Int32 preserves the correct negative value.
-                destInt = ChangeIntSign(destInt, 24);
-
-                destInt += destSpan[i - 1];
-                destSpan[i] = destInt;
+                destSpan[i] = srcInt24 + destSpan[i - 1];
             }
         }
 
         public static void Fill8abs(int n, ReadOnlySpan<byte> sourceSpan, Span<sbyte> destSpan)
         {
-            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n));
-            var destIntegers = MemoryMarshal.Cast<sbyte, int>(destSpan.Slice(0, n));
-
-            sourceBytes.CopyTo(destIntegers);
+            var sourceArray = MemoryMarshal.Cast<byte, sbyte>(sourceSpan);
+            sourceArray.Slice(0, n).CopyTo(destSpan);
         }
 
         public static void Fill16abs(int n, ReadOnlySpan<byte> sourceSpan, Span<short> destSpan)
         {
-            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 2));
-            var destIntegers = MemoryMarshal.Cast<short, int>(destSpan.Slice(0, n));
-
-            sourceBytes.CopyTo(destIntegers);
+            var sourceArray = MemoryMarshal.Cast<byte, short>(sourceSpan);
+            sourceArray.Slice(0, n).CopyTo(destSpan);
         }
 
         public static void Fill24abs(int n, ReadOnlySpan<byte> sourceSpan, Span<Int24> destSpan)
         {
-            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 3));
-            var destIntegers = MemoryMarshal.Cast<Int24, int>(destSpan.Slice(0, n));
-
-            sourceBytes.CopyTo(destIntegers);
+            var sourceArray = MemoryMarshal.Cast<byte, Int24>(sourceSpan);
+            sourceArray.Slice(0, n).CopyTo(destSpan);
         }
 
         public static void Fill32abs(int n, ReadOnlySpan<byte> sourceSpan, Span<int> destSpan)
         {
-            var sourceBytes = MemoryMarshal.Cast<byte, int>(sourceSpan.Slice(0, n * 4));
-            var destIntegers = MemoryMarshal.Cast<int, int>(destSpan.Slice(0, n));
-
-            sourceBytes.CopyTo(destIntegers);
+            var sourceArray = MemoryMarshal.Cast<byte, int>(sourceSpan);
+            sourceArray.Slice(0, n).CopyTo(destSpan);
         }
 
         public static void Fill8_bits(int n, int bits, ReadOnlySpan<byte> sourceSpan, Span<sbyte> destSpan, int baseValue)
