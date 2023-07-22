@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text;
 using System.Xml.Linq;
 
 using CommonUtils;
@@ -17,169 +15,6 @@ namespace PresetConverter
 {
     class Program
     {
-        public static object SnpidCSVParser(int lineCounter, string[] splittedLine, Dictionary<int, string> lookupDictionary)
-        {
-            var snpid = splittedLine[0];
-            var companyName = splittedLine[1];
-            var libraryName = splittedLine[2];
-
-            NksLibraryDesc libDesc = new NksLibraryDesc();
-            libDesc.Id = snpid;
-            libDesc.Company = companyName;
-            libDesc.Name = libraryName;
-
-            return libDesc;
-        }
-
-        public static object RTStringsParser(int lineCounter, string[] splittedLine, Dictionary<int, string> lookupDictionary)
-        {
-            var snpidAndCode = splittedLine[0];
-
-            Regex snpidAndCodeRegex = new(@"^(\d+):\s(.*?)$");
-            Match match = snpidAndCodeRegex.Match(snpidAndCode);
-            string? snpid = null;
-            string? jdx = null;
-            if (match.Success)
-            {
-                int id = int.Parse(match.Groups[1].Value);
-                snpid = string.Format("{0:000}", id);
-                jdx = match.Groups[2].Value;
-            }
-
-            var hu = splittedLine[1];
-
-            NksLibraryDesc libDesc = new()
-            {
-                Id = snpid
-            };
-            NKS.NksGeneratingKeySetKeyStr(libDesc.GenKey, jdx);
-            NKS.NksGeneratingKeySetIvStr(libDesc.GenKey, hu);
-
-            var libraryName = splittedLine[2];
-            var libraryCompanyId = splittedLine.Length > 3 ? splittedLine[3] : null;
-
-            if (!String.IsNullOrEmpty(libraryName))
-            {
-                libDesc.Name = libraryName;
-            }
-
-            if (libraryCompanyId != null)
-            {
-                var companyId = int.Parse(libraryCompanyId);
-                libDesc.Company = lookupDictionary[companyId];
-            }
-
-            return libDesc;
-        }
-
-        public static string NKSLibCSVHeader(string columnSeparator)
-        {
-            var elements = new List<string>();
-
-            // elements.Add("Line");
-            elements.Add("SNPID");
-            elements.Add("Company Name");
-            elements.Add("Product Name");
-            elements.Add("JDX");
-            elements.Add("HU");
-
-            return string.Join(columnSeparator, elements);
-        }
-
-        public static string NKSLibCSVFormatter(object line, int lineCounter, string columnSeparator)
-        {
-            var elements = new List<string>();
-            var libDesc = (NksLibraryDesc)line;
-
-            // elements.Add(String.Format("{0,4}", lineCounter));
-            elements.Add(libDesc.Id);
-            elements.Add(libDesc.Company);
-            elements.Add(libDesc.Name);
-
-            if (libDesc.GenKey.KeyLength > 0) elements.Add(StringUtils.ByteArrayToHexString(libDesc.GenKey.Key));
-            if (libDesc.GenKey.IVLength > 0) elements.Add(StringUtils.ByteArrayToHexString(libDesc.GenKey.IV));
-
-            return string.Join(columnSeparator, elements);
-        }
-
-        public static string NKSLibCSVHeaderShort(string columnSeparator)
-        {
-            var elements = new List<string>();
-
-            // elements.Add("Line");
-            elements.Add("SNPID");
-            elements.Add("Company Name");
-            elements.Add("Product Name");
-
-            return string.Join(columnSeparator, elements);
-        }
-
-        public static string NKSLibCSVFormatterShort(object line, int lineCounter, string columnSeparator)
-        {
-            var elements = new List<string>();
-            var libDesc = (NksLibraryDesc)line;
-
-            // elements.Add(String.Format("{0,4}", lineCounter));
-            elements.Add(libDesc.Id);
-            elements.Add(libDesc.Company ?? "Undefined");
-            elements.Add(libDesc.Name ?? "Undefined");
-
-            return string.Join(columnSeparator, elements);
-        }
-
-        public class SemiNumericComparer : IComparer<string>
-        {
-            /// <summary>
-            /// Method to determine if a string is a number
-            /// </summary>
-            /// <param name="value">String to test</param>
-            /// <returns>True if numeric</returns>
-            public static bool IsNumeric(string value)
-            {
-                return int.TryParse(value, out _);
-            }
-
-            /// <inheritdoc />
-            public int Compare(string s1, string s2)
-            {
-                const int S1GreaterThanS2 = 1;
-                const int S2GreaterThanS1 = -1;
-
-                var IsNumeric1 = IsNumeric(s1);
-                var IsNumeric2 = IsNumeric(s2);
-
-                if (IsNumeric1 && IsNumeric2)
-                {
-                    var i1 = Convert.ToInt32(s1);
-                    var i2 = Convert.ToInt32(s2);
-
-                    if (i1 > i2)
-                    {
-                        return S1GreaterThanS2;
-                    }
-
-                    if (i1 < i2)
-                    {
-                        return S2GreaterThanS1;
-                    }
-
-                    return 0;
-                }
-
-                if (IsNumeric1)
-                {
-                    return S2GreaterThanS1;
-                }
-
-                if (IsNumeric2)
-                {
-                    return S1GreaterThanS2;
-                }
-
-                return string.Compare(s1, s2, true, CultureInfo.InvariantCulture);
-            }
-        }
-
         static void Main(string[] args)
         {
             var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
@@ -192,75 +27,17 @@ namespace PresetConverter
             .AddEnvironmentVariables()
             .Build();
 
-            // // Read settings into NKSLibraries.Libraries
-            // NKS.NksReadLibrariesInfo(config["NksSettingsPath"], false, false);
-            // var libList = NKSLibraries.Libraries.Values.AsEnumerable();
-
-            // // find current directory
-            // var curDirPath = Directory.GetCurrentDirectory();
-
-            // // Read CSV
-            // var cvsPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List.csv");
-            // var csvList = IOUtils.ReadCSV(cvsPath, true, SnpidCSVParser, null, ";", false).Cast<NksLibraryDesc>();
-
-            // // Read CSV2
-            // // var cvs2Path = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List2.csv");
-            // // var csv2List = IOUtils.ReadCSV(cvs2Path, true, SnpidCSVParser, null, ";", false).Cast<NksLibraryDesc>();
-
-            // // Read CSV Code
-            // var cvsCodePath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/SNPID List Code.csv");
-
-            // // read RT_STRINGS_COMPANY as lookup list
-            // var rtCompanyPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS_COMPANY.TXT");
-            // Dictionary<int, string> companyDict =
-            //     File.ReadLines(rtCompanyPath).
-            //     Select((value, number) => (value, number)).
-            //     ToDictionary(x => x.number, x => x.value.Trim());
-
-            // // read RT_STRINGS with / delimiter
-            // var rtPath = Path.Combine(curDirPath, "PresetConverterProject/NIKontaktNKS/RT_STRINGS.TXT");
-            // var rtList = IOUtils.ReadCSV(rtPath, false, RTStringsParser, companyDict, "/", false).Cast<NksLibraryDesc>();
-            // var rtListWithId = rtList.Select(x =>
-            //  new NksLibraryDesc
-            //  {
-            //      Id = NKS.ConvertToBase36(long.Parse(x.Id)).PadLeft(3, '0'),
-            //      Company = x.Company,
-            //      Name = x.Name,
-            //      GenKey = x.GenKey
-            //  });
-
-            // // check for differences in the csv files
-            // // var inCSVButNotCSV2 = csvList.Where(csv => csv2List.All(csv2 => csv2.Id != csv.Id));
-            // // var inCSV2ButNotCSV = csv2List.Where(csv2 => csvList.All(csv => csv.Id != csv2.Id));
-            // // var inBothCSVButDifferentName = csv2List.Join(csvList, csv2 => csv2.Id, csv => csv.Id, (csv2, csv) => new { csv2, csv }).Where(both => both.csv2.Name != both.csv.Name);
-
-            // // check for differences between rtlist and csv2List
-            // var inCSVButNotRT = csvList.Where(csv => rtListWithId.All(rt => rt.Id != csv.Id));
-            // var inRTButNotCSV = rtListWithId.Where(rt => csvList.All(csv => csv.Id != rt.Id));
-            // var inBothButDifferentName = rtListWithId.Join(csvList, rt => rt.Id, csv => csv.Id, (rt, csv) => new { rt, csv }).Where(both => both.rt.Name != both.csv.Name);
-
-            // // check agains the lib list (Settings.cfg)           
-            // var sameIDsButDifferentGenKeys = NKSLibraries.Libraries.Values.Join(rtListWithId, nks => nks.Id, rt => rt.Id, (nks, rt) => new { nks, rt }).Where(both => both.nks.GenKey != both.rt.GenKey);
-            // var inRTButNotLib = rtListWithId.Where(rt => NKSLibraries.Libraries.Values.All(nks => nks.Id != rt.Id));
-            // var inLibButNotRT = NKSLibraries.Libraries.Values.Where(nks => rtListWithId.All(rt => rt.Id != nks.Id));
-
-            // // build and save the complete list
-            // // var completeList = libList.Union(rtListWithId).Union(csvList).OrderBy(a => a.Id, new SemiNumericComparer());
-            // // var completeList = libList.Union(rtListWithId).OrderBy(a => a.Id, new SemiNumericComparer());
-            // var completeList = libList.Union(rtListWithId).Union(csvList).OrderBy(a => a.Id, new SemiNumericComparer());
-            // // var completeList = csvList.Union(csv2List).OrderBy(a => a.Id, new SemiNumericComparer());
-            // // var completeList = csv2List.OrderBy(a => a.Id, new SemiNumericComparer());
-            // // var completeList = libList.OrderBy(a => a.Id, new SemiNumericComparer());
-            // List<object> lines = completeList.Cast<object>().ToList();
-            // IOUtils.WriteCSV(cvsCodePath, lines, NKSLibCSVFormatter, NKSLibCSVHeader, ";");
-            // IOUtils.WriteCSV(cvsPath, lines, NKSLibCSVFormatterShort, NKSLibCSVHeaderShort, ";");
-
+            // uncomment to generate new combined SPNID CSV List
+            // SNPID_CSVParsers.GenerateSNPIDList(config["NksSettingsPath"]);
             // return;
 
             // Setup command line parser
-            var app = new CommandLineApplication();
-            app.Name = "PresetConverter";
-            app.Description = "Convert different DAW presets to other formats (both fxp, vstpresets and txt)";
+            var app = new CommandLineApplication
+            {
+                Name = "PresetConverter",
+                Description = "Convert different DAW presets to other formats (both fxp, vstpresets and txt)"
+            };
+
             app.HelpOption();
             var optionInputDirectoryOrFilePath = app.Option("-i|--input <path>", "The Input directory or file", CommandOptionType.MultipleValue);
             var optionOutputDirectory = app.Option("-o|--output <path>", "The Output directory", CommandOptionType.SingleValue);
@@ -346,7 +123,7 @@ namespace PresetConverter
                                 case ".exe":
                                 case ".dll":
                                 case ".wcx64":
-                                    HandleWindowsFile(inputFilePath, outputDirectoryPath, config, doList, doVerbose);
+                                    HandleWindowsFile(inputFilePath, outputDirectoryPath, doList);
                                     break;
                             }
                         }
@@ -393,7 +170,7 @@ namespace PresetConverter
             {
                 app.Execute(args);
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Log.Error("{0}", e.Message);
             }
@@ -401,7 +178,7 @@ namespace PresetConverter
 
         private static IEnumerable<string> HandleMultipleInputPaths(CommandOption optionInputDirectoryOrFilePath, List<string> extensions)
         {
-            List<string> files = new List<string>();
+            List<string> files = new();
 
             foreach (var inputDirectoryOrFilePath in optionInputDirectoryOrFilePath.Values)
             {
@@ -522,10 +299,10 @@ namespace PresetConverter
             var xelement = XElement.Parse(str);
 
             string outputFileName = Path.GetFileNameWithoutExtension(file);
-            string outputFilePath = "";
 
             // find preset type
             var presetType = xelement.Elements().First().Name.ToString();
+            string outputFilePath;
             switch (presetType)
             {
                 case "Eq8":
@@ -572,66 +349,17 @@ namespace PresetConverter
             }
         }
 
-        // Simple preset storage object to ensure we only process unique presets
-        // the vstEffectIndex can be different but the rest of the variables must be equal 
-        public class PresetInfo : IEquatable<PresetInfo>
-        {
-            public string OutputFileName { get; set; }
-            public string PluginName { get; set; }
-            public string GUID { get; set; }
-            public int VsteffectIndex { get; set; }
-            public byte[] Bytes { get; set; }
-
-
-            public override string ToString()
-            {
-                return string.Format("{0} {1} {2} {3}", GUID, OutputFileName, PluginName, Bytes.Length);
-            }
-
-            public override bool Equals(object obj) => Equals(obj as PresetInfo);
-            public override int GetHashCode() => (GUID, OutputFileName, PluginName, Bytes).GetHashCode();
-
-            public bool Equals(PresetInfo other)
-            {
-                if (other is null) return false;
-
-                return (this.OutputFileName.Equals(other.OutputFileName) &&
-                this.PluginName.Equals(other.PluginName) &&
-                this.GUID.Equals(other.GUID) &&
-                this.Bytes.SequenceEqual(other.Bytes));
-            }
-
-            public static bool operator ==(PresetInfo presetInfo1, PresetInfo presetInfo2)
-            {
-                if (((object)presetInfo1) == null || ((object)presetInfo2) == null)
-                    return Object.Equals(presetInfo1, presetInfo2);
-
-                return presetInfo1.Equals(presetInfo2);
-            }
-
-            public static bool operator !=(PresetInfo presetInfo1, PresetInfo presetInfo2)
-            {
-                if (((object)presetInfo1) == null || ((object)presetInfo2) == null)
-                    return !Object.Equals(presetInfo1, presetInfo2);
-
-                return !(presetInfo1.Equals(presetInfo2));
-            }
-        }
-
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath, IConfiguration config, bool doConvertToKontakt6)
         {
             // read Kontakt library ids
             NKS.NksReadLibrariesInfo(config["NksSettingsPath"], true);
 
             // dictionary to hold the processed presets, to avoid duplicates
-            var processedPresets = new List<PresetInfo>();
+            var processedPresets = new List<CubasePresetInfo>();
 
             // parse the project file
             var riffReader = new RIFFFileReader(file);
             var binaryFile = riffReader.BinaryFile;
-
-            // second chunk should contain Cubase Project File information
-            var infoChunk = riffReader.Chunks[1];
 
             // 'Cubase' field
             binaryFile.Seek(99);
@@ -655,6 +383,10 @@ namespace PresetConverter
             var version = new Version(versionText);
             Log.Information("Found Cubase Version {0} Project File", version);
 
+            var dateLen = binaryFile.ReadInt32();
+            var dateText = binaryFile.ReadString(dateLen, Encoding.ASCII).TrimEnd('\0');
+            Log.Information("Date: {0}", dateText);
+
             // get fourth chunk
             var chunk = riffReader.Chunks[3];
 
@@ -668,9 +400,9 @@ namespace PresetConverter
             // since we are processing each entry while requiring the index of the next entry
             // we need to add an extra element to the list, 
             // namely the index of the very last byte in the chunk byte array
-            if (vstMultitrackIndices.Count() > 0) vstMultitrackIndices.Add(chunkBytes.Length - 1);
+            if (vstMultitrackIndices.Count > 0) vstMultitrackIndices.Add(chunkBytes.Length - 1);
 
-            for (int i = 0, trackNumber = 1; i < vstMultitrackIndices.Count() - 1; i++, trackNumber++)
+            for (int i = 0, trackNumber = 1; i < vstMultitrackIndices.Count - 1; i++, trackNumber++)
             {
                 // the current and next index as within the chunk byte array
                 int curChunkCopyIndex = vstMultitrackIndices.ElementAt(i);
@@ -715,9 +447,18 @@ namespace PresetConverter
 
                 // Track Name (for channels supporting audio insert plugins)
                 var trackNameLen = binaryFile.ReadInt32();
-                var trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
-                trackName = StringUtils.RemoveByteOrderMark(trackName);
-                Log.Information("Processing track name: {0}", trackName);
+                string trackName;
+                if (trackNameLen > 0)
+                {
+                    trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
+                    trackName = StringUtils.RemoveByteOrderMark(trackName);
+                    Log.Information("Processing track name: {0}", trackName);
+                }
+                else
+                {
+                    trackName = "empty";
+                    Log.Information("Processing empty track name");
+                }
 
                 // reset the output filename
                 string outputFileName = Path.GetFileNameWithoutExtension(file);
@@ -762,7 +503,7 @@ namespace PresetConverter
         }
 
         private static bool HandleCubaseVstInsertEffect(
-            List<PresetInfo> processedPresets,
+            List<CubasePresetInfo> processedPresets,
             BinaryFile binaryFile,
             byte[] vstEffectBytePattern, int vstEffectIndex,
             int vstMultitrackCurrentIndex, int vstMultitrackNextIndex,
@@ -846,7 +587,7 @@ namespace PresetConverter
         }
 
         private static bool HandleCubaseAudioComponent(
-            List<PresetInfo> processedPresets,
+            List<CubasePresetInfo> processedPresets,
             BinaryFile binaryFile,
             byte[] audioComponentPattern,
             string guid,
@@ -867,12 +608,14 @@ namespace PresetConverter
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
 
             // store in processed preset list
-            var presetInfo = new PresetInfo();
-            presetInfo.OutputFileName = outputFileName;
-            presetInfo.PluginName = pluginName;
-            presetInfo.GUID = guid;
-            presetInfo.VsteffectIndex = vstEffectIndex;
-            presetInfo.Bytes = presetBytes;
+            var presetInfo = new CubasePresetInfo
+            {
+                OutputFileName = outputFileName,
+                PluginName = pluginName,
+                GUID = guid,
+                VsteffectIndex = vstEffectIndex,
+                Bytes = presetBytes
+            };
 
             if (processedPresets.Contains(presetInfo))
             {
@@ -1057,21 +800,21 @@ namespace PresetConverter
             // File.WriteAllText(kontaktOutputFilePath + ".txt", kontakt.ToString());
         }
 
-        private static string GetSNPIDFromKontaktFXP(FXP fxp)
+        private static string? GetSNPIDFromKontaktFXP(FXP fxp)
         {
-            var byteArray = new byte[0];
-            if (fxp.Content is FXP.FxProgramSet)
+            var byteArray = Array.Empty<byte>();
+            if (fxp.Content is FXP.FxProgramSet prgSet)
             {
-                byteArray = ((FXP.FxProgramSet)fxp.Content).ChunkData;
+                byteArray = prgSet.ChunkData;
             }
-            else if (fxp.Content is FXP.FxChunkSet)
+            else if (fxp.Content is FXP.FxChunkSet chkSet)
             {
-                byteArray = ((FXP.FxChunkSet)fxp.Content).ChunkData;
+                byteArray = chkSet.ChunkData;
             }
 
             // read the snpid
-            string snpid = null;
-            using (BinaryFile bf = new BinaryFile(byteArray))
+            string? snpid = null;
+            using (BinaryFile bf = new(byteArray))
             {
                 UInt32 fileSize = bf.ReadUInt32();
 
@@ -1508,7 +1251,7 @@ namespace PresetConverter
 
                 if (doVerbose)
                 {
-                    Log.Debug("Debug information for all settings:");
+                    Log.Verbose("Debug information for all settings:");
 
                     var memStream = new MemoryStream();
                     var streamWriter = new StreamWriter(memStream);
@@ -1525,7 +1268,7 @@ namespace PresetConverter
                     streamWriter.Flush();
                     string libraryInfo = Encoding.UTF8.GetString(memStream.ToArray());
 
-                    Log.Debug(libraryInfo);
+                    Log.Verbose(libraryInfo);
                     memStream.Close();
                 }
 
@@ -1568,7 +1311,7 @@ namespace PresetConverter
                             NKS.Unpack(inputDirectoryOrFilePath, outputDirectory);
                         }
                     }
-                    catch (System.Exception e)
+                    catch (Exception e)
                     {
                         Log.Error("Error processing {0} ({1})...", inputDirectoryOrFilePath, e);
                     }
@@ -1576,7 +1319,7 @@ namespace PresetConverter
             }
         }
 
-        private static void HandleWindowsFile(string inputDirectoryOrFilePath, string outputDirectoryPath, IConfiguration config, bool doList, bool doVerbose)
+        private static void HandleWindowsFile(string inputDirectoryOrFilePath, string outputDirectoryPath, bool doList)
         {
             string outputFileName = Path.GetFileNameWithoutExtension(inputDirectoryOrFilePath);
             var destinationDirectoryPath = Path.Combine(outputDirectoryPath, outputFileName);
@@ -1593,7 +1336,7 @@ namespace PresetConverter
                     ResourceExtractor.ExtractAll(inputDirectoryOrFilePath, destinationDirectoryPath);
                 }
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 Log.Error("Failed loading resource! This means that the resource is probably packed. Use a tool like upx (https://github.com/upx/upx) to unpack before running this script again.");
             }
