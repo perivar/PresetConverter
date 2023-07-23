@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
-
-using System.Linq;
 using System.Security.Cryptography;
 
 namespace CommonUtils
@@ -16,8 +10,11 @@ namespace CommonUtils
     /// </summary>
     public static class StringUtils
     {
-        // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-        private static string BOMMarkUTF8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+        private static readonly string UTF8BOM = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+        // private static readonly string UTF16LEBOM = Encoding.Unicode.GetString(Encoding.Unicode.GetPreamble());
+        // private static readonly string UTF16BEBOM = Encoding.BigEndianUnicode.GetString(Encoding.BigEndianUnicode.GetPreamble());
+        // private static readonly string UTF32LEBOM = Encoding.UTF32.GetString(Encoding.UTF32.GetPreamble());
+        // private static readonly string UTF32BEBOM = Encoding.GetEncoding("utf-32BE").GetString(Encoding.GetEncoding("utf-32BE").GetPreamble());
 
         /// <summary>
         /// Pascal case
@@ -951,12 +948,26 @@ namespace CommonUtils
         /// Remove the byte order mark from the passed string
         /// The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF
         /// </summary>
-        /// <param name="value">string that ends with a BOM</param>
+        /// <param name="value">string that starts or ends with a BOM</param>
         /// <returns>the string without the BOM</returns>
         public static string RemoveByteOrderMark(string value)
         {
-            if (value.EndsWith(BOMMarkUTF8))
-                value = value.Remove(value.Length - BOMMarkUTF8.Length, BOMMarkUTF8.Length);
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            // Check if the string starts with UTF-8 BOM (EF BB BF)
+            if (value.StartsWith(UTF8BOM, StringComparison.Ordinal))
+            {
+                value = value.Remove(0, UTF8BOM.Length);
+            }
+
+            // Check if the string ends with UTF-8 BOM (EF BB BF)
+            if (value.EndsWith(UTF8BOM))
+            {
+                value = value.Remove(value.Length - UTF8BOM.Length);
+            }
 
             value = value.Replace("\0", "");
             return value;

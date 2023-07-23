@@ -383,9 +383,25 @@ namespace PresetConverter
             var version = new Version(versionText);
             Log.Information("Found Cubase Version {0} Project File", version);
 
-            var dateLen = binaryFile.ReadInt32();
-            var dateText = binaryFile.ReadString(dateLen, Encoding.ASCII).TrimEnd('\0');
-            Log.Information("Date: {0}", dateText);
+            var releaseDateLen = binaryFile.ReadInt32();
+            var releaseDateField = binaryFile.ReadString(releaseDateLen, Encoding.ASCII).TrimEnd('\0');
+            Log.Information("Release Date: {0}", releaseDateField);
+
+            // skip four bytes and try to read architecture
+            var h1 = binaryFile.ReadInt32();
+            var architectureLen = binaryFile.ReadInt32();
+            var architectureField = binaryFile.ReadString(architectureLen, Encoding.ASCII);
+
+            // Older 32-bit versions of Cubase didn't list the architecture in the project file.
+            if (architectureField.EndsWith('\0'))
+            {
+                architectureField = architectureField.TrimEnd('\0');
+                Log.Information("Architecture: {0}", architectureField);
+            }
+            else
+            {
+                Log.Information("Architecture: Unknown");
+            }
 
             // get fourth chunk
             var chunk = riffReader.Chunks[3];
@@ -413,7 +429,7 @@ namespace PresetConverter
                 // by adding the chunk start position
                 int vstMultitrackCurrentIndex = (int)chunk.StartPosition + curChunkCopyIndex;
                 int vstMultitrackNextIndex = (int)chunk.StartPosition + nextChunkCopyIndex;
-                Log.Information("Found VST Multitrack at index: {0}", vstMultitrackCurrentIndex);
+                Log.Information("Found VST Multitrack at index {0} to {1}", vstMultitrackCurrentIndex, vstMultitrackNextIndex - 1);
                 binaryFile.Seek(vstMultitrackCurrentIndex);
 
                 // 'VST Multitrack' field
