@@ -89,8 +89,6 @@ namespace CommonUtils
         /// <returns>the uint number</returns>
         public static uint HexStringToUint(string hexString)
         {
-            uint color;
-
             if (hexString.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
             {
                 hexString = hexString.Substring(2);
@@ -99,7 +97,7 @@ namespace CommonUtils
             bool parsedSuccessfully = uint.TryParse(hexString,
                                                     NumberStyles.HexNumber,
                                                     CultureInfo.CurrentCulture,
-                                                    out color);
+                                                    out uint color);
             return color;
         }
 
@@ -260,7 +258,7 @@ namespace CommonUtils
         /// <returns>formatted string</returns>
         public static string RemoveNonAsciiCharactersFast(string strIn)
         {
-            StringBuilder buffer = new StringBuilder(strIn.Length); //Max length
+            StringBuilder buffer = new(strIn.Length); //Max length
             foreach (char ch in strIn)
             {
                 UInt16 num = Convert.ToUInt16(ch); // In .NET, chars are UTF-16
@@ -300,11 +298,11 @@ namespace CommonUtils
         static readonly string invalidChars = @"""\/?:<>*|";
         static readonly string escapeChar = "%";
 
-        static readonly Regex escaper = new Regex(
+        static readonly Regex escaper = new(
             "[" + Regex.Escape(escapeChar + invalidChars) + "]",
             RegexOptions.Compiled);
 
-        static readonly Regex unescaper = new Regex(
+        static readonly Regex unescaper = new(
             Regex.Escape(escapeChar) + "([0-9A-Z]{4})",
             RegexOptions.Compiled);
 
@@ -337,19 +335,20 @@ namespace CommonUtils
             // Following characters are invalid for windows file and folder names.
             // \/:*?"<>|
 
-            Dictionary<string, string> dic = new Dictionary<string, string>();
-
-            // use fullwidth character types
-            // https://jrgraphix.net/r/Unicode/FF00-FFEF
-            dic.Add(@"\", "＼");    // FF3C
-            dic.Add("/", "／");     // FF0F
-            dic.Add(":", "：");     // FF1A
-            dic.Add("*", "＊");     // FF0A
-            dic.Add("?", "？");     // FF1F
-            dic.Add(@"""", "＂");   // FF02
-            dic.Add("<", "＜");     // FF1C
-            dic.Add(">", "＞");     // FF1E
-            dic.Add("|", "｜");     // FF5C
+            Dictionary<string, string> dic = new()
+            {
+                // use fullwidth character types
+                // https://jrgraphix.net/r/Unicode/FF00-FFEF
+                { @"\", "＼" },    // FF3C
+                { "/", "／" },     // FF0F
+                { ":", "：" },     // FF1A
+                { "*", "＊" },     // FF0A
+                { "?", "？" },     // FF1F
+                { @"""", "＂" },   // FF02
+                { "<", "＜" },     // FF1C
+                { ">", "＞" },     // FF1E
+                { "|", "｜" }      // FF5C
+            };
 
             return dic;
         }
@@ -427,7 +426,7 @@ namespace CommonUtils
                 // We are encoding the following characters:
                 // - All CTL characters except HT (horizontal tab)
                 // - DEL character (\x7f)
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 foreach (char c in value)
                 {
                     if (c < 32 && c != 9)
@@ -964,12 +963,11 @@ namespace CommonUtils
             }
 
             // Check if the string ends with UTF-8 BOM (EF BB BF)
-            if (value.EndsWith(UTF8BOM))
+            if (value.EndsWith(UTF8BOM, StringComparison.Ordinal))
             {
                 value = value.Remove(value.Length - UTF8BOM.Length);
             }
 
-            value = value.Replace("\0", "");
             return value;
         }
 
@@ -980,11 +978,11 @@ namespace CommonUtils
         /// <param name="length">number of characters to truncate at</param>
         /// <param name="post">optional post string if truncating, i.e. " ..."</param>
         /// <returns>a substring of the first N characters.</returns>
-        public static string Truncate(this string source, int length, string post = null)
+        public static string Truncate(this string source, int length, string? post = null)
         {
             if (source.Length > length)
             {
-                source = string.Format("{0}{1}", source.Substring(0, length), post != null ? post : "");
+                source = string.Format("{0}{1}", source.Substring(0, length), post ?? "");
             }
             return source;
         }

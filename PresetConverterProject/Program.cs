@@ -241,7 +241,7 @@ namespace PresetConverter
                 Log.Information("Track: {0} - Plugin: {1}", trackName, pluginName);
 
                 string outputFileName = string.Format("{0} - {1}", Path.GetFileNameWithoutExtension(file), trackName);
-                string outputFilePath = null;
+                string? outputFilePath = null;
 
                 // find preset type
                 switch (pluginName)
@@ -363,45 +363,50 @@ namespace PresetConverter
 
             // 'Cubase' field
             binaryFile.Seek(99);
-            var cubaseLen = binaryFile.ReadInt32();
-            var cubaseField = binaryFile.ReadString(cubaseLen, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "Cubase", cubaseField))
+            if (!ReadCubaseField(binaryFile, "Cubase", out string? _))
             {
-                Log.Error("Fatal error! Could not read Cubase Project File!");
+                Log.Fatal("Fatal error! Could not read Cubase Project File!");
                 return;
             }
 
-            var versionLen = binaryFile.ReadInt32();
-            var versionField = binaryFile.ReadString(versionLen, Encoding.ASCII).TrimEnd('\0');
+            // Version field including version number
+            if (!ReadCubaseField(binaryFile, null, out string versionField))
+            {
+                Log.Fatal("Fatal error! Could not read Cubase Project File!");
+                return;
+            }
+
+            Version version;
             if (!versionField.StartsWith("Version"))
             {
                 Log.Error("Fatal error! Could not read Cubase Project File!");
                 return;
             }
+            else
+            {
+                // Store version
+                var versionText = versionField.Substring(8);
+                version = new Version(versionText);
+                Log.Information("Found Cubase Version {0} Project File", version);
+            }
 
-            var versionText = versionField.Substring(8);
-            var version = new Version(versionText);
-            Log.Information("Found Cubase Version {0} Project File", version);
-
-            var releaseDateLen = binaryFile.ReadInt32();
-            var releaseDateField = binaryFile.ReadString(releaseDateLen, Encoding.ASCII).TrimEnd('\0');
+            // Release Date
+            if (!ReadCubaseField(binaryFile, null, out string releaseDateField))
+            {
+                Log.Error("Fatal error! Could not read release date!");
+                return;
+            }
             Log.Information("Release Date: {0}", releaseDateField);
 
             // skip four bytes and try to read architecture
-            var h1 = binaryFile.ReadInt32();
-            var architectureLen = binaryFile.ReadInt32();
-            var architectureField = binaryFile.ReadString(architectureLen, Encoding.ASCII);
+            binaryFile.ReadInt32();
 
-            // Older 32-bit versions of Cubase didn't list the architecture in the project file.
-            if (architectureField.EndsWith('\0'))
+            if (!ReadCubaseField(binaryFile, null, out string architectureField))
             {
-                architectureField = architectureField.TrimEnd('\0');
-                Log.Information("Architecture: {0}", architectureField);
-            }
-            else
-            {
+                // Older 32-bit versions of Cubase didn't list the architecture in the project file.
                 Log.Information("Architecture: Unknown");
             }
+            Log.Information("Architecture: {0}", architectureField);
 
             // get fourth chunk
             var chunk = riffReader.Chunks[3];
@@ -434,46 +439,55 @@ namespace PresetConverter
 
                 // 'VST Multitrack' field
                 var vstMultitrackField = binaryFile.ReadString(vstMultitrackBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
-                var v1 = binaryFile.ReadInt32();
-                var v2 = binaryFile.ReadInt32();
-                var v3 = binaryFile.ReadInt32();
+                if (IsWrongField("VST Multitrack", vstMultitrackField, binaryFile.Position))
+                {
+                    continue;
+                }
+
+                binaryFile.ReadInt32();
+                binaryFile.ReadInt32();
+                binaryFile.ReadInt32();
 
                 if (version.Major > 8)
                 {
                     // 'RuntimeID' field
-                    var runtimeIDLen = binaryFile.ReadInt32();
-                    var runtimeIDField = binaryFile.ReadString(runtimeIDLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "RuntimeID", runtimeIDField)) continue;
-                    var b1 = binaryFile.ReadBytes(10);
+                    if (!ReadCubaseField(binaryFile, "RuntimeID", out string? _))
+                    {
+                        continue;
+                    }
+
+                    // skip some bytes
+                    binaryFile.ReadBytes(10);
                 }
 
                 // 'Name' field
-                var nameLen = binaryFile.ReadInt32();
-                var nameField = binaryFile.ReadString(nameLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField(binaryFile, "Name", nameField)) continue;
-                var v4 = binaryFile.ReadInt16();
-                var v5 = binaryFile.ReadInt16();
-                var v6 = binaryFile.ReadInt32();
+                if (!ReadCubaseField(binaryFile, "Name", out string? _))
+                {
+                    continue;
+                }
+
+                binaryFile.ReadInt32();
+                binaryFile.ReadInt32();
 
                 // 'String' field
-                var stringLen = binaryFile.ReadInt32();
-                var stringField = binaryFile.ReadString(stringLen, Encoding.ASCII).TrimEnd('\0');
-                if (IsWrongField(binaryFile, "String", stringField)) continue;
-                var v7 = binaryFile.ReadInt16();
+                if (!ReadCubaseField(binaryFile, "String", out string? _))
+                {
+                    continue;
+                }
+
+                binaryFile.ReadInt16();
 
                 // Track Name (for channels supporting audio insert plugins)
-                var trackNameLen = binaryFile.ReadInt32();
-                string trackName;
-                if (trackNameLen > 0)
+                if (ReadCubaseUTF8String(binaryFile, out string? trackName))
                 {
-                    trackName = binaryFile.ReadString(trackNameLen, Encoding.UTF8);
-                    trackName = StringUtils.RemoveByteOrderMark(trackName);
-                    Log.Information("Processing track name: {0}", trackName);
-                }
-                else
-                {
-                    trackName = "empty";
-                    Log.Information("Processing empty track name");
+                    if (!string.IsNullOrEmpty(trackName))
+                    {
+                        Log.Information("Processing track name: {0}", trackName);
+                    }
+                    else
+                    {
+                        Log.Information("Processing empty track name");
+                    }
                 }
 
                 // reset the output filename
@@ -484,9 +498,10 @@ namespace PresetConverter
                 if (version.Major > 8)
                 {
                     // 'Type'
-                    var typeLen = binaryFile.ReadInt32();
-                    var typeField = binaryFile.ReadString(typeLen, Encoding.ASCII).TrimEnd('\0');
-                    if (IsWrongField(binaryFile, "Type", typeField)) continue;
+                    if (!ReadCubaseField(binaryFile, "Type", out string? _))
+                    {
+                        continue;
+                    }
                 }
 
                 // skip to the next 'VstCtrlInternalEffect' field            
@@ -521,65 +536,86 @@ namespace PresetConverter
         private static bool HandleCubaseVstInsertEffect(
             List<CubasePresetInfo> processedPresets,
             BinaryFile binaryFile,
-            byte[] vstEffectBytePattern, int vstEffectIndex,
-            int vstMultitrackCurrentIndex, int vstMultitrackNextIndex,
-            string outputDirectoryPath, string outputFileName,
+            byte[] vstEffectBytePattern,
+            int vstEffectIndex,
+            int vstMultitrackCurrentIndex,
+            int vstMultitrackNextIndex,
+            string outputDirectoryPath,
+            string outputFileName,
             bool doConvertToKontakt6
             )
         {
-            var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
 
-            var pluginFieldLen = binaryFile.ReadInt32();
-            var pluginFieldField = binaryFile.ReadString(pluginFieldLen, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "Plugin", pluginFieldField)) return false;
-            var t1 = binaryFile.ReadInt16();
-            var t2 = binaryFile.ReadInt16();
-            var t3 = binaryFile.ReadInt32();
+            // 'VstCtrlInternalEffect' field
+            var vstEffectField = binaryFile.ReadString(vstEffectBytePattern.Length, Encoding.ASCII).TrimEnd('\0');
+            if (IsWrongField("VstCtrlInternalEffect", vstEffectField, binaryFile.Position))
+            {
+                return false;
+            }
+
+            // 'Plugin' field
+            if (!ReadCubaseField(binaryFile, "Plugin", out string? _))
+            {
+                return false;
+            }
+
+            binaryFile.ReadInt32();
+            binaryFile.ReadInt32();
 
             // 'Plugin UID' field
-            var pluginUIDFieldLen = binaryFile.ReadInt32();
-            var pluginUIDField = binaryFile.ReadString(pluginUIDFieldLen, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "Plugin UID", pluginUIDField)) return false;
-            var t4 = binaryFile.ReadInt16();
-            var t5 = binaryFile.ReadInt16();
-            var t6 = binaryFile.ReadInt32();
+            if (!ReadCubaseField(binaryFile, "Plugin UID", out string? _))
+            {
+                return false;
+            }
+
+            binaryFile.ReadInt32();
+            binaryFile.ReadInt32();
 
             // 'GUID' field
-            var guidFieldLen = binaryFile.ReadInt32();
-            var guidField = binaryFile.ReadString(guidFieldLen, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "GUID", guidField)) return false;
-            var t7 = binaryFile.ReadInt16();
+            if (!ReadCubaseField(binaryFile, "GUID", out string? _))
+            {
+                return false;
+            }
+
+            binaryFile.ReadInt16();
 
             // GUID
-            var guidLen = binaryFile.ReadInt32();
-            var guid = binaryFile.ReadString(guidLen, Encoding.UTF8);
-            guid = StringUtils.RemoveByteOrderMark(guid);
+            if (!ReadCubaseUTF8String(binaryFile, out string? guid))
+            {
+                return false;
+            }
             Log.Information("GUID: {0}", guid);
 
             // 'Plugin Name' field
-            var pluginNameFieldLen = binaryFile.ReadInt32();
-            var pluginNameField = binaryFile.ReadString(pluginNameFieldLen, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "Plugin Name", pluginNameField)) return false;
-            var t8 = binaryFile.ReadInt16();
+            if (!ReadCubaseField(binaryFile, "Plugin Name", out string? _))
+            {
+                return false;
+            }
+
+            binaryFile.ReadInt16();
 
             // Plugin Name
-            var pluginNameLen = binaryFile.ReadInt32();
-            var pluginName = binaryFile.ReadString(pluginNameLen, Encoding.UTF8);
-            pluginName = StringUtils.RemoveByteOrderMark(pluginName);
+            if (!ReadCubaseUTF8String(binaryFile, out string? pluginName))
+            {
+                return false;
+            }
             Log.Information("Plugin Name: {0}", pluginName);
 
             // 'Original Plugin Name' or 'Audio Input Count'
-            var len = binaryFile.ReadInt32();
-            var nextField = binaryFile.ReadString(len, Encoding.ASCII).TrimEnd('\0');
+            if (!ReadCubaseField(binaryFile, null, out string? nextField))
+            {
+                return false;
+            }
 
-            string origPluginName = null;
+            string? origPluginName = null;
             if (nextField.Equals("Original Plugin Name"))
             {
-                var t9 = binaryFile.ReadInt16();
-                var origPluginNameLen = binaryFile.ReadInt32();
-                origPluginName = binaryFile.ReadString(origPluginNameLen, Encoding.UTF8);
-                origPluginName = StringUtils.RemoveByteOrderMark(origPluginName);
-                Log.Information("Original Plugin Name: {0}", origPluginName);
+                binaryFile.ReadInt16();
+
+                if (ReadCubaseUTF8String(binaryFile, out origPluginName))
+                {
+                    Log.Information("Original Plugin Name: {0}", origPluginName);
+                }
             }
 
             // skip to 'audioComponent'
@@ -597,8 +633,10 @@ namespace PresetConverter
                 audioComponentPattern,
                 guid,
                 vstEffectIndex,
-                pluginName, origPluginName,
-                outputDirectoryPath, outputFileName,
+                pluginName,
+                origPluginName,
+                outputDirectoryPath,
+                outputFileName,
                 doConvertToKontakt6);
         }
 
@@ -608,17 +646,19 @@ namespace PresetConverter
             byte[] audioComponentPattern,
             string guid,
             int vstEffectIndex,
-            string pluginName, string origPluginName,
-            string outputDirectoryPath, string outputFileName,
+            string pluginName,
+            string origPluginName,
+            string outputDirectoryPath,
+            string outputFileName,
             bool doConvertToKontakt6
         )
         {
             // 'audioComponent' field            
             var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "audioComponent", audioComponentField)) return false;
+            if (IsWrongField("audioComponent", audioComponentField, binaryFile.Position)) return false;
 
-            var t10 = binaryFile.ReadInt16();
-            var t11 = binaryFile.ReadInt16();
+            binaryFile.ReadInt32();
+
             var presetByteLen = binaryFile.ReadInt32();
             Log.Debug("Reading {0} bytes ...", presetByteLen);
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
@@ -764,9 +804,66 @@ namespace PresetConverter
             // read next field, we expect editController
             var editControllerLen = binaryFile.ReadInt32();
             var editControllerField = binaryFile.ReadString(editControllerLen, Encoding.ASCII).TrimEnd('\0');
-            if (IsWrongField(binaryFile, "editController", editControllerField)) return false;
+            if (IsWrongField("editController", editControllerField, binaryFile.Position)) return false;
 
             return true;
+        }
+
+        private static bool ReadCubaseField(BinaryFile binaryFile, string? verifyFieldValue, out string? fieldValue)
+        {
+            int fieldLength = binaryFile.ReadInt32();
+
+            if (fieldLength > 0)
+            {
+                // read ascii string
+                fieldValue = binaryFile.ReadString(fieldLength, Encoding.ASCII);
+
+                if (fieldValue.EndsWith('\0'))
+                {
+                    fieldValue = fieldValue.TrimEnd('\0');
+
+                    if (IsWrongField(verifyFieldValue, fieldValue, binaryFile.Position))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            else
+            {
+                // when told to read zero bytes, we are fine and return true
+                fieldValue = null;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ReadCubaseUTF8String(BinaryFile binaryFile, out string? fieldValue)
+        {
+            int fieldLength = binaryFile.ReadInt32();
+
+            if (fieldLength > 0)
+            {
+                // read utf8 string
+                fieldValue = binaryFile.ReadString(fieldLength, Encoding.UTF8);
+                fieldValue = StringUtils.RemoveByteOrderMark(fieldValue);
+
+                if (fieldValue.EndsWith('\0'))
+                {
+                    fieldValue = fieldValue.TrimEnd('\0');
+                    return true;
+                }
+            }
+            else
+            {
+                // when told to read zero bytes, we are fine and return true
+                fieldValue = null;
+                return true;
+            }
+
+            return false;
         }
 
         private static void HandleNIKontaktFXP(NIKontaktBase kontakt, FXP fxp,
@@ -851,15 +948,19 @@ namespace PresetConverter
             return snpid;
         }
 
-        private static bool IsWrongField(BinaryFile binaryFile, string expectedValue, string foundValue)
+        private static bool IsWrongField(string? expectedValue, string foundValue, long position)
         {
+            if (string.IsNullOrEmpty(expectedValue)) return false;
+
             if (foundValue != expectedValue)
             {
-                Log.Warning("Expected '{0}' but got '{1}' at pos: {2}", expectedValue, foundValue, binaryFile.Position);
+                Log.Warning("Expected '{0}' but got '{1}' @ pos: {2}", expectedValue, foundValue, position);
                 return true;
             }
+
             return false;
         }
+
         private static void HandleSteinbergVstPreset(string file, string outputDirectoryPath)
         {
             var vstPreset = VstPresetFactory.GetVstPreset<VstPreset>(file);
