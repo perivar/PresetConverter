@@ -265,3 +265,4 @@ solution-explorer
 debug
 **/Logs/
 Settings.cfg
+*.mid
