@@ -6,15 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.2"/>
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0"/>
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0"/>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1"/>
-    <PackageReference Include="Vestris.ResourceLib" Version="2.1.0"/>
-    <PackageReference Include="Melanchall.DryWetMidi" Version="7.0.2-prerelease7"/>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
+    <PackageReference Include="Vestris.ResourceLib" Version="2.1.0" />
+    <PackageReference Include="Melanchall.DryWetMidi" Version="7.0.2-prerelease7" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="WCXPlugins\**">
@@ -24,11 +25,11 @@
     </Content>
   </ItemGroup>
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)"/>
-    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(OutDir)"/>
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(OutDir)" />
   </Target>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)"/>
-    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(PublishDir)"/>
+    <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(PublishDir)" />
   </Target>
 </Project>

@@ -6,6 +6,7 @@ using Serilog;
 using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Common;
+using Newtonsoft.Json;
 
 namespace PresetConverter
 {
@@ -180,12 +181,7 @@ namespace PresetConverter
             midiFile.ReplaceTempoMap(tempoMap);
 
             // Read Tracks
-            // int sendnum = 1;
-            // int returnid = 1;
-
-            // var abletondatadefParams = new Dictionary<string, object>();
-            // var abletondatadefData = new Dictionary<string, object>();
-            var cvpj = new Dictionary<string, object>();
+            var cvpj = new Dictionary<string, object>(); // common daw project format
 
             Log.Debug("Reading {0} Tracks ...", xTracks.Elements().Count());
 
@@ -208,14 +204,10 @@ namespace PresetConverter
 
                 if (tracktype == "MidiTrack")
                 {
-                    //  resetting the time offset data
-                    float timeOffset = 0;
-                    float nextTimeOffset = 0;
-
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", 0, new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", 0, new string[] { "track", trackId, "pan" }, null);
 
-                    Log.Debug("Reading MIDI Track. Id: {0}, Name: {1}, Vol: {2}, Pan: {3}", trackId, trackName, trackVol, trackPan);
+                    Console.WriteLine($"Reading MIDI Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
 
                     // TracksR.TrackCreate(cvpj, trackId, "instrument");
                     // TracksR.TrackVisual(cvpj, trackId, name: trackName, color: trackColor);
@@ -242,25 +234,20 @@ namespace PresetConverter
 
                     foreach (XElement xTrackMidiClip in xTrackMidiClips)
                     {
-                        // raising the time offset for the next clip inside this track
-                        timeOffset = timeOffset + nextTimeOffset;
-
                         float notePlacementPos = float.Parse(GetValue(xTrackMidiClip, "CurrentStart", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
                         float notePlacementDur = float.Parse(GetValue(xTrackMidiClip, "CurrentEnd", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
                         string notePlacementName = GetValue(xTrackMidiClip, "Name", "");
                         var notePlacementColor = colorlistOne[int.Parse(GetValue(xTrackMidiClip, "Color", "0"))];
                         bool notePlacementMuted = bool.Parse(GetValue(xTrackMidiClip, "Disabled", "false"));
 
-                        Log.Debug("Reading MidiClip. pos: {0}, dur: {1}, name: {2}, color: {3}, muted: {4}", notePlacementPos, notePlacementDur, notePlacementName, notePlacementColor, notePlacementMuted);
+                        Log.Debug($"Reading MidiClip. CurrentStart: {notePlacementPos}, CurrentEnd: {notePlacementDur}, Name: {notePlacementName}, Color: {notePlacementColor}, Disabled: {notePlacementMuted}");
 
-                        var notePlacement = new Dictionary<string, object>
-                        {
-                            { "position", notePlacementPos * 4 },
-                            { "duration", notePlacementDur * 4 - (notePlacementPos * 4) },
-                            { "name", notePlacementName },
-                            { "color", notePlacementColor },
-                            { "muted", notePlacementMuted }
-                        };
+                        dynamic notePlacement = new System.Dynamic.ExpandoObject();
+                        notePlacement.position = notePlacementPos * 4;
+                        notePlacement.duration = notePlacementDur * 4 - (notePlacementPos * 4);
+                        notePlacement.name = notePlacementName;
+                        notePlacement.color = notePlacementColor;
+                        notePlacement.muted = notePlacementMuted;
 
                         XElement xTrackMidiClipLoop = xTrackMidiClip.Element("Loop");
                         float notePlacementLoopLStart = float.Parse(GetValue(xTrackMidiClipLoop, "LoopStart", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
@@ -268,33 +255,28 @@ namespace PresetConverter
                         float notePlacementLoopStart = float.Parse(GetValue(xTrackMidiClipLoop, "StartRelative", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
                         bool notePlacementLoopOn = bool.Parse(GetValue(xTrackMidiClipLoop, "LoopOn", "false"));
 
-                        Log.Debug("Reading MidiLoop. lstart: {0}, lend: {1}, start: {2}, on: {3}", notePlacementLoopLStart, notePlacementLoopLEnd, notePlacementLoopStart, notePlacementLoopOn);
-
-                        // store the next time offset
-                        nextTimeOffset = notePlacementLoopLEnd;
+                        Log.Debug($"Reading MidiLoop. LoopStart: {notePlacementLoopLStart}, LoopEnd: {notePlacementLoopLEnd}, StartRelative: {notePlacementLoopStart}, LoopOn: {notePlacementLoopOn}");
 
                         if (notePlacementLoopOn)
                         {
-                            notePlacement["cut"] = CutLoopData(notePlacementLoopStart * 4, notePlacementLoopLStart * 4, notePlacementLoopLEnd * 4);
+                            notePlacement.cut = CutLoopData(notePlacementLoopStart * 4, notePlacementLoopLStart * 4, notePlacementLoopLEnd * 4);
                         }
                         else
                         {
-                            notePlacement["cut"] = new Dictionary<string, object>
-                            {
-                                { "type", "cut" },
-                                { "start", notePlacementLoopLStart * 4 },
-                                { "end", notePlacementLoopLEnd * 4}
-                            };
+                            notePlacement.cut = new System.Dynamic.ExpandoObject();
+                            notePlacement.cut.type = "cut";
+                            notePlacement.cut.start = notePlacementLoopLStart * 4;
+                            notePlacement.cut.end = notePlacementLoopLEnd * 4;
                         }
 
-                        Log.Debug("notePlacement: {0}", notePlacement);
+                        Log.Debug($"notePlacement: {JsonConvert.SerializeObject(notePlacement, Formatting.Indented)}");
 
                         XElement xTrackMidiClipNotes = xTrackMidiClip.Element("Notes");
                         XElement xTrackMidiClipKT = xTrackMidiClipNotes?.Element("KeyTracks");
 
                         Log.Debug("Reading {0} KeyTracks ...", xTrackMidiClipKT?.Elements("KeyTrack").Count());
 
-                        var notes = new Dictionary<int, Dictionary<string, object>>();
+                        var notes = new Dictionary<int, dynamic>();
 
                         foreach (XElement xTrackMidiClipKTKTs in xTrackMidiClipKT?.Elements("KeyTrack"))
                         {
@@ -315,78 +297,65 @@ namespace PresetConverter
                                 bool noteIsEnabled = bool.Parse(xTrackMidiClipMNE.Attribute("IsEnabled").Value);
                                 int noteId = int.Parse(xTrackMidiClipMNE.Attribute("NoteId").Value);
 
-                                Log.Debug("Reading MidiNoteEvent. time: {0}, dur: {1}, key: {2}, vel: {3}, off_vel: {4}, noteId: {5}, timeOffset: {6}", noteTime, noteDuration, midiKey, noteVelocity, noteOffVelocity, noteId, timeOffset);
+                                Log.Debug($"Reading MidiNoteEvent. Time: {noteTime}, Duration: {noteDuration}, MidiKey: {midiKey}, Velocity: {noteVelocity}, OffVelocity: {noteOffVelocity}, NoteId: {noteId}");
 
-                                var noteData = new Dictionary<string, object>
-                                {
-                                    { "key", abletonNoteKey },
-                                    { "position", noteTime * 4 },
-                                    { "duration", noteDuration * 4 },
-                                    { "vol", noteVelocity / 100 },
-                                    { "off_vol", noteOffVelocity / 100 },
-                                    { "probability", noteProbablity },
-                                    { "enabled", noteIsEnabled }
-                                };
+                                dynamic noteData = new System.Dynamic.ExpandoObject();
+                                noteData.key = abletonNoteKey;
+                                noteData.position = noteTime * 4;
+                                noteData.duration = noteDuration * 4;
+                                noteData.vol = noteVelocity / 100;
+                                noteData.off_vol = noteOffVelocity / 100;
+                                noteData.probability = noteProbablity;
+                                noteData.enabled = noteIsEnabled;
 
-                                Log.Debug("noteData: {0}", noteData);
+                                Log.Debug($"noteData: {JsonConvert.SerializeObject(noteData, Formatting.Indented)}");
 
                                 notes[noteId] = noteData;
 
                                 // add midi notes
-                                int midiNotePos = (int)((float)notePlacement["position"] + (float)noteData["position"]);// * 30;
-                                int midiNoteDur = (int)((float)noteData["duration"]);// * 30;
-                                int midiNoteKey = (int)noteData["key"] + 60;
-                                int midiNoteVol = Math.Clamp((int)((float)noteData["vol"] * 127), 0, 127);
+                                int midiNotePos = (int)((float)notePlacement.position * 4 + (float)noteData.position * 4) * 30;
+                                int midiNoteDur = (int)((float)noteData.duration * 4) * 30;
+                                int midiNoteKey = (int)noteData.key + 60;
+                                int midiNoteVol = Math.Clamp((int)((float)noteData.vol * 127), 0, 127);
 
                                 long deltaTimeOn = midiNotePos;
                                 long deltaTimeOff = midiNotePos + midiNoteDur;
 
-                                Log.Debug("Creating MidiNoteEvent. deltaTimeOn: {0}, deltaTimeOff: {1}, midiNotePos: {2}, midiNoteDur: {3}, midiNoteKey: {4}, midiNoteVol: {5}", deltaTimeOn, deltaTimeOff, midiNotePos, midiNoteDur, midiNoteKey, midiNoteVol);
+                                Log.Debug($"Creating MidiNoteEvent. deltaTimeOn: {deltaTimeOn}, deltaTimeOff: {deltaTimeOff}, midiNotePos: {midiNotePos}, midiNoteDur: {midiNoteDur}, midiNoteKey: {midiNoteKey}, midiNoteVol: {midiNoteVol}");
 
-                                trackChunk.Events.Add(new NoteOnEvent { DeltaTime = deltaTimeOn, NoteNumber = (SevenBitNumber)midiNoteKey, Velocity = (SevenBitNumber)midiNoteVol });
-                                trackChunk.Events.Add(new NoteOffEvent { DeltaTime = deltaTimeOff, NoteNumber = (SevenBitNumber)midiNoteKey, Velocity = (SevenBitNumber)0 });
-
-                                // long deltaTimeOn = (long)(noteTime + timeOffset);
-                                // long deltaTimeOff = (long)(noteDuration * tempo);
-                                // trackChunk.Events.Add(new NoteOnEvent { DeltaTime = deltaTimeOn, NoteNumber = (SevenBitNumber)midiKey, Velocity = (SevenBitNumber)noteVelocity });
-                                // trackChunk.Events.Add(new NoteOffEvent { DeltaTime = deltaTimeOff, NoteNumber = (SevenBitNumber)midiKey, Velocity = (SevenBitNumber)noteOffVelocity });
+                                // trackChunk.Events.Add(new NoteOnEvent { DeltaTime = deltaTimeOn, NoteNumber = (SevenBitNumber)midiNoteKey, Velocity = (SevenBitNumber)midiNoteVol });
+                                // trackChunk.Events.Add(new NoteOffEvent { DeltaTime = deltaTimeOff, NoteNumber = (SevenBitNumber)midiNoteKey, Velocity = (SevenBitNumber)0 });
                             }
                         }
 
-                        // XElement xTrackMidiClipNES = xTrackMidiClipNotes.Element("PerNoteEventStore");
-                        // XElement xTrackMidiClipNES_EL = xTrackMidiClipNES?.Element("EventLists");
+                        XElement xTrackMidiClipNES = xTrackMidiClipNotes.Element("PerNoteEventStore");
+                        XElement xTrackMidiClipNES_EL = xTrackMidiClipNES?.Element("EventLists");
 
-                        // foreach (XElement xNoteNEvent in xTrackMidiClipNES_EL?.Elements("PerNoteEventList") ?? Enumerable.Empty<XElement>())
-                        // {
-                        //     int autoNoteId = int.Parse(xNoteNEvent.Attribute("NoteId")?.Value ?? "0");
-                        //     int autoNoteCC = int.Parse(xNoteNEvent.Attribute("CC")?.Value ?? "0");
+                        foreach (XElement xNoteNEvent in xTrackMidiClipNES_EL?.Elements("PerNoteEventList") ?? Enumerable.Empty<XElement>())
+                        {
+                            int autoNoteId = int.Parse(xNoteNEvent.Attribute("NoteId")?.Value ?? "0");
+                            int autoNoteCC = int.Parse(xNoteNEvent.Attribute("CC")?.Value ?? "0");
 
-                        //     notes[autoNoteId]["notemod"] = new Dictionary<string, object>
-                        //     {
-                        //         { "auto", new Dictionary<string, object>() }
-                        //     };
+                            notes[autoNoteId] = new System.Dynamic.ExpandoObject();
+                            notes[autoNoteId].notemod = new System.Dynamic.ExpandoObject();
+                            notes[autoNoteId].notemod.auto = new System.Dynamic.ExpandoObject();
 
-                        //     if (autoNoteCC == -2)
-                        //     {
-                        //         // tNotes[autoNoteId]["notemod"]["auto"]["pitch"] = new List<object>();
+                            if (autoNoteCC == -2)
+                            {
+                                notes[autoNoteId].notemod.auto.pitch = new List<dynamic>();
+                                var cvpjNoteAutoPitch = notes[autoNoteId].notemod.auto.pitch;
+                                var xNoteNEvent_EV = xNoteNEvent.Element("Events");
 
-                        //         // var cvpjNoteAutoPitch = tNotes[autoNoteId]["notemod"]["auto"]["pitch"];
+                                foreach (var abletonPoint in xNoteNEvent_EV.Elements("PerNoteEvent"))
+                                {
+                                    float apPos = float.Parse(abletonPoint.Attribute("TimeOffset").Value);
+                                    float apVal = float.Parse(abletonPoint.Attribute("Value").Value);
+                                    cvpjNoteAutoPitch.Add(new { position = apPos * 4, value = apVal / 170 });
+                                }
+                            }
+                        }
 
-                        //         // foreach (XElement abletonPoint in xNoteNEvent.Elements("Events").Elements("PerNoteEvent") ?? Enumerable.Empty<XElement>())
-                        //         // {
-                        //         //     float apPos = float.Parse(abletonPoint.Attribute("TimeOffset")?.Value ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture) * 4;
-                        //         //     float apVal = float.Parse(abletonPoint.Attribute("Value")?.Value ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture) / 170;
-
-                        //         //     cvpjNoteAutoPitch.Add(new Dictionary<string, object>
-                        //         //     {
-                        //         //         { "position", apPos },
-                        //         //         { "value", apVal }
-                        //         //     });
-                        //         // }
-                        //     }
-                        // }
-
-                        notePlacement["notelist"] = notes;
+                        notePlacement.notelist = notes;
 
                         // AddNotes(cvpj, trackId, "notes", notePlacement);
                     }
