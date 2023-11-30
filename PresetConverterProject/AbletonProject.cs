@@ -12,16 +12,16 @@ namespace PresetConverter
 {
     public static class AbletonProject
     {
-        private static string GetValue(XElement xmldata, string varname, string fallback)
+        private static string? GetValue(XElement xmlData, string varName, string? fallback)
         {
-            XElement? xml_e = xmldata.XPathSelectElements(varname).FirstOrDefault();
-            return xml_e?.Attribute("Value")?.Value ?? fallback;
+            XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
+            return xElement?.Attribute("Value")?.Value ?? fallback;
         }
 
-        private static string? GetId(XElement xmldata, string varname, string? fallback)
+        private static string? GetId(XElement xmlData, string varName, string? fallback)
         {
-            XElement? xml_e = xmldata.XPathSelectElements(varname).FirstOrDefault();
-            return xml_e?.Attribute("Id")?.Value ?? fallback;
+            XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
+            return xElement?.Attribute("Id")?.Value ?? fallback;
         }
 
         private static object UseValueType(string valType, string val)
@@ -49,22 +49,22 @@ namespace PresetConverter
             }
         }
 
-        private static object GetParam(XElement xmldata, string varname, string vartype, double fallback, string[] i_loc, double? i_addmul)
+        private static object GetParam(XElement xmlData, string varName, string varType, double fallback, string[] loc, double? addMul)
         {
-            XElement? param_data = xmldata.XPathSelectElements(varname).FirstOrDefault();
+            XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
 
-            if (param_data != null)
+            if (xElement != null)
             {
-                string out_value = GetValue(param_data, "Manual", fallback.ToString());
-                int autonumid = int.Parse(GetId(param_data, "AutomationTarget", null) ?? "0");
-                object outdata = UseValueType(vartype, out_value);
+                string inData = GetValue(xElement, "Manual", fallback.ToString());
+                int autoNumId = int.Parse(GetId(xElement, "AutomationTarget", null) ?? "0");
+                object outData = UseValueType(varType, inData);
 
-                if (autonumid != 0)
+                if (autoNumId != 0)
                 {
-                    // AutoId.InDefine(autonumid, i_loc, vartype, i_addmul);
+                    // AutoId.InDefine(autoNumId, loc, varType, addMul);
                 }
 
-                return outdata;
+                return outData;
             }
             else
             {
@@ -117,8 +117,19 @@ namespace PresetConverter
             return Tuple.Create(r * factor, g * factor, b * factor);
         }
 
+        private static void AddCmd(Dictionary<long, List<string>> list, long pos, List<string> cmd)
+        {
+            if (!list.ContainsKey(pos))
+                list[pos] = new List<string>();
+
+            list[pos].AddRange(cmd);
+        }
+
         public static void HandleAbletonLiveContent(XElement root)
         {
+            // all credits go to SatyrDiamond and the DawVert code
+            // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
+
             // initialize the color lists
             var colorlist = new List<string>
             {
@@ -138,7 +149,11 @@ namespace PresetConverter
                 colorlistOne.Add(rgbFloatColor);
             }
 
+            // ***************** 
             // start reading
+            // ***************** 
+            dynamic cvpj = new System.Dynamic.ExpandoObject(); // store in common daw project format (converted project)
+
             string abletonVersion = root?.Attribute("MinorVersion")?.Value.Split('.')[0];
             if (abletonVersion != "11")
             {
@@ -164,26 +179,32 @@ namespace PresetConverter
             float masTrackPan = (float)GetParam(xMastertrackMixer, "Pan", "float", 0, new string[] { "master", "pan" }, null);
             float tempo = (float)GetParam(xMastertrackMixer, "Tempo", "float", 140, new string[] { "main", "bpm" }, null);
 
-            // TracksMaster.Create(cvpj, masTrackVol);
-            // TracksMaster.Visual(cvpj, name: mastertrackName, color: mastertrackColor);
-            // TracksMaster.ParamAdd(cvpj, "pan", masTrackPan, "float");
-            // Song.AddParam(cvpj, "bpm", tempo);
-
             Log.Debug("Tempo: {0} bpm, MasterTrackName: {1}, Volume: {2}, Pan: {3}", tempo, mastertrackName, masTrackVol, masTrackPan);
 
-            // https://gist.github.com/melanchall/d4142f5f0fb36ab86e46110d69966fed
-            var midiFile = new MidiFile();
+            cvpj.track_master = new System.Dynamic.ExpandoObject();
+            cvpj.track_master.name = mastertrackName;
+            cvpj.track_master.color = mastertrackColor;
+            cvpj.track_master.parameters = new System.Dynamic.ExpandoObject();
+            cvpj.track_master.parameters.pan = new System.Dynamic.ExpandoObject();
+            cvpj.track_master.parameters.pan.name = "Pan";
+            cvpj.track_master.parameters.pan.type = "float";
+            cvpj.track_master.parameters.pan.value = masTrackPan;
+            cvpj.track_master.parameters.vol = new System.Dynamic.ExpandoObject();
+            cvpj.track_master.parameters.vol.name = "Volume";
+            cvpj.track_master.parameters.vol.type = "float";
+            cvpj.track_master.parameters.vol.value = masTrackVol;
 
-            // Set tempo map of the file using tempo of X BPM. See
-            // https://github.com/melanchall/drywetmidi/wiki/Tempo-map to learn more about managing
-            // tempo map in DryWetMIDI
-            var tempoMap = TempoMap.Create(Tempo.FromBeatsPerMinute(tempo));
-            midiFile.ReplaceTempoMap(tempoMap);
+            cvpj.parameters = new System.Dynamic.ExpandoObject();
+            cvpj.parameters.bpm = new System.Dynamic.ExpandoObject();
+            cvpj.parameters.bpm.name = "Tempo";
+            cvpj.parameters.bpm.type = "float";
+            cvpj.parameters.bpm.value = tempo;
+
+            cvpj.track_data = new Dictionary<string, dynamic>();
+            cvpj.track_placements = new Dictionary<string, dynamic>();
 
             // Read Tracks
-            var cvpj = new Dictionary<string, object>(); // common daw project format
-
-            Log.Debug("Reading {0} Tracks ...", xTracks.Elements().Count());
+            Log.Debug("Found {0} Tracks ...", xTracks.Elements().Count());
 
             foreach (XElement xTrackData in xTracks.Elements())
             {
@@ -207,30 +228,36 @@ namespace PresetConverter
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", 0, new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", 0, new string[] { "track", trackId, "pan" }, null);
 
-                    Console.WriteLine($"Reading MIDI Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
+                    Log.Debug($"Reading MIDI Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
 
-                    // TracksR.TrackCreate(cvpj, trackId, "instrument");
-                    // TracksR.TrackVisual(cvpj, trackId, name: trackName, color: trackColor);
-                    // TracksR.TrackParamAdd(cvpj, trackId, "vol", trackVol, "float");
-                    // TracksR.TrackParamAdd(cvpj, trackId, "pan", trackPan, "float");
-
-                    Log.Debug("Creating MIDI Track: {0}", trackName);
-
-                    // Create a track with name
-                    var trackChunk = new TrackChunk();
-                    midiFile.Chunks.Add(trackChunk);
-                    trackChunk.Events.Add(new SequenceTrackNameEvent(trackName));
+                    dynamic track = new System.Dynamic.ExpandoObject();
+                    track.type = "instrument";
+                    track.name = trackName;
+                    track.color = trackColor;
+                    track.parameters = new System.Dynamic.ExpandoObject();
+                    track.parameters.pan = new System.Dynamic.ExpandoObject();
+                    track.parameters.pan.name = "Pan";
+                    track.parameters.pan.type = "float";
+                    track.parameters.pan.value = trackPan;
+                    track.parameters.vol = new System.Dynamic.ExpandoObject();
+                    track.parameters.vol.name = "Volume";
+                    track.parameters.vol.type = "float";
+                    track.parameters.vol.value = trackVol;
 
                     if (trackInsideGroup != -1)
                     {
-                        // TracksR.TrackGroup(cvpj, trackId, "group_" + trackInsideGroup);
+                        track.group = "group_" + trackInsideGroup;
                     }
+
+                    cvpj.track_data.Add(trackId, track);
 
                     XElement xTrackMainSequencer = xTrackDeviceChain?.Element("MainSequencer");
                     XElement xTrackClipTimeable = xTrackMainSequencer?.Element("ClipTimeable");
                     XElement xTrackArrangerAutomation = xTrackClipTimeable?.Element("ArrangerAutomation");
                     XElement xTrackEvents = xTrackArrangerAutomation?.Element("Events");
                     IEnumerable<XElement> xTrackMidiClips = xTrackEvents?.Elements("MidiClip");
+
+                    var notesList = new List<dynamic>();
 
                     foreach (XElement xTrackMidiClip in xTrackMidiClips)
                     {
@@ -269,12 +296,12 @@ namespace PresetConverter
                             notePlacement.cut.end = notePlacementLoopLEnd * 4;
                         }
 
-                        Log.Debug($"notePlacement: {JsonConvert.SerializeObject(notePlacement, Formatting.Indented)}");
+                        // Log.Debug($"notePlacement: {JsonConvert.SerializeObject(notePlacement, Formatting.Indented)}");
 
                         XElement xTrackMidiClipNotes = xTrackMidiClip.Element("Notes");
                         XElement xTrackMidiClipKT = xTrackMidiClipNotes?.Element("KeyTracks");
 
-                        Log.Debug("Reading {0} KeyTracks ...", xTrackMidiClipKT?.Elements("KeyTrack").Count());
+                        Log.Debug("Found {0} KeyTracks ...", xTrackMidiClipKT?.Elements("KeyTrack").Count());
 
                         var notes = new Dictionary<int, dynamic>();
 
@@ -308,23 +335,9 @@ namespace PresetConverter
                                 noteData.probability = noteProbablity;
                                 noteData.enabled = noteIsEnabled;
 
-                                Log.Debug($"noteData: {JsonConvert.SerializeObject(noteData, Formatting.Indented)}");
+                                // Log.Debug($"noteData: {JsonConvert.SerializeObject(noteData, Formatting.Indented)}");
 
                                 notes[noteId] = noteData;
-
-                                // add midi notes
-                                int midiNotePos = (int)((float)notePlacement.position * 4 + (float)noteData.position * 4) * 30;
-                                int midiNoteDur = (int)((float)noteData.duration * 4) * 30;
-                                int midiNoteKey = (int)noteData.key + 60;
-                                int midiNoteVol = Math.Clamp((int)((float)noteData.vol * 127), 0, 127);
-
-                                long deltaTimeOn = midiNotePos;
-                                long deltaTimeOff = midiNotePos + midiNoteDur;
-
-                                Log.Debug($"Creating MidiNoteEvent. deltaTimeOn: {deltaTimeOn}, deltaTimeOff: {deltaTimeOff}, midiNotePos: {midiNotePos}, midiNoteDur: {midiNoteDur}, midiNoteKey: {midiNoteKey}, midiNoteVol: {midiNoteVol}");
-
-                                // trackChunk.Events.Add(new NoteOnEvent { DeltaTime = deltaTimeOn, NoteNumber = (SevenBitNumber)midiNoteKey, Velocity = (SevenBitNumber)midiNoteVol });
-                                // trackChunk.Events.Add(new NoteOffEvent { DeltaTime = deltaTimeOff, NoteNumber = (SevenBitNumber)midiNoteKey, Velocity = (SevenBitNumber)0 });
                             }
                         }
 
@@ -355,11 +368,94 @@ namespace PresetConverter
                             }
                         }
 
-                        notePlacement.notelist = notes;
+                        // convert notes dictionary to values list since we dont need the notes-id 
+                        notePlacement.notelist = notes.Values.ToList();
+                        notesList.Add(notePlacement);
+                    }
 
-                        // AddNotes(cvpj, trackId, "notes", notePlacement);
+                    dynamic notesGroup = new System.Dynamic.ExpandoObject();
+                    notesGroup.notes = notesList;
+                    cvpj.track_placements.Add(trackId, notesGroup);
+                }
+            }
+
+            // Log.Error($"cvpj: {JsonConvert.SerializeObject(cvpj, Formatting.Indented)}");
+            ConvertToMidi(cvpj);
+        }
+
+        public static void ConvertToMidi(dynamic cvpj)
+        {
+            // all credits go to SatyrDiamond and the DawVert code
+            // https://github.com/SatyrDiamond/DawVert/blob/main/plugin_output/midi.py
+
+            double tempo = cvpj.parameters.bpm.value;
+
+            // https://gist.github.com/melanchall/d4142f5f0fb36ab86e46110d69966fed
+            var midiFile = new MidiFile();
+
+            // Set tempo map of the file using tempo of X BPM. See
+            // https://github.com/melanchall/drywetmidi/wiki/Tempo-map 
+            // to learn more about managing tempo map in DryWetMIDI
+            var tempoMap = TempoMap.Create(Tempo.FromBeatsPerMinute(tempo));
+            midiFile.ReplaceTempoMap(tempoMap);
+
+            int trackNum = 0;
+            foreach (var track in cvpj.track_placements)
+            {
+                var trackId = track.Key;
+                string trackName = cvpj.track_data[trackId].name;
+
+                Log.Debug($"Creating MIDI track: {trackName} with id: {trackId}");
+
+                // Create a track with name
+                var trackChunk = new TrackChunk();
+                midiFile.Chunks.Add(trackChunk);
+                trackChunk.Events.Add(new SequenceTrackNameEvent(trackName));
+
+                var notes = track.Value.notes;
+
+                var noteList = new Dictionary<long, List<string>>(); // list holding the notes
+
+                if (notes != null)
+                {
+                    foreach (dynamic notePlacement in notes)
+                    {
+                        if (!notePlacement.muted)
+                        {
+                            foreach (dynamic noteData in notePlacement.notelist)
+                            {
+                                // add midi notes
+                                int midiNotePos = (int)((float)notePlacement.position * 4 + (float)noteData.position * 4) * 30;
+                                int midiNoteDur = (int)((float)noteData.duration * 4) * 30;
+                                int midiNoteKey = (int)noteData.key + 60;
+                                int midiNoteVol = Math.Clamp((int)((float)noteData.vol * 127), 0, 127);
+
+                                AddCmd(noteList, midiNotePos, new List<string> { "note_on", midiNoteKey.ToString(), midiNoteVol.ToString() });
+                                AddCmd(noteList, midiNotePos + midiNoteDur, new List<string> { "note_off", midiNoteKey.ToString() });
+                            }
+                        }
                     }
                 }
+
+                // Sorting the dictionary by key
+                var sortedList = noteList.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+
+                int prevPos = 0;
+                foreach (var noteListElement in sortedList)
+                {
+                    if ("note_on".Equals(noteListElement.Value[0]))
+                    {
+                        trackChunk.Events.Add(new NoteOnEvent { DeltaTime = noteListElement.Key - prevPos, NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]), Velocity = (SevenBitNumber)int.Parse(noteListElement.Value[2]) });
+                    }
+                    else if ("note_off".Equals(noteListElement.Value[0]))
+                    {
+                        trackChunk.Events.Add(new NoteOffEvent { DeltaTime = noteListElement.Key - prevPos, NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]), Velocity = (SevenBitNumber)0 });
+                    }
+
+                    prevPos = (int)noteListElement.Key;
+                }
+
+                trackNum++;
             }
 
             // Save the MIDI file to disk
