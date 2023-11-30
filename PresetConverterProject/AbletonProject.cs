@@ -396,7 +396,16 @@ namespace PresetConverter
             // Set tempo map of the file using tempo of X BPM. See
             // https://github.com/melanchall/drywetmidi/wiki/Tempo-map 
             // to learn more about managing tempo map in DryWetMIDI
-            var tempoMap = TempoMap.Create(Tempo.FromBeatsPerMinute(tempo));
+            // Set the ticks per beat and BPM
+            // midi_tempo = 
+            short ticksPerBeat = 480;
+            var midiTimeDivision = new TicksPerQuarterNoteTimeDivision(ticksPerBeat);
+            var midiTempo = Tempo.FromBeatsPerMinute(tempo); // 128 bpm should give 468750
+            var midiTimeSignature = new TimeSignature(4, 4);
+
+            // var tempoMap = TempoMap.Create(midiTempo);
+            var tempoMap = TempoMap.Create(midiTimeDivision, midiTempo, midiTimeSignature);
+
             midiFile.ReplaceTempoMap(tempoMap);
 
             int trackNum = 0;
