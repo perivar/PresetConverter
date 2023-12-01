@@ -266,3 +266,4 @@ debug
 **/Logs/
 Settings.cfg
 *.mid
+*.json

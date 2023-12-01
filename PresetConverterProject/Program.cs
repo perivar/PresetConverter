@@ -220,7 +220,11 @@ namespace PresetConverter
         private static void HandleAbletonLiveProject(string file, string outputDirectoryPath)
         {
             var bytes = File.ReadAllBytes(file);
-            var decompressed = IOUtils.Decompress(bytes);
+            var decompressed = bytes;
+            if (bytes[0] == 0x1F && bytes[1] == 0x8B)
+            {
+                decompressed = IOUtils.Decompress(bytes);
+            }
             var str = Encoding.UTF8.GetString(decompressed);
             var docXelement = XElement.Parse(str);
 

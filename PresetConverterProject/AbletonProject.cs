@@ -7,9 +7,29 @@ using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Common;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace PresetConverter
 {
+    class BooleanConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(bool);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            writer.WriteValue((bool)value ? 1 : 0);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public static class AbletonProject
     {
         private static string? GetValue(XElement xmlData, string varName, string? fallback)
@@ -98,7 +118,7 @@ namespace PresetConverter
             return output;
         }
 
-        private static Tuple<float, float, float> HexToRgbFloat(string hex)
+        private static float[] HexToRgbFloat(string hex)
         {
             // Convert a hexadecimal value #FF00FF to RGB. Returns a tuple of floats between 0 and 1.
 
@@ -114,7 +134,7 @@ namespace PresetConverter
 
             float factor = 1.0f / 255.0f;
 
-            return Tuple.Create(r * factor, g * factor, b * factor);
+            return new float[] { r * factor, g * factor, b * factor };
         }
 
         private static void AddCmd(Dictionary<long, List<string>> list, long pos, List<string> cmd)
@@ -142,7 +162,7 @@ namespace PresetConverter
                 "85961F", "539F31", "0A9C8E", "236384", "1A2F96", "2F52A2", "624BAD", "A34BAD", "CC2E6E", "3C3C3C"
             };
 
-            var colorlistOne = new List<Tuple<float, float, float>>();
+            var colorlistOne = new List<float[]>();
             foreach (string hexColor in colorlist)
             {
                 var rgbFloatColor = HexToRgbFloat(hexColor);
@@ -201,6 +221,7 @@ namespace PresetConverter
             cvpj.parameters.bpm.value = tempo;
 
             cvpj.track_data = new Dictionary<string, dynamic>();
+            cvpj.track_order = new List<dynamic>();
             cvpj.track_placements = new Dictionary<string, dynamic>();
 
             // Read Tracks
@@ -250,6 +271,7 @@ namespace PresetConverter
                     }
 
                     cvpj.track_data.Add(trackId, track);
+                    cvpj.track_order.Add(trackId);
 
                     XElement xTrackMainSequencer = xTrackDeviceChain?.Element("MainSequencer");
                     XElement xTrackClipTimeable = xTrackMainSequencer?.Element("ClipTimeable");
@@ -373,14 +395,109 @@ namespace PresetConverter
                         notesList.Add(notePlacement);
                     }
 
-                    dynamic notesGroup = new System.Dynamic.ExpandoObject();
-                    notesGroup.notes = notesList;
-                    cvpj.track_placements.Add(trackId, notesGroup);
+                    if (notesList.Count > 0)
+                    {
+                        dynamic notesGroup = new System.Dynamic.ExpandoObject();
+                        notesGroup.notes = notesList;
+                        cvpj.track_placements.Add(trackId, notesGroup);
+                    }
                 }
             }
 
-            // Log.Error($"cvpj: {JsonConvert.SerializeObject(cvpj, Formatting.Indented)}");
+            JObject jcvpj = JObject.FromObject(cvpj);
+            // JObject sortedCvpj = SortJObjectAlphabetically(jcvpj);
+            WriteJsonToFile("output.json", jcvpj);
+
             ConvertToMidi(cvpj);
+
+            // CompareJson();
+        }
+
+        private static void CompareJson()
+        {
+            string jsonFilePath1 = "C:\\Users\\periv\\Projects\\PresetConverter\\output.json";
+            string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\out.cvpj";
+
+            // Read JSON files
+            string jsonContent1 = File.ReadAllText(jsonFilePath1);
+            string jsonContent2 = File.ReadAllText(jsonFilePath2);
+
+            // Parse JSON content
+            JObject jsonObject1 = JObject.Parse(jsonContent1);
+
+            jsonContent2 = string.Join("\n", jsonContent2.Split('\n').Skip(1));
+            JObject jsonObject2 = JObject.Parse(jsonContent2);
+
+            // Filter out objects with a "notes" array
+            List<JProperty> filteredObjects1 = jsonObject1["track_placements"]
+                .OfType<JProperty>()
+                .Where(property => property.Value["notes"] != null)
+                .ToList();
+
+            // Create an object with the filtered list
+            JObject filteredObjectContainer1 = new JObject
+            {
+                { "track_placements", new JObject(filteredObjects1) }
+            };
+
+            JObject sortedJsonObject1 = SortJObjectAlphabetically(filteredObjectContainer1);
+            WriteJsonToFile("pres_conv.json", sortedJsonObject1);
+
+            // Filter out objects with a "notes" array
+            List<JProperty> filteredObjects2 = jsonObject2["track_placements"]
+                .OfType<JProperty>()
+                .Where(property => property.Value["notes"] != null)
+                .ToList();
+
+            // Create an object with the filtered list
+            JObject filteredObjectContainer2 = new JObject
+            {
+                { "track_placements", new JObject(filteredObjects2) }
+            };
+
+            JObject sortedJsonObject2 = SortJObjectAlphabetically(filteredObjectContainer2);
+            WriteJsonToFile("daw_conv.json", sortedJsonObject2);
+        }
+
+        private static JObject SortJObjectAlphabetically(JObject jsonObject)
+        {
+            JObject sortedObject = new JObject();
+
+            foreach (var property in jsonObject.Properties().OrderBy(p => p.Name))
+            {
+                var value = property.Value;
+
+                if (value.Type == JTokenType.Object)
+                {
+                    sortedObject.Add(property.Name, SortJObjectAlphabetically((JObject)value));
+                }
+                else if (value.Type == JTokenType.Array)
+                {
+                    var array = new JArray(value.Children<JObject>().Select(SortJObjectAlphabetically));
+                    sortedObject.Add(property.Name, array);
+                }
+                else
+                {
+                    sortedObject.Add(property.Name, value);
+                }
+            }
+
+            return sortedObject;
+        }
+
+        private static void WriteJsonToFile(string filePath, JObject data)
+        {
+            var settings = new JsonSerializerSettings()
+            {
+                Converters = { new BooleanConverter() },
+                Formatting = Formatting.Indented
+            };
+
+            // Serialize
+            string json = JsonConvert.SerializeObject(data, settings);
+
+            File.WriteAllText(filePath, json);
+            Log.Debug($"Data written to: {filePath}");
         }
 
         public static void ConvertToMidi(dynamic cvpj)
