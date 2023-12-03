@@ -8,6 +8,7 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace PresetConverter
 {
@@ -118,7 +119,7 @@ namespace PresetConverter
             return output;
         }
 
-        private static double[] HexToRgbFloat(string hex)
+        private static double[] HexToRgbDouble(string hex)
         {
             // Convert a hexadecimal value #FF00FF to RGB. Returns a array of double between 0 and 1.
 
@@ -135,6 +136,11 @@ namespace PresetConverter
             double factor = 1.0 / 255.0f;
 
             return new double[] { r * factor, g * factor, b * factor };
+        }
+
+        private static byte[] RgbDoubleToRgbBytes(double[] rgb)
+        {
+            return new byte[] { (byte)(rgb[0] * 255), (byte)(rgb[1] * 255), (byte)(rgb[2] * 255) };
         }
 
         private static void AddCmd(Dictionary<long, List<string>> list, long pos, List<string> cmd)
@@ -165,7 +171,7 @@ namespace PresetConverter
             var colorlistOne = new List<double[]>();
             foreach (string hexColor in colorlist)
             {
-                var rgbFloatColor = HexToRgbFloat(hexColor);
+                var rgbFloatColor = HexToRgbDouble(hexColor);
                 colorlistOne.Add(rgbFloatColor);
             }
 
@@ -404,13 +410,13 @@ namespace PresetConverter
                 }
             }
 
-            JObject jcvpj = JObject.FromObject(cvpj);
             // JObject sortedCvpj = SortJObjectAlphabetically(jcvpj);
+            JObject jcvpj = JObject.FromObject(cvpj);
             WriteJsonToFile("output.json", jcvpj);
 
-            // ConvertToMidi(cvpj);
+            ConvertToMidi(cvpj);
 
-            CompareJson();
+            // CompareJson();
         }
 
         private static void CompareJson()
@@ -519,23 +525,29 @@ namespace PresetConverter
 
             double tempo = cvpj.parameters.bpm.value;
 
-            // https://gist.github.com/melanchall/d4142f5f0fb36ab86e46110d69966fed
-            var midiFile = new MidiFile();
-
-            // Set tempo map of the file using tempo of X BPM. See
-            // https://github.com/melanchall/drywetmidi/wiki/Tempo-map 
-            // to learn more about managing tempo map in DryWetMIDI
             // Set the ticks per beat and BPM
-            // midi_tempo = 
             short ticksPerBeat = 480;
+            byte numerator = 4;
+            byte denominator = 4;
             var midiTimeDivision = new TicksPerQuarterNoteTimeDivision(ticksPerBeat);
             var midiTempo = Tempo.FromBeatsPerMinute(tempo); // 128 bpm should give 468750
-            var midiTimeSignature = new TimeSignature(4, 4);
 
-            // var tempoMap = TempoMap.Create(midiTempo);
-            var tempoMap = TempoMap.Create(midiTimeDivision, midiTempo, midiTimeSignature);
+            // Include the time division when creating the midi file
+            var midiFile = new MidiFile()
+            {
+                TimeDivision = midiTimeDivision
+            };
 
-            midiFile.ReplaceTempoMap(tempoMap);
+            // Set the timesignature and tempo manually instead of ReplaceTempoMap 
+            // to make sure the time signature event is included
+            // var midiTimeSignature = new TimeSignature(4, 4);
+            // var tempoMap = TempoMap.Create(midiTimeDivision, midiTempo, midiTimeSignature);
+            // midiFile.ReplaceTempoMap(tempoMap);
+            midiFile.Chunks.Add(new TrackChunk(
+                    new TimeSignatureEvent(numerator, denominator),
+                    new SetTempoEvent(midiTempo.MicrosecondsPerQuarterNote)
+                )
+            );
 
             int trackNum = 0;
             foreach (var track in cvpj.track_placements)
@@ -545,10 +557,48 @@ namespace PresetConverter
 
                 Log.Debug($"Creating MIDI track: {trackName} with id: {trackId}");
 
-                // Create a track with name
+                int midiChannel = 5;
+
+                // Create a track
                 var trackChunk = new TrackChunk();
                 midiFile.Chunks.Add(trackChunk);
+
+                // set track name
                 trackChunk.Events.Add(new SequenceTrackNameEvent(trackName));
+
+                // set track color
+                var trackColor = cvpj.track_data[trackId].color;
+                if (trackColor != null)
+                {
+                    byte[] midiTrackColor = RgbDoubleToRgbBytes(trackColor);
+
+                    var s1 = new SequencerSpecificEvent(new byte[] { 83, 105, 103, 110, 1, 255 }
+                        .Concat(midiTrackColor.Reverse()).ToArray()); // from Signal MIDI Editor
+                    trackChunk.Events.Add(s1);
+
+                    var s2 = new SequencerSpecificEvent(new byte[] { 80, 114, 101, 83, 1, 255 }
+                        .Concat(midiTrackColor.Reverse()).ToArray()); // from Studio One
+                    trackChunk.Events.Add(s2);
+
+                    byte red_p1 = (byte)(midiTrackColor[0] >> 2);
+                    byte red_p2 = (byte)((midiTrackColor[0] << 5) & 0x7F);
+                    byte green_p1 = (byte)(midiTrackColor[1] >> 3);
+                    byte green_p2 = (byte)((midiTrackColor[1] << 4) & 0x7F);
+                    byte blue_p1 = (byte)(midiTrackColor[2] >> 4);
+                    byte blue_p2 = (byte)(midiTrackColor[2] & 0x0F);
+
+                    byte[] anvilcolor = { blue_p2, (byte)(green_p2 + blue_p1), (byte)(red_p2 + green_p1), red_p1 };
+                    var s3 = new SequencerSpecificEvent(new byte[] { 5, 15, 52 }
+                        .Concat(anvilcolor).Append((byte)0).ToArray()); // from Anvil Studio
+                    trackChunk.Events.Add(s3);
+                }
+
+                // add program change
+                trackChunk.Events.Add(new ProgramChangeEvent()
+                {
+                    ProgramNumber = (SevenBitNumber)0, // 'Acoustic Grand Piano' in GM
+                    Channel = (FourBitNumber)midiChannel
+                });
 
                 var notes = track.Value.notes;
 
@@ -567,9 +617,10 @@ namespace PresetConverter
                                 int midiNoteDur = (int)((float)noteData.duration * 4) * 30;
                                 int midiNoteKey = (int)noteData.key + 60;
                                 int midiNoteVol = Math.Clamp((int)((float)noteData.vol * 127), 0, 127);
+                                int midiNoteOffVol = Math.Clamp((int)((float)noteData.off_vol * 127), 0, 127);
 
                                 AddCmd(noteList, midiNotePos, new List<string> { "note_on", midiNoteKey.ToString(), midiNoteVol.ToString() });
-                                AddCmd(noteList, midiNotePos + midiNoteDur, new List<string> { "note_off", midiNoteKey.ToString() });
+                                AddCmd(noteList, midiNotePos + midiNoteDur, new List<string> { "note_off", midiNoteKey.ToString(), midiNoteOffVol.ToString() });
                             }
                         }
                     }
@@ -583,11 +634,24 @@ namespace PresetConverter
                 {
                     if ("note_on".Equals(noteListElement.Value[0]))
                     {
-                        trackChunk.Events.Add(new NoteOnEvent { DeltaTime = noteListElement.Key - prevPos, NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]), Velocity = (SevenBitNumber)int.Parse(noteListElement.Value[2]) });
+                        trackChunk.Events.Add(new NoteOnEvent
+                        {
+                            DeltaTime = noteListElement.Key - prevPos,
+                            NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]),
+                            Velocity = (SevenBitNumber)int.Parse(noteListElement.Value[2]),
+                            Channel = (FourBitNumber)midiChannel
+                        });
                     }
                     else if ("note_off".Equals(noteListElement.Value[0]))
                     {
-                        trackChunk.Events.Add(new NoteOffEvent { DeltaTime = noteListElement.Key - prevPos, NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]), Velocity = (SevenBitNumber)0 });
+                        trackChunk.Events.Add(new NoteOffEvent
+                        {
+                            DeltaTime = noteListElement.Key - prevPos,
+                            NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]),
+                            // Velocity = (SevenBitNumber)int.Parse(noteListElement.Value[2]),
+                            Velocity = (SevenBitNumber)64, // 64 = default?
+                            Channel = (FourBitNumber)midiChannel
+                        });
                     }
 
                     prevPos = (int)noteListElement.Key;
@@ -602,6 +666,9 @@ namespace PresetConverter
             {
                 File.Delete(filePath);
             }
+
+            // no compression
+            // see https://github.com/melanchall/drywetmidi/issues/59        
             midiFile.Write(filePath);
         }
     }
