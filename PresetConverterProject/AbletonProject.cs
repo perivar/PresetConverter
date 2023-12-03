@@ -8,10 +8,10 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace PresetConverter
 {
+    // output booleans as 1 and 0 instead of true and false
     class BooleanConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
@@ -118,9 +118,9 @@ namespace PresetConverter
             return output;
         }
 
-        private static float[] HexToRgbFloat(string hex)
+        private static double[] HexToRgbFloat(string hex)
         {
-            // Convert a hexadecimal value #FF00FF to RGB. Returns a tuple of floats between 0 and 1.
+            // Convert a hexadecimal value #FF00FF to RGB. Returns a array of double between 0 and 1.
 
             hex = hex.TrimStart('#');
             if (hex.Length != 6)
@@ -132,9 +132,9 @@ namespace PresetConverter
             int g = Convert.ToInt32(hex.Substring(2, 2), 16);
             int b = Convert.ToInt32(hex.Substring(4, 2), 16);
 
-            float factor = 1.0f / 255.0f;
+            double factor = 1.0 / 255.0f;
 
-            return new float[] { r * factor, g * factor, b * factor };
+            return new double[] { r * factor, g * factor, b * factor };
         }
 
         private static void AddCmd(Dictionary<long, List<string>> list, long pos, List<string> cmd)
@@ -162,7 +162,7 @@ namespace PresetConverter
                 "85961F", "539F31", "0A9C8E", "236384", "1A2F96", "2F52A2", "624BAD", "A34BAD", "CC2E6E", "3C3C3C"
             };
 
-            var colorlistOne = new List<float[]>();
+            var colorlistOne = new List<double[]>();
             foreach (string hexColor in colorlist)
             {
                 var rgbFloatColor = HexToRgbFloat(hexColor);
@@ -408,15 +408,16 @@ namespace PresetConverter
             // JObject sortedCvpj = SortJObjectAlphabetically(jcvpj);
             WriteJsonToFile("output.json", jcvpj);
 
-            ConvertToMidi(cvpj);
+            // ConvertToMidi(cvpj);
 
-            // CompareJson();
+            CompareJson();
         }
 
         private static void CompareJson()
         {
             string jsonFilePath1 = "C:\\Users\\periv\\Projects\\PresetConverter\\output.json";
-            string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\out.cvpj";
+            // string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\out.cvpj";
+            string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\midiinput.cvpj";
 
             // Read JSON files
             string jsonContent1 = File.ReadAllText(jsonFilePath1);
@@ -425,6 +426,7 @@ namespace PresetConverter
             // Parse JSON content
             JObject jsonObject1 = JObject.Parse(jsonContent1);
 
+            // ignore the first "CONVPROJ****" line
             jsonContent2 = string.Join("\n", jsonContent2.Split('\n').Skip(1));
             JObject jsonObject2 = JObject.Parse(jsonContent2);
 
@@ -459,27 +461,37 @@ namespace PresetConverter
             WriteJsonToFile("daw_conv.json", sortedJsonObject2);
         }
 
+        private static JToken SortJTokenAlphabetically(JToken token)
+        {
+            if (token is JObject obj)
+            {
+                var sortedObj = new JObject();
+
+                foreach (var property in obj.Properties().OrderBy(p => p.Name))
+                {
+                    sortedObj.Add(property.Name, SortJTokenAlphabetically(property.Value));
+                }
+
+                return sortedObj;
+            }
+            else if (token is JArray array)
+            {
+                var sortedArray = new JArray(array.Select(SortJTokenAlphabetically));
+                return sortedArray;
+            }
+            else
+            {
+                return token;
+            }
+        }
+
         private static JObject SortJObjectAlphabetically(JObject jsonObject)
         {
-            JObject sortedObject = new JObject();
+            var sortedObject = new JObject();
 
             foreach (var property in jsonObject.Properties().OrderBy(p => p.Name))
             {
-                var value = property.Value;
-
-                if (value.Type == JTokenType.Object)
-                {
-                    sortedObject.Add(property.Name, SortJObjectAlphabetically((JObject)value));
-                }
-                else if (value.Type == JTokenType.Array)
-                {
-                    var array = new JArray(value.Children<JObject>().Select(SortJObjectAlphabetically));
-                    sortedObject.Add(property.Name, array);
-                }
-                else
-                {
-                    sortedObject.Add(property.Name, value);
-                }
+                sortedObject.Add(property.Name, SortJTokenAlphabetically(property.Value));
             }
 
             return sortedObject;
