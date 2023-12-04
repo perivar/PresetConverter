@@ -143,12 +143,12 @@ namespace PresetConverter
             return new byte[] { (byte)(rgb[0] * 255), (byte)(rgb[1] * 255), (byte)(rgb[2] * 255) };
         }
 
-        private static void AddCmd(Dictionary<long, List<string>> list, long pos, List<string> cmd)
+        private static void AddCmd(Dictionary<long, List<List<string>>> list, long pos, List<string> cmd)
         {
             if (!list.ContainsKey(pos))
-                list[pos] = new List<string>();
+                list[pos] = new List<List<string>>();
 
-            list[pos].AddRange(cmd);
+            list[pos].Add(cmd);
         }
 
         public static void HandleAbletonLiveContent(XElement root)
@@ -602,7 +602,7 @@ namespace PresetConverter
 
                 var notes = track.Value.notes;
 
-                var noteList = new Dictionary<long, List<string>>(); // list holding the notes
+                var noteList = new Dictionary<long, List<List<string>>>(); // list holding the notes
 
                 if (notes != null)
                 {
@@ -626,35 +626,37 @@ namespace PresetConverter
                     }
                 }
 
-                // Sorting the dictionary by key
+                // Sorting the dictionary by key (= time)
                 var sortedList = noteList.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
 
-                int prevPos = 0;
-                foreach (var noteListElement in sortedList)
+                long prevPos = 0;
+                foreach (var iListKey in sortedList.Keys)
                 {
-                    if ("note_on".Equals(noteListElement.Value[0]))
+                    foreach (var midiNoteData in sortedList[iListKey])
                     {
-                        trackChunk.Events.Add(new NoteOnEvent
+                        if (midiNoteData[0] == "note_on")
                         {
-                            DeltaTime = noteListElement.Key - prevPos,
-                            NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]),
-                            Velocity = (SevenBitNumber)int.Parse(noteListElement.Value[2]),
-                            Channel = (FourBitNumber)midiChannel
-                        });
-                    }
-                    else if ("note_off".Equals(noteListElement.Value[0]))
-                    {
-                        trackChunk.Events.Add(new NoteOffEvent
+                            trackChunk.Events.Add(new NoteOnEvent
+                            {
+                                DeltaTime = iListKey - prevPos,
+                                NoteNumber = (SevenBitNumber)int.Parse(midiNoteData[1]),
+                                Velocity = (SevenBitNumber)int.Parse(midiNoteData[2]),
+                                Channel = (FourBitNumber)midiChannel
+                            });
+                        }
+                        else if (midiNoteData[0] == "note_off")
                         {
-                            DeltaTime = noteListElement.Key - prevPos,
-                            NoteNumber = (SevenBitNumber)int.Parse(noteListElement.Value[1]),
-                            // Velocity = (SevenBitNumber)int.Parse(noteListElement.Value[2]),
-                            Velocity = (SevenBitNumber)64, // 64 = default?
-                            Channel = (FourBitNumber)midiChannel
-                        });
-                    }
+                            trackChunk.Events.Add(new NoteOffEvent
+                            {
+                                DeltaTime = iListKey - prevPos,
+                                NoteNumber = (SevenBitNumber)int.Parse(midiNoteData[1]),
+                                Velocity = (SevenBitNumber)int.Parse(midiNoteData[2]),
+                                Channel = (FourBitNumber)midiChannel
+                            });
+                        }
 
-                    prevPos = (int)noteListElement.Key;
+                        prevPos = iListKey;
+                    }
                 }
 
                 trackNum++;
@@ -670,6 +672,95 @@ namespace PresetConverter
             // no compression
             // see https://github.com/melanchall/drywetmidi/issues/59        
             midiFile.Write(filePath);
+
+            LogMidiFile(midiFile);
+        }
+
+        // this code outputs in the same way as python mido format
+        // i.e. the same code as
+        // log_file_path = 'midiobj.log'
+        // with open(log_file_path, 'w') as log_file:
+        //     log_file.write("MIDI File Content:\n")
+        //     for i, track in enumerate(midiobj.tracks):
+        //         log_file.write(f"Track {i + 1}:\n")
+        //         for msg in track:
+        //             log_file.write(str(msg) + '\n')
+        //         log_file.write('\n')
+        // print(f"MIDI content written to {log_file_path}")
+        private static void LogMidiFile(MidiFile midiFile)
+        {
+            string logFilePath = "midifile.log";
+
+            using (var logFile = new StreamWriter(logFilePath))
+            {
+                logFile.WriteLine("MIDI File Content:");
+
+                int trackNumber = 1;
+                foreach (TrackChunk t in midiFile.GetTrackChunks())
+                {
+                    logFile.WriteLine($"Track {trackNumber}:");
+
+                    long cumulativeDeltaTime = 0; // To keep track of cumulative delta time
+                    foreach (var midiEvent in t.GetTimedEvents())
+                    {
+                        // Calculate delta time based on the Time property
+                        var deltaTime = midiEvent.Time - cumulativeDeltaTime;
+
+                        // Use a switch statement to categorize events
+                        switch (midiEvent.Event)
+                        {
+                            case ChannelEvent channelEvent:
+                                switch (channelEvent)
+                                {
+                                    case ProgramChangeEvent programChangeEvent:
+                                        logFile.WriteLine($"program_change channel={programChangeEvent.Channel} program={programChangeEvent.ProgramNumber} time={deltaTime}");
+                                        break;
+                                    case NoteOnEvent noteOnEvent:
+                                        logFile.WriteLine($"note_on channel={noteOnEvent.Channel} note={noteOnEvent.NoteNumber} velocity={noteOnEvent.Velocity} time={deltaTime}");
+                                        break;
+                                    case NoteOffEvent noteOffEvent:
+                                        logFile.WriteLine($"note_off channel={noteOffEvent.Channel} note={noteOffEvent.NoteNumber} velocity={noteOffEvent.Velocity} time={deltaTime}");
+                                        break;
+                                    default:
+                                        logFile.WriteLine($"ChannelEvent: {channelEvent.GetType().Name} {channelEvent} time={deltaTime}");
+                                        break;
+                                }
+                                break;
+                            case MetaEvent metaEvent:
+                                switch (metaEvent)
+                                {
+                                    case SequenceTrackNameEvent sequenceTrackNameEvent:
+                                        logFile.WriteLine($"MetaMessage('track_name', name='{sequenceTrackNameEvent.Text}', time={deltaTime})");
+                                        break;
+                                    case SequencerSpecificEvent sequencerSpecificEvent:
+                                        logFile.WriteLine($"MetaMessage('sequencer_specific', data=({string.Join(", ", sequencerSpecificEvent.Data)}), time={deltaTime})");
+                                        break;
+                                    case TimeSignatureEvent timeSignatureEvent:
+                                        logFile.WriteLine($"MetaMessage('time_signature', numerator={timeSignatureEvent.Numerator}, denominator={timeSignatureEvent.Denominator}, clocks_per_click={timeSignatureEvent.ClocksPerClick}, notated_32nd_notes_per_beat={timeSignatureEvent.ThirtySecondNotesPerBeat}, time={deltaTime})");
+                                        break;
+                                    case SetTempoEvent setTempoEvent:
+                                        logFile.WriteLine($"MetaMessage('set_tempo', tempo={setTempoEvent.MicrosecondsPerQuarterNote}, time={deltaTime})");
+                                        break;
+                                    default:
+                                        logFile.WriteLine($"MetaEvent: {metaEvent.GetType().Name} {metaEvent} time={deltaTime}");
+                                        break;
+                                }
+                                break;
+                            default:
+                                logFile.WriteLine($"Unknown Event: {midiEvent.Event.GetType().Name} {midiEvent.Event} time={deltaTime}");
+                                break;
+                        }
+
+                        // Update cumulative delta time
+                        cumulativeDeltaTime = midiEvent.Time;
+                    }
+
+                    logFile.WriteLine();
+                    trackNumber++;
+                }
+            }
+
+            Console.WriteLine($"MIDI content written to {logFilePath}");
         }
     }
 }
