@@ -188,7 +188,7 @@ namespace PresetConverter
             list[pos].Add(cmd);
         }
 
-        public static void HandleAbletonLiveContent(XElement root)
+        public static void HandleAbletonLiveContent(XElement root, string outputDirectoryPath)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
@@ -470,6 +470,7 @@ namespace PresetConverter
                             XElement xPreset = xVstPluginInfo?.Element("Preset");
                             XElement xVstPreset = xPreset?.Element("VstPreset");
                             int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
+                            Log.Debug($"VstPreset Id: {vstPresetId}");
 
                             // read the byte data buffer
                             XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
@@ -487,8 +488,9 @@ namespace PresetConverter
                             }
 
                             string outputFileName = StringUtils.MakeValidFileName($"{trackName}_{vstPluginName}");
+                            string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
-                            BinaryFile.ByteArrayToFile(outputFileName + ".dat", vstPluginBufferBytes);
+                            BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
 
                             // check if this is a zlib file
                             if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
@@ -501,10 +503,8 @@ namespace PresetConverter
                                 Array.Copy(vstPluginBufferBytes, 2, vstPluginBufferBytesTrimmed, 0, vstPluginBufferBytesTrimmed.Length);
 
                                 byte[] vstPluginBytes = IOUtils.Deflate(vstPluginBufferBytesTrimmed);
-                                BinaryFile.ByteArrayToFile(outputFileName + "_deflated.dat", vstPluginBytes);
+                                BinaryFile.ByteArrayToFile(outputFilePath + "_deflated.dat", vstPluginBytes);
                             }
-
-                            Log.Debug($"VstPreset Id: {vstPresetId}");
 
                         }
                     }
@@ -512,10 +512,10 @@ namespace PresetConverter
             }
 
             // JObject sortedCvpj = SortJObjectAlphabetically(jcvpj);
-            JObject jcvpj = JObject.FromObject(cvpj);
-            WriteJsonToFile("output.json", jcvpj);
+            // JObject jcvpj = JObject.FromObject(cvpj);
+            // WriteJsonToFile("output.json", jcvpj);
 
-            ConvertToMidi(cvpj);
+            ConvertToMidi(cvpj, outputDirectoryPath);
 
             // CompareJson();
         }
@@ -619,7 +619,7 @@ namespace PresetConverter
             Log.Debug($"Data written to: {filePath}");
         }
 
-        public static void ConvertToMidi(dynamic cvpj)
+        public static void ConvertToMidi(dynamic cvpj, string outputDirectoryPath)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://github.com/SatyrDiamond/DawVert/blob/main/plugin_output/midi.py
@@ -766,17 +766,17 @@ namespace PresetConverter
             }
 
             // Save the MIDI file to disk
-            string filePath = "output.mid";
-            if (File.Exists(filePath))
+            string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - Midi.mid");
+            if (File.Exists(outputFilePath))
             {
-                File.Delete(filePath);
+                File.Delete(outputFilePath);
             }
 
             // no compression
             // see https://github.com/melanchall/drywetmidi/issues/59        
-            midiFile.Write(filePath);
+            midiFile.Write(outputFilePath);
 
-            LogMidiFile(midiFile);
+            // LogMidiFile(midiFile);
         }
 
         // this code outputs in the same way as python mido format
