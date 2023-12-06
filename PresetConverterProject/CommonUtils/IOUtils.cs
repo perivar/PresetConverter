@@ -537,7 +537,7 @@ namespace CommonUtils
         /// </summary>
         /// <param name="zlib">zlib compressed byte array</param>
         /// <returns>decompressed bytes</returns>
-        public static byte[] DecompressZlib(byte[] zlib)
+        public static byte[] Deflate(byte[] zlib)
         {
             // The ZLIB header (as defined in RFC1950) is a 16-bit, big-endian value 
             // - in other words, it is two bytes long, with the higher bits in the first byte and the lower bits in the second.

@@ -464,12 +464,14 @@ namespace PresetConverter
                             XElement xPluginDesc = xDevice?.Element("PluginDesc");
                             XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                             int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
-                            string vstPluginName = GetValue(xVstPluginInfo, "PlugName", null);
+                            string vstPluginName = GetValue(xVstPluginInfo, "PlugName", "Empty");
                             Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPluginName}");
 
                             XElement xPreset = xVstPluginInfo?.Element("Preset");
                             XElement xVstPreset = xPreset?.Element("VstPreset");
                             int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
+
+                            // read the byte data buffer
                             XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
                             string vstPluginBuffer = xVstPluginBuffer?.Value;
                             vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
@@ -477,21 +479,29 @@ namespace PresetConverter
                                             .Replace("\r", string.Empty)
                                             .Replace("\t", string.Empty);
 
+                            // convert from string to byte array
                             byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
                             for (int i = 0; i < vstPluginBufferBytes.Length; i++)
                             {
                                 vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
                             }
-                            BinaryFile.ByteArrayToFile("presetbytes.dat", vstPluginBufferBytes);
 
+                            string outputFileName = StringUtils.MakeValidFileName($"{trackName}_{vstPluginName}");
+
+                            BinaryFile.ByteArrayToFile(outputFileName + ".dat", vstPluginBufferBytes);
+
+                            // check if this is a zlib file
                             if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
                             {
-                                // Skip the first two bytes
-                                byte[] newArray = new byte[vstPluginBufferBytes.Length - 2];
-                                Array.Copy(vstPluginBufferBytes, 2, newArray, 0, newArray.Length);
+                                Log.Debug($"Found ZLib compressed file! VstPluginName: {vstPluginName}");
 
-                                byte[] vstPluginBytes = IOUtils.DecompressZlib(newArray);
-                                BinaryFile.ByteArrayToFile("presetbytes_decomp.dat", vstPluginBytes);
+                                // Skip the first two bytes as per
+                                // https://stackoverflow.com/a/62756204
+                                byte[] vstPluginBufferBytesTrimmed = new byte[vstPluginBufferBytes.Length - 2];
+                                Array.Copy(vstPluginBufferBytes, 2, vstPluginBufferBytesTrimmed, 0, vstPluginBufferBytesTrimmed.Length);
+
+                                byte[] vstPluginBytes = IOUtils.Deflate(vstPluginBufferBytesTrimmed);
+                                BinaryFile.ByteArrayToFile(outputFileName + "_deflated.dat", vstPluginBytes);
                             }
 
                             Log.Debug($"VstPreset Id: {vstPresetId}");
