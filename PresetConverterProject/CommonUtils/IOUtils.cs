@@ -531,6 +531,43 @@ namespace CommonUtils
                 }
             }
         }
+
+        /// <summary>
+        /// Decompress zlib compressed byte array
+        /// </summary>
+        /// <param name="zlib">zlib compressed byte array</param>
+        /// <returns>decompressed bytes</returns>
+        public static byte[] DecompressZlib(byte[] zlib)
+        {
+            // The ZLIB header (as defined in RFC1950) is a 16-bit, big-endian value 
+            // - in other words, it is two bytes long, with the higher bits in the first byte and the lower bits in the second.
+            // 78 01 - No Compression/low
+            // 78 9C - Default Compression
+            // 78 DA - Best Compression 
+
+            // Create a ZLIB stream with decompression mode.
+            // ... Then create a buffer and write into while reading from the ZLIB stream.
+            using (DeflateStream stream = new DeflateStream(new MemoryStream(zlib),
+                CompressionMode.Decompress))
+            {
+                const int size = 4096;
+                byte[] buffer = new byte[size];
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    int count = 0;
+                    do
+                    {
+                        count = stream.Read(buffer, 0, size);
+                        if (count > 0)
+                        {
+                            memory.Write(buffer, 0, count);
+                        }
+                    }
+                    while (count > 0);
+                    return memory.ToArray();
+                }
+            }
+        }
     }
 }
 

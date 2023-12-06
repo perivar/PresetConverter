@@ -9,6 +9,7 @@ using Melanchall.DryWetMidi.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using CommonUtils;
 
 namespace PresetConverter
 {
@@ -442,6 +443,60 @@ namespace PresetConverter
                         dynamic notesGroup = new System.Dynamic.ExpandoObject();
                         notesGroup.notes = notesList;
                         cvpj.track_placements.Add(trackId, notesGroup);
+                    }
+
+                    // handle plugin presets
+                    XElement xDeviceChain = xTrackDeviceChain?.Element("DeviceChain");
+                    XElement xDeviceChainDevices = xDeviceChain?.Element("Devices");
+
+                    // Read Tracks
+                    Log.Debug("Found {0} devices ...", xDeviceChainDevices.Elements().Count());
+
+                    foreach (XElement xDevice in xDeviceChainDevices.Elements())
+                    {
+                        string deviceType = xDevice.Name.LocalName;
+
+                        if (deviceType == "PluginDevice")
+                        {
+                            int pluginDeviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
+                            Log.Debug($"PluginDevice Id: {pluginDeviceId}");
+
+                            XElement xPluginDesc = xDevice?.Element("PluginDesc");
+                            XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
+                            int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
+                            string vstPluginName = GetValue(xVstPluginInfo, "PlugName", null);
+                            Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPluginName}");
+
+                            XElement xPreset = xVstPluginInfo?.Element("Preset");
+                            XElement xVstPreset = xPreset?.Element("VstPreset");
+                            int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
+                            XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
+                            string vstPluginBuffer = xVstPluginBuffer?.Value;
+                            vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
+                                            .Replace("\n", string.Empty)
+                                            .Replace("\r", string.Empty)
+                                            .Replace("\t", string.Empty);
+
+                            byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
+                            for (int i = 0; i < vstPluginBufferBytes.Length; i++)
+                            {
+                                vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
+                            }
+                            BinaryFile.ByteArrayToFile("presetbytes.dat", vstPluginBufferBytes);
+
+                            if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
+                            {
+                                // Skip the first two bytes
+                                byte[] newArray = new byte[vstPluginBufferBytes.Length - 2];
+                                Array.Copy(vstPluginBufferBytes, 2, newArray, 0, newArray.Length);
+
+                                byte[] vstPluginBytes = IOUtils.DecompressZlib(newArray);
+                                BinaryFile.ByteArrayToFile("presetbytes_decomp.dat", vstPluginBytes);
+                            }
+
+                            Log.Debug($"VstPreset Id: {vstPresetId}");
+
+                        }
                     }
                 }
             }
