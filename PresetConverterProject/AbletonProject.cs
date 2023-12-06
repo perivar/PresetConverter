@@ -31,6 +31,42 @@ namespace PresetConverter
         }
     }
 
+    class MidiChannelManager
+    {
+        private int unusedChannel = 0;
+
+        public MidiChannelManager()
+        {
+            this.unusedChannel = 0;
+        }
+
+        public MidiChannelManager(int firstChannel)
+        {
+            if (firstChannel > 1)
+            {
+                this.unusedChannel = firstChannel - 1; // midi channels are zero indexed
+            }
+            else
+            {
+                throw new ArgumentException("First channel must be 1 or more");
+            }
+        }
+
+        public int GetUnusedChannel()
+        {
+            unusedChannel++;
+            if (unusedChannel == 10)
+            {
+                unusedChannel++;
+            }
+            if (unusedChannel == 16)
+            {
+                unusedChannel = 1;
+            }
+            return unusedChannel - 1; // midi channels are zero indexed
+        }
+    }
+
     public static class AbletonProject
     {
         private static string? GetValue(XElement xmlData, string varName, string? fallback)
@@ -549,15 +585,16 @@ namespace PresetConverter
                 )
             );
 
+            var midiChannelManager = new MidiChannelManager();
+
             int trackNum = 0;
             foreach (var track in cvpj.track_placements)
             {
                 var trackId = track.Key;
                 string trackName = cvpj.track_data[trackId].name;
+                int midiChannel = midiChannelManager.GetUnusedChannel();
 
-                Log.Debug($"Creating MIDI track: {trackName} with id: {trackId}");
-
-                int midiChannel = 5;
+                Log.Debug($"Creating MIDI track: {trackName} with id: {trackId} on channel: {midiChannel}");
 
                 // Create a track
                 var trackChunk = new TrackChunk();
@@ -650,7 +687,8 @@ namespace PresetConverter
                             {
                                 DeltaTime = iListKey - prevPos,
                                 NoteNumber = (SevenBitNumber)int.Parse(midiNoteData[1]),
-                                Velocity = (SevenBitNumber)int.Parse(midiNoteData[2]),
+                                // Velocity = (SevenBitNumber)int.Parse(midiNoteData[2]),
+                                Velocity = (SevenBitNumber)64, // 64 is the default off value
                                 Channel = (FourBitNumber)midiChannel
                             });
                         }
