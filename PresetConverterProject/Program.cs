@@ -226,15 +226,11 @@ namespace PresetConverter
                 decompressed = IOUtils.Decompress(bytes);
             }
             var str = Encoding.UTF8.GetString(decompressed);
-            var docXelement = XElement.Parse(str);
+            var rootXElement = XElement.Parse(str);
 
-            // string outputFileName = Path.GetFileNameWithoutExtension(file);
-            // string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".xml");
-            // docXelement.Save(outputFilePath);
+            AbletonProject.HandleAbletonLiveContent(rootXElement, file, outputDirectoryPath);
 
-            AbletonProject.HandleAbletonLiveContent(docXelement, file, outputDirectoryPath);
-
-            var tracks = docXelement.Descendants("Devices");
+            var tracks = rootXElement.Descendants("Devices");
             foreach (XElement xelement in tracks.Elements())
             {
                 var pluginName = xelement.Name.ToString();
@@ -247,73 +243,38 @@ namespace PresetConverter
                 Log.Information("Track: {0} - Plugin: {1}", trackName, pluginName);
 
                 string outputFileName = string.Format("{0} - {1}", Path.GetFileNameWithoutExtension(file), trackName);
-                string? outputFilePath = null;
 
-                // find preset type
-                switch (pluginName)
-                {
-                    case "Eq8":
-                        // Convert EQ8 to Steinberg Frequency
-                        var eq = new AbletonEq8(xelement);
-                        var steinbergFrequency = eq.ToSteinbergFrequency();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
-                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
-                        steinbergFrequency.Write(outputFilePath + ".vstpreset");
-
-                        // and dump the text info as well
-                        File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
-                        break;
-                    case "Compressor2":
-                        // Convert Compressor2 to Steinberg Compressor
-                        var compressor = new AbletonCompressor(xelement);
-                        var steinbergCompressor = compressor.ToSteinbergCompressor();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
-                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
-                        steinbergCompressor.Write(outputFilePath + ".vstpreset");
-
-                        // and dump the text info as well
-                        File.WriteAllText(outputFilePath + ".txt", steinbergCompressor.ToString());
-                        break;
-                    case "GlueCompressor":
-                        // Convert Glue compressor to Waves SSL Compressor
-                        var glueCompressor = new AbletonGlueCompressor(xelement);
-                        var wavesSSLComp = glueCompressor.ToWavesSSLComp();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
-                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
-                        wavesSSLComp.Write(outputFilePath + ".vstpreset");
-
-                        // and dump the text info as well
-                        File.WriteAllText(outputFilePath + ".txt", wavesSSLComp.ToString());
-                        break;
-                    case "MultibandDynamics":
-                    case "AutoFilter":
-                    case "Reverb":
-                    case "Saturator":
-                    case "Tuner":
-                    default:
-                        Log.Information("{0} not supported!", pluginName);
-                        break;
-                }
+                HandleAbletonPresetElement(outputDirectoryPath, outputFileName, xelement, pluginName, "Buffer");
             }
         }
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)
         {
             var bytes = File.ReadAllBytes(file);
-            var decompressed = IOUtils.Decompress(bytes);
+            var decompressed = bytes;
+            if (bytes[0] == 0x1F && bytes[1] == 0x8B)
+            {
+                decompressed = IOUtils.Decompress(bytes);
+            }
             var str = Encoding.UTF8.GetString(decompressed);
-            var xelement = XElement.Parse(str);
+            var rootXElement = XElement.Parse(str);
 
             string outputFileName = Path.GetFileNameWithoutExtension(file);
 
             // find preset type
-            var presetType = xelement.Elements().First().Name.ToString();
+            var presetType = rootXElement.Elements().First().Name.ToString();
+
+            HandleAbletonPresetElement(outputDirectoryPath, outputFileName, rootXElement, presetType, "Data");
+        }
+
+        private static void HandleAbletonPresetElement(string outputDirectoryPath, string outputFileName, XElement rootXElement, string presetType, string xmlDataElementName)
+        {
             string outputFilePath;
             switch (presetType)
             {
                 case "Eq8":
                     // Convert EQ8 to Steinberg Frequency
-                    var eq = new AbletonEq8(xelement);
+                    var eq = new AbletonEq8(rootXElement);
                     var steinbergFrequency = eq.ToSteinbergFrequency();
                     outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
                     IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
@@ -324,7 +285,7 @@ namespace PresetConverter
                     break;
                 case "Compressor2":
                     // Convert Compressor2 to Steinberg Compressor
-                    var compressor = new AbletonCompressor(xelement);
+                    var compressor = new AbletonCompressor(rootXElement);
                     var steinbergCompressor = compressor.ToSteinbergCompressor();
                     outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
                     IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
@@ -335,7 +296,7 @@ namespace PresetConverter
                     break;
                 case "GlueCompressor":
                     // Convert Glue compressor to Waves SSL Compressor
-                    var glueCompressor = new AbletonGlueCompressor(xelement);
+                    var glueCompressor = new AbletonGlueCompressor(rootXElement);
                     var wavesSSLComp = glueCompressor.ToWavesSSLComp();
                     outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
                     IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
@@ -350,7 +311,49 @@ namespace PresetConverter
                 case "Saturator":
                 case "Tuner":
                 default:
-                    Log.Information("{0} not supported!", presetType);
+                    // look for <PlugName>
+                    var vstPlugName = rootXElement.Descendants("PlugName").FirstOrDefault()?.Attribute("Value")?.Value;
+
+                    // skip if vstPluginName is already handled in the AbletonProject.HandleAbletonLiveContent code
+                    switch (vstPlugName)
+                    {
+                        case "Sylenth1":
+                        case "Serum_x64":
+                            return;
+                        default:
+                            break;
+                    }
+
+                    // look for Data or Buffer Element
+                    XElement xData = rootXElement.Descendants(xmlDataElementName).FirstOrDefault();
+                    byte[] vstPluginBufferBytes = AbletonProject.GetInnerValueAsByteArray(xData);
+
+                    // look for <UserName Value="OTT" />
+                    var vstPluginUserName = rootXElement.Element(presetType)?.Element("UserName")?.Attribute("Value")?.Value;
+
+                    Log.Information("{0} not directly supported, dumping Xml and <Data> if found!", presetType);
+
+                    outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                    if (!string.IsNullOrEmpty(vstPluginUserName))
+                    {
+                        outputFilePath += " - " + vstPluginUserName;
+                    }
+                    else if (!string.IsNullOrEmpty(vstPlugName))
+                    {
+                        outputFilePath += " - " + vstPlugName;
+                    }
+                    else
+                    {
+                        outputFilePath += " - " + presetType;
+                    }
+
+                    if (vstPluginBufferBytes.Length > 0)
+                    {
+                        BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
+                    }
+
+                    rootXElement.Save(outputFilePath + ".xml");
                     break;
             }
         }

@@ -572,7 +572,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Orchestral Brass Classic_info.nkx",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "--wcx"
       ],
       "cwd": "${workspaceFolder}",
@@ -598,7 +598,7 @@
         // "-i",
         // "C:\\Windows\\System32\\pifmgr.dll",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         // "-l",
         "-v"
       ],
@@ -619,7 +619,26 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Ableton",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) Ableton ADV",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\Downloads\\EDMProd+OTT+Preset+Pack\\EDMProd OTT Preset Pack\\OTT (Crisp High End Only).adv",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -638,7 +657,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -657,7 +676,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\Documents\\VST3 Presets",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -676,7 +695,7 @@
         "-i",
         "C:\\Users\\Public\\Waves Audio\\Plug-In Settings",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -695,7 +714,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -714,7 +733,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-e",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Bricasti M7.JPG"
       ],
@@ -735,7 +754,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-e",
         "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\TCE System 6000.jpg"
       ],
@@ -756,7 +775,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Lexicon 480",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -775,7 +794,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Logic Space Designer",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -794,7 +813,7 @@
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Polar Express",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -813,7 +832,7 @@
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Gladiator\\Gladiator-02-perivar-new-01.cpr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -833,7 +852,7 @@
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\DaVinci Code\\DaVinci Code-01.cpr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -853,7 +872,7 @@
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Inception\\Inception-01.cpr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -873,7 +892,7 @@
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Maze Runner\\Maze Runner BTS.cpr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -893,7 +912,7 @@
         "-i",
         "G:\\Downloads\\CUBASE PROJECTS\\Cinemaman Resources\\Cinemaman Cubase 10.5 Project\\Cinemaman.cpr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-k6"
       ],
       "cwd": "${workspaceFolder}",
@@ -913,7 +932,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -932,7 +951,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\FabFilter\\FabFilter Pro-Q 3",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -951,7 +970,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -974,7 +993,7 @@
         "-i",
         "H:\\SAMPLES\\NI Kontakt\\Hephaestus Sounds Harp The Magic Of Agatha V1.01\\Pack\\TMOA.nkr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -1017,7 +1036,7 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Session Horns.nicnt",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         // "-l",
         "-v"
       ],
@@ -1054,7 +1073,7 @@
         "-e",
         "nicnt",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp",
+        "C:\\Users\\periv\\Projects\\Temp",
         "-p",
         "-v"
       ],
@@ -1075,7 +1094,7 @@
         "-i",
         "G:\\Downloads\\CUBASE PROJECTS\\c8_free_start\\Cubase Pro 8 Starter - Labofmusic Records.cpr",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -1094,7 +1113,7 @@
         "-i",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
         "-o",
-        "C:\\Development Projects\\Own Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

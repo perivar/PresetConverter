@@ -188,7 +188,7 @@ namespace PresetConverter
             list[pos].Add(cmd);
         }
 
-        public static void HandleAbletonLiveContent(XElement root, string file, string outputDirectoryPath)
+        public static void HandleAbletonLiveContent(XElement rootXElement, string file, string outputDirectoryPath)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
@@ -217,14 +217,14 @@ namespace PresetConverter
             // ***************** 
             dynamic cvpj = new System.Dynamic.ExpandoObject(); // store in common daw project format (converted project)
 
-            string abletonVersion = root?.Attribute("MinorVersion")?.Value.Split('.')[0];
+            string abletonVersion = rootXElement?.Attribute("MinorVersion")?.Value.Split('.')[0];
             if (abletonVersion != "11")
             {
-                Console.WriteLine("[error] Ableton version " + abletonVersion + " is not supported.");
-                Environment.Exit(0);
+                Log.Error("Ableton version " + abletonVersion + " is not supported.");
+                return;
             }
 
-            XElement xLiveSet = root.Element("LiveSet");
+            XElement xLiveSet = rootXElement.Element("LiveSet");
             XElement xTracks = xLiveSet?.Element("Tracks");
             XElement xMasterTrack = xLiveSet?.Element("MasterTrack");
             XElement xMasterTrackDeviceChain = xMasterTrack?.Element("DeviceChain");
@@ -487,8 +487,8 @@ namespace PresetConverter
                     XElement xPluginDesc = xDevice?.Element("PluginDesc");
                     XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                     int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
-                    string vstPluginName = GetValue(xVstPluginInfo, "PlugName", "Empty");
-                    Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPluginName}");
+                    string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Empty");
+                    Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
 
                     XElement xPreset = xVstPluginInfo?.Element("Preset");
                     XElement xVstPreset = xPreset?.Element("VstPreset");
@@ -497,20 +497,9 @@ namespace PresetConverter
 
                     // read the byte data buffer
                     XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
-                    string vstPluginBuffer = xVstPluginBuffer?.Value;
-                    vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
-                                    .Replace("\n", string.Empty)
-                                    .Replace("\r", string.Empty)
-                                    .Replace("\t", string.Empty);
+                    byte[] vstPluginBufferBytes = GetInnerValueAsByteArray(xVstPluginBuffer);
 
-                    // convert from string to byte array
-                    byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
-                    for (int i = 0; i < vstPluginBufferBytes.Length; i++)
-                    {
-                        vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
-                    }
-
-                    string outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, pluginDeviceId, StringUtils.MakeValidFileName($"{vstPluginName}"));
+                    string outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, pluginDeviceId, StringUtils.MakeValidFileName($"{vstPlugName}"));
                     string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
                     // check if this is a zlib file
@@ -530,7 +519,7 @@ namespace PresetConverter
 
                     // save preset
                     Log.Information($"Writing Plugin Preset: {outputFileName}");
-                    switch (vstPluginName)
+                    switch (vstPlugName)
                     {
                         case "Sylenth1":
                             FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "syl1");
@@ -539,12 +528,32 @@ namespace PresetConverter
                             FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
                             break;
                         default:
-                            Log.Error($"Could not save preset as fxp since I did not recognize vstplugin: {vstPluginName}");
+                            Log.Error($"Could not save preset as fxp since I did not recognize vstplugin: {vstPlugName}");
                             BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
                             break;
                     }
                 }
             }
+        }
+
+        public static byte[] GetInnerValueAsByteArray(XElement? xVstPluginBuffer)
+        {
+            if (xVstPluginBuffer == null) return new byte[0];
+
+            string vstPluginBuffer = xVstPluginBuffer.Value;
+            vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
+                            .Replace("\n", string.Empty)
+                            .Replace("\r", string.Empty)
+                            .Replace("\t", string.Empty);
+
+            // convert from string to byte array
+            byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
+            for (int i = 0; i < vstPluginBufferBytes.Length; i++)
+            {
+                vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
+            }
+
+            return vstPluginBufferBytes;
         }
 
         private static void CompareJson()
