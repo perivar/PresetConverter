@@ -232,7 +232,7 @@ namespace PresetConverter
             // string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName + ".xml");
             // docXelement.Save(outputFilePath);
 
-            AbletonProject.HandleAbletonLiveContent(docXelement, outputDirectoryPath);
+            AbletonProject.HandleAbletonLiveContent(docXelement, file, outputDirectoryPath);
 
             var tracks = docXelement.Descendants("Devices");
             foreach (XElement xelement in tracks.Elements())

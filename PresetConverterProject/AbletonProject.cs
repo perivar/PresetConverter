@@ -188,7 +188,7 @@ namespace PresetConverter
             list[pos].Add(cmd);
         }
 
-        public static void HandleAbletonLiveContent(XElement root, string outputDirectoryPath)
+        public static void HandleAbletonLiveContent(XElement root, string file, string outputDirectoryPath)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
@@ -377,7 +377,7 @@ namespace PresetConverter
 
                             XElement xTrackMidiClipKT_KT_Notes = xTrackMidiClipKTKTs.Element("Notes");
 
-                            Log.Debug("Reading {0} MidiNoteEvents ...", xTrackMidiClipKT_KT_Notes?.Elements("MidiNoteEvent").Count());
+                            // Log.Verbose("Reading {0} MidiNoteEvents ...", xTrackMidiClipKT_KT_Notes?.Elements("MidiNoteEvent").Count());
 
                             foreach (XElement xTrackMidiClipMNE in xTrackMidiClipKT_KT_Notes?.Elements("MidiNoteEvent"))
                             {
@@ -389,7 +389,7 @@ namespace PresetConverter
                                 bool noteIsEnabled = bool.Parse(xTrackMidiClipMNE.Attribute("IsEnabled").Value);
                                 int noteId = int.Parse(xTrackMidiClipMNE.Attribute("NoteId").Value);
 
-                                Log.Debug($"Reading MidiNoteEvent. Time: {noteTime}, Duration: {noteDuration}, MidiKey: {midiKey}, Velocity: {noteVelocity}, OffVelocity: {noteOffVelocity}, NoteId: {noteId}");
+                                // Log.Verbose($"Reading MidiNoteEvent. Time: {noteTime}, Duration: {noteDuration}, MidiKey: {midiKey}, Velocity: {noteVelocity}, OffVelocity: {noteOffVelocity}, NoteId: {noteId}");
 
                                 dynamic noteData = new System.Dynamic.ExpandoObject();
                                 noteData.key = abletonNoteKey;
@@ -433,11 +433,12 @@ namespace PresetConverter
                             }
                         }
 
-                        // convert notes dictionary to values list since we dont need the notes-id 
+                        // convert notes dictionary to values list since we don't need the notes-id 
                         notePlacement.notelist = notes.Values.ToList();
                         notesList.Add(notePlacement);
                     }
 
+                    // add the track if there are notes
                     if (notesList.Count > 0)
                     {
                         dynamic notesGroup = new System.Dynamic.ExpandoObject();
@@ -446,68 +447,7 @@ namespace PresetConverter
                     }
 
                     // handle plugin presets
-                    XElement xDeviceChain = xTrackDeviceChain?.Element("DeviceChain");
-                    XElement xDeviceChainDevices = xDeviceChain?.Element("Devices");
-
-                    // Read Tracks
-                    Log.Debug("Found {0} devices ...", xDeviceChainDevices.Elements().Count());
-
-                    foreach (XElement xDevice in xDeviceChainDevices.Elements())
-                    {
-                        string deviceType = xDevice.Name.LocalName;
-
-                        if (deviceType == "PluginDevice")
-                        {
-                            int pluginDeviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
-                            Log.Debug($"PluginDevice Id: {pluginDeviceId}");
-
-                            XElement xPluginDesc = xDevice?.Element("PluginDesc");
-                            XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
-                            int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
-                            string vstPluginName = GetValue(xVstPluginInfo, "PlugName", "Empty");
-                            Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPluginName}");
-
-                            XElement xPreset = xVstPluginInfo?.Element("Preset");
-                            XElement xVstPreset = xPreset?.Element("VstPreset");
-                            int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
-                            Log.Debug($"VstPreset Id: {vstPresetId}");
-
-                            // read the byte data buffer
-                            XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
-                            string vstPluginBuffer = xVstPluginBuffer?.Value;
-                            vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
-                                            .Replace("\n", string.Empty)
-                                            .Replace("\r", string.Empty)
-                                            .Replace("\t", string.Empty);
-
-                            // convert from string to byte array
-                            byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
-                            for (int i = 0; i < vstPluginBufferBytes.Length; i++)
-                            {
-                                vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
-                            }
-
-                            string outputFileName = StringUtils.MakeValidFileName($"{trackName}_{vstPluginName}");
-                            string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
-
-                            BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
-
-                            // check if this is a zlib file
-                            if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
-                            {
-                                Log.Debug($"Found ZLib compressed file! VstPluginName: {vstPluginName}");
-
-                                // Skip the first two bytes as per
-                                // https://stackoverflow.com/a/62756204
-                                byte[] vstPluginBufferBytesTrimmed = new byte[vstPluginBufferBytes.Length - 2];
-                                Array.Copy(vstPluginBufferBytes, 2, vstPluginBufferBytesTrimmed, 0, vstPluginBufferBytesTrimmed.Length);
-
-                                byte[] vstPluginBytes = IOUtils.Deflate(vstPluginBufferBytesTrimmed);
-                                BinaryFile.ByteArrayToFile(outputFilePath + "_deflated.dat", vstPluginBytes);
-                            }
-
-                        }
-                    }
+                    HandlePluginPresets(xTrackDeviceChain, trackName, file, outputDirectoryPath);
                 }
             }
 
@@ -515,9 +455,96 @@ namespace PresetConverter
             // JObject jcvpj = JObject.FromObject(cvpj);
             // WriteJsonToFile("output.json", jcvpj);
 
-            ConvertToMidi(cvpj, outputDirectoryPath);
+            ConvertToMidi(cvpj, file, outputDirectoryPath);
 
             // CompareJson();
+        }
+
+        private static void HandlePluginPresets(XElement xTrackDeviceChain, string trackName, string file, string outputDirectoryPath)
+        {
+            // Path: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
+            // where * is internal plugins like <Eq8>, <Limiter> 
+            // as well as <PluginDevice Id="X"> elements 
+
+            XElement xDeviceChain = xTrackDeviceChain?.Element("DeviceChain");
+            XElement xDeviceChainDevices = xDeviceChain?.Element("Devices");
+
+            // Read Tracks
+            Log.Debug("Found {0} DeviceChain Devices ...", xDeviceChainDevices.Elements().Count());
+
+            foreach (XElement xDevice in xDeviceChainDevices.Elements())
+            {
+                string deviceType = xDevice.Name.LocalName;
+
+                if (deviceType == "PluginDevice")
+                {
+                    // Handle Plugin Presets
+                    // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
+
+                    int pluginDeviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
+                    Log.Debug($"PluginDevice Id: {pluginDeviceId}");
+
+                    XElement xPluginDesc = xDevice?.Element("PluginDesc");
+                    XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
+                    int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
+                    string vstPluginName = GetValue(xVstPluginInfo, "PlugName", "Empty");
+                    Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPluginName}");
+
+                    XElement xPreset = xVstPluginInfo?.Element("Preset");
+                    XElement xVstPreset = xPreset?.Element("VstPreset");
+                    int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
+                    Log.Debug($"VstPreset Id: {vstPresetId}");
+
+                    // read the byte data buffer
+                    XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
+                    string vstPluginBuffer = xVstPluginBuffer?.Value;
+                    vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
+                                    .Replace("\n", string.Empty)
+                                    .Replace("\r", string.Empty)
+                                    .Replace("\t", string.Empty);
+
+                    // convert from string to byte array
+                    byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
+                    for (int i = 0; i < vstPluginBufferBytes.Length; i++)
+                    {
+                        vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
+                    }
+
+                    string outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, pluginDeviceId, StringUtils.MakeValidFileName($"{vstPluginName}"));
+                    string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                    // check if this is a zlib file
+                    // Serum presets are zlib compressed, but don't deflate
+                    // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
+                    // {
+                    //     Log.Debug($"Found ZLib compressed file! VstPluginName: {vstPluginName}");
+
+                    //     // Skip the first two bytes as per
+                    //     // https://stackoverflow.com/a/62756204
+                    //     byte[] vstPluginBufferBytesTrimmed = new byte[vstPluginBufferBytes.Length - 2];
+                    //     Array.Copy(vstPluginBufferBytes, 2, vstPluginBufferBytesTrimmed, 0, vstPluginBufferBytesTrimmed.Length);
+
+                    //     byte[] vstPluginBytes = IOUtils.Deflate(vstPluginBufferBytesTrimmed);
+                    //     BinaryFile.ByteArrayToFile(outputFilePath + "_deflated.dat", vstPluginBytes);
+                    // }
+
+                    // save preset
+                    Log.Information($"Writing Plugin Preset: {outputFileName}");
+                    switch (vstPluginName)
+                    {
+                        case "Sylenth1":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "syl1");
+                            break;
+                        case "Serum_x64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
+                            break;
+                        default:
+                            Log.Error($"Could not save preset as fxp since I did not recognize vstplugin: {vstPluginName}");
+                            BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
+                            break;
+                    }
+                }
+            }
         }
 
         private static void CompareJson()
@@ -619,7 +646,7 @@ namespace PresetConverter
             Log.Debug($"Data written to: {filePath}");
         }
 
-        public static void ConvertToMidi(dynamic cvpj, string outputDirectoryPath)
+        public static void ConvertToMidi(dynamic cvpj, string file, string outputDirectoryPath)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://github.com/SatyrDiamond/DawVert/blob/main/plugin_output/midi.py
@@ -766,7 +793,10 @@ namespace PresetConverter
             }
 
             // Save the MIDI file to disk
-            string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - Midi.mid");
+            string outputFileName = string.Format("{0}.mid", Path.GetFileNameWithoutExtension(file));
+            string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+            Log.Information($"Writing MIDI track: {outputFileName}");
             if (File.Exists(outputFilePath))
             {
                 File.Delete(outputFilePath);

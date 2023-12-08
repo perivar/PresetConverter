@@ -438,5 +438,26 @@ namespace CommonUtils
 
             return fxp;
         }
+
+        public static FXP WriteRaw2FXP(string fxpOutputFilePath, byte[] chunkData, string fxID)
+        {
+            // save as fxp
+            FXP fxp = new FXP();
+            FXP.FxProgramSet fxpContent = new FXP.FxProgramSet();
+            fxp.Content = fxpContent;
+            fxpContent.ChunkMagic = "CcnK";
+            fxpContent.ByteSize = 0; // will be set correctly by FXP class
+            fxpContent.FxMagic = "FPCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
+            fxpContent.Version = 1; // Format Version (should be 1)
+            fxpContent.FxID = fxID.Substring(0, 4);
+            fxpContent.FxVersion = 1100;
+            fxpContent.NumPrograms = 1;
+            fxpContent.Name = "";
+            fxpContent.ChunkSize = chunkData.Length;
+            fxpContent.ChunkData = chunkData;
+            fxp.Write(fxpOutputFilePath);
+
+            return fxp;
+        }
     }
 }
