@@ -319,6 +319,14 @@ namespace PresetConverter
                     {
                         case "Sylenth1":
                         case "Serum_x64":
+                        case "FabFilter Saturn 2":
+                        case "FabFilter Pro-Q 3":
+                        case "FabFilter Pro-L 2":
+                        case "OTT_x64":
+                        case "Endless Smile 64":
+                        case "soothe2_x64":
+                        case "CamelCrusher":
+                        case "Kickstart-64bit":
                             return;
                         default:
                             break;

@@ -484,6 +484,16 @@ namespace PresetConverter
                     int pluginDeviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
                     Log.Debug($"PluginDevice Id: {pluginDeviceId}");
 
+                    // check if it's on
+                    XElement xOn = xDevice?.Element("On");
+                    bool isOn = bool.Parse(GetValue(xOn, "Manual", "false"));
+
+                    if (!isOn)
+                    {
+                        Log.Debug($"Skipping PluginDevice {pluginDeviceId} since it is disabled!");
+                        continue;
+                    }
+
                     XElement xPluginDesc = xDevice?.Element("PluginDesc");
                     XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                     int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
@@ -526,6 +536,30 @@ namespace PresetConverter
                             break;
                         case "Serum_x64":
                             FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
+                            break;
+                        case "FabFilter Saturn 2":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
+                            break;
+                        case "FabFilter Pro-Q 3":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
+                            break;
+                        case "FabFilter Pro-L 2":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
+                            break;
+                        case "OTT_x64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
+                            break;
+                        case "Endless Smile 64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "ENDS");
+                            break;
+                        case "soothe2_x64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "SthB");
+                            break;
+                        case "CamelCrusher":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CaCr");
+                            break;
+                        case "Kickstart-64bit":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CNKS");
                             break;
                         default:
                             Log.Error($"Could not save preset as fxp since I did not recognize vstplugin: {vstPlugName}");
