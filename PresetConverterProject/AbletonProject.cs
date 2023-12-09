@@ -561,6 +561,15 @@ namespace PresetConverter
                         case "Kickstart-64bit":
                             FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CNKS");
                             break;
+                        case "LFOTool_x64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XffO");
+                            break;
+                        case "ValhallaRoom_x64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Ruum");
+                            break;
+                        case "ValhallaVintageVerb_x64":
+                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
+                            break;
                         default:
                             Log.Error($"Could not save preset as fxp since I did not recognize vstplugin: {vstPlugName}");
                             BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);

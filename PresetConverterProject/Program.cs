@@ -327,6 +327,9 @@ namespace PresetConverter
                         case "soothe2_x64":
                         case "CamelCrusher":
                         case "Kickstart-64bit":
+                        case "LFOTool_x64":
+                        case "ValhallaRoom_x64":
+                        case "ValhallaVintageVerb_x64":
                             return;
                         default:
                             break;
