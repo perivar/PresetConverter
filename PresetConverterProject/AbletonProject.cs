@@ -509,14 +509,13 @@ namespace PresetConverter
                     if ((cutType == "loop" || cutType == "loop_off" || cutType == "loop_adv") && !outPlacementLoop.Contains(cutType))
                     {
                         dynamic notePlacementBase = CloneExpandoObject(notePlacement);
-                        notePlacementBase.position = notePlacement.position;
-                        notePlacementBase.duration = notePlacement.duration;
+                        dynamic notePlacementBaseCut = notePlacementBase.cut;
 
                         // cast to dictionary to be able to remove fields
-                        var notePlacementDict = (IDictionary<string, object>)notePlacement;
-                        notePlacementDict.Remove("cut");
-                        notePlacementDict.Remove("position");
-                        notePlacementDict.Remove("duration");
+                        var notePlacementBaseDict = (IDictionary<string, object>)notePlacementBase;
+                        notePlacementBaseDict.Remove("cut");
+                        notePlacementBaseDict.Remove("position");
+                        notePlacementBaseDict.Remove("duration");
 
                         double loopBasePosition = notePlacement.position;
                         double loopBaseDuration = notePlacement.duration;
@@ -524,10 +523,9 @@ namespace PresetConverter
                         double loopStart = 0;
                         double loopLoopstart = 0;
                         double loopLoopend = loopBaseDuration;
-
-                        if (notePlacement.cut.start != null) loopStart = notePlacement.cut.start;
-                        if (notePlacement.cut.loopstart != null) loopLoopstart = notePlacement.cut.loopstart;
-                        if (notePlacement.cut.loopend != null) loopLoopend = notePlacement.cut.loopend;
+                        if (notePlacementBaseCut.cut.start != null) loopStart = notePlacementBaseCut.start;
+                        if (notePlacementBaseCut.cut.loopstart != null) loopLoopstart = notePlacementBaseCut.loopstart;
+                        if (notePlacementBaseCut.cut.loopend != null) loopLoopend = notePlacementBaseCut.loopend;
 
                         List<double[]> cutpoints = XtraMath.CutLoop(loopBasePosition, loopBaseDuration, loopStart, loopLoopstart, loopLoopend);
 
