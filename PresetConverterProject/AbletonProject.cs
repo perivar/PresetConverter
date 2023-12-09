@@ -130,7 +130,7 @@ namespace PresetConverter
             }
         }
 
-        private static dynamic CutLoopData(float start, float loopStart, float loopEnd)
+        private static dynamic CutLoopData(double start, double loopStart, double loopEnd)
         {
             dynamic output = new System.Dynamic.ExpandoObject();
 
@@ -326,8 +326,8 @@ namespace PresetConverter
 
                     foreach (XElement xTrackMidiClip in xTrackMidiClips)
                     {
-                        float notePlacementPos = float.Parse(GetValue(xTrackMidiClip, "CurrentStart", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
-                        float notePlacementDur = float.Parse(GetValue(xTrackMidiClip, "CurrentEnd", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
+                        double notePlacementPos = double.Parse(GetValue(xTrackMidiClip, "CurrentStart", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
+                        double notePlacementDur = double.Parse(GetValue(xTrackMidiClip, "CurrentEnd", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
                         string notePlacementName = GetValue(xTrackMidiClip, "Name", "");
                         var notePlacementColor = colorlistOne[int.Parse(GetValue(xTrackMidiClip, "Color", "0"))];
                         bool notePlacementMuted = bool.Parse(GetValue(xTrackMidiClip, "Disabled", "false"));
@@ -342,9 +342,9 @@ namespace PresetConverter
                         notePlacement.muted = notePlacementMuted;
 
                         XElement xTrackMidiClipLoop = xTrackMidiClip.Element("Loop");
-                        float notePlacementLoopLStart = float.Parse(GetValue(xTrackMidiClipLoop, "LoopStart", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
-                        float notePlacementLoopLEnd = float.Parse(GetValue(xTrackMidiClipLoop, "LoopEnd", "1"), NumberStyles.Any, CultureInfo.InvariantCulture);
-                        float notePlacementLoopStart = float.Parse(GetValue(xTrackMidiClipLoop, "StartRelative", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
+                        double notePlacementLoopLStart = double.Parse(GetValue(xTrackMidiClipLoop, "LoopStart", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
+                        double notePlacementLoopLEnd = double.Parse(GetValue(xTrackMidiClipLoop, "LoopEnd", "1"), NumberStyles.Any, CultureInfo.InvariantCulture);
+                        double notePlacementLoopStart = double.Parse(GetValue(xTrackMidiClipLoop, "StartRelative", "0"), NumberStyles.Any, CultureInfo.InvariantCulture);
                         bool notePlacementLoopOn = bool.Parse(GetValue(xTrackMidiClipLoop, "LoopOn", "false"));
 
                         Log.Debug($"Reading MidiLoop. LoopStart: {notePlacementLoopLStart}, LoopEnd: {notePlacementLoopLEnd}, StartRelative: {notePlacementLoopStart}, LoopOn: {notePlacementLoopOn}");
@@ -381,11 +381,11 @@ namespace PresetConverter
 
                             foreach (XElement xTrackMidiClipMNE in xTrackMidiClipKT_KT_Notes?.Elements("MidiNoteEvent"))
                             {
-                                float noteTime = float.Parse(xTrackMidiClipMNE.Attribute("Time").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
-                                float noteDuration = float.Parse(xTrackMidiClipMNE.Attribute("Duration").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
-                                float noteVelocity = float.Parse(xTrackMidiClipMNE.Attribute("Velocity").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
-                                float noteOffVelocity = float.Parse(xTrackMidiClipMNE.Attribute("OffVelocity").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
-                                float noteProbablity = float.Parse(xTrackMidiClipMNE.Attribute("Probability").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                                double noteTime = double.Parse(xTrackMidiClipMNE.Attribute("Time").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                                double noteDuration = double.Parse(xTrackMidiClipMNE.Attribute("Duration").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                                double noteVelocity = double.Parse(xTrackMidiClipMNE.Attribute("Velocity").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                                double noteOffVelocity = double.Parse(xTrackMidiClipMNE.Attribute("OffVelocity").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                                double noteProbablity = double.Parse(xTrackMidiClipMNE.Attribute("Probability").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
                                 bool noteIsEnabled = bool.Parse(xTrackMidiClipMNE.Attribute("IsEnabled").Value);
                                 int noteId = int.Parse(xTrackMidiClipMNE.Attribute("NoteId").Value);
 
@@ -426,8 +426,8 @@ namespace PresetConverter
 
                                 foreach (var abletonPoint in xNoteNEvent_EV.Elements("PerNoteEvent"))
                                 {
-                                    float apPos = float.Parse(abletonPoint.Attribute("TimeOffset").Value);
-                                    float apVal = float.Parse(abletonPoint.Attribute("Value").Value);
+                                    double apPos = double.Parse(abletonPoint.Attribute("TimeOffset").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                                    double apVal = double.Parse(abletonPoint.Attribute("Value").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
                                     cvpjNoteAutoPitch.Add(new { position = apPos * 4, value = apVal / 170 });
                                 }
                             }
@@ -452,12 +452,12 @@ namespace PresetConverter
             }
 
             // JObject sortedCvpj = SortJObjectAlphabetically(jcvpj);
-            // JObject jcvpj = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output.json", jcvpj);
+            JObject jcvpj = JObject.FromObject(cvpj);
+            WriteJsonToFile("output.json", jcvpj);
 
             ConvertToMidi(cvpj, file, outputDirectoryPath);
 
-            // CompareJson();
+            CompareJson();
         }
 
         private static void HandlePluginPresets(XElement xTrackDeviceChain, string trackName, string file, string outputDirectoryPath)

@@ -43,7 +43,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": ".NET Core Launch (LAPTOP) Ableton ALS",
+      "name": ".NET Core Launch (LAPTOP) Ableton ALS (Taiga)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -52,7 +52,27 @@
       "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
       "args": [
         "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\Taiga - We Made It (Remake).als",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (LAPTOP) Ableton ALS (Bayze)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\Bayze - Move On REMAKE.als",
         "-o",
         "C:\\Users\\periv\\Projects\\Temp"
       ],
