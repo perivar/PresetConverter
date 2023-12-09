@@ -451,13 +451,144 @@ namespace PresetConverter
                 }
             }
 
-            // JObject sortedCvpj = SortJObjectAlphabetically(jcvpj);
-            JObject jcvpj = JObject.FromObject(cvpj);
-            WriteJsonToFile("output.json", jcvpj);
+            // JObject jcvpj = JObject.FromObject(cvpj);
+            // WriteJsonToFile("output.json", jcvpj);
 
-            ConvertToMidi(cvpj, file, outputDirectoryPath);
+            // fix output
+            Compat(cvpj);
 
-            CompareJson();
+            // JObject jcvpj2 = JObject.FromObject(cvpj);
+            // WriteJsonToFile("output2.json", jcvpj2);
+
+            // CompareJson();
+
+            ConvertToMidi(cvpj, file, outputDirectoryPath, false);
+        }
+
+        private static bool Compat(dynamic cvpj)
+        {
+            // loops_remove.py: def process_r(projJ)
+            foreach (var track in cvpj.track_placements)
+            {
+                var trackId = track.Key;
+                string trackName = cvpj.track_data[trackId].name;
+                var notes = track.Value.notes;
+                if (notes != null)
+                {
+                    Log.Debug("[compat] RemoveLoops: non-laned: {0} - {1}", trackId, trackName);
+                    track.Value.notes = RemoveLoopsDoPlacements(notes, new HashSet<string>());
+                }
+            }
+
+            // removecut.py: def process_r(projJ)
+            foreach (var track in cvpj.track_placements)
+            {
+                var trackId = track.Key;
+                string trackName = cvpj.track_data[trackId].name;
+                var notes = track.Value.notes;
+                if (notes != null)
+                {
+                    Log.Debug("[compat] RemoveCut: non-laned: {0} - {1}", trackId, trackName);
+                    RemoveCutDoPlacements(notes);
+                }
+            }
+
+            return true;
+        }
+
+        private static List<dynamic> RemoveLoopsDoPlacements(dynamic notePlacements, HashSet<string> outPlacementLoop)
+        {
+            List<dynamic> newPlacements = new List<dynamic>();
+
+            foreach (var notePlacement in notePlacements)
+            {
+                if (notePlacement.cut != null)
+                {
+                    string cutType = notePlacement.cut.type;
+
+                    if ((cutType == "loop" || cutType == "loop_off" || cutType == "loop_adv") && !outPlacementLoop.Contains(cutType))
+                    {
+                        dynamic notePlacementBase = CloneExpandoObject(notePlacement);
+                        notePlacementBase.position = notePlacement.position;
+                        notePlacementBase.duration = notePlacement.duration;
+
+                        // cast to dictionary to be able to remove fields
+                        var notePlacementDict = (IDictionary<string, object>)notePlacement;
+                        notePlacementDict.Remove("cut");
+                        notePlacementDict.Remove("position");
+                        notePlacementDict.Remove("duration");
+
+                        double loopBasePosition = notePlacement.position;
+                        double loopBaseDuration = notePlacement.duration;
+
+                        double loopStart = 0;
+                        double loopLoopstart = 0;
+                        double loopLoopend = loopBaseDuration;
+
+                        if (notePlacement.cut.start != null) loopStart = notePlacement.cut.start;
+                        if (notePlacement.cut.loopstart != null) loopLoopstart = notePlacement.cut.loopstart;
+                        if (notePlacement.cut.loopend != null) loopLoopend = notePlacement.cut.loopend;
+
+                        List<double[]> cutpoints = XtraMath.CutLoop(loopBasePosition, loopBaseDuration, loopStart, loopLoopstart, loopLoopend);
+
+                        foreach (var cutpoint in cutpoints)
+                        {
+                            dynamic notePlacementCutted = CloneExpandoObject(notePlacementBase);
+                            notePlacementCutted.position = cutpoint[0];
+                            notePlacementCutted.duration = cutpoint[1];
+                            notePlacementCutted.cut = new System.Dynamic.ExpandoObject();
+                            notePlacementCutted.cut.type = "cut";
+                            notePlacementCutted.cut.start = cutpoint[2];
+                            notePlacementCutted.cut.end = cutpoint[3];
+
+                            newPlacements.Add(notePlacementCutted);
+                        }
+                    }
+                    else
+                    {
+                        newPlacements.Add(notePlacement);
+                    }
+                }
+                else
+                {
+                    newPlacements.Add(notePlacement);
+                }
+            }
+
+            return newPlacements;
+        }
+
+        private static dynamic CloneExpandoObject(dynamic srcObject)
+        {
+            dynamic destObject = new System.Dynamic.ExpandoObject();
+
+            foreach (var kvp in (IDictionary<string, object>)srcObject)
+            {
+                ((IDictionary<string, object>)destObject).Add(kvp);
+            }
+
+            return destObject;
+        }
+
+        private static void RemoveCutDoPlacements(dynamic notePlacements)
+        {
+            foreach (var notePlacement in notePlacements)
+            {
+                if (notePlacement.cut != null)
+                {
+                    double cutEnd = notePlacement.duration;
+
+                    if (notePlacement.cut.type == "cut")
+                    {
+                        double cutStart = notePlacement.cut.start ?? 0;
+                        cutEnd += cutStart;
+
+                        notePlacement.notelist = NotelistFunctions.TrimMove(notePlacement.notelist, cutStart, cutEnd);
+                        // remove field cannot be done setting the field to null: notePlacement.cut = null;
+                        ((IDictionary<string, object>)notePlacement).Remove("cut");
+                    }
+                }
+            }
         }
 
         private static void HandlePluginPresets(XElement xTrackDeviceChain, string trackName, string file, string outputDirectoryPath)
@@ -601,7 +732,7 @@ namespace PresetConverter
 
         private static void CompareJson()
         {
-            string jsonFilePath1 = "C:\\Users\\periv\\Projects\\PresetConverter\\output.json";
+            string jsonFilePath1 = "C:\\Users\\periv\\Projects\\PresetConverter\\output2.json";
             // string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\out.cvpj";
             string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\midiinput.cvpj";
 
@@ -698,7 +829,7 @@ namespace PresetConverter
             Log.Debug($"Data written to: {filePath}");
         }
 
-        public static void ConvertToMidi(dynamic cvpj, string file, string outputDirectoryPath)
+        public static void ConvertToMidi(dynamic cvpj, string file, string outputDirectoryPath, bool doOutputDebugFile)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://github.com/SatyrDiamond/DawVert/blob/main/plugin_output/midi.py
@@ -858,7 +989,7 @@ namespace PresetConverter
             // see https://github.com/melanchall/drywetmidi/issues/59        
             midiFile.Write(outputFilePath);
 
-            // LogMidiFile(midiFile);
+            if (doOutputDebugFile) LogMidiFile(midiFile);
         }
 
         // this code outputs in the same way as python mido format
@@ -946,6 +1077,192 @@ namespace PresetConverter
             }
 
             Console.WriteLine($"MIDI content written to {logFilePath}");
+        }
+    }
+
+    public static class NotelistFunctions
+    {
+        public static List<dynamic> Move(List<dynamic> notelist, double pos)
+        {
+            List<dynamic> newNotelist = new List<dynamic>();
+
+            foreach (var note in notelist)
+            {
+                dynamic newNote = new
+                {
+                    duration = note.duration,
+                    enabled = note.enabled,
+                    key = note.key,
+                    off_vol = note.off_vol,
+                    position = note.position + pos,
+                    probability = note.probability,
+                    vol = note.vol
+                };
+
+                if (newNote.position >= 0)
+                {
+                    newNotelist.Add(newNote);
+                }
+            }
+
+            return newNotelist;
+        }
+
+        public static double GetDuration(List<dynamic> notelist)
+        {
+            double durationFinal = 0;
+
+            foreach (var note in notelist)
+            {
+                double noteEndPos = note.position + note.duration;
+
+                if (durationFinal < noteEndPos)
+                {
+                    durationFinal = noteEndPos;
+                }
+            }
+
+            return durationFinal;
+        }
+
+        public static List<dynamic> Trim(List<dynamic> notelist, double pos)
+        {
+            List<dynamic> newNotelist = new List<dynamic>();
+
+            foreach (var note in notelist)
+            {
+                if (note.position < pos)
+                {
+                    newNotelist.Add(note);
+                }
+            }
+
+            return newNotelist;
+        }
+
+        public static List<dynamic> TrimMove(List<dynamic> notelist, double? startAt, double? endAt)
+        {
+            List<dynamic> newNotelist = new List<dynamic>(notelist);
+
+            if (endAt != null)
+            {
+                newNotelist = Trim(newNotelist, (double)endAt);
+            }
+
+            if (startAt != null)
+            {
+                newNotelist = Move(newNotelist, -(double)startAt);
+            }
+
+            return newNotelist;
+        }
+    }
+
+    public static class XtraMath
+    {
+        public static List<double[]> LoopBefore(double blPPos, double blPDur, double blPStart, double blLStart, double blLEnd)
+        {
+            List<double[]> cutpoints = new List<double[]>();
+            double tempPos = Math.Min(blLEnd, blPDur);
+
+            cutpoints.Add(new double[]
+            {
+                (blPPos + blPStart) - blPStart,
+                tempPos - blPStart,
+                blPStart,
+                Math.Min(blLEnd, blPDur)
+            });
+
+            blPDur += blPStart;
+            double placementLoopSize = blLEnd - blLStart;
+
+            if (blLEnd < blPDur && blLEnd > blLStart)
+            {
+                double remainingCuts = (blPDur - blLEnd) / placementLoopSize;
+
+                while (remainingCuts > 0)
+                {
+                    double outDur = Math.Min(remainingCuts, 1);
+                    cutpoints.Add(new double[]
+                    {
+                        (blPPos + tempPos) - blPStart,
+                        placementLoopSize * outDur,
+                        blLStart,
+                        blLEnd * outDur
+                    });
+
+                    tempPos += placementLoopSize;
+                    remainingCuts -= 1;
+                }
+            }
+
+            return cutpoints;
+        }
+
+        public static List<double[]> LoopAfter(double blPPos, double blPDur, double blPStart, double blLStart, double blLEnd)
+        {
+            List<double[]> cutpoints = new List<double[]>();
+            double placementLoopSize = blLEnd - blLStart;
+
+            double blPDurMo = blPDur - blLStart;
+            double blPStartMo = blPStart - blLStart;
+            double blLStartMo = blLStart - blLStart;
+            double blLEndMo = blLEnd - blLStart;
+
+            double remainingCuts = (blPDurMo + blPStartMo) / placementLoopSize;
+            double tempPos = blPPos;
+            tempPos -= blPStartMo;
+
+            bool flagFirstPl = true;
+
+            while (remainingCuts > 0)
+            {
+                double outDur = Math.Min(remainingCuts, 1);
+
+                if (flagFirstPl)
+                {
+                    cutpoints.Add(new double[]
+                    {
+                        tempPos + blPStartMo,
+                        (outDur * placementLoopSize) - blPStartMo,
+                        blLStart + blPStartMo,
+                        outDur * blLEnd
+                    });
+                }
+
+                if (!flagFirstPl)
+                {
+                    cutpoints.Add(new double[]
+                    {
+                        tempPos,
+                        outDur * placementLoopSize,
+                        blLStart,
+                        outDur * blLEnd
+                    });
+                }
+
+                tempPos += placementLoopSize;
+                remainingCuts -= 1;
+                flagFirstPl = false;
+            }
+
+            return cutpoints;
+        }
+
+        public static List<double[]> CutLoop(double position, double duration, double startOffset, double loopStart, double loopEnd)
+        {
+            List<double[]> cutpoints;
+
+            if (loopStart > startOffset)
+            {
+                cutpoints = LoopBefore(position, duration, startOffset, loopStart, loopEnd);
+            }
+            else
+            {
+                cutpoints = LoopAfter(position, duration, startOffset, loopStart, loopEnd);
+            }
+
+            return cutpoints;
         }
     }
 }
