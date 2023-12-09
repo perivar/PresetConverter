@@ -672,7 +672,16 @@ namespace PresetConverter
                             FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
                             break;
                         case "FabFilter Pro-Q 3":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
+                            // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
+
+                            // convert to native FabFilter format, ffp
+                            var fabFilterProQ3 = new FabfilterProQ3();
+                            var binFile = new BinaryFile(vstPluginBufferBytes);
+                            string header = binFile.ReadString(4);
+                            if (header != "FFBS") continue;
+
+                            fabFilterProQ3.ReadFFP(binFile);
+                            fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
                             break;
                         case "FabFilter Pro-L 2":
                             FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
