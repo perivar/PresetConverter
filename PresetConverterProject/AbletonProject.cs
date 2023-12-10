@@ -497,7 +497,7 @@ namespace PresetConverter
             ConvertToMidi(cvpj, file, outputDirectoryPath, false);
         }
 
-        private static void DoDevices(XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
+        public static void DoDevices(XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
         {
             // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*            
             // Path for Tracks: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
@@ -505,16 +505,18 @@ namespace PresetConverter
             // as well as <PluginDevice Id="X"> elements 
 
             // Read Tracks
-            Log.Debug("Found {0} devicechain devices for track: {1} {2}", xTrackDevices.Elements().Count(), trackName, trackId ?? "");
+            Log.Debug("Found {0} Devices for track: {1} {2}", xTrackDevices.Elements().Count(), trackName, trackId ?? "");
 
-            string outputFileName = string.Format("{0} - {1}", Path.GetFileNameWithoutExtension(file), trackName);
-            string outputFilePath;
+            string fileNameNoExtension = Path.GetFileNameWithoutExtension(file);
 
             foreach (XElement xDevice in xTrackDevices.Elements())
             {
+                // reset for each element
+                string outputFileName = string.IsNullOrEmpty(trackName) ? fileNameNoExtension : string.Format($"{fileNameNoExtension} - {trackName}");
+                string outputFilePath;
+
                 string deviceType = xDevice.Name.LocalName;
                 int deviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
-                Log.Debug($"Processing Device {deviceId} {deviceType} ...");
 
                 // check if it's on
                 XElement xOn = xDevice?.Element("On");
@@ -524,6 +526,10 @@ namespace PresetConverter
                 {
                     Log.Debug($"Skipping Device {deviceId} {deviceType} since it is disabled!");
                     continue;
+                }
+                else
+                {
+                    Log.Debug($"Processing Device {deviceId} {deviceType} ...");
                 }
 
                 switch (deviceType)
@@ -581,7 +587,7 @@ namespace PresetConverter
                         XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
                         byte[] vstPluginBufferBytes = GetInnerValueAsByteArray(xVstPluginBuffer);
 
-                        outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, deviceId, StringUtils.MakeValidFileName($"{vstPlugName}"));
+                        outputFileName = string.Format($"{outputFileName} - {deviceId} {StringUtils.MakeValidFileName(vstPlugName)}");
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
                         // check if this is a zlib file
@@ -610,22 +616,31 @@ namespace PresetConverter
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
                                 break;
                             case "FabFilter Saturn 2":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
+                                // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
+
+                                // write as native FabFilter format, ffp
+                                BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "FabFilter Pro-Q 3":
                                 // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
 
                                 // convert to native FabFilter format, ffp
-                                var fabFilterProQ3 = new FabfilterProQ3();
-                                var binFile = new BinaryFile(vstPluginBufferBytes);
-                                string header = binFile.ReadString(4);
-                                if (header != "FFBS") continue;
+                                // var fabFilterProQ3 = new FabfilterProQ3();
+                                // var binFile = new BinaryFile(vstPluginBufferBytes);
+                                // string header = binFile.ReadString(4);
+                                // if (header != "FFBS") continue;
 
-                                fabFilterProQ3.ReadFFP(binFile);
-                                fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
+                                // fabFilterProQ3.ReadFFP(binFile);
+                                // fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
+
+                                // write as native FabFilter format, ffp
+                                BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "FabFilter Pro-L 2":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
+                                // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
+
+                                // write as native FabFilter format, ffp
+                                BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "OTT_x64":
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
@@ -652,7 +667,7 @@ namespace PresetConverter
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
                                 break;
                             default:
-                                Log.Error($"Could not save PluginDevice Preset as fxp since I did not recognize vstplugin: {vstPlugName}");
+                                Log.Error($"Could not save PluginDevice Preset as FXP since I did not recognize vstplugin: {vstPlugName}");
                                 BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
                                 break;
                         }
@@ -664,7 +679,7 @@ namespace PresetConverter
                     case "Saturator":
                     case "Tuner":
                     default:
-                        outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, deviceId, deviceType);
+                        outputFileName = string.Format($"{outputFileName} - {deviceId} {deviceType}");
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
                         xDevice.Save(outputFilePath + ".xml");
                         break;
