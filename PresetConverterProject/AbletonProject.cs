@@ -69,31 +69,6 @@ namespace PresetConverter
 
     public static class AbletonProject
     {
-        private static dynamic CloneExpandoObject(dynamic srcObject)
-        {
-            dynamic destObject = new System.Dynamic.ExpandoObject();
-
-            foreach (var kvp in (IDictionary<string, object>)srcObject)
-            {
-                ((IDictionary<string, object>)destObject).Add(kvp);
-            }
-
-            return destObject;
-        }
-
-        private static bool HasProperty(dynamic item, string propertyName)
-        {
-            // Check if the object is an ExpandoObject and if it contains the specified property
-            if (item is System.Dynamic.ExpandoObject eo)
-            {
-                return (eo as IDictionary<string, object>).ContainsKey(propertyName);
-            }
-            else
-            {
-                return item.GetType().GetProperty(propertyName);
-            }
-        }
-
         private static string? GetValue(XElement xmlData, string varName, string? fallback)
         {
             XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
@@ -152,6 +127,66 @@ namespace PresetConverter
             {
                 return fallback;
             }
+        }
+
+        public static void GetAuto(XElement xTrackData)
+        {
+            dynamic trackAutomationEnvelopes = xTrackData.Element("AutomationEnvelopes")?.Elements("Envelopes").FirstOrDefault();
+
+            if (trackAutomationEnvelopes != null)
+            {
+                foreach (dynamic automationEnvelope in trackAutomationEnvelopes.Elements("AutomationEnvelope"))
+                {
+                    dynamic envEnvelopeTarget = automationEnvelope.Element("EnvelopeTarget");
+                    dynamic envAutomation = automationEnvelope.Element("Automation");
+                    dynamic envAutoEvents = envAutomation.Element("Events");
+
+                    int autoTarget = int.Parse(GetValue(envEnvelopeTarget, "PointeeId", "-1"));
+
+                    var cvpjAutoPoints = new List<dynamic>();
+                    foreach (var envAutoEvent in envAutoEvents.Elements())
+                    {
+                        if (envAutoEvent.Name == "FloatEvent")
+                        {
+                            dynamic point = new System.Dynamic.ExpandoObject();
+                            point.position = Math.Max(0, double.Parse(envAutoEvent.Attribute("Time").Value, NumberStyles.Any, CultureInfo.InvariantCulture) * 4);
+                            point.value = double.Parse(envAutoEvent.Attribute("Value").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+
+                            cvpjAutoPoints.Add(point);
+                        }
+                    }
+
+                    if (cvpjAutoPoints.Count > 0)
+                    {
+                        var inData = new Dictionary<int, List<dynamic>>();
+                        InAddPl(autoTarget, ToPl(cvpjAutoPoints), inData);
+                    }
+                }
+            }
+        }
+
+        private static dynamic ToPl(List<dynamic> pointsData)
+        {
+            dynamic autoPl = new System.Dynamic.ExpandoObject();
+            var durPos = AbletonFunctions.GetDurPos(pointsData, 0);
+
+            autoPl.position = durPos.Item1;
+            autoPl.duration = durPos.Item2 - durPos.Item1 + 4;
+            autoPl.points = AbletonFunctions.TrimMove(pointsData, durPos.Item1, durPos.Item1 + durPos.Item2);
+
+            return autoPl;
+        }
+
+        private static void InAddPl(int id, dynamic autoPl, Dictionary<int, List<dynamic>> inData)
+        {
+            // Console.WriteLine($"in_add_pl {iId} {((List<dynamic>)iAutoPl).Count}");
+
+            if (!inData.ContainsKey(id))
+            {
+                inData[id] = new List<dynamic>();
+            }
+
+            inData[id].Add(autoPl);
         }
 
         private static dynamic CutLoopData(double start, double loopStart, double loopEnd)
@@ -472,10 +507,17 @@ namespace PresetConverter
                     }
                 }
 
+                if (fxLoc.Length > 0)
+                {
+                    GetAuto(xTrackData);
+                }
+
                 XElement xTrackDeviceChainInside = xTrackDeviceChain?.Element("DeviceChain");
                 XElement xTrackDevices = xTrackDeviceChainInside?.Element("Devices");
                 DoDevices(xTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
             }
+
+            GetAuto(xMasterTrack);
 
             // JObject jcvpj = JObject.FromObject(cvpj);
             // WriteJsonToFile("output_pre_compat.json", jcvpj);
@@ -752,7 +794,7 @@ namespace PresetConverter
 
                     if ((cutType == "loop" || cutType == "loop_off" || cutType == "loop_adv") && !outPlacementLoop.Contains(cutType))
                     {
-                        dynamic notePlacementBase = CloneExpandoObject(notePlacement);
+                        dynamic notePlacementBase = AbletonFunctions.CloneExpandoObject(notePlacement);
                         dynamic notePlacementCut = notePlacement.cut;
 
                         // cast to dictionary to be able to check for and remove fields
@@ -777,7 +819,7 @@ namespace PresetConverter
 
                         foreach (var cutpoint in cutpoints)
                         {
-                            dynamic notePlacementCutted = CloneExpandoObject(notePlacementBase);
+                            dynamic notePlacementCutted = AbletonFunctions.CloneExpandoObject(notePlacementBase);
                             notePlacementCutted.position = cutpoint[0];
                             notePlacementCutted.duration = cutpoint[1];
                             notePlacementCutted.cut = new System.Dynamic.ExpandoObject();
@@ -815,7 +857,7 @@ namespace PresetConverter
                         double cutStart = notePlacement.cut.start ?? 0;
                         cutEnd += cutStart;
 
-                        notePlacement.notelist = NotelistFunctions.TrimMove(notePlacement.notelist, cutStart, cutEnd);
+                        notePlacement.notelist = AbletonFunctions.TrimMove(notePlacement.notelist, cutStart, cutEnd);
                         // remove field cannot be done setting the field to null: notePlacement.cut = null;
                         ((IDictionary<string, object>)notePlacement).Remove("cut");
                     }
@@ -1191,24 +1233,41 @@ namespace PresetConverter
         }
     }
 
-    public static class NotelistFunctions
+    public static class AbletonFunctions
     {
+        public static dynamic CloneExpandoObject(dynamic srcObject)
+        {
+            dynamic destObject = new System.Dynamic.ExpandoObject();
+
+            foreach (var kvp in (IDictionary<string, object>)srcObject)
+            {
+                ((IDictionary<string, object>)destObject).Add(kvp);
+            }
+
+            return destObject;
+        }
+
+        public static bool HasProperty(dynamic item, string propertyName)
+        {
+            // Check if the object is an ExpandoObject and if it contains the specified property
+            if (item is System.Dynamic.ExpandoObject eo)
+            {
+                return (eo as IDictionary<string, object>).ContainsKey(propertyName);
+            }
+            else
+            {
+                return item.GetType().GetProperty(propertyName);
+            }
+        }
+
         public static List<dynamic> Move(List<dynamic> notelist, double pos)
         {
             List<dynamic> newNotelist = new List<dynamic>();
 
             foreach (var note in notelist)
             {
-                dynamic newNote = new
-                {
-                    duration = note.duration,
-                    enabled = note.enabled,
-                    key = note.key,
-                    off_vol = note.off_vol,
-                    position = note.position + pos,
-                    probability = note.probability,
-                    vol = note.vol
-                };
+                dynamic newNote = CloneExpandoObject(note);
+                newNote.position = newNote.position + pos;
 
                 if (newNote.position >= 0)
                 {
@@ -1217,23 +1276,6 @@ namespace PresetConverter
             }
 
             return newNotelist;
-        }
-
-        public static double GetDuration(List<dynamic> notelist)
-        {
-            double durationFinal = 0;
-
-            foreach (var note in notelist)
-            {
-                double noteEndPos = note.position + note.duration;
-
-                if (durationFinal < noteEndPos)
-                {
-                    durationFinal = noteEndPos;
-                }
-            }
-
-            return durationFinal;
         }
 
         public static List<dynamic> Trim(List<dynamic> notelist, double pos)
@@ -1266,6 +1308,46 @@ namespace PresetConverter
             }
 
             return newNotelist;
+        }
+
+        public static double GetDuration(List<dynamic> notelist)
+        {
+            double durationFinal = 0;
+
+            foreach (var note in notelist)
+            {
+                double noteEndPos = note.position + note.duration;
+
+                if (durationFinal < noteEndPos)
+                {
+                    durationFinal = noteEndPos;
+                }
+            }
+
+            return durationFinal;
+        }
+
+        public static Tuple<double, double> GetDurPos(List<dynamic> listData, double startPos)
+        {
+            double durationFinal = 0;
+            double posFinal = 100000000; // double.MaxValue
+
+            foreach (var listPoint in listData)
+            {
+                double pointPos = listPoint.position;
+
+                if (durationFinal < pointPos)
+                {
+                    durationFinal = pointPos;
+                }
+
+                if (posFinal > pointPos)
+                {
+                    posFinal = pointPos;
+                }
+            }
+
+            return Tuple.Create(posFinal, durationFinal);
         }
     }
 
