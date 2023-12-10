@@ -616,13 +616,13 @@ namespace PresetConverter
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
                                 break;
                             case "FabFilter Saturn 2":
-                                // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
 
                                 // write as native FabFilter format, ffp
-                                BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
+                                // BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "FabFilter Pro-Q 3":
-                                // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
 
                                 // convert to native FabFilter format, ffp
                                 // var fabFilterProQ3 = new FabfilterProQ3();
@@ -634,13 +634,13 @@ namespace PresetConverter
                                 // fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
 
                                 // write as native FabFilter format, ffp
-                                BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
+                                // BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "FabFilter Pro-L 2":
-                                // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
 
                                 // write as native FabFilter format, ffp
-                                BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
+                                // BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "OTT_x64":
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
