@@ -540,6 +540,9 @@ namespace PresetConverter
                         var steinbergFrequency = eq.ToSteinbergFrequency();
                         outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
                         IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+
+                        Log.Information($"Writing EQ8 Preset: {outputFileName}");
+
                         steinbergFrequency.Write(outputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -551,6 +554,9 @@ namespace PresetConverter
                         var steinbergCompressor = compressor.ToSteinbergCompressor();
                         outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
                         IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
+
+                        Log.Information($"Writing Compressor2 Preset: {outputFileName}");
+
                         steinbergCompressor.Write(outputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -562,6 +568,9 @@ namespace PresetConverter
                         var wavesSSLComp = glueCompressor.ToWavesSSLComp();
                         outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
                         IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
+
+                        Log.Information($"Writing GlueCompressor Preset: {outputFileName}");
+
                         wavesSSLComp.Write(outputFilePath + ".vstpreset");
 
                         // and dump the text info as well
@@ -606,7 +615,7 @@ namespace PresetConverter
                         // }
 
                         // save preset
-                        Log.Information($"Writing PluginDevice Preset: {outputFileName}");
+                        Log.Information($"Writing PluginDevice ({vstPlugName}) Preset: {outputFileName}");
                         switch (vstPlugName)
                         {
                             case "Sylenth1":
@@ -681,6 +690,8 @@ namespace PresetConverter
                     default:
                         outputFileName = string.Format($"{outputFileName} - {deviceId} {deviceType}");
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                        Log.Information($"Writing {deviceType} Preset: {outputFileName}");
                         xDevice.Save(outputFilePath + ".xml");
                         break;
                 }
