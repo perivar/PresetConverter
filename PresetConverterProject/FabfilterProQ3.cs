@@ -79,30 +79,30 @@ namespace PresetConverter
                 // 1 = Enabled, 0 = Disabled
                 var fEnabled = binFile.ReadSingle();
                 band.Enabled = fEnabled == 1 ? true : false;
-                Log.Debug("Band: {0} => enabled: {1}", i + 1, fEnabled);
+                // Log.Debug("Band: {0} => enabled: {1}", i + 1, fEnabled);
 
                 // unknown 1
                 var fUnknown1 = binFile.ReadSingle();
-                Log.Debug("Band: {0} => unknown 1: {1}", i + 1, fUnknown1);
+                // Log.Debug("Band: {0} => unknown 1: {1}", i + 1, fUnknown1);
 
                 // frequency
                 var fFreq = binFile.ReadSingle();
                 band.Frequency = FreqConvertBack(fFreq);
-                Log.Debug("Band: {0} => freq: {1} => {2}", i + 1, fFreq, band.Frequency);
+                // Log.Debug("Band: {0} => freq: {1} => {2}", i + 1, fFreq, band.Frequency);
 
                 // gain
                 var fGain = binFile.ReadSingle();
                 band.Gain = fGain; // actual gain in dB
-                Log.Debug("Band: {0} => gain: {1}", i + 1, fGain);
+                // Log.Debug("Band: {0} => gain: {1}", i + 1, fGain);
 
                 // dynamic range (if band is dynamic)
                 var fDynamicRange = binFile.ReadSingle();
                 band.DynamicRange = fDynamicRange;
-                Log.Debug("Band: {0} => dynamic range: {1}", i + 1, fDynamicRange);
+                // Log.Debug("Band: {0} => dynamic range: {1}", i + 1, fDynamicRange);
 
                 // unknown 3
                 var fUnknown3 = binFile.ReadSingle();
-                Log.Debug("Band: {0} => unknown 3: {1}", i + 1, fUnknown3);
+                // Log.Debug("Band: {0} => unknown 3: {1}", i + 1, fUnknown3);
 
                 // dynamic threshold in dB (1 = auto) - don't know how to convert this to dB
                 // example numbers:
@@ -112,12 +112,12 @@ namespace PresetConverter
                 // -54 dbFS     0.17500602
                 var fDynamicThreshold = binFile.ReadSingle();
                 band.DynamicThreshold = fDynamicThreshold;
-                Log.Debug("Band: {0} => dynamic threshold: {1} => {2}", i + 1, fDynamicThreshold, band.DynamicThreshold);
+                // Log.Debug("Band: {0} => dynamic threshold: {1} => {2}", i + 1, fDynamicThreshold, band.DynamicThreshold);
 
                 // Q
                 var fQ = binFile.ReadSingle();
                 band.Q = QConvertBack(fQ);
-                Log.Debug("Band: {0} => Q: {1} => {2}", i + 1, fQ, band.Q);
+                // Log.Debug("Band: {0} => Q: {1} => {2}", i + 1, fQ, band.Q);
 
                 // 0 - 8
                 var fFilterType = binFile.ReadSingle();
@@ -153,7 +153,7 @@ namespace PresetConverter
                     default:
                         throw new ArgumentOutOfRangeException(string.Format("Filter type is outside range: {0}", fFilterType));
                 }
-                Log.Debug("Band: {0} => filterType: {1} => {2}", i + 1, fFilterType, band.Shape);
+                // Log.Debug("Band: {0} => filterType: {1} => {2}", i + 1, fFilterType, band.Shape);
 
                 // 0 - 9
                 var fFilterSlope = binFile.ReadSingle();
@@ -192,7 +192,7 @@ namespace PresetConverter
                     default:
                         throw new ArgumentOutOfRangeException(string.Format("Filter slope is outside range: {0}", fFilterSlope));
                 }
-                Log.Debug("Band: {0} => filterSlope: {1} => {2}", i + 1, fFilterSlope, band.Slope);
+                // Log.Debug("Band: {0} => filterSlope: {1} => {2}", i + 1, fFilterSlope, band.Slope);
 
                 // 0 = Left, 1 = Right, 2 = Stereo, 3 = Mid, 4 = Side
                 var fFilterStereoPlacement = binFile.ReadSingle();
@@ -216,13 +216,13 @@ namespace PresetConverter
                     default:
                         throw new ArgumentOutOfRangeException(string.Format("Filter stereo placement is outside range: {0}", fFilterStereoPlacement));
                 }
-                Log.Debug("Band: {0} => filterStereoPlacement: {1} => {2}", i + 1, fFilterStereoPlacement, band.StereoPlacement);
+                // Log.Debug("Band: {0} => filterStereoPlacement: {1} => {2}", i + 1, fFilterStereoPlacement, band.StereoPlacement);
 
                 // unknown band parameters
                 for (int j = 0; j < 2; j++)
                 {
                     var fUnknown = binFile.ReadSingle();
-                    Log.Debug("Band: {0} => unknown {1}: {2}", i + 1, j + 5, fUnknown);
+                    // Log.Debug("Band: {0} => unknown {1}: {2}", i + 1, j + 5, fUnknown);
                 }
 
                 Bands.Add(band);
@@ -234,7 +234,7 @@ namespace PresetConverter
             for (int i = 0; i < remainingParameterCount; i++)
             {
                 var fUnknown = binFile.ReadSingle();
-                Log.Debug("Param unknown {0}: {1}", i + 1, fUnknown);
+                // Log.Debug("Param unknown {0}: {1}", i + 1, fUnknown);
                 UnknownParameters.Add(fUnknown);
             }
 

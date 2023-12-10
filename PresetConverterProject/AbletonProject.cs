@@ -255,16 +255,14 @@ namespace PresetConverter
             XElement xMasterTrackMixer = xMasterTrackDeviceChain?.Element("Mixer");
             XElement xMasterTrackDeviceChainInside = xMasterTrackDeviceChain?.Element("DeviceChain");
             XElement xMasterTrackTrackDevices = xMasterTrackDeviceChainInside?.Element("Devices");
-            // DoDevices(xMasterTrackTrackDevices, null, new string[] { "master" });
+            DoDevices(xMasterTrackTrackDevices, null, "Master", new[] { "master" }, outputDirectoryPath, file);
 
             XElement xMastertrackName = xMasterTrack?.Element("Name");
             string mastertrackName = GetValue(xMastertrackName, "EffectiveName", "");
             var mastertrackColor = colorlistOne[int.Parse(GetValue(xMasterTrack, "Color", "0"))];
-            XElement xMastertrackDeviceChain = xMasterTrack?.Element("DeviceChain");
-            XElement xMastertrackMixer = xMastertrackDeviceChain?.Element("Mixer");
-            float masTrackVol = (float)GetParam(xMastertrackMixer, "Volume", "float", 0, new string[] { "master", "vol" }, null);
-            float masTrackPan = (float)GetParam(xMastertrackMixer, "Pan", "float", 0, new string[] { "master", "pan" }, null);
-            float tempo = (float)GetParam(xMastertrackMixer, "Tempo", "float", 140, new string[] { "main", "bpm" }, null);
+            float masTrackVol = (float)GetParam(xMasterTrackMixer, "Volume", "float", 0, new string[] { "master", "vol" }, null);
+            float masTrackPan = (float)GetParam(xMasterTrackMixer, "Pan", "float", 0, new string[] { "master", "pan" }, null);
+            float tempo = (float)GetParam(xMasterTrackMixer, "Tempo", "float", 140, new string[] { "main", "bpm" }, null);
 
             Log.Debug("Tempo: {0} bpm, MasterTrackName: {1}, Volume: {2}, Pan: {3}", tempo, mastertrackName, masTrackVol, masTrackPan);
 
@@ -311,8 +309,11 @@ namespace PresetConverter
                 XElement xTrackSends = xTrackMixer?.Element("Sends");
                 IEnumerable<XElement> xTrackSendHolders = xTrackSends?.Elements("TrackSendHolder");
 
+                var fxLoc = new string[0];
+
                 if (tracktype == "MidiTrack")
                 {
+                    fxLoc = new string[] { "track", trackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", 0, new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", 0, new string[] { "track", trackId, "pan" }, null);
 
@@ -469,29 +470,216 @@ namespace PresetConverter
                         notesGroup.notes = notesList;
                         cvpj.track_placements.Add(trackId, notesGroup);
                     }
-
-                    // handle plugin presets
-                    HandlePluginPresets(xTrackDeviceChain, trackName, file, outputDirectoryPath);
                 }
+
+                XElement xTrackDeviceChainInside = xTrackDeviceChain?.Element("DeviceChain");
+                XElement xTrackDevices = xTrackDeviceChainInside?.Element("Devices");
+                DoDevices(xTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
             }
 
             // JObject jcvpj = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output.json", jcvpj);
+            // WriteJsonToFile("output_pre_compat.json", jcvpj);
 
             // fix output
             Compat(cvpj);
 
             // JObject jcvpj2 = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output2.json", jcvpj2);
+            // WriteJsonToFile("output_post_compat.json", jcvpj2);
 
-            // CompareJson();
+            // string jsonFilePath1 = "output_pre_compat.json";
+            // string jsonFilePath2 = "output_post_compat.json";
+            // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, false);
+            // string jsonFilePath1 = "output_post_compat.json";
+            // string jsonFilePath2 = "..\\DawVert\\midiinput.cvpj";
+            // // string jsonFilePath2 = "..\\DawVert\\out.cvpj";
+            // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
 
             ConvertToMidi(cvpj, file, outputDirectoryPath, false);
         }
 
+        private static void DoDevices(XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
+        {
+            // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*            
+            // Path for Tracks: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
+            // where * is internal plugins like <Eq8>, <Limiter> 
+            // as well as <PluginDevice Id="X"> elements 
+
+            // Read Tracks
+            Log.Debug("Found {0} devicechain devices for track: {1} {2}", xTrackDevices.Elements().Count(), trackName, trackId ?? "");
+
+            string outputFileName = string.Format("{0} - {1}", Path.GetFileNameWithoutExtension(file), trackName);
+            string outputFilePath;
+
+            foreach (XElement xDevice in xTrackDevices.Elements())
+            {
+                string deviceType = xDevice.Name.LocalName;
+                int deviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
+                Log.Debug($"Processing Device {deviceId} {deviceType} ...");
+
+                // check if it's on
+                XElement xOn = xDevice?.Element("On");
+                bool isOn = bool.Parse(GetValue(xOn, "Manual", "false"));
+
+                if (!isOn)
+                {
+                    Log.Debug($"Skipping Device {deviceId} {deviceType} since it is disabled!");
+                    continue;
+                }
+
+                switch (deviceType)
+                {
+                    case "Eq8":
+                        // Convert EQ8 to Steinberg Frequency
+                        var eq = new AbletonEq8(xDevice);
+                        var steinbergFrequency = eq.ToSteinbergFrequency();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
+                        steinbergFrequency.Write(outputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
+                        break;
+                    case "Compressor2":
+                        // Convert Compressor2 to Steinberg Compressor
+                        var compressor = new AbletonCompressor(xDevice);
+                        var steinbergCompressor = compressor.ToSteinbergCompressor();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Compressor", "Ableton - " + outputFileName);
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Compressor"));
+                        steinbergCompressor.Write(outputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", steinbergCompressor.ToString());
+                        break;
+                    case "GlueCompressor":
+                        // Convert Glue compressor to Waves SSL Compressor
+                        var glueCompressor = new AbletonGlueCompressor(xDevice);
+                        var wavesSSLComp = glueCompressor.ToWavesSSLComp();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "SSLComp Stereo", "Ableton - " + outputFileName);
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSLComp Stereo"));
+                        wavesSSLComp.Write(outputFilePath + ".vstpreset");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", wavesSSLComp.ToString());
+                        break;
+
+                    case "PluginDevice":
+                        // Handle Plugin Presets
+                        // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
+
+                        XElement xPluginDesc = xDevice?.Element("PluginDesc");
+                        XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
+                        int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
+                        string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Empty");
+                        Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
+
+                        XElement xPreset = xVstPluginInfo?.Element("Preset");
+                        XElement xVstPreset = xPreset?.Element("VstPreset");
+                        int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
+                        Log.Debug($"VstPreset Id: {vstPresetId}");
+
+                        // read the byte data buffer
+                        XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
+                        byte[] vstPluginBufferBytes = GetInnerValueAsByteArray(xVstPluginBuffer);
+
+                        outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, deviceId, StringUtils.MakeValidFileName($"{vstPlugName}"));
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                        // check if this is a zlib file
+                        // Serum presets are zlib compressed, but don't deflate
+                        // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
+                        // {
+                        //     Log.Debug($"Found ZLib compressed file! VstPluginName: {vstPluginName}");
+
+                        //     // Skip the first two bytes as per
+                        //     // https://stackoverflow.com/a/62756204
+                        //     byte[] vstPluginBufferBytesTrimmed = new byte[vstPluginBufferBytes.Length - 2];
+                        //     Array.Copy(vstPluginBufferBytes, 2, vstPluginBufferBytesTrimmed, 0, vstPluginBufferBytesTrimmed.Length);
+
+                        //     byte[] vstPluginBytes = IOUtils.Deflate(vstPluginBufferBytesTrimmed);
+                        //     BinaryFile.ByteArrayToFile(outputFilePath + "_deflated.dat", vstPluginBytes);
+                        // }
+
+                        // save preset
+                        Log.Information($"Writing PluginDevice Preset: {outputFileName}");
+                        switch (vstPlugName)
+                        {
+                            case "Sylenth1":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "syl1");
+                                break;
+                            case "Serum_x64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
+                                break;
+                            case "FabFilter Saturn 2":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
+                                break;
+                            case "FabFilter Pro-Q 3":
+                                // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
+
+                                // convert to native FabFilter format, ffp
+                                var fabFilterProQ3 = new FabfilterProQ3();
+                                var binFile = new BinaryFile(vstPluginBufferBytes);
+                                string header = binFile.ReadString(4);
+                                if (header != "FFBS") continue;
+
+                                fabFilterProQ3.ReadFFP(binFile);
+                                fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
+                                break;
+                            case "FabFilter Pro-L 2":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
+                                break;
+                            case "OTT_x64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
+                                break;
+                            case "Endless Smile 64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "ENDS");
+                                break;
+                            case "soothe2_x64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "SthB");
+                                break;
+                            case "CamelCrusher":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CaCr");
+                                break;
+                            case "Kickstart-64bit":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CNKS");
+                                break;
+                            case "LFOTool_x64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XffO");
+                                break;
+                            case "ValhallaRoom_x64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Ruum");
+                                break;
+                            case "ValhallaVintageVerb_x64":
+                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
+                                break;
+                            default:
+                                Log.Error($"Could not save PluginDevice Preset as fxp since I did not recognize vstplugin: {vstPlugName}");
+                                BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
+                                break;
+                        }
+                        break;
+
+                    case "MultibandDynamics":
+                    case "AutoFilter":
+                    case "Reverb":
+                    case "Saturator":
+                    case "Tuner":
+                    default:
+                        outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, deviceId, deviceType);
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+                        xDevice.Save(outputFilePath + ".xml");
+                        break;
+                }
+            }
+        }
+
         private static bool Compat(dynamic cvpj)
         {
-            // loops_remove.py: def process_r(projJ)
+            // this does the song_compat from DawVert
+            // all credits go to SatyrDiamond and the DawVert code
+            // https://github.com/SatyrDiamond/DawVert
+            // song_compat.py: def makecompat(cvpj_l, cvpj_type):
+
+            // loops_remove.py: def process_r(projJ, out__placement_loop)
             foreach (var track in cvpj.track_placements)
             {
                 var trackId = track.Key;
@@ -603,134 +791,6 @@ namespace PresetConverter
             }
         }
 
-        private static void HandlePluginPresets(XElement xTrackDeviceChain, string trackName, string file, string outputDirectoryPath)
-        {
-            // Path: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
-            // where * is internal plugins like <Eq8>, <Limiter> 
-            // as well as <PluginDevice Id="X"> elements 
-
-            XElement xDeviceChain = xTrackDeviceChain?.Element("DeviceChain");
-            XElement xDeviceChainDevices = xDeviceChain?.Element("Devices");
-
-            // Read Tracks
-            Log.Debug("Found {0} DeviceChain Devices ...", xDeviceChainDevices.Elements().Count());
-
-            foreach (XElement xDevice in xDeviceChainDevices.Elements())
-            {
-                string deviceType = xDevice.Name.LocalName;
-
-                if (deviceType == "PluginDevice")
-                {
-                    // Handle Plugin Presets
-                    // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
-
-                    int pluginDeviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
-                    Log.Debug($"PluginDevice Id: {pluginDeviceId}");
-
-                    // check if it's on
-                    XElement xOn = xDevice?.Element("On");
-                    bool isOn = bool.Parse(GetValue(xOn, "Manual", "false"));
-
-                    if (!isOn)
-                    {
-                        Log.Debug($"Skipping PluginDevice {pluginDeviceId} since it is disabled!");
-                        continue;
-                    }
-
-                    XElement xPluginDesc = xDevice?.Element("PluginDesc");
-                    XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
-                    int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
-                    string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Empty");
-                    Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
-
-                    XElement xPreset = xVstPluginInfo?.Element("Preset");
-                    XElement xVstPreset = xPreset?.Element("VstPreset");
-                    int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
-                    Log.Debug($"VstPreset Id: {vstPresetId}");
-
-                    // read the byte data buffer
-                    XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
-                    byte[] vstPluginBufferBytes = GetInnerValueAsByteArray(xVstPluginBuffer);
-
-                    string outputFileName = string.Format("{0} - {1}-{2}-{3}", Path.GetFileNameWithoutExtension(file), trackName, pluginDeviceId, StringUtils.MakeValidFileName($"{vstPlugName}"));
-                    string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
-
-                    // check if this is a zlib file
-                    // Serum presets are zlib compressed, but don't deflate
-                    // if (vstPluginBufferBytes[0] == 0x78 && vstPluginBufferBytes[1] == 0x01)
-                    // {
-                    //     Log.Debug($"Found ZLib compressed file! VstPluginName: {vstPluginName}");
-
-                    //     // Skip the first two bytes as per
-                    //     // https://stackoverflow.com/a/62756204
-                    //     byte[] vstPluginBufferBytesTrimmed = new byte[vstPluginBufferBytes.Length - 2];
-                    //     Array.Copy(vstPluginBufferBytes, 2, vstPluginBufferBytesTrimmed, 0, vstPluginBufferBytesTrimmed.Length);
-
-                    //     byte[] vstPluginBytes = IOUtils.Deflate(vstPluginBufferBytesTrimmed);
-                    //     BinaryFile.ByteArrayToFile(outputFilePath + "_deflated.dat", vstPluginBytes);
-                    // }
-
-                    // save preset
-                    Log.Information($"Writing Plugin Preset: {outputFileName}");
-                    switch (vstPlugName)
-                    {
-                        case "Sylenth1":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "syl1");
-                            break;
-                        case "Serum_x64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
-                            break;
-                        case "FabFilter Saturn 2":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
-                            break;
-                        case "FabFilter Pro-Q 3":
-                            // FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
-
-                            // convert to native FabFilter format, ffp
-                            var fabFilterProQ3 = new FabfilterProQ3();
-                            var binFile = new BinaryFile(vstPluginBufferBytes);
-                            string header = binFile.ReadString(4);
-                            if (header != "FFBS") continue;
-
-                            fabFilterProQ3.ReadFFP(binFile);
-                            fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
-                            break;
-                        case "FabFilter Pro-L 2":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
-                            break;
-                        case "OTT_x64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
-                            break;
-                        case "Endless Smile 64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "ENDS");
-                            break;
-                        case "soothe2_x64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "SthB");
-                            break;
-                        case "CamelCrusher":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CaCr");
-                            break;
-                        case "Kickstart-64bit":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CNKS");
-                            break;
-                        case "LFOTool_x64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XffO");
-                            break;
-                        case "ValhallaRoom_x64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Ruum");
-                            break;
-                        case "ValhallaVintageVerb_x64":
-                            FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
-                            break;
-                        default:
-                            Log.Error($"Could not save preset as fxp since I did not recognize vstplugin: {vstPlugName}");
-                            BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
-                            break;
-                    }
-                }
-            }
-        }
-
         public static byte[] GetInnerValueAsByteArray(XElement? xVstPluginBuffer)
         {
             if (xVstPluginBuffer == null) return new byte[0];
@@ -751,21 +811,19 @@ namespace PresetConverter
             return vstPluginBufferBytes;
         }
 
-        private static void CompareJson()
+        private static void CompareCvpJson(string jsonFilePath1, string jsonFilePath2, bool doSkipFirstLineJson1, bool doSkipFirstLineJson2)
         {
-            string jsonFilePath1 = "C:\\Users\\periv\\Projects\\PresetConverter\\output2.json";
-            // string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\out.cvpj";
-            string jsonFilePath2 = "C:\\Users\\periv\\Projects\\DawVert\\midiinput.cvpj";
-
             // Read JSON files
             string jsonContent1 = File.ReadAllText(jsonFilePath1);
             string jsonContent2 = File.ReadAllText(jsonFilePath2);
 
             // Parse JSON content
+            // ignore the first line (e.g. "CONVPROJ****")
+            if (doSkipFirstLineJson1) jsonContent1 = string.Join("\n", jsonContent1.Split('\n').Skip(1));
             JObject jsonObject1 = JObject.Parse(jsonContent1);
 
-            // ignore the first "CONVPROJ****" line
-            jsonContent2 = string.Join("\n", jsonContent2.Split('\n').Skip(1));
+            // ignore the first line (e.g. "CONVPROJ****")
+            if (doSkipFirstLineJson2) jsonContent2 = string.Join("\n", jsonContent2.Split('\n').Skip(1));
             JObject jsonObject2 = JObject.Parse(jsonContent2);
 
             // Filter out objects with a "notes" array
@@ -781,7 +839,7 @@ namespace PresetConverter
             };
 
             JObject sortedJsonObject1 = SortJObjectAlphabetically(filteredObjectContainer1);
-            WriteJsonToFile("pres_conv.json", sortedJsonObject1);
+            WriteJsonToFile("compare_cvp_1.json", sortedJsonObject1);
 
             // Filter out objects with a "notes" array
             List<JProperty> filteredObjects2 = jsonObject2["track_placements"]
@@ -796,7 +854,7 @@ namespace PresetConverter
             };
 
             JObject sortedJsonObject2 = SortJObjectAlphabetically(filteredObjectContainer2);
-            WriteJsonToFile("daw_conv.json", sortedJsonObject2);
+            WriteJsonToFile("compare_cvp_2.json", sortedJsonObject2);
         }
 
         private static JToken SortJTokenAlphabetically(JToken token)
