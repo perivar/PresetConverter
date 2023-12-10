@@ -8,7 +8,6 @@ using Melanchall.DryWetMidi.Interaction;
 using Melanchall.DryWetMidi.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Linq;
 using CommonUtils;
 
 namespace PresetConverter
@@ -70,6 +69,31 @@ namespace PresetConverter
 
     public static class AbletonProject
     {
+        private static dynamic CloneExpandoObject(dynamic srcObject)
+        {
+            dynamic destObject = new System.Dynamic.ExpandoObject();
+
+            foreach (var kvp in (IDictionary<string, object>)srcObject)
+            {
+                ((IDictionary<string, object>)destObject).Add(kvp);
+            }
+
+            return destObject;
+        }
+
+        private static bool HasProperty(dynamic item, string propertyName)
+        {
+            // Check if the object is an ExpandoObject and if it contains the specified property
+            if (item is System.Dynamic.ExpandoObject eo)
+            {
+                return (eo as IDictionary<string, object>).ContainsKey(propertyName);
+            }
+            else
+            {
+                return item.GetType().GetProperty(propertyName);
+            }
+        }
+
         private static string? GetValue(XElement xmlData, string varName, string? fallback)
         {
             XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
@@ -509,10 +533,12 @@ namespace PresetConverter
                     if ((cutType == "loop" || cutType == "loop_off" || cutType == "loop_adv") && !outPlacementLoop.Contains(cutType))
                     {
                         dynamic notePlacementBase = CloneExpandoObject(notePlacement);
-                        dynamic notePlacementBaseCut = notePlacementBase.cut;
+                        dynamic notePlacementCut = notePlacement.cut;
 
-                        // cast to dictionary to be able to remove fields
+                        // cast to dictionary to be able to check for and remove fields
                         var notePlacementBaseDict = (IDictionary<string, object>)notePlacementBase;
+                        var notePlacementCutDict = (IDictionary<string, object>)notePlacementCut;
+
                         notePlacementBaseDict.Remove("cut");
                         notePlacementBaseDict.Remove("position");
                         notePlacementBaseDict.Remove("duration");
@@ -521,13 +547,13 @@ namespace PresetConverter
                         double loopBaseDuration = notePlacement.duration;
 
                         double loopStart = 0;
-                        double loopLoopstart = 0;
-                        double loopLoopend = loopBaseDuration;
-                        if (notePlacementBaseCut.cut.start != null) loopStart = notePlacementBaseCut.start;
-                        if (notePlacementBaseCut.cut.loopstart != null) loopLoopstart = notePlacementBaseCut.loopstart;
-                        if (notePlacementBaseCut.cut.loopend != null) loopLoopend = notePlacementBaseCut.loopend;
+                        double loopLoopStart = 0;
+                        double loopLoopEnd = loopBaseDuration;
+                        if (notePlacementCutDict.ContainsKey("start")) loopStart = notePlacementCut.start;
+                        if (notePlacementCutDict.ContainsKey("loopstart")) loopLoopStart = notePlacementCut.loopstart;
+                        if (notePlacementCutDict.ContainsKey("loopend")) loopLoopEnd = notePlacementCut.loopend;
 
-                        List<double[]> cutpoints = XtraMath.CutLoop(loopBasePosition, loopBaseDuration, loopStart, loopLoopstart, loopLoopend);
+                        List<double[]> cutpoints = XtraMath.CutLoop(loopBasePosition, loopBaseDuration, loopStart, loopLoopStart, loopLoopEnd);
 
                         foreach (var cutpoint in cutpoints)
                         {
@@ -554,18 +580,6 @@ namespace PresetConverter
             }
 
             return newPlacements;
-        }
-
-        private static dynamic CloneExpandoObject(dynamic srcObject)
-        {
-            dynamic destObject = new System.Dynamic.ExpandoObject();
-
-            foreach (var kvp in (IDictionary<string, object>)srcObject)
-            {
-                ((IDictionary<string, object>)destObject).Add(kvp);
-            }
-
-            return destObject;
         }
 
         private static void RemoveCutDoPlacements(dynamic notePlacements)
