@@ -547,6 +547,11 @@ namespace PresetConverter
 
                         // and dump the text info as well
                         File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
+
+                        // convert to Fabfilter Pro Q3 as well
+                        var fabfilterProQ3 = eq.ToFabfilterProQ3();
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+                        fabfilterProQ3.WriteFFP(outputFilePath + " - EQ8ToFabfilterProQ3.ffp");
                         break;
                     case "Compressor2":
                         // Convert Compressor2 to Steinberg Compressor
