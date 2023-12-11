@@ -106,7 +106,7 @@ namespace PresetConverter
             }
         }
 
-        private static object GetParam(XElement xmlData, string varName, string varType, double fallback, string[] loc, double? addMul)
+        private static object GetParam(XElement xmlData, string varName, string varType, double fallback, string[]? loc, double? addMul)
         {
             XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
 
@@ -118,7 +118,7 @@ namespace PresetConverter
 
                 if (autoNumId != 0)
                 {
-                    // AutoId.InDefine(autoNumId, loc, varType, addMul);
+                    InDefine(autoNumId, loc, varType, addMul);
                 }
 
                 return outData;
@@ -158,8 +158,7 @@ namespace PresetConverter
 
                     if (cvpjAutoPoints.Count > 0)
                     {
-                        var inData = new Dictionary<int, List<dynamic>>();
-                        InAddPl(autoTarget, ToPl(cvpjAutoPoints), inData);
+                        InAddPl(autoTarget, ToPl(cvpjAutoPoints));
                     }
                 }
             }
@@ -167,6 +166,8 @@ namespace PresetConverter
 
         private static dynamic ToPl(List<dynamic> pointsData)
         {
+            // auto_nopl.py: def to_pl(pointsdata):
+
             dynamic autoPl = new System.Dynamic.ExpandoObject();
             var durPos = AbletonFunctions.GetDurPos(pointsData, 0);
 
@@ -177,17 +178,68 @@ namespace PresetConverter
             return autoPl;
         }
 
-        private static void InAddPl(int id, dynamic autoPl, Dictionary<int, List<dynamic>> inData)
+        static Dictionary<int, dynamic> inData = new Dictionary<int, dynamic>();
+
+        // ------------------------ autoid to cvpjauto ------------------------
+
+        private static void InDefine(int id, string[]? loc, string type, double? addMul)
         {
-            // Console.WriteLine($"in_add_pl {iId} {((List<dynamic>)iAutoPl).Count}");
+            // auto_id.py: def in_define(i_id, i_loc, i_type, i_addmul):
 
             if (!inData.ContainsKey(id))
             {
-                inData[id] = new List<dynamic>();
+                inData[id] = new List<dynamic?> { loc, type, addMul, new List<dynamic>() };
+            }
+            else
+            {
+                inData[id][0] = loc;
+                inData[id][1] = type;
+                inData[id][2] = addMul;
+            }
+        }
+
+        private static void InAddPl(int id, dynamic autoPl)
+        {
+            // auto_id.py: def in_add_pl(i_id, i_autopl):
+
+            if (!inData.ContainsKey(id))
+            {
+                inData[id] = new List<dynamic?> { null, null, null, new List<dynamic>() };
             }
 
-            inData[id].Add(autoPl);
+            inData[id][3].Add(autoPl);
         }
+
+        private static void InOutput(dynamic cvpj)
+        {
+            foreach (var id in inData.Keys)
+            {
+                var outAutoLoc = inData[id][0];
+                var outAutoType = inData[id][1];
+                var outAutoAddMul = inData[id][2];
+                var outAutoData = inData[id][3];
+
+                if ((inData[id][0] != null || inData[id][1] != null || inData[id][2] != null) && outAutoData.Count > 0)
+                {
+                    if (outAutoAddMul != null)
+                    {
+                        outAutoData = AbletonFunctions.Multiply(outAutoData, outAutoAddMul[0], outAutoAddMul[1]);
+                    }
+
+                    AddPl(cvpj, outAutoType, outAutoLoc, outAutoData);
+                }
+            }
+        }
+
+        private static void AddPl(dynamic cvpj, string valType, string[] autoLocation, List<dynamic> inAutoPoints)
+        {
+            if (autoLocation != null)
+            {
+                DataValues.NestedDictAddValue(cvpj, new[] { "automation" }.Concat(autoLocation).Concat(new[] { "type" }).ToArray(), valType);
+                DataValues.NestedDictAddToList(cvpj, new[] { "automation" }.Concat(autoLocation).Concat(new[] { "placements" }).ToArray(), inAutoPoints);
+            }
+        }
+
 
         private static dynamic CutLoopData(double start, double loopStart, double loopEnd)
         {
@@ -326,6 +378,8 @@ namespace PresetConverter
 
             // Read Tracks
             Log.Debug("Found {0} Tracks ...", xTracks.Elements().Count());
+
+            int returnId = 1;
 
             foreach (XElement xTrackData in xTracks.Elements())
             {
@@ -501,10 +555,33 @@ namespace PresetConverter
                     // add the track if there are notes
                     if (notesList.Count > 0)
                     {
-                        dynamic notesGroup = new System.Dynamic.ExpandoObject();
-                        notesGroup.notes = notesList;
-                        cvpj.track_placements.Add(trackId, notesGroup);
+                        // dynamic notesGroup = new System.Dynamic.ExpandoObject();
+                        // notesGroup.notes = notesList;
+                        // cvpj.track_placements.Add(trackId, notesGroup);
+                        DataValues.NestedDictAddToList(cvpj, new[] { "track_placements", trackId, "notes" }, notesList);
                     }
+                }
+
+                if (tracktype == "AudioTrack")
+                {
+                    fxLoc = new string[] { "track", trackId };
+                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", 0, new string[] { "track", trackId, "vol" }, null);
+                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", 0, new string[] { "track", trackId, "pan" }, null);
+
+                    Log.Debug($"Reading Audio Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
+                }
+
+                if (tracktype == "ReturnTrack")
+                {
+                    fxLoc = new string[] { "return", null, "return_" + returnId };
+                    Log.Debug($"Reading Return Track. Id: {trackId}, EffectiveName: {trackName}");
+                    returnId++;
+                }
+
+                if (tracktype == "GroupTrack")
+                {
+                    fxLoc = new string[] { "group", "group_" + trackId };
+                    Log.Debug($"Reading Group Track. Id: {trackId}, EffectiveName: {trackName}");
                 }
 
                 if (fxLoc.Length > 0)
@@ -518,15 +595,16 @@ namespace PresetConverter
             }
 
             GetAuto(xMasterTrack);
+            InOutput(cvpj);
 
-            // JObject jcvpj = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output_pre_compat.json", jcvpj);
+            JObject jcvpj = JObject.FromObject(cvpj);
+            WriteJsonToFile("output_pre_compat.json", jcvpj);
 
             // fix output
             Compat(cvpj);
 
-            // JObject jcvpj2 = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output_post_compat.json", jcvpj2);
+            JObject jcvpj2 = JObject.FromObject(cvpj);
+            WriteJsonToFile("output_post_compat.json", jcvpj2);
 
             // string jsonFilePath1 = "output_pre_compat.json";
             // string jsonFilePath2 = "output_post_compat.json";
@@ -1260,99 +1338,120 @@ namespace PresetConverter
             }
         }
 
-        public static List<dynamic> Move(List<dynamic> notelist, double pos)
+        public static List<dynamic> Move(List<dynamic> list, double pos)
         {
-            List<dynamic> newNotelist = new List<dynamic>();
+            List<dynamic> newList = new List<dynamic>();
 
-            foreach (var note in notelist)
+            foreach (var element in list)
             {
-                dynamic newNote = CloneExpandoObject(note);
-                newNote.position = newNote.position + pos;
+                dynamic newElement = CloneExpandoObject(element);
+                newElement.position = newElement.position + pos;
 
-                if (newNote.position >= 0)
+                if (newElement.position >= 0)
                 {
-                    newNotelist.Add(newNote);
+                    newList.Add(newElement);
                 }
             }
 
-            return newNotelist;
+            return newList;
         }
 
-        public static List<dynamic> Trim(List<dynamic> notelist, double pos)
+        public static List<dynamic> Trim(List<dynamic> list, double pos)
         {
-            List<dynamic> newNotelist = new List<dynamic>();
+            List<dynamic> newList = new List<dynamic>();
 
-            foreach (var note in notelist)
+            foreach (var element in list)
             {
-                if (note.position < pos)
+                if (element.position < pos)
                 {
-                    newNotelist.Add(note);
+                    newList.Add(element);
                 }
             }
 
-            return newNotelist;
+            return newList;
         }
 
-        public static List<dynamic> TrimMove(List<dynamic> notelist, double? startAt, double? endAt)
+        public static List<dynamic> TrimMove(List<dynamic> list, double? startAt, double? endAt)
         {
-            List<dynamic> newNotelist = new List<dynamic>(notelist);
+            List<dynamic> newList = new List<dynamic>(list);
 
             if (endAt != null)
             {
-                newNotelist = Trim(newNotelist, (double)endAt);
+                newList = Trim(list, (double)endAt);
             }
 
             if (startAt != null)
             {
-                newNotelist = Move(newNotelist, -(double)startAt);
+                newList = Move(list, -(double)startAt);
             }
 
-            return newNotelist;
+            return newList;
         }
 
-        public static double GetDuration(List<dynamic> notelist)
+        public static double GetDuration(List<dynamic> list)
         {
             double durationFinal = 0;
 
-            foreach (var note in notelist)
+            foreach (var element in list)
             {
-                double noteEndPos = note.position + note.duration;
+                double endPos = element.position + element.duration;
 
-                if (durationFinal < noteEndPos)
+                if (durationFinal < endPos)
                 {
-                    durationFinal = noteEndPos;
+                    durationFinal = endPos;
                 }
             }
 
             return durationFinal;
         }
 
-        public static Tuple<double, double> GetDurPos(List<dynamic> listData, double startPos)
+        public static Tuple<double, double> GetDurPos(List<dynamic> list, double startPos)
         {
             double durationFinal = 0;
             double posFinal = 100000000; // double.MaxValue
 
-            foreach (var listPoint in listData)
+            foreach (var element in list)
             {
-                double pointPos = listPoint.position;
+                double pos = element.position;
 
-                if (durationFinal < pointPos)
+                if (durationFinal < pos)
                 {
-                    durationFinal = pointPos;
+                    durationFinal = pos;
                 }
 
-                if (posFinal > pointPos)
+                if (posFinal > pos)
                 {
-                    posFinal = pointPos;
+                    posFinal = pos;
                 }
             }
 
             return Tuple.Create(posFinal, durationFinal);
         }
+
+        public static List<dynamic> Multiply(List<dynamic> list, double addVal, double mulVal)
+        {
+            foreach (var element in list)
+            {
+                if (element.points != null)
+                {
+                    foreach (var point in element.points)
+                    {
+                        if (point.value != null)
+                        {
+                            point.value = (point.value + addVal) * mulVal;
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 
     public static class XtraMath
     {
+        //  -------------------------------------------- placement_loop --------------------------------------------
+
         public static List<double[]> LoopBefore(double blPPos, double blPDur, double blPStart, double blLStart, double blLEnd)
         {
             List<double[]> cutpoints = new List<double[]>();
@@ -1456,6 +1555,82 @@ namespace PresetConverter
             }
 
             return cutpoints;
+        }
+    }
+
+    public static class DataValues
+    {
+        // data_values.py
+
+        public static void NestedDictAddValue(dynamic dict, string[] keys, dynamic value)
+        {
+            if (keys.Length == 1)
+            {
+                var lastKey = keys[0];
+                if (!(dict is IDictionary<string, dynamic>))
+                {
+                    dict = new System.Dynamic.ExpandoObject();
+                }
+                ((IDictionary<string, dynamic>)dict)[lastKey] = value;
+            }
+            else
+            {
+                var key = keys[0];
+                if (!(dict is IDictionary<string, dynamic>))
+                {
+                    dict = new System.Dynamic.ExpandoObject();
+                }
+
+                if (!((IDictionary<string, dynamic>)dict).ContainsKey(key))
+                {
+                    ((IDictionary<string, dynamic>)dict)[key] = new System.Dynamic.ExpandoObject();
+                }
+
+                NestedDictAddValue(((IDictionary<string, dynamic>)dict)[key], keys[1..], value);
+            }
+        }
+
+        public static void NestedDictAddToList(dynamic dict, string[] keys, dynamic value)
+        {
+            if (keys.Length == 1)
+            {
+                var lastKey = keys[0];
+
+                if (!(dict is IDictionary<string, dynamic>))
+                {
+                    dict = new System.Dynamic.ExpandoObject();
+                }
+
+                if (!((IDictionary<string, dynamic>)dict).ContainsKey(lastKey))
+                {
+                    ((IDictionary<string, dynamic>)dict).Add(lastKey, new List<dynamic>());
+                }
+
+                if (value is List<dynamic>)
+                {
+                    ((IDictionary<string, dynamic>)dict)[lastKey] = value;
+                }
+                else
+                {
+                    ((List<dynamic>)((IDictionary<string, dynamic>)dict)[lastKey]).Add(value);
+                }
+            }
+            else
+            {
+                var key = keys[0];
+
+                if (!(dict is IDictionary<string, dynamic>))
+                {
+                    dict = new System.Dynamic.ExpandoObject();
+                }
+
+                if (!((IDictionary<string, dynamic>)dict).ContainsKey(key))
+                {
+                    ((IDictionary<string, dynamic>)dict)[key] = new System.Dynamic.ExpandoObject();
+                }
+
+                NestedDictAddToList(((IDictionary<string, dynamic>)dict)[key], keys[1..], value);
+            }
         }
     }
 }
