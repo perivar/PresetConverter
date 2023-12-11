@@ -204,7 +204,7 @@ namespace PresetConverter
 
             if (!inData.ContainsKey(id))
             {
-                inData[id] = new List<dynamic?> { null, null, null, new List<dynamic>() };
+                inData[id] = new List<dynamic?> { new string[] { id.ToString() }, "float", null, new List<dynamic>() };
             }
 
             inData[id][3].Add(autoPl);
