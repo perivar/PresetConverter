@@ -204,6 +204,7 @@ namespace PresetConverter
 
             if (!inData.ContainsKey(id))
             {
+                // even if we have no targets added, create a default one
                 inData[id] = new List<dynamic?> { new string[] { id.ToString() }, "float", null, new List<dynamic>() };
             }
 
@@ -570,7 +571,6 @@ namespace PresetConverter
 
                 if (tracktype == "ReturnTrack")
                 {
-                    GetAuto(xTrackData);
                     string returnTrackId = "return_" + returnId.ToString();
                     fxLoc = new string[] { "return", null, returnTrackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "return", returnTrackId, "vol" }, null);
@@ -582,7 +582,6 @@ namespace PresetConverter
 
                 if (tracktype == "GroupTrack")
                 {
-                    GetAuto(xTrackData);
                     string groupTrackId = "group_" + trackId.ToString();
                     fxLoc = new string[] { "group", groupTrackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "group", groupTrackId, "vol" }, null);
