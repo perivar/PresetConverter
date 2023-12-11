@@ -69,15 +69,15 @@ namespace PresetConverter
 
     public static class AbletonProject
     {
-        private static string? GetValue(XElement xmlData, string varName, string? fallback)
+        private static string GetValue(XElement xmlData, string varName, string fallback)
         {
-            XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
+            XElement? xElement = xmlData.Descendants(varName).FirstOrDefault();
             return xElement?.Attribute("Value")?.Value ?? fallback;
         }
 
-        private static string? GetId(XElement xmlData, string varName, string? fallback)
+        private static string GetId(XElement xmlData, string varName, string fallback)
         {
-            XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
+            XElement? xElement = xmlData.Descendants(varName).FirstOrDefault();
             return xElement?.Attribute("Id")?.Value ?? fallback;
         }
 
@@ -106,13 +106,13 @@ namespace PresetConverter
             }
         }
 
-        private static object GetParam(XElement xmlData, string varName, string varType, double fallback, string[]? loc, double? addMul)
+        private static object GetParam(XElement xmlData, string varName, string varType, string fallback, string[]? loc, double? addMul)
         {
-            XElement? xElement = xmlData.XPathSelectElements(varName).FirstOrDefault();
+            XElement? xElement = xmlData.Descendants(varName).FirstOrDefault();
 
             if (xElement != null)
             {
-                string inData = GetValue(xElement, "Manual", fallback.ToString());
+                string inData = GetValue(xElement, "Manual", fallback);
                 int autoNumId = int.Parse(GetId(xElement, "AutomationTarget", null) ?? "0");
                 object outData = UseValueType(varType, inData);
 
@@ -347,9 +347,9 @@ namespace PresetConverter
             XElement xMastertrackName = xMasterTrack?.Element("Name");
             string mastertrackName = GetValue(xMastertrackName, "EffectiveName", "");
             var mastertrackColor = colorlistOne[int.Parse(GetValue(xMasterTrack, "Color", "0"))];
-            float masTrackVol = (float)GetParam(xMasterTrackMixer, "Volume", "float", 0, new string[] { "master", "vol" }, null);
-            float masTrackPan = (float)GetParam(xMasterTrackMixer, "Pan", "float", 0, new string[] { "master", "pan" }, null);
-            float tempo = (float)GetParam(xMasterTrackMixer, "Tempo", "float", 140, new string[] { "main", "bpm" }, null);
+            float masTrackVol = (float)GetParam(xMasterTrackMixer, "Volume", "float", "0", new string[] { "master", "vol" }, null);
+            float masTrackPan = (float)GetParam(xMasterTrackMixer, "Pan", "float", "0", new string[] { "master", "pan" }, null);
+            float tempo = (float)GetParam(xMasterTrackMixer, "Tempo", "float", "140", new string[] { "main", "bpm" }, null);
 
             Log.Debug("Tempo: {0} bpm, MasterTrackName: {1}, Volume: {2}, Pan: {3}", tempo, mastertrackName, masTrackVol, masTrackPan);
 
@@ -403,8 +403,8 @@ namespace PresetConverter
                 if (tracktype == "MidiTrack")
                 {
                     fxLoc = new string[] { "track", trackId };
-                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", 0, new string[] { "track", trackId, "vol" }, null);
-                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", 0, new string[] { "track", trackId, "pan" }, null);
+                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "track", trackId, "vol" }, null);
+                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
                     Log.Debug($"Reading MIDI Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
 
@@ -555,9 +555,6 @@ namespace PresetConverter
                     // add the track if there are notes
                     if (notesList.Count > 0)
                     {
-                        // dynamic notesGroup = new System.Dynamic.ExpandoObject();
-                        // notesGroup.notes = notesList;
-                        // cvpj.track_placements.Add(trackId, notesGroup);
                         DataValues.NestedDictAddToList(cvpj, new[] { "track_placements", trackId, "notes" }, notesList);
                     }
                 }
@@ -565,23 +562,33 @@ namespace PresetConverter
                 if (tracktype == "AudioTrack")
                 {
                     fxLoc = new string[] { "track", trackId };
-                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", 0, new string[] { "track", trackId, "vol" }, null);
-                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", 0, new string[] { "track", trackId, "pan" }, null);
+                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "track", trackId, "vol" }, null);
+                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
                     Log.Debug($"Reading Audio Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
                 }
 
                 if (tracktype == "ReturnTrack")
                 {
-                    fxLoc = new string[] { "return", null, "return_" + returnId };
-                    Log.Debug($"Reading Return Track. Id: {trackId}, EffectiveName: {trackName}");
+                    GetAuto(xTrackData);
+                    string returnTrackId = "return_" + returnId.ToString();
+                    fxLoc = new string[] { "return", null, returnTrackId };
+                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "return", returnTrackId, "vol" }, null);
+                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "return", returnTrackId, "pan" }, null);
+
+                    Log.Debug($"Reading Return Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
                     returnId++;
                 }
 
                 if (tracktype == "GroupTrack")
                 {
-                    fxLoc = new string[] { "group", "group_" + trackId };
-                    Log.Debug($"Reading Group Track. Id: {trackId}, EffectiveName: {trackName}");
+                    GetAuto(xTrackData);
+                    string groupTrackId = "group_" + trackId.ToString();
+                    fxLoc = new string[] { "group", groupTrackId };
+                    float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "group", groupTrackId, "vol" }, null);
+                    float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "group", groupTrackId, "pan" }, null);
+
+                    Log.Debug($"Reading Group Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
                 }
 
                 if (fxLoc.Length > 0)
@@ -641,6 +648,8 @@ namespace PresetConverter
                 // check if it's on
                 XElement xOn = xDevice?.Element("On");
                 bool isOn = bool.Parse(GetValue(xOn, "Manual", "false"));
+
+                bool devFxEnabled = (bool)GetParam(xDevice, "On", "bool", "true", new string[] { "slot", deviceId.ToString(), "enabled" }, null);
 
                 if (!isOn)
                 {
