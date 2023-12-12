@@ -242,7 +242,7 @@ namespace PresetConverter
             var str = Encoding.UTF8.GetString(decompressed);
             var rootXElement = XElement.Parse(str);
 
-            AbletonProject.DoDevices(rootXElement, null, null, new string[] { "preset" }, outputDirectoryPath, file);
+            AbletonProject.DoDevices(rootXElement, rootXElement, null, null, new string[] { "preset" }, outputDirectoryPath, file);
         }
 
         private static void HandleCubaseProjectFile(string file, string outputDirectoryPath, IConfiguration config, bool doConvertToKontakt6)

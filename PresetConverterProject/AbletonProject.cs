@@ -163,6 +163,14 @@ namespace PresetConverter
 
                             cvpjAutoPoints.Add(point);
                         }
+                        else if (envAutoEvent.Name == "BoolEvent")
+                        {
+                            dynamic point = new System.Dynamic.ExpandoObject();
+                            point.position = Math.Max(0, double.Parse(envAutoEvent.Attribute("Time").Value, NumberStyles.Any, CultureInfo.InvariantCulture) * 4);
+                            point.value = (double)(bool.Parse(envAutoEvent.Attribute("Value").Value) ? 1.0 : 0.0);
+
+                            cvpjAutoPoints.Add(point);
+                        }
                     }
 
                     if (autoTarget > 0 && cvpjAutoPoints.Count > 0)
@@ -224,20 +232,20 @@ namespace PresetConverter
             inData[id].Add(autoPointList);
         }
 
-        private static string GetSubstringAfterLast(string input, string pattern)
+        private static Tuple<string, string> SplitXPath(string input, string pattern, string removePrefix, string removeSuffix)
         {
             int lastIndexOfPattern = input.LastIndexOf(pattern);
 
-            if (lastIndexOfPattern != -1)
-            {
-                // + pattern.Length to skip the pattern itself
-                return input.Substring(lastIndexOfPattern + pattern.Length);
-            }
-            else
-            {
-                // Pattern not found, return the original string
-                return input;
-            }
+            string beforeLastPattern = lastIndexOfPattern != -1 ? input.Substring(0, lastIndexOfPattern) : input;
+            string afterLastPattern = lastIndexOfPattern != -1 ? input.Substring(lastIndexOfPattern + pattern.Length) : input;
+
+            // Remove the specified suffix from afterLastPattern
+            afterLastPattern = afterLastPattern.EndsWith(removeSuffix) ? afterLastPattern.Substring(0, afterLastPattern.Length - removeSuffix.Length) : afterLastPattern;
+
+            // Remove the specified prefix from beforeLastPattern
+            beforeLastPattern = beforeLastPattern.StartsWith(removePrefix) ? beforeLastPattern.Substring(removePrefix.Length) : beforeLastPattern;
+
+            return Tuple.Create(beforeLastPattern, afterLastPattern);
         }
 
         private static void InOutput(dynamic cvpj)
@@ -274,19 +282,7 @@ namespace PresetConverter
                         string[] fxLocDetails = autoTarget.details;
                         string path = autoTarget.path;
 
-                        // clean path
-                        // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
-
-                        // Trim everything before the last "Devices/"
-                        var pathFixed = GetSubstringAfterLast(path, "Devices/");
-
-                        // Trim the last "/AutomationTarget"
-                        pathFixed = pathFixed.TrimEnd("AutomationTarget".ToCharArray())?.TrimEnd('/');
-
-                        // Replace / with _
-                        pathFixed = pathFixed.Replace("/", "_");
-
-                        AddPointList(cvpj, "float", fxLoc.Concat(new[] { pathFixed }).ToArray(), outAutoData);
+                        AddPointList(cvpj, "float", fxLoc.Concat(new[] { trackName, path }).ToArray(), outAutoData);
                     }
                     else
                     {
@@ -407,7 +403,7 @@ namespace PresetConverter
             XElement xMasterTrackMixer = xMasterTrackDeviceChain?.Element("Mixer");
             XElement xMasterTrackDeviceChainInside = xMasterTrackDeviceChain?.Element("DeviceChain");
             XElement xMasterTrackTrackDevices = xMasterTrackDeviceChainInside?.Element("Devices");
-            DoDevices(xMasterTrackTrackDevices, null, "Master", new[] { "master" }, outputDirectoryPath, file);
+            DoDevices(rootXElement, xMasterTrackTrackDevices, null, "Master", new[] { "master" }, outputDirectoryPath, file);
 
             XElement xMastertrackName = xMasterTrack?.Element("Name");
             string mastertrackName = GetValue(xMastertrackName, "EffectiveName", "");
@@ -660,7 +656,7 @@ namespace PresetConverter
 
                     XElement xTrackDeviceChainInside = xTrackDeviceChain?.Element("DeviceChain");
                     XElement xTrackDevices = xTrackDeviceChainInside?.Element("Devices");
-                    DoDevices(xTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
+                    DoDevices(rootXElement, xTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
                 }
             }
 
@@ -687,7 +683,7 @@ namespace PresetConverter
             ConvertToMidi(cvpj, file, outputDirectoryPath, false);
         }
 
-        private static void AddAutomationTargets(XElement xDevice, string? trackId, string? trackName, string[] fxLoc, string[] fxLocDetails)
+        private static void AddAutomationTargets(XElement rootXElement, XElement xDevice, string? trackId, string? trackName, string[] fxLoc, string[] fxLocDetails)
         {
             // add all AutomationTargets
             var xAutomationTargets = xDevice.Descendants("AutomationTarget");
@@ -699,20 +695,54 @@ namespace PresetConverter
                     // get the path
                     string path = GetXPath(xAutomationTarget);
 
+                    // Get path elements
+                    // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
+                    // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/PluginDevice/ParameterList/PluginFloatParameter/ParameterValue/AutomationTarget"
+
+                    // Split the path into before and after the last "Devices/"
+                    var paths = SplitXPath(path, "Devices/", "Ableton/", "/AutomationTarget");
+
+                    // Replace / with _
+                    string pathFixed = paths.Item2;
+                    pathFixed = pathFixed.Replace("/", "_");
+
+                    if (pathFixed.StartsWith("PluginDevice"))
+                    {
+                        // lookup VST Plugin Name using the path
+                        var lookupXPath = $"{paths.Item1}Devices/PluginDevice";
+
+                        // Use XPathSelectElement with the full path
+                        XElement? xFoundElement = rootXElement.XPathSelectElement(lookupXPath);
+                        if (xFoundElement != null)
+                        {
+                            XElement? xPluginDesc = xFoundElement?.Element("PluginDesc");
+                            XElement? xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
+                            string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Unknown");
+
+                            // // remove PluginDevice/
+                            // pathFixed = pathFixed.Replace("PluginDevice", "");
+
+                            // // and add back the path suffix
+                            // pathFixed = $"{vstPlugName}{pathFixed}";
+
+                            pathFixed = vstPlugName;
+                        }
+                    }
+
                     // add
                     dynamic autoTarget = new System.Dynamic.ExpandoObject();
                     autoTarget.trackid = trackId;
                     autoTarget.trackname = trackName;
                     autoTarget.loc = fxLoc;
                     autoTarget.details = fxLocDetails;
-                    autoTarget.path = path;
+                    autoTarget.path = pathFixed;
 
                     automationTargetLookup.Add(autoNumId, autoTarget);
                 }
             }
         }
 
-        public static void DoDevices(XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
+        public static void DoDevices(XElement rootXElement, XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
         {
             // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*            
             // Path for Tracks: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
@@ -747,7 +777,7 @@ namespace PresetConverter
                     Log.Debug($"Processing Device {deviceId} {deviceType} ...");
                 }
 
-                AddAutomationTargets(xDevice, trackId, trackName, fxLoc, new string[] { deviceType, deviceId.ToString() });
+                AddAutomationTargets(rootXElement, xDevice, trackId, trackName, fxLoc, new string[] { deviceType, deviceId.ToString() });
 
                 switch (deviceType)
                 {
@@ -886,10 +916,6 @@ namespace PresetConverter
                                 break;
                         }
                         break;
-                    case "AudioEffectGroupDevice":
-
-                        break;
-
                     case "MultibandDynamics":
                     case "AutoFilter":
                     case "Reverb":
