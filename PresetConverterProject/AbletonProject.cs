@@ -69,6 +69,15 @@ namespace PresetConverter
 
     public static class AbletonProject
     {
+        private static string GetXPath(XElement? element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            var ancestors = element.AncestorsAndSelf().Select(e => e.Name.ToString());
+            return string.Join("/", ancestors.Reverse());
+        }
+
         private static string GetValue(XElement xmlData, string varName, string fallback)
         {
             XElement? xElement = xmlData.Descendants(varName).FirstOrDefault();
@@ -156,29 +165,30 @@ namespace PresetConverter
                         }
                     }
 
-                    if (cvpjAutoPoints.Count > 0)
+                    if (autoTarget > 0 && cvpjAutoPoints.Count > 0)
                     {
-                        InAddPl(autoTarget, ToPl(cvpjAutoPoints));
+                        InAddPointList(autoTarget, ToPointList(cvpjAutoPoints));
                     }
                 }
             }
         }
 
-        private static dynamic ToPl(List<dynamic> pointsData)
+        private static dynamic ToPointList(List<dynamic> pointsData)
         {
             // auto_nopl.py: def to_pl(pointsdata):
 
-            dynamic autoPl = new System.Dynamic.ExpandoObject();
+            dynamic autoPointList = new System.Dynamic.ExpandoObject();
             var durPos = AbletonFunctions.GetDurPos(pointsData, 0);
 
-            autoPl.position = durPos.Item1;
-            autoPl.duration = durPos.Item2 - durPos.Item1 + 4;
-            autoPl.points = AbletonFunctions.TrimMove(pointsData, durPos.Item1, durPos.Item1 + durPos.Item2);
+            autoPointList.position = durPos.Item1;
+            autoPointList.duration = durPos.Item2 - durPos.Item1 + 4;
+            autoPointList.points = AbletonFunctions.TrimMove(pointsData, durPos.Item1, durPos.Item1 + durPos.Item2);
 
-            return autoPl;
+            return autoPointList;
         }
 
-        static Dictionary<int, dynamic> inData = new Dictionary<int, dynamic>();
+        static SortedDictionary<int, dynamic> inData = new SortedDictionary<int, dynamic>();
+        static SortedDictionary<int, dynamic> automationTargetLookup = new SortedDictionary<int, dynamic>();
 
         // ------------------------ autoid to cvpjauto ------------------------
 
@@ -186,53 +196,107 @@ namespace PresetConverter
         {
             // auto_id.py: def in_define(i_id, i_loc, i_type, i_addmul):
 
-            if (!inData.ContainsKey(id))
-            {
-                inData[id] = new List<dynamic?> { loc, type, addMul, new List<dynamic>() };
-            }
-            else
-            {
-                inData[id][0] = loc;
-                inData[id][1] = type;
-                inData[id][2] = addMul;
-            }
+            // if (!inData.ContainsKey(id))
+            // {
+            //     // inData[id] = new List<dynamic?> { loc, type, addMul, new List<dynamic>() };
+            //     inData[id] = new List<dynamic>();
+            // }
+            // else
+            // {
+            //     // inData[id][0] = loc;
+            //     // inData[id][1] = type;
+            //     // inData[id][2] = addMul;
+            // }
         }
 
-        private static void InAddPl(int id, dynamic autoPl)
+        private static void InAddPointList(int id, dynamic autoPointList)
         {
             // auto_id.py: def in_add_pl(i_id, i_autopl):
 
             if (!inData.ContainsKey(id))
             {
                 // even if we have no targets added, create a default one
-                inData[id] = new List<dynamic?> { new string[] { id.ToString() }, "float", null, new List<dynamic>() };
+                // inData[id] = new List<dynamic?> { new string[] { id.ToString() }, "float", null, new List<dynamic>() };
+                inData[id] = new List<dynamic>();
             }
 
-            inData[id][3].Add(autoPl);
+            // inData[id][3].Add(autoPl);
+            inData[id].Add(autoPointList);
+        }
+
+        private static string GetSubstringAfterLast(string input, string pattern)
+        {
+            int lastIndexOfPattern = input.LastIndexOf(pattern);
+
+            if (lastIndexOfPattern != -1)
+            {
+                // + pattern.Length to skip the pattern itself
+                return input.Substring(lastIndexOfPattern + pattern.Length);
+            }
+            else
+            {
+                // Pattern not found, return the original string
+                return input;
+            }
         }
 
         private static void InOutput(dynamic cvpj)
         {
             foreach (var id in inData.Keys)
             {
-                var outAutoLoc = inData[id][0];
-                var outAutoType = inData[id][1];
-                var outAutoAddMul = inData[id][2];
-                var outAutoData = inData[id][3];
+                // var outAutoLoc = inData[id][0];
+                // var outAutoType = inData[id][1];
+                // var outAutoAddMul = inData[id][2];
+                // var outAutoData = inData[id][3];
 
-                if ((inData[id][0] != null || inData[id][1] != null || inData[id][2] != null) && outAutoData.Count > 0)
+                // if ((inData[id][0] != null || inData[id][1] != null || inData[id][2] != null) && outAutoData.Count > 0)
+                // {
+                //     if (outAutoAddMul != null)
+                //     {
+                //         outAutoData = AbletonFunctions.Multiply(outAutoData, outAutoAddMul[0], outAutoAddMul[1]);
+                //     }
+
+                //     AddPointList(cvpj, outAutoType, outAutoLoc, outAutoData);
+                // }
+
+                var outAutoData = inData[id];
+                if (outAutoData.Count > 0)
                 {
-                    if (outAutoAddMul != null)
-                    {
-                        outAutoData = AbletonFunctions.Multiply(outAutoData, outAutoAddMul[0], outAutoAddMul[1]);
-                    }
+                    // AddPointList(cvpj, outAutoData);
 
-                    AddPl(cvpj, outAutoType, outAutoLoc, outAutoData);
+                    // lookup the target
+                    bool isFound = automationTargetLookup.TryGetValue(id, out dynamic autoTarget);
+                    if (isFound)
+                    {
+                        string trackId = autoTarget.trackid;
+                        string trackName = autoTarget.trackname;
+                        string[] fxLoc = autoTarget.loc;
+                        string[] fxLocDetails = autoTarget.details;
+                        string path = autoTarget.path;
+
+                        // clean path
+                        // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
+
+                        // Trim everything before the last "Devices/"
+                        var pathFixed = GetSubstringAfterLast(path, "Devices/");
+
+                        // Trim the last "/AutomationTarget"
+                        pathFixed = pathFixed.TrimEnd("AutomationTarget".ToCharArray())?.TrimEnd('/');
+
+                        // Replace / with _
+                        pathFixed = pathFixed.Replace("/", "_");
+
+                        AddPointList(cvpj, "float", fxLoc.Concat(new[] { pathFixed }).ToArray(), outAutoData);
+                    }
+                    else
+                    {
+
+                    }
                 }
             }
         }
 
-        private static void AddPl(dynamic cvpj, string valType, string[] autoLocation, List<dynamic> inAutoPoints)
+        private static void AddPointList(dynamic cvpj, string valType, string[] autoLocation, List<dynamic> inAutoPoints)
         {
             if (autoLocation != null)
             {
@@ -403,7 +467,7 @@ namespace PresetConverter
 
                 if (tracktype == "MidiTrack")
                 {
-                    fxLoc = new string[] { "track", trackId };
+                    fxLoc = new string[] { "miditrack", trackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
@@ -562,7 +626,7 @@ namespace PresetConverter
 
                 if (tracktype == "AudioTrack")
                 {
-                    fxLoc = new string[] { "track", trackId };
+                    fxLoc = new string[] { "audiotrack", trackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
@@ -572,7 +636,7 @@ namespace PresetConverter
                 if (tracktype == "ReturnTrack")
                 {
                     string returnTrackId = "return_" + returnId.ToString();
-                    fxLoc = new string[] { "return", null, returnTrackId };
+                    fxLoc = new string[] { "return", returnTrackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "return", returnTrackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "return", returnTrackId, "pan" }, null);
 
@@ -593,11 +657,11 @@ namespace PresetConverter
                 if (fxLoc.Length > 0)
                 {
                     GetAuto(xTrackData);
-                }
 
-                XElement xTrackDeviceChainInside = xTrackDeviceChain?.Element("DeviceChain");
-                XElement xTrackDevices = xTrackDeviceChainInside?.Element("Devices");
-                DoDevices(xTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
+                    XElement xTrackDeviceChainInside = xTrackDeviceChain?.Element("DeviceChain");
+                    XElement xTrackDevices = xTrackDeviceChainInside?.Element("Devices");
+                    DoDevices(xTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
+                }
             }
 
             GetAuto(xMasterTrack);
@@ -621,6 +685,31 @@ namespace PresetConverter
             // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
 
             ConvertToMidi(cvpj, file, outputDirectoryPath, false);
+        }
+
+        private static void AddAutomationTargets(XElement xDevice, string? trackId, string? trackName, string[] fxLoc, string[] fxLocDetails)
+        {
+            // add all AutomationTargets
+            var xAutomationTargets = xDevice.Descendants("AutomationTarget");
+            foreach (var xAutomationTarget in xAutomationTargets)
+            {
+                int autoNumId = int.Parse(xAutomationTarget?.Attribute("Id")?.Value ?? "0");
+                if (autoNumId > 0)
+                {
+                    // get the path
+                    string path = GetXPath(xAutomationTarget);
+
+                    // add
+                    dynamic autoTarget = new System.Dynamic.ExpandoObject();
+                    autoTarget.trackid = trackId;
+                    autoTarget.trackname = trackName;
+                    autoTarget.loc = fxLoc;
+                    autoTarget.details = fxLocDetails;
+                    autoTarget.path = path;
+
+                    automationTargetLookup.Add(autoNumId, autoTarget);
+                }
+            }
         }
 
         public static void DoDevices(XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
@@ -648,8 +737,6 @@ namespace PresetConverter
                 XElement xOn = xDevice?.Element("On");
                 bool isOn = bool.Parse(GetValue(xOn, "Manual", "false"));
 
-                bool devFxEnabled = (bool)GetParam(xDevice, "On", "bool", "true", new string[] { "slot", deviceId.ToString(), "enabled" }, null);
-
                 if (!isOn)
                 {
                     Log.Debug($"Skipping Device {deviceId} {deviceType} since it is disabled!");
@@ -659,6 +746,8 @@ namespace PresetConverter
                 {
                     Log.Debug($"Processing Device {deviceId} {deviceType} ...");
                 }
+
+                AddAutomationTargets(xDevice, trackId, trackName, fxLoc, new string[] { deviceType, deviceId.ToString() });
 
                 switch (deviceType)
                 {
@@ -718,7 +807,7 @@ namespace PresetConverter
                         XElement xPluginDesc = xDevice?.Element("PluginDesc");
                         XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                         int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
-                        string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Empty");
+                        string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Unknown");
                         Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
 
                         XElement xPreset = xVstPluginInfo?.Element("Preset");
@@ -760,30 +849,12 @@ namespace PresetConverter
                                 break;
                             case "FabFilter Saturn 2":
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
-
-                                // write as native FabFilter format, ffp
-                                // BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "FabFilter Pro-Q 3":
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
-
-                                // convert to native FabFilter format, ffp
-                                // var fabFilterProQ3 = new FabfilterProQ3();
-                                // var binFile = new BinaryFile(vstPluginBufferBytes);
-                                // string header = binFile.ReadString(4);
-                                // if (header != "FFBS") continue;
-
-                                // fabFilterProQ3.ReadFFP(binFile);
-                                // fabFilterProQ3.WriteFFP(outputFilePath + ".ffp");
-
-                                // write as native FabFilter format, ffp
-                                // BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "FabFilter Pro-L 2":
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
-
-                                // write as native FabFilter format, ffp
-                                // BinaryFile.ByteArrayToFile(outputFilePath + ".ffp", vstPluginBufferBytes);
                                 break;
                             case "OTT_x64":
                                 FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
@@ -815,12 +886,16 @@ namespace PresetConverter
                                 break;
                         }
                         break;
+                    case "AudioEffectGroupDevice":
+
+                        break;
 
                     case "MultibandDynamics":
                     case "AutoFilter":
                     case "Reverb":
                     case "Saturator":
                     case "Tuner":
+                    case "StereoGain":
                     default:
                         outputFileName = string.Format($"{outputFileName} - {deviceId} {deviceType}");
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
