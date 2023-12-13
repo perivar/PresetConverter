@@ -403,7 +403,7 @@ namespace PresetConverter
             XElement xMasterTrackMixer = xMasterTrackDeviceChain?.Element("Mixer");
             XElement xMasterTrackDeviceChainInside = xMasterTrackDeviceChain?.Element("DeviceChain");
             XElement xMasterTrackTrackDevices = xMasterTrackDeviceChainInside?.Element("Devices");
-            DoDevices(rootXElement, xMasterTrackTrackDevices, null, "Master", new[] { "master" }, outputDirectoryPath, file);
+            DoDevices(rootXElement, xMasterTrackTrackDevices, null, "Master", new string[] { "master", "master_1" }, outputDirectoryPath, file);
 
             XElement xMastertrackName = xMasterTrack?.Element("Name");
             string mastertrackName = GetValue(xMastertrackName, "EffectiveName", "");
@@ -463,7 +463,8 @@ namespace PresetConverter
 
                 if (tracktype == "MidiTrack")
                 {
-                    fxLoc = new string[] { "miditrack", trackId };
+                    string midiTrackId = "midi_" + trackId.ToString();
+                    fxLoc = new string[] { "track", midiTrackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
@@ -597,7 +598,7 @@ namespace PresetConverter
                             {
                                 notes[autoNoteId].notemod.auto.pitch = new List<dynamic>();
                                 var cvpjNoteAutoPitch = notes[autoNoteId].notemod.auto.pitch;
-                                var xNoteNEvent_EV = xNoteNEvent.Element("Events");
+                                var xNoteNEvent_EV = xNoteNEvent.Descendants("Events");
 
                                 foreach (var abletonPoint in xNoteNEvent_EV.Elements("PerNoteEvent"))
                                 {
@@ -622,7 +623,8 @@ namespace PresetConverter
 
                 if (tracktype == "AudioTrack")
                 {
-                    fxLoc = new string[] { "audiotrack", trackId };
+                    string audioTrackId = "audio_" + trackId.ToString();
+                    fxLoc = new string[] { "track", audioTrackId };
                     float trackVol = (float)GetParam(xTrackMixer, "Volume", "float", "0", new string[] { "track", trackId, "vol" }, null);
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
@@ -663,14 +665,14 @@ namespace PresetConverter
             GetAuto(xMasterTrack);
             InOutput(cvpj);
 
-            JObject jcvpj = JObject.FromObject(cvpj);
-            WriteJsonToFile("output_pre_compat.json", jcvpj);
+            // JObject jcvpj = JObject.FromObject(cvpj);
+            // WriteJsonToFile("output_pre_compat.json", jcvpj);
 
             // fix output
             Compat(cvpj);
 
-            JObject jcvpj2 = JObject.FromObject(cvpj);
-            WriteJsonToFile("output_post_compat.json", jcvpj2);
+            // JObject jcvpj2 = JObject.FromObject(cvpj);
+            // WriteJsonToFile("output_post_compat.json", jcvpj2);
 
             // string jsonFilePath1 = "output_pre_compat.json";
             // string jsonFilePath2 = "output_post_compat.json";
@@ -681,6 +683,8 @@ namespace PresetConverter
             // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
 
             ConvertToMidi(cvpj, file, outputDirectoryPath, false);
+
+            ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, true);
         }
 
         private static void AddAutomationTargets(XElement rootXElement, XElement xDevice, string? trackId, string? trackName, string[] fxLoc, string[] fxLocDetails)
@@ -699,7 +703,7 @@ namespace PresetConverter
                     // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
                     // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/PluginDevice/ParameterList/PluginFloatParameter/ParameterValue/AutomationTarget"
 
-                    // Split the path into before and after the last "Devices/"
+                    // Split the path into before and after the last "Devices/" and trim first and last element
                     var paths = SplitXPath(path, "Devices/", "Ableton/", "/AutomationTarget");
 
                     // Replace / with _
@@ -719,10 +723,10 @@ namespace PresetConverter
                             XElement? xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                             string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Unknown");
 
-                            // // remove PluginDevice/
+                            // remove PluginDevice/
                             // pathFixed = pathFixed.Replace("PluginDevice", "");
 
-                            // // and add back the path suffix
+                            // and add back the path suffix
                             // pathFixed = $"{vstPlugName}{pathFixed}";
 
                             pathFixed = vstPlugName;
@@ -1169,6 +1173,150 @@ namespace PresetConverter
             Log.Debug($"Data written to: {filePath}");
         }
 
+        private static double ScaleValue(double value, double minValue, double maxValue)
+        {
+            return (value - minValue) / (maxValue - minValue) * 127;
+        }
+
+        public static void ConvertAutomationToMidi(dynamic cvpj, string file, string outputDirectoryPath, bool doOutputDebugFile)
+        {
+            double tempo = cvpj.parameters.bpm.value;
+
+            // Set the ticks per beat and BPM
+            short ticksPerBeat = 480;
+            byte numerator = 4;
+            byte denominator = 4;
+            var midiTimeDivision = new TicksPerQuarterNoteTimeDivision(ticksPerBeat);
+            var midiTempo = Tempo.FromBeatsPerMinute(tempo); // 128 bpm should give 468750
+
+            int fileNum = 0;
+            foreach (var trackType in cvpj.automation)
+            {
+                var trackTypeKey = trackType.Key;
+                var trackTypeValue = (IDictionary<string, object>)trackType.Value;
+
+                foreach (var trackTypeEntry in trackTypeValue)
+                {
+                    var trackTypeEntryKey = trackTypeEntry.Key;
+                    var trackTypeEntryValue = (IDictionary<string, object>)trackTypeEntry.Value;
+
+                    foreach (var trackName in trackTypeEntryValue)
+                    {
+                        var trackNameKey = trackName.Key;
+                        var trackNameValue = (IDictionary<string, object>)trackName.Value;
+
+                        // Include the time division when creating the midi file
+                        var midiFile = new MidiFile()
+                        {
+                            TimeDivision = midiTimeDivision
+                        };
+
+                        // Set the timesignature and tempo manually instead of ReplaceTempoMap 
+                        // to make sure the time signature event is included
+                        // var midiTimeSignature = new TimeSignature(4, 4);
+                        // var tempoMap = TempoMap.Create(midiTimeDivision, midiTempo, midiTimeSignature);
+                        // midiFile.ReplaceTempoMap(tempoMap);
+                        midiFile.Chunks.Add(new TrackChunk(
+                                new TimeSignatureEvent(numerator, denominator),
+                                new SetTempoEvent(midiTempo.MicrosecondsPerQuarterNote)
+                            )
+                        );
+
+                        Log.Debug($"Creating MIDI file: {trackNameKey} with {midiTimeDivision} at {midiTempo}");
+
+                        var midiChannelManager = new MidiChannelManager();
+
+                        foreach (var pluginName in trackNameValue)
+                        {
+                            var pluginNameKey = pluginName.Key;
+                            dynamic pluginNameValue = pluginName.Value;
+
+                            string midiTrackName = pluginNameKey;
+                            int midiChannel = midiChannelManager.GetUnusedChannel();
+
+                            Log.Debug($"Adding MIDI track: {midiTrackName} ({trackTypeEntryKey}, {trackNameKey}, {pluginNameKey}) on Channel: {midiChannel}");
+
+                            // Create a track
+                            var trackChunk = new TrackChunk();
+                            midiFile.Chunks.Add(trackChunk);
+
+                            // set track name
+                            trackChunk.Events.Add(new SequenceTrackNameEvent(midiTrackName));
+
+                            string type = pluginNameValue.type;
+                            List<dynamic> placements = pluginNameValue.placements;
+
+                            foreach (var placement in placements)
+                            {
+                                double placementPos = placement.position;
+                                double placementDuration = placement.duration;
+                                List<dynamic> points = placement.points;
+
+                                var maxValue = points.Max(point => (double)point.value);
+                                var minValue = points.Min(point => (double)point.value);
+
+                                long prevPos = 0;
+                                foreach (var point in points)
+                                {
+                                    double pointPosition = point.position;
+                                    double pointValue = point.value;
+
+                                    long midiPointPos = (long)(placementPos * 4 + pointPosition * 4) * 30;
+
+                                    int scaledValue;
+                                    if (maxValue > 1)
+                                    {
+                                        // Scale between 0 and 127 using minValue and maxValue
+                                        scaledValue = (int)ScaleValue((double)point.value, minValue, maxValue);
+                                    }
+                                    else
+                                    {
+                                        // Clamp and multiply with 127 if maxValue is 1 and minValue is 0
+                                        scaledValue = Math.Clamp((int)((double)point.value * 127), 0, 127);
+                                    }
+
+                                    // Calculate delta time
+                                    long deltaTime = midiPointPos - prevPos;
+
+                                    // Create a control change event at the specified time
+                                    var controlChangeEvent = new ControlChangeEvent
+                                    {
+                                        DeltaTime = deltaTime,
+                                        Channel = (FourBitNumber)midiChannel,
+                                        ControlNumber = (SevenBitNumber)11,
+                                        ControlValue = (SevenBitNumber)scaledValue
+                                    };
+                                    trackChunk.Events.Add(controlChangeEvent);
+
+                                    // Update prevPos with the current value for the next iteration
+                                    prevPos = midiPointPos;
+                                }
+                            }
+                        }
+
+                        // Save the MIDI file to disk
+                        string outputFileName = string.Format("{0}_automation_{1}.mid", Path.GetFileNameWithoutExtension(file), trackNameKey);
+                        string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                        Log.Information($"Writing MIDI track: {outputFileName}");
+                        if (File.Exists(outputFilePath))
+                        {
+                            File.Delete(outputFilePath);
+                        }
+
+                        // no compression
+                        // see https://github.com/melanchall/drywetmidi/issues/59        
+                        midiFile.Write(outputFilePath);
+
+                        if (doOutputDebugFile) LogMidiFile(midiFile, $"midifile_{fileNum}.log");
+
+                        fileNum++;
+                    }
+                }
+
+            }
+        }
+
         public static void ConvertToMidi(dynamic cvpj, string file, string outputDirectoryPath, bool doOutputDebugFile)
         {
             // all credits go to SatyrDiamond and the DawVert code
@@ -1343,10 +1491,8 @@ namespace PresetConverter
         //             log_file.write(str(msg) + '\n')
         //         log_file.write('\n')
         // print(f"MIDI content written to {log_file_path}")
-        private static void LogMidiFile(MidiFile midiFile)
+        private static void LogMidiFile(MidiFile midiFile, string logFilePath = "midifile.log")
         {
-            string logFilePath = "midifile.log";
-
             using (var logFile = new StreamWriter(logFilePath))
             {
                 logFile.WriteLine("MIDI File Content:");
@@ -1370,6 +1516,9 @@ namespace PresetConverter
                                 {
                                     case ProgramChangeEvent programChangeEvent:
                                         logFile.WriteLine($"program_change channel={programChangeEvent.Channel} program={programChangeEvent.ProgramNumber} time={deltaTime}");
+                                        break;
+                                    case ControlChangeEvent controlChangeEvent:
+                                        logFile.WriteLine($"control_change channel={controlChangeEvent.Channel} number={controlChangeEvent.ControlNumber} value={controlChangeEvent.ControlValue} time={deltaTime}");
                                         break;
                                     case NoteOnEvent noteOnEvent:
                                         logFile.WriteLine($"note_on channel={noteOnEvent.Channel} note={noteOnEvent.NoteNumber} velocity={noteOnEvent.Velocity} time={deltaTime}");
