@@ -1200,7 +1200,7 @@ namespace PresetConverter
                     // Interpolate events here
                     int difference = Math.Abs(nextEvent.Value - currentEvent.Value);
                     int numSteps = Math.Max(difference / 10, 1); // Adjust the divisor as needed
-                    var interpolatedValues = InterpolateValues(currentEvent.Value, nextEvent.Value, numSteps, InterpolationType.Logarithmic);
+                    var interpolatedValues = Interpolate(currentEvent.Value, nextEvent.Value, numSteps, InterpolationType.Linear);
 
                     // Create new events with interpolated values
                     for (int j = 0; j < interpolatedValues.Count; j++)
@@ -1237,38 +1237,31 @@ namespace PresetConverter
         public enum InterpolationType
         {
             Linear,
-            Exponential,
             Logarithmic
         }
 
-        private static List<int> InterpolateValues(int startValue, int endValue, int numSteps, InterpolationType interpolationType)
+        private static List<int> Interpolate(int start, int end, int numSteps, InterpolationType interpolationType)
         {
-            var interpolatedValues = new List<int>();
-
-            for (int i = 0; i <= numSteps; i++)
+            List<int> result = new List<int>(numSteps);
+            float stepSize = (float)(end - start) / numSteps;
+            for (int i = 0; i < numSteps; i++)
             {
-                double t = i / (double)numSteps;
+                float t = i / (float)(numSteps - 1);
 
-                int interpolatedValue;
                 switch (interpolationType)
                 {
                     case InterpolationType.Linear:
-                        interpolatedValue = (int)(startValue + (endValue - startValue) * t);
-                        break;
-                    case InterpolationType.Exponential:
-                        interpolatedValue = (int)(startValue * Math.Pow(endValue / (double)startValue, t));
+                        result.Add((int)(start + i * stepSize));
                         break;
                     case InterpolationType.Logarithmic:
-                        interpolatedValue = (int)(startValue + (endValue - startValue) * Math.Log10(1 + 9 * t));
+
+                        result.Add((int)(start + (end - start) * Math.Log10(1 + 9 * t)));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(interpolationType), interpolationType, null);
                 }
-
-                interpolatedValues.Add(interpolatedValue);
             }
-
-            return interpolatedValues;
+            return result;
         }
 
         private static double ScaleValue(double value, double minValue, double maxValue)
