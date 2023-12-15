@@ -1243,7 +1243,7 @@ namespace PresetConverter
 
             for (int i = 0; i <= numSteps; i++)
             {
-                var interpolatedValue = startValue + (endValue - startValue) * i / (numSteps + 1);
+                var interpolatedValue = startValue + (endValue - startValue) * i / numSteps;
                 interpolatedValues.Add(interpolatedValue);
             }
 
