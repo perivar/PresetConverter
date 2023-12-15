@@ -67,6 +67,17 @@ namespace PresetConverter
         }
     }
 
+    class AutomationEvent
+    {
+        public long Position;
+        public int Value;
+
+        public override string ToString()
+        {
+            return $"[{Position}] {Value}";
+        }
+    }
+
     public static class AbletonProject
     {
         private static string GetXPath(XElement? element)
@@ -1173,6 +1184,72 @@ namespace PresetConverter
             Log.Debug($"Data written to: {filePath}");
         }
 
+        private static List<AutomationEvent> InterpolateEvents(List<AutomationEvent> events)
+        {
+            var interpolatedEvents = new List<AutomationEvent>();
+            AutomationEvent? lastAddedEvent = null;
+
+            for (int i = 0; i < events.Count - 1; i++)
+            {
+                var currentEvent = events[i];
+                var nextEvent = events[i + 1];
+
+                // Check if there is a difference between values
+                if (currentEvent.Value != nextEvent.Value)
+                {
+                    // Interpolate events here
+                    int difference = Math.Abs(nextEvent.Value - currentEvent.Value);
+                    int numSteps = Math.Max(difference / 10, 1); // Adjust the divisor as needed
+                    var interpolatedValues = InterpolateValues(currentEvent.Value, nextEvent.Value, numSteps);
+
+                    // Create new events with interpolated values
+                    for (int j = 0; j < interpolatedValues.Count; j++)
+                    {
+                        long time = (long)(currentEvent.Position + (nextEvent.Position - currentEvent.Position) * j / (double)interpolatedValues.Count);
+                        int value = interpolatedValues[j];
+
+                        var newEvent = new AutomationEvent()
+                        {
+                            Position = time,
+                            Value = value
+                        };
+
+                        if (!(lastAddedEvent != null
+                            && lastAddedEvent.Position == newEvent.Position
+                            && lastAddedEvent.Value == newEvent.Value))
+                        {
+                            interpolatedEvents.Add(newEvent);
+                            lastAddedEvent = newEvent;
+                        }
+                    }
+                }
+                else
+                {
+                    // If values are the same, add the original events without interpolation
+                    interpolatedEvents.Add(currentEvent);
+                    lastAddedEvent = currentEvent;
+                }
+            }
+
+            return interpolatedEvents;
+        }
+
+        private static List<int> InterpolateValues(int startValue, int endValue, int numSteps)
+        {
+            // Replace this with your interpolation logic
+            // For simplicity, linear interpolation is used here
+
+            var interpolatedValues = new List<int>();
+
+            for (int i = 0; i <= numSteps; i++)
+            {
+                var interpolatedValue = startValue + (endValue - startValue) * i / (numSteps + 1);
+                interpolatedValues.Add(interpolatedValue);
+            }
+
+            return interpolatedValues;
+        }
+
         private static double ScaleValue(double value, double minValue, double maxValue)
         {
             return (value - minValue) / (maxValue - minValue) * 127;
@@ -1255,13 +1332,13 @@ namespace PresetConverter
                                 var maxValue = points.Max(point => (double)point.value);
                                 var minValue = points.Min(point => (double)point.value);
 
-                                long prevPos = 0;
+                                var events = new List<AutomationEvent>();
                                 foreach (var point in points)
                                 {
                                     double pointPosition = point.position;
                                     double pointValue = point.value;
 
-                                    long midiPointPos = (long)(placementPos * 4 + pointPosition * 4) * 30;
+                                    long midiPointPosition = (long)(placementPos * 4 + pointPosition * 4) * 30;
 
                                     int scaledValue;
                                     if (maxValue > 1)
@@ -1275,27 +1352,44 @@ namespace PresetConverter
                                         scaledValue = Math.Clamp((int)((double)point.value * 127), 0, 127);
                                     }
 
+                                    var automationEvent = new AutomationEvent
+                                    {
+                                        Position = midiPointPosition,
+                                        Value = scaledValue
+                                    };
+
+                                    events.Add(automationEvent);
+                                }
+
+                                // Interpolate between events
+                                var interpolatedEvents = InterpolateEvents(events);
+
+                                int controlNumber = 11;
+                                long prevPos = 0;
+                                foreach (var currentEvent in interpolatedEvents)
+                                {
                                     // Calculate delta time
-                                    long deltaTime = midiPointPos - prevPos;
+                                    long deltaTime = currentEvent.Position - prevPos;
+                                    int scaledValue = currentEvent.Value;
 
                                     // Create a control change event at the specified time
                                     var controlChangeEvent = new ControlChangeEvent
                                     {
                                         DeltaTime = deltaTime,
                                         Channel = (FourBitNumber)midiChannel,
-                                        ControlNumber = (SevenBitNumber)11,
+                                        ControlNumber = (SevenBitNumber)controlNumber,
                                         ControlValue = (SevenBitNumber)scaledValue
                                     };
                                     trackChunk.Events.Add(controlChangeEvent);
 
                                     // Update prevPos with the current value for the next iteration
-                                    prevPos = midiPointPos;
+                                    prevPos = currentEvent.Position;
                                 }
                             }
                         }
 
                         // Save the MIDI file to disk
-                        string outputFileName = string.Format("{0}_automation_{1}.mid", Path.GetFileNameWithoutExtension(file), trackNameKey);
+                        string outputFileName = string.Format("{0}_Automation_{1}.mid", Path.GetFileNameWithoutExtension(file), trackNameKey);
                         string outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
                         Log.Information($"Writing MIDI track: {outputFileName}");
