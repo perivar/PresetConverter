@@ -727,7 +727,7 @@ namespace PresetConverter
             // // string jsonFilePath2 = "..\\DawVert\\out.cvpj";
             // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
 
-            ConvertToMidi(cvpj, file, outputDirectoryPath, false);
+            ConvertToMidi(cvpj, file, outputDirectoryPath, true);
 
             ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, true);
         }
@@ -1328,7 +1328,7 @@ namespace PresetConverter
             var midiTimeDivision = new TicksPerQuarterNoteTimeDivision(ticksPerBeat);
             var midiTempo = Tempo.FromBeatsPerMinute(tempo); // 128 bpm should give 468750
 
-            int fileNum = 0;
+            int fileNum = 1;
             foreach (var trackType in cvpj.automation)
             {
                 var trackTypeKey = trackType.Key;
@@ -1365,6 +1365,7 @@ namespace PresetConverter
 
                         var midiChannelManager = new MidiChannelManager();
 
+                        int trackNum = 1;
                         foreach (var pluginName in trackNameValue)
                         {
                             var pluginNameKey = pluginName.Key;
@@ -1373,7 +1374,7 @@ namespace PresetConverter
                             string midiTrackName = pluginNameKey;
                             int midiChannel = midiChannelManager.GetUnusedChannel();
 
-                            Log.Debug($"Adding MIDI track: {midiTrackName} ({trackTypeEntryKey}, {trackNameKey}, {pluginNameKey}) on Channel: {midiChannel}");
+                            Log.Debug($"Adding MIDI track: {trackNum} {midiTrackName} ({trackTypeEntryKey}, {trackNameKey}, {pluginNameKey}) on Channel: {midiChannel}");
 
                             // Create a track
                             var trackChunk = new TrackChunk();
@@ -1385,7 +1386,6 @@ namespace PresetConverter
                             string type = pluginNameValue.type;
                             List<dynamic> placements = pluginNameValue.placements;
 
-                            int placementNum = 0;
                             foreach (var placement in placements)
                             {
                                 double placementPos = placement.position;
@@ -1428,7 +1428,7 @@ namespace PresetConverter
                                 var interpolatedEvents = InterpolateEvents(events);
 
                                 // save the interpolated events as a png
-                                if (doOutputDebugFile) LogAutomationEvents(interpolatedEvents, $"automation_{midiTrackName}_{fileNum}_{placementNum}.png");
+                                if (doOutputDebugFile) PlotAutomationEvents(interpolatedEvents, $"automation_{fileNum:D2}_{trackNum:D2}_{midiTrackName}.png");
 
                                 int controlNumber = 11;
                                 long prevPos = 0;
@@ -1451,9 +1451,9 @@ namespace PresetConverter
                                     // Update prevPos with the current value for the next iteration
                                     prevPos = currentEvent.Position;
                                 }
-
-                                placementNum++;
                             }
+
+                            trackNum++;
                         }
 
                         // Save the MIDI file to disk
@@ -1470,7 +1470,7 @@ namespace PresetConverter
                         // see https://github.com/melanchall/drywetmidi/issues/59        
                         midiFile.Write(outputFilePath);
 
-                        if (doOutputDebugFile) LogMidiFile(midiFile, $"midifile_{fileNum}.log");
+                        if (doOutputDebugFile) LogMidiFile(midiFile, $"midifile_{fileNum:D2}.log");
 
                         fileNum++;
                     }
@@ -1729,15 +1729,18 @@ namespace PresetConverter
             Console.WriteLine($"MIDI content written to {logFilePath}");
         }
 
-        private static void LogAutomationEvents(List<AutomationEvent> automationEvents, string fileName)
+        private static void PlotAutomationEvents(List<AutomationEvent> automationEvents, string fileName)
         {
             // Extract Position and Value from AutomationEvent list
             double[] x = automationEvents.Select(eventItem => (double)eventItem.Position).ToArray();
             double[] y = automationEvents.Select(eventItem => (double)eventItem.Value).ToArray();
 
             // Create a scatter plot
-            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 1600), Math.Max(y.Length, 200));
-            plt.AddScatter(x, y, markerSize: 5);
+            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 3840), Math.Max(y.Length, 480));
+            plt.AddScatter(x, y, markerSize: 4);
+
+            // Set the minimum value for the x-axis to ensure it starts from x = 0
+            plt.SetAxisLimits(xMin: -100);
 
             // Save the plot as a PNG file
             plt.SaveFig(fileName);
