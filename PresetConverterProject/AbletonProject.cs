@@ -1791,12 +1791,14 @@ namespace PresetConverter
 
             if (endAt != null)
             {
-                newList = Trim(list, (double)endAt);
+                // TODO: This only seem to work correctly if trimming and moving with newList, not the original list
+                newList = Trim(newList, (double)endAt);
             }
 
             if (startAt != null)
             {
-                newList = Move(list, -(double)startAt);
+                // TODO: This only seem to work correctly if trimming and moving with newList, not the original list
+                newList = Move(newList, -(double)startAt);
             }
 
             return newList;
