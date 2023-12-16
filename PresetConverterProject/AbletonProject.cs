@@ -67,7 +67,7 @@ namespace PresetConverter
         }
     }
 
-    class AutomationEvent
+    class AutomationEvent : IEquatable<AutomationEvent>
     {
         public long Position;
         public int Value;
@@ -76,6 +76,40 @@ namespace PresetConverter
         {
             return $"[{Position}] {Value}";
         }
+
+        public bool Equals(AutomationEvent? other)
+        {
+            if (other == null)
+                return false;
+
+            return Position == other.Position && Value == other.Value;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as AutomationEvent);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Position, Value);
+        }
+    }
+
+    public class OrderedLastElementDictionary<TKey, TValue>
+    {
+        private readonly SortedDictionary<TKey, TValue> dictionary = new SortedDictionary<TKey, TValue>();
+
+        public void AddOrUpdate(TKey key, TValue value)
+        {
+            dictionary[key] = value;
+        }
+
+        public TValue this[TKey key] => dictionary[key];
+
+        public IEnumerable<TKey> Keys => dictionary.Keys;
+
+        public IEnumerable<TValue> Values => dictionary.Values;
     }
 
     public static class AbletonProject
@@ -1194,29 +1228,24 @@ namespace PresetConverter
                 var currentEvent = events[i];
                 var nextEvent = events[i + 1];
 
-                // Check if there is a difference between values
-                if (currentEvent.Value != nextEvent.Value)
+                // Check if there is a difference between values and positions
+                if (currentEvent.Value != nextEvent.Value && currentEvent.Position != nextEvent.Position)
                 {
                     // Interpolate events here
                     int difference = Math.Abs(nextEvent.Value - currentEvent.Value);
                     int numSteps = Math.Max(difference / 10, 1); // Adjust the divisor as needed
-                    var interpolatedValues = Interpolate(currentEvent.Value, nextEvent.Value, numSteps, InterpolationType.Linear);
+                    var interpolatedValues = Interpolate(currentEvent, nextEvent, numSteps, InterpolationType.Linear);
 
                     // Create new events with interpolated values
                     for (int j = 0; j < interpolatedValues.Count; j++)
                     {
-                        long time = (long)(currentEvent.Position + (nextEvent.Position - currentEvent.Position) * j / (double)interpolatedValues.Count);
-                        int value = interpolatedValues[j];
-
                         var newEvent = new AutomationEvent()
                         {
-                            Position = time,
-                            Value = value
+                            Position = interpolatedValues[j].Position,
+                            Value = interpolatedValues[j].Value
                         };
 
-                        if (!(lastAddedEvent != null
-                            && lastAddedEvent.Position == newEvent.Position
-                            && lastAddedEvent.Value == newEvent.Value))
+                        if (lastAddedEvent == null || !lastAddedEvent.Equals(newEvent))
                         {
                             interpolatedEvents.Add(newEvent);
                             lastAddedEvent = newEvent;
@@ -1231,6 +1260,12 @@ namespace PresetConverter
                 }
             }
 
+            // Add the last event if it hasn't been added already
+            if (lastAddedEvent == null || !lastAddedEvent.Equals(events[^1]))
+            {
+                interpolatedEvents.Add(events[^1]);
+            }
+
             return interpolatedEvents;
         }
 
@@ -1240,28 +1275,41 @@ namespace PresetConverter
             Logarithmic
         }
 
-        private static List<int> Interpolate(int start, int end, int numSteps, InterpolationType interpolationType)
+        private static List<AutomationEvent> Interpolate(AutomationEvent startEvent, AutomationEvent endEvent, int numSteps, InterpolationType interpolationType)
         {
-            List<int> result = new List<int>(numSteps);
-            float stepSize = (float)(end - start) / numSteps;
+            var result = new List<AutomationEvent>(numSteps);
+            var dictionary = new OrderedLastElementDictionary<long, AutomationEvent>();
+
+            float valueStep = (float)(endEvent.Value - startEvent.Value) / numSteps;
+            float positionStep = (float)(endEvent.Position - startEvent.Position) / numSteps;
+
             for (int i = 0; i < numSteps; i++)
             {
+                long pos = (int)(startEvent.Position + i * positionStep);
                 float t = i / (float)(numSteps - 1);
+
+                AutomationEvent interpolatedEvent;
 
                 switch (interpolationType)
                 {
                     case InterpolationType.Linear:
-                        result.Add((int)(start + i * stepSize));
+                        interpolatedEvent = new AutomationEvent { Position = pos, Value = (int)(startEvent.Value + i * valueStep) };
                         break;
                     case InterpolationType.Logarithmic:
-
-                        result.Add((int)(start + (end - start) * Math.Log10(1 + 9 * t)));
+                        interpolatedEvent = new AutomationEvent { Position = pos, Value = (int)(startEvent.Value + (endEvent.Value - startEvent.Value) * Math.Log10(1 + 9 * t)) };
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(interpolationType), interpolationType, null);
                 }
+
+                result.Add(interpolatedEvent);
+
+                // Add or update the event in the dictionary
+                dictionary.AddOrUpdate(pos, interpolatedEvent);
             }
-            return result;
+
+            // return result;
+            return dictionary.Values.ToList();
         }
 
         private static double ScaleValue(double value, double minValue, double maxValue)
