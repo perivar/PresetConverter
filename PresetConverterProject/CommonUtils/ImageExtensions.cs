@@ -1,5 +1,5 @@
 
-using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 
 namespace CommonUtils
@@ -23,7 +23,7 @@ namespace CommonUtils
 
             if (imageFormat != null)
             {
-                IImageEncoder encoder = image.GetConfiguration().ImageFormatsManager.GetEncoder(imageFormat);
+                IImageEncoder encoder = image.Configuration.ImageFormatsManager.GetEncoder(imageFormat);
                 image.Save(path, encoder);
             }
             else

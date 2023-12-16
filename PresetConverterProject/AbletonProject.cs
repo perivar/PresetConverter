@@ -1385,6 +1385,7 @@ namespace PresetConverter
                             string type = pluginNameValue.type;
                             List<dynamic> placements = pluginNameValue.placements;
 
+                            int placementNum = 0;
                             foreach (var placement in placements)
                             {
                                 double placementPos = placement.position;
@@ -1426,6 +1427,9 @@ namespace PresetConverter
                                 // Interpolate between events
                                 var interpolatedEvents = InterpolateEvents(events);
 
+                                // save the interpolated events as a png
+                                if (doOutputDebugFile) LogAutomationEvents(interpolatedEvents, $"automation_{midiTrackName}_{fileNum}_{placementNum}.png");
+
                                 int controlNumber = 11;
                                 long prevPos = 0;
                                 foreach (var currentEvent in interpolatedEvents)
@@ -1447,6 +1451,8 @@ namespace PresetConverter
                                     // Update prevPos with the current value for the next iteration
                                     prevPos = currentEvent.Position;
                                 }
+
+                                placementNum++;
                             }
                         }
 
@@ -1469,7 +1475,6 @@ namespace PresetConverter
                         fileNum++;
                     }
                 }
-
             }
         }
 
@@ -1722,6 +1727,22 @@ namespace PresetConverter
             }
 
             Console.WriteLine($"MIDI content written to {logFilePath}");
+        }
+
+        private static void LogAutomationEvents(List<AutomationEvent> automationEvents, string fileName)
+        {
+            // Extract Position and Value from AutomationEvent list
+            double[] x = automationEvents.Select(eventItem => (double)eventItem.Position).ToArray();
+            double[] y = automationEvents.Select(eventItem => (double)eventItem.Value).ToArray();
+
+            // Create a scatter plot
+            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 800), Math.Max(y.Length, 200));
+            plt.AddScatter(x, y, markerSize: 5);
+
+            // Save the plot as a PNG file
+            plt.SaveFig(fileName);
+
+            Console.WriteLine($"Plot saved as {fileName}");
         }
     }
 

@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using CommonUtils;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 
 namespace PresetConverterProject.NIKontaktNKS

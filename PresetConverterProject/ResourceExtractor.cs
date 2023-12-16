@@ -1,5 +1,8 @@
 using CommonUtils;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using Vestris.ResourceLib;
 
 namespace PresetConverter
