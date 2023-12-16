@@ -1736,7 +1736,7 @@ namespace PresetConverter
             double[] y = automationEvents.Select(eventItem => (double)eventItem.Value).ToArray();
 
             // Create a scatter plot
-            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 800), Math.Max(y.Length, 200));
+            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 1600), Math.Max(y.Length, 200));
             plt.AddScatter(x, y, markerSize: 5);
 
             // Save the plot as a PNG file
