@@ -709,6 +709,7 @@ namespace PresetConverter
 
                 string deviceType = xDevice.Name.LocalName;
                 int deviceId = int.Parse(xDevice?.Attribute("Id")?.Value ?? "0");
+                string? userName = xDevice?.Element("UserName")?.Attribute("Value")?.Value; // this is set in .adv preset files
 
                 // check if it's on
                 XElement xOn = xDevice?.Element("On");
@@ -814,54 +815,13 @@ namespace PresetConverter
                         //     BinaryFile.ByteArrayToFile(outputFilePath + "_deflated.dat", vstPluginBytes);
                         // }
 
-                        // save preset
-                        Log.Information($"Writing PluginDevice ({vstPlugName}) Preset: {outputFileName}");
-                        switch (vstPlugName)
+                        if (!SaveAsFXP(vstPluginBufferBytes, vstPlugName, outputFilePath, outputFileName))
                         {
-                            case "Sylenth1":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "syl1");
-                                break;
-                            case "Serum_x64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
-                                break;
-                            case "FabFilter Saturn 2":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
-                                break;
-                            case "FabFilter Pro-Q 3":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
-                                break;
-                            case "FabFilter Pro-L 2":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
-                                break;
-                            case "OTT_x64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
-                                break;
-                            case "Endless Smile 64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "ENDS");
-                                break;
-                            case "soothe2_x64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "SthB");
-                                break;
-                            case "CamelCrusher":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CaCr");
-                                break;
-                            case "Kickstart-64bit":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CNKS");
-                                break;
-                            case "LFOTool_x64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XffO");
-                                break;
-                            case "ValhallaRoom_x64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Ruum");
-                                break;
-                            case "ValhallaVintageVerb_x64":
-                                FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
-                                break;
-                            default:
-                                Log.Error($"Could not save PluginDevice Preset as FXP since I did not recognize vstplugin: {vstPlugName}");
-                                BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
-                                break;
+                            // store xml as well
+                            Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                            xDevice.Save(outputFilePath + ".xml");
                         }
+
                         break;
                     case "MultibandDynamics":
                     case "AutoFilter":
@@ -870,14 +830,99 @@ namespace PresetConverter
                     case "Tuner":
                     case "StereoGain":
                     default:
-                        outputFileName = string.Format($"{outputFileName} - {deviceId} {deviceType}");
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+                        if (!string.IsNullOrEmpty(userName))
+                        {
+                            // we are likely processing an .adv preset file
+                            XElement? xFileRef = xDevice?.Descendants("FileRef")?.FirstOrDefault();
 
-                        Log.Information($"Writing {deviceType} Preset: {outputFileName}");
-                        xDevice.Save(outputFilePath + ".xml");
+                            // read the byte data buffer
+                            XElement xBuffer = xFileRef?.Element("Data");
+                            byte[] vstBytes = XmlHelpers.GetInnerValueAsByteArray(xBuffer);
+
+                            outputFileName = string.Format($"{outputFileName} - {deviceId} {StringUtils.MakeValidFileName(userName)}");
+                            outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                            if (!SaveAsFXP(vstBytes, StringUtils.ExtractBeforeSpace(userName), outputFilePath, outputFileName))
+                            {
+                                // store xml as well
+                                Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                                xDevice.Save(outputFilePath + ".xml");
+                            }
+                        }
+                        else
+                        {
+                            outputFileName = string.Format($"{outputFileName} - {deviceId} {deviceType}");
+                            outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                            Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                            xDevice.Save(outputFilePath + ".xml");
+                        }
+
                         break;
                 }
             }
+        }
+
+        private static bool SaveAsFXP(byte[] vstPluginBufferBytes, string vstPlugName, string outputFilePath, string outputFileName)
+        {
+            // save preset
+            Log.Information($"Writing PluginDevice ({vstPlugName}) Preset: {outputFileName}");
+            switch (vstPlugName)
+            {
+                case "Sylenth1":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "syl1");
+                    break;
+                case "Serum":
+                case "Serum_x64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfsX");
+                    break;
+                case "FabFilter Saturn 2":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FS2a");
+                    break;
+                case "FabFilter Pro-Q 3":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FQ3p");
+                    break;
+                case "FabFilter Pro-L 2":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "FL2p");
+                    break;
+                case "OTT":
+                case "OTT_x64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XfTT");
+                    break;
+                case "Endless Smile":
+                case "Endless Smile 64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "ENDS");
+                    break;
+                case "soothe2":
+                case "soothe2_x64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "SthB");
+                    break;
+                case "CamelCrusher":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CaCr");
+                    break;
+                case "Kickstart":
+                case "Kickstart-64bit":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "CNKS");
+                    break;
+                case "LFOTool":
+                case "LFOTool_x64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "XffO");
+                    break;
+                case "ValhallaRoom":
+                case "ValhallaRoom_x64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Ruum");
+                    break;
+                case "ValhallaVintageVerb":
+                case "ValhallaVintageVerb_x64":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
+                    break;
+                default:
+                    Log.Error($"Could not save PluginDevice Preset as FXP since I did not recognize vstplugin: {vstPlugName}");
+                    BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
+                    return false;
+            }
+
+            return true;
         }
 
         private static bool Compat(dynamic cvpj)

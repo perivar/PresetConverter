@@ -986,5 +986,20 @@ namespace CommonUtils
             }
             return source;
         }
+
+        /// <summary>
+        /// Extracts the substring before the first space in a given string.
+        /// If no space is found, returns the original string.
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <returns>The substring before the first space or the original string if no space is found.</returns>
+        public static string ExtractBeforeSpace(string input)
+        {
+            // Find the index of the first space
+            int spaceIndex = input.IndexOf(' ');
+
+            // If a space is found, extract the substring before it; otherwise, return the original string
+            return spaceIndex != -1 ? input.Substring(0, spaceIndex) : input;
+        }
     }
 }
