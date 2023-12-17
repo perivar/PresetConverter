@@ -487,6 +487,8 @@ namespace PresetConverter
 
             int returnId = 1;
 
+            var uniqueAudioClipList = new HashSet<string>();
+
             foreach (XElement xTrackData in xTracks.Elements())
             {
                 string tracktype = xTrackData.Name.LocalName;
@@ -674,6 +676,25 @@ namespace PresetConverter
                     float trackPan = (float)GetParam(xTrackMixer, "Pan", "float", "0", new string[] { "track", trackId, "pan" }, null);
 
                     Log.Debug($"Reading Audio Track. Id: {trackId}, EffectiveName: {trackName}, Volume: {trackVol}, Pan: {trackPan}");
+
+                    // Get RelativePath elements where FreezeStart and FreezeEnd are both 0
+                    // IEnumerable<XElement> xAudioClipPaths = xTrackData.XPathSelectElements("//AudioClip[FreezeStart[@Value = 0] and FreezeEnd[@Value = 0]]/SampleRef/FileRef/RelativePath");
+                    IEnumerable<string?> audioClipPaths = xTrackData.Descendants("AudioClip")
+                        .Where(xAudioClip => (double)xAudioClip.Element("FreezeStart")?.Attribute("Value") == 0
+                                            && (double)xAudioClip.Element("FreezeEnd")?.Attribute("Value") == 0
+                                            && !string.IsNullOrEmpty(
+                                                    (string)xAudioClip.Element("SampleRef")?.Element("FileRef")?.Element("RelativePath")?.Attribute("Value")?.Value)
+                                                )
+                        .Select(xAudioClip => xAudioClip.Element("SampleRef")?.Element("FileRef")?.Element("RelativePath")?.Attribute("Value")?.Value);
+
+                    // Save to a unique audioClip list
+                    foreach (string? audioClipPath in audioClipPaths)
+                    {
+                        if (audioClipPath != null)
+                        {
+                            uniqueAudioClipList.Add(audioClipPath);
+                        }
+                    }
                 }
 
                 if (tracktype == "ReturnTrack")
@@ -730,6 +751,13 @@ namespace PresetConverter
             ConvertToMidi(cvpj, file, outputDirectoryPath, true);
 
             ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, true);
+
+            // collect found audio clips into a AudioClips folder
+            // build up filename
+            var fileInfo = new FileInfo(file);
+            DirectoryInfo? folder = fileInfo?.Directory;
+            string? folderName = folder?.FullName;
+            CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", "AudioClips");
         }
 
         private static void AddAutomationTargets(XElement rootXElement, XElement xDevice, string? trackId, string? trackName, string[] fxLoc, string[] fxLocDetails)
@@ -1746,6 +1774,43 @@ namespace PresetConverter
             plt.SaveFig(fileName);
 
             Console.WriteLine($"Plot saved as {fileName}");
+        }
+
+        static void CollectAndCopyAudioClips(List<string> filePaths, string prefixPath, string destinationFolder)
+        {
+            try
+            {
+                // Create the destination folder if it doesn't exist
+                Directory.CreateDirectory(destinationFolder);
+
+                foreach (string filePath in filePaths)
+                {
+                    // Combine the prefix path with the file path
+                    string fullPath = Path.Combine(prefixPath, filePath);
+
+                    if (File.Exists(fullPath))
+                    {
+                        // Get the file name from the path
+                        string fileName = Path.GetFileName(fullPath);
+
+                        // Combine the destination folder with the file name
+                        string destinationPath = Path.Combine(destinationFolder, fileName);
+
+                        // Copy the file to the destination path
+                        File.Copy(fullPath, destinationPath, true);
+
+                        Log.Debug($"Copied: {fileName}");
+                    }
+                    else
+                    {
+                        Log.Error($"File not found: {fullPath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"An error occurred: {ex.Message}");
+            }
         }
     }
 
