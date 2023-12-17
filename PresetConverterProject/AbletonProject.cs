@@ -12,26 +12,7 @@ using CommonUtils;
 
 namespace PresetConverter
 {
-    // output booleans as 1 and 0 instead of true and false
-    class BooleanConverter : JsonConverter
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(bool);
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            writer.WriteValue((bool)value ? 1 : 0);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class MidiChannelManager
+    public class MidiChannelManager
     {
         private int unusedChannel = 0;
 
@@ -67,61 +48,12 @@ namespace PresetConverter
         }
     }
 
-    class AutomationEvent : IEquatable<AutomationEvent>
-    {
-        public long Position;
-        public int Value;
-
-        public override string ToString()
-        {
-            return $"[{Position}] {Value}";
-        }
-
-        public bool Equals(AutomationEvent? other)
-        {
-            if (other == null)
-                return false;
-
-            return Position == other.Position && Value == other.Value;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as AutomationEvent);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Position, Value);
-        }
-    }
-
-    public class OrderedLastElementDictionary<TKey, TValue>
-    {
-        private readonly SortedDictionary<TKey, TValue> dictionary = new SortedDictionary<TKey, TValue>();
-
-        public void AddOrUpdate(TKey key, TValue value)
-        {
-            dictionary[key] = value;
-        }
-
-        public TValue this[TKey key] => dictionary[key];
-
-        public IEnumerable<TKey> Keys => dictionary.Keys;
-
-        public IEnumerable<TValue> Values => dictionary.Values;
-    }
-
     public static class AbletonProject
     {
-        private static string GetXPath(XElement? element)
-        {
-            if (element == null)
-                throw new ArgumentNullException(nameof(element));
-
-            var ancestors = element.AncestorsAndSelf().Select(e => e.Name.ToString());
-            return string.Join("/", ancestors.Reverse());
-        }
+        // added another lookup table: automationTargetLookup
+        // instead of the original code in DawVert which used inData as a full automation lookup object 
+        static SortedDictionary<int, dynamic> inData = new SortedDictionary<int, dynamic>();
+        static SortedDictionary<int, dynamic> automationTargetLookup = new SortedDictionary<int, dynamic>();
 
         private static string GetValue(XElement xmlData, string varName, string fallback)
         {
@@ -167,13 +99,15 @@ namespace PresetConverter
             if (xElement != null)
             {
                 string inData = GetValue(xElement, "Manual", fallback);
-                int autoNumId = int.Parse(GetId(xElement, "AutomationTarget", null) ?? "0");
+                // int autoNumId = int.Parse(GetId(xElement, "AutomationTarget", null) ?? "0");
                 object outData = UseValueType(varType, inData);
 
-                if (autoNumId != 0)
-                {
-                    InDefine(autoNumId, loc, varType, addMul);
-                }
+                // Changed the original automation lookup code 
+                // so InDefine is no longer used
+                // if (autoNumId != 0)
+                // {
+                //     InDefine(autoNumId, loc, varType, addMul);
+                // }
 
                 return outData;
             }
@@ -240,8 +174,6 @@ namespace PresetConverter
             return autoPointList;
         }
 
-        static SortedDictionary<int, dynamic> inData = new SortedDictionary<int, dynamic>();
-        static SortedDictionary<int, dynamic> automationTargetLookup = new SortedDictionary<int, dynamic>();
 
         // ------------------------ autoid to cvpjauto ------------------------
 
@@ -249,17 +181,16 @@ namespace PresetConverter
         {
             // auto_id.py: def in_define(i_id, i_loc, i_type, i_addmul):
 
-            // if (!inData.ContainsKey(id))
-            // {
-            //     // inData[id] = new List<dynamic?> { loc, type, addMul, new List<dynamic>() };
-            //     inData[id] = new List<dynamic>();
-            // }
-            // else
-            // {
-            //     // inData[id][0] = loc;
-            //     // inData[id][1] = type;
-            //     // inData[id][2] = addMul;
-            // }
+            if (!inData.ContainsKey(id))
+            {
+                inData[id] = new List<dynamic?> { loc, type, addMul, new List<dynamic>() };
+            }
+            else
+            {
+                inData[id][0] = loc;
+                inData[id][1] = type;
+                inData[id][2] = addMul;
+            }
         }
 
         private static void InAddPointList(int id, dynamic autoPointList)
@@ -268,35 +199,25 @@ namespace PresetConverter
 
             if (!inData.ContainsKey(id))
             {
-                // even if we have no targets added, create a default one
-                // inData[id] = new List<dynamic?> { new string[] { id.ToString() }, "float", null, new List<dynamic>() };
+                // no longer using the original code where the inData object is used for full automation lookup
+                // using a separate lookup instead: automationTargetLookup
+                // inData[id] = new List<dynamic?> { null, null, null, new List<dynamic>() };
+
                 inData[id] = new List<dynamic>();
             }
 
             // inData[id][3].Add(autoPl);
+
             inData[id].Add(autoPointList);
-        }
-
-        private static Tuple<string, string> SplitXPath(string input, string pattern, string removePrefix, string removeSuffix)
-        {
-            int lastIndexOfPattern = input.LastIndexOf(pattern);
-
-            string beforeLastPattern = lastIndexOfPattern != -1 ? input.Substring(0, lastIndexOfPattern) : input;
-            string afterLastPattern = lastIndexOfPattern != -1 ? input.Substring(lastIndexOfPattern + pattern.Length) : input;
-
-            // Remove the specified suffix from afterLastPattern
-            afterLastPattern = afterLastPattern.EndsWith(removeSuffix) ? afterLastPattern.Substring(0, afterLastPattern.Length - removeSuffix.Length) : afterLastPattern;
-
-            // Remove the specified prefix from beforeLastPattern
-            beforeLastPattern = beforeLastPattern.StartsWith(removePrefix) ? beforeLastPattern.Substring(removePrefix.Length) : beforeLastPattern;
-
-            return Tuple.Create(beforeLastPattern, afterLastPattern);
         }
 
         private static void InOutput(dynamic cvpj)
         {
             foreach (var id in inData.Keys)
             {
+                // no longer using the original code where the inData object is used for full automation lookup
+                // using a separate lookup instead: automationTargetLookup
+
                 // var outAutoLoc = inData[id][0];
                 // var outAutoType = inData[id][1];
                 // var outAutoAddMul = inData[id][2];
@@ -315,8 +236,6 @@ namespace PresetConverter
                 var outAutoData = inData[id];
                 if (outAutoData.Count > 0)
                 {
-                    // AddPointList(cvpj, outAutoData);
-
                     // lookup the target
                     bool isFound = automationTargetLookup.TryGetValue(id, out dynamic autoTarget);
                     if (isFound)
@@ -331,7 +250,7 @@ namespace PresetConverter
                     }
                     else
                     {
-
+                        // ignore
                     }
                 }
             }
@@ -346,61 +265,12 @@ namespace PresetConverter
             }
         }
 
-
-        private static dynamic CutLoopData(double start, double loopStart, double loopEnd)
-        {
-            dynamic output = new System.Dynamic.ExpandoObject();
-
-            if (start == 0 && loopStart == 0)
-            {
-                output.type = "loop";
-                output.loopend = loopEnd;
-            }
-            else if (loopStart == 0)
-            {
-                output.type = "loop_off";
-                output.start = start;
-                output.loopend = loopEnd;
-            }
-            else
-            {
-                output.type = "loop_adv";
-                output.start = start;
-                output.loopstart = loopStart;
-                output.loopend = loopEnd;
-            }
-
-            return output;
-        }
-
-        private static double[] HexToRgbDouble(string hex)
-        {
-            // Convert a hexadecimal value #FF00FF to RGB. Returns a array of double between 0 and 1.
-
-            hex = hex.TrimStart('#');
-            if (hex.Length != 6)
-            {
-                throw new ArgumentException("Invalid hexadecimal color code");
-            }
-
-            int r = Convert.ToInt32(hex.Substring(0, 2), 16);
-            int g = Convert.ToInt32(hex.Substring(2, 2), 16);
-            int b = Convert.ToInt32(hex.Substring(4, 2), 16);
-
-            double factor = 1.0 / 255.0f;
-
-            return new double[] { r * factor, g * factor, b * factor };
-        }
-
-        private static byte[] RgbDoubleToRgbBytes(double[] rgb)
-        {
-            return new byte[] { (byte)(rgb[0] * 255), (byte)(rgb[1] * 255), (byte)(rgb[2] * 255) };
-        }
-
         private static void AddCmd(Dictionary<long, List<List<string>>> list, long pos, List<string> cmd)
         {
             if (!list.ContainsKey(pos))
+            {
                 list[pos] = new List<List<string>>();
+            }
 
             list[pos].Add(cmd);
         }
@@ -425,7 +295,7 @@ namespace PresetConverter
             var colorlistOne = new List<double[]>();
             foreach (string hexColor in colorlist)
             {
-                var rgbFloatColor = HexToRgbDouble(hexColor);
+                var rgbFloatColor = AbletonFunctions.HexToRgbDouble(hexColor);
                 colorlistOne.Add(rgbFloatColor);
             }
 
@@ -574,7 +444,7 @@ namespace PresetConverter
 
                         if (notePlacementLoopOn)
                         {
-                            notePlacement.cut = CutLoopData(notePlacementLoopStart * 4, notePlacementLoopLStart * 4, notePlacementLoopLEnd * 4);
+                            notePlacement.cut = AbletonFunctions.CutLoopData(notePlacementLoopStart * 4, notePlacementLoopLStart * 4, notePlacementLoopLEnd * 4);
                         }
                         else
                         {
@@ -732,13 +602,13 @@ namespace PresetConverter
             InOutput(cvpj);
 
             // JObject jcvpj = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output_pre_compat.json", jcvpj);
+            // JsonHelpers.WriteJsonToFile("output_pre_compat.json", jcvpj);
 
             // fix output
             Compat(cvpj);
 
             // JObject jcvpj2 = JObject.FromObject(cvpj);
-            // WriteJsonToFile("output_post_compat.json", jcvpj2);
+            // JsonHelpers.WriteJsonToFile("output_post_compat.json", jcvpj2);
 
             // string jsonFilePath1 = "output_pre_compat.json";
             // string jsonFilePath2 = "output_post_compat.json";
@@ -770,14 +640,14 @@ namespace PresetConverter
                 if (autoNumId > 0)
                 {
                     // get the path
-                    string path = GetXPath(xAutomationTarget);
+                    string path = XmlHelpers.GetXPath(xAutomationTarget);
 
                     // Get path elements
                     // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/AutoFilter/Cutoff/AutomationTarget"
                     // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/PluginDevice/ParameterList/PluginFloatParameter/ParameterValue/AutomationTarget"
 
                     // Split the path into before and after the last "Devices/" and trim first and last element
-                    var paths = SplitXPath(path, "Devices/", "Ableton/", "/AutomationTarget");
+                    var paths = XmlHelpers.SplitXPath(path, "Devices/", "Ableton/", "/AutomationTarget");
 
                     // Replace / with _
                     string pathFixed = paths.Item2;
@@ -924,7 +794,7 @@ namespace PresetConverter
 
                         // read the byte data buffer
                         XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
-                        byte[] vstPluginBufferBytes = GetInnerValueAsByteArray(xVstPluginBuffer);
+                        byte[] vstPluginBufferBytes = XmlHelpers.GetInnerValueAsByteArray(xVstPluginBuffer);
 
                         outputFileName = string.Format($"{outputFileName} - {deviceId} {StringUtils.MakeValidFileName(vstPlugName)}");
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
@@ -1026,7 +896,7 @@ namespace PresetConverter
                 if (notes != null)
                 {
                     Log.Debug("[compat] RemoveLoops: non-laned: {0} - {1}", trackId, trackName);
-                    track.Value.notes = RemoveLoopsDoPlacements(notes, new HashSet<string>());
+                    track.Value.notes = AbletonFunctions.RemoveLoopsDoPlacements(notes, new HashSet<string>());
                 }
             }
 
@@ -1039,114 +909,11 @@ namespace PresetConverter
                 if (notes != null)
                 {
                     Log.Debug("[compat] RemoveCut: non-laned: {0} - {1}", trackId, trackName);
-                    RemoveCutDoPlacements(notes);
+                    AbletonFunctions.RemoveCutDoPlacements(notes);
                 }
             }
 
             return true;
-        }
-
-        private static List<dynamic> RemoveLoopsDoPlacements(dynamic notePlacements, HashSet<string> outPlacementLoop)
-        {
-            List<dynamic> newPlacements = new List<dynamic>();
-
-            foreach (var notePlacement in notePlacements)
-            {
-                if (notePlacement.cut != null)
-                {
-                    string cutType = notePlacement.cut.type;
-
-                    if ((cutType == "loop" || cutType == "loop_off" || cutType == "loop_adv") && !outPlacementLoop.Contains(cutType))
-                    {
-                        dynamic notePlacementBase = AbletonFunctions.CloneExpandoObject(notePlacement);
-                        dynamic notePlacementCut = notePlacement.cut;
-
-                        // cast to dictionary to be able to check for and remove fields
-                        var notePlacementBaseDict = (IDictionary<string, object>)notePlacementBase;
-                        var notePlacementCutDict = (IDictionary<string, object>)notePlacementCut;
-
-                        notePlacementBaseDict.Remove("cut");
-                        notePlacementBaseDict.Remove("position");
-                        notePlacementBaseDict.Remove("duration");
-
-                        double loopBasePosition = notePlacement.position;
-                        double loopBaseDuration = notePlacement.duration;
-
-                        double loopStart = 0;
-                        double loopLoopStart = 0;
-                        double loopLoopEnd = loopBaseDuration;
-                        if (notePlacementCutDict.ContainsKey("start")) loopStart = notePlacementCut.start;
-                        if (notePlacementCutDict.ContainsKey("loopstart")) loopLoopStart = notePlacementCut.loopstart;
-                        if (notePlacementCutDict.ContainsKey("loopend")) loopLoopEnd = notePlacementCut.loopend;
-
-                        List<double[]> cutpoints = XtraMath.CutLoop(loopBasePosition, loopBaseDuration, loopStart, loopLoopStart, loopLoopEnd);
-
-                        foreach (var cutpoint in cutpoints)
-                        {
-                            dynamic notePlacementCutted = AbletonFunctions.CloneExpandoObject(notePlacementBase);
-                            notePlacementCutted.position = cutpoint[0];
-                            notePlacementCutted.duration = cutpoint[1];
-                            notePlacementCutted.cut = new System.Dynamic.ExpandoObject();
-                            notePlacementCutted.cut.type = "cut";
-                            notePlacementCutted.cut.start = cutpoint[2];
-                            notePlacementCutted.cut.end = cutpoint[3];
-
-                            newPlacements.Add(notePlacementCutted);
-                        }
-                    }
-                    else
-                    {
-                        newPlacements.Add(notePlacement);
-                    }
-                }
-                else
-                {
-                    newPlacements.Add(notePlacement);
-                }
-            }
-
-            return newPlacements;
-        }
-
-        private static void RemoveCutDoPlacements(dynamic notePlacements)
-        {
-            foreach (var notePlacement in notePlacements)
-            {
-                if (notePlacement.cut != null)
-                {
-                    double cutEnd = notePlacement.duration;
-
-                    if (notePlacement.cut.type == "cut")
-                    {
-                        double cutStart = notePlacement.cut.start ?? 0;
-                        cutEnd += cutStart;
-
-                        notePlacement.notelist = AbletonFunctions.TrimMove(notePlacement.notelist, cutStart, cutEnd);
-                        // remove field cannot be done setting the field to null: notePlacement.cut = null;
-                        ((IDictionary<string, object>)notePlacement).Remove("cut");
-                    }
-                }
-            }
-        }
-
-        public static byte[] GetInnerValueAsByteArray(XElement? xVstPluginBuffer)
-        {
-            if (xVstPluginBuffer == null) return new byte[0];
-
-            string vstPluginBuffer = xVstPluginBuffer.Value;
-            vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
-                            .Replace("\n", string.Empty)
-                            .Replace("\r", string.Empty)
-                            .Replace("\t", string.Empty);
-
-            // convert from string to byte array
-            byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
-            for (int i = 0; i < vstPluginBufferBytes.Length; i++)
-            {
-                vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
-            }
-
-            return vstPluginBufferBytes;
         }
 
         private static void CompareCvpJson(string jsonFilePath1, string jsonFilePath2, bool doSkipFirstLineJson1, bool doSkipFirstLineJson2)
@@ -1176,8 +943,8 @@ namespace PresetConverter
                 { "track_placements", new JObject(filteredObjects1) }
             };
 
-            JObject sortedJsonObject1 = SortJObjectAlphabetically(filteredObjectContainer1);
-            WriteJsonToFile("compare_cvp_1.json", sortedJsonObject1);
+            JObject sortedJsonObject1 = JsonHelpers.SortJObjectAlphabetically(filteredObjectContainer1);
+            JsonHelpers.WriteJsonToFile("compare_cvp_1.json", sortedJsonObject1);
 
             // Filter out objects with a "notes" array
             List<JProperty> filteredObjects2 = jsonObject2["track_placements"]
@@ -1191,158 +958,8 @@ namespace PresetConverter
                 { "track_placements", new JObject(filteredObjects2) }
             };
 
-            JObject sortedJsonObject2 = SortJObjectAlphabetically(filteredObjectContainer2);
-            WriteJsonToFile("compare_cvp_2.json", sortedJsonObject2);
-        }
-
-        private static JToken SortJTokenAlphabetically(JToken token)
-        {
-            if (token is JObject obj)
-            {
-                var sortedObj = new JObject();
-
-                foreach (var property in obj.Properties().OrderBy(p => p.Name))
-                {
-                    sortedObj.Add(property.Name, SortJTokenAlphabetically(property.Value));
-                }
-
-                return sortedObj;
-            }
-            else if (token is JArray array)
-            {
-                var sortedArray = new JArray(array.Select(SortJTokenAlphabetically));
-                return sortedArray;
-            }
-            else
-            {
-                return token;
-            }
-        }
-
-        private static JObject SortJObjectAlphabetically(JObject jsonObject)
-        {
-            var sortedObject = new JObject();
-
-            foreach (var property in jsonObject.Properties().OrderBy(p => p.Name))
-            {
-                sortedObject.Add(property.Name, SortJTokenAlphabetically(property.Value));
-            }
-
-            return sortedObject;
-        }
-
-        private static void WriteJsonToFile(string filePath, JObject data)
-        {
-            var settings = new JsonSerializerSettings()
-            {
-                Converters = { new BooleanConverter() },
-                Formatting = Formatting.Indented
-            };
-
-            // Serialize
-            string json = JsonConvert.SerializeObject(data, settings);
-
-            File.WriteAllText(filePath, json);
-            Log.Debug($"Data written to: {filePath}");
-        }
-
-        private static List<AutomationEvent> InterpolateEvents(List<AutomationEvent> events)
-        {
-            var interpolatedEvents = new List<AutomationEvent>();
-            AutomationEvent? lastAddedEvent = null;
-
-            for (int i = 0; i < events.Count - 1; i++)
-            {
-                var currentEvent = events[i];
-                var nextEvent = events[i + 1];
-
-                // Check if there is a difference between values and positions
-                if (currentEvent.Value != nextEvent.Value && currentEvent.Position != nextEvent.Position)
-                {
-                    // Interpolate events here
-                    int difference = Math.Abs(nextEvent.Value - currentEvent.Value);
-                    int numSteps = Math.Max(difference / 10, 1); // Adjust the divisor as needed
-                    var interpolatedValues = Interpolate(currentEvent, nextEvent, numSteps, InterpolationType.Linear);
-
-                    // Create new events with interpolated values
-                    for (int j = 0; j < interpolatedValues.Count; j++)
-                    {
-                        var newEvent = new AutomationEvent()
-                        {
-                            Position = interpolatedValues[j].Position,
-                            Value = interpolatedValues[j].Value
-                        };
-
-                        if (lastAddedEvent == null || !lastAddedEvent.Equals(newEvent))
-                        {
-                            interpolatedEvents.Add(newEvent);
-                            lastAddedEvent = newEvent;
-                        }
-                    }
-                }
-                else
-                {
-                    // If values are the same, add the original events without interpolation
-                    interpolatedEvents.Add(currentEvent);
-                    lastAddedEvent = currentEvent;
-                }
-            }
-
-            // Add the last event if it hasn't been added already
-            if (lastAddedEvent == null || !lastAddedEvent.Equals(events[^1]))
-            {
-                interpolatedEvents.Add(events[^1]);
-            }
-
-            return interpolatedEvents;
-        }
-
-        public enum InterpolationType
-        {
-            Linear,
-            Logarithmic
-        }
-
-        private static List<AutomationEvent> Interpolate(AutomationEvent startEvent, AutomationEvent endEvent, int numSteps, InterpolationType interpolationType)
-        {
-            var result = new List<AutomationEvent>(numSteps);
-            var dictionary = new OrderedLastElementDictionary<long, AutomationEvent>();
-
-            float valueStep = (float)(endEvent.Value - startEvent.Value) / numSteps;
-            float positionStep = (float)(endEvent.Position - startEvent.Position) / numSteps;
-
-            for (int i = 0; i < numSteps; i++)
-            {
-                long pos = (int)(startEvent.Position + i * positionStep);
-                float t = i / (float)(numSteps - 1);
-
-                AutomationEvent interpolatedEvent;
-
-                switch (interpolationType)
-                {
-                    case InterpolationType.Linear:
-                        interpolatedEvent = new AutomationEvent { Position = pos, Value = (int)(startEvent.Value + i * valueStep) };
-                        break;
-                    case InterpolationType.Logarithmic:
-                        interpolatedEvent = new AutomationEvent { Position = pos, Value = (int)(startEvent.Value + (endEvent.Value - startEvent.Value) * Math.Log10(1 + 9 * t)) };
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(interpolationType), interpolationType, null);
-                }
-
-                result.Add(interpolatedEvent);
-
-                // Add or update the event in the dictionary
-                dictionary.AddOrUpdate(pos, interpolatedEvent);
-            }
-
-            // return result;
-            return dictionary.Values.ToList();
-        }
-
-        private static double ScaleValue(double value, double minValue, double maxValue)
-        {
-            return (value - minValue) / (maxValue - minValue) * 127;
+            JObject sortedJsonObject2 = JsonHelpers.SortJObjectAlphabetically(filteredObjectContainer2);
+            JsonHelpers.WriteJsonToFile("compare_cvp_2.json", sortedJsonObject2);
         }
 
         public static void ConvertAutomationToMidi(dynamic cvpj, string file, string outputDirectoryPath, bool doOutputDebugFile)
@@ -1423,7 +1040,7 @@ namespace PresetConverter
                                 var maxValue = points.Max(point => (double)point.value);
                                 var minValue = points.Min(point => (double)point.value);
 
-                                var events = new List<AutomationEvent>();
+                                var events = new List<AbletonAutomation.AutomationEvent>();
                                 foreach (var point in points)
                                 {
                                     double pointPosition = point.position;
@@ -1435,7 +1052,7 @@ namespace PresetConverter
                                     if (maxValue > 1)
                                     {
                                         // Scale between 0 and 127 using minValue and maxValue
-                                        scaledValue = (int)ScaleValue((double)point.value, minValue, maxValue);
+                                        scaledValue = (int)AbletonFunctions.ScaleValue((double)point.value, minValue, maxValue);
                                     }
                                     else
                                     {
@@ -1443,7 +1060,7 @@ namespace PresetConverter
                                         scaledValue = Math.Clamp((int)((double)point.value * 127), 0, 127);
                                     }
 
-                                    var automationEvent = new AutomationEvent
+                                    var automationEvent = new AbletonAutomation.AutomationEvent
                                     {
                                         Position = midiPointPosition,
                                         Value = scaledValue
@@ -1453,10 +1070,10 @@ namespace PresetConverter
                                 }
 
                                 // Interpolate between events
-                                var interpolatedEvents = InterpolateEvents(events);
+                                var interpolatedEvents = AbletonAutomation.InterpolateEvents(events);
 
                                 // save the interpolated events as a png
-                                if (doOutputDebugFile) PlotAutomationEvents(interpolatedEvents, $"automation_{fileNum:D2}_{trackNum:D2}_{midiTrackName}.png");
+                                if (doOutputDebugFile) AbletonAutomation.PlotAutomationEvents(interpolatedEvents, $"automation_{fileNum:D2}_{trackNum:D2}_{midiTrackName}.png");
 
                                 int controlNumber = 11;
                                 long prevPos = 0;
@@ -1559,7 +1176,7 @@ namespace PresetConverter
                 var trackColor = cvpj.track_data[trackId].color;
                 if (trackColor != null)
                 {
-                    byte[] midiTrackColor = RgbDoubleToRgbBytes(trackColor);
+                    byte[] midiTrackColor = AbletonFunctions.RgbDoubleToRgbBytes(trackColor);
 
                     var s1 = new SequencerSpecificEvent(new byte[] { 83, 105, 103, 110, 1, 255 }
                         .Concat(midiTrackColor.Reverse()).ToArray()); // from Signal MIDI Editor
@@ -1757,26 +1374,7 @@ namespace PresetConverter
             Console.WriteLine($"MIDI content written to {logFilePath}");
         }
 
-        private static void PlotAutomationEvents(List<AutomationEvent> automationEvents, string fileName)
-        {
-            // Extract Position and Value from AutomationEvent list
-            double[] x = automationEvents.Select(eventItem => (double)eventItem.Position).ToArray();
-            double[] y = automationEvents.Select(eventItem => (double)eventItem.Value).ToArray();
-
-            // Create a scatter plot
-            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 3840), Math.Max(y.Length, 480));
-            plt.AddScatter(x, y, markerSize: 4);
-
-            // Set the minimum value for the x-axis to ensure it starts from x = 0
-            plt.SetAxisLimits(xMin: -100);
-
-            // Save the plot as a PNG file
-            plt.SaveFig(fileName);
-
-            Console.WriteLine($"Plot saved as {fileName}");
-        }
-
-        static void CollectAndCopyAudioClips(List<string> filePaths, string prefixPath, string destinationFolder)
+        private static void CollectAndCopyAudioClips(List<string> filePaths, string prefixPath, string destinationFolder)
         {
             try
             {
@@ -1814,8 +1412,316 @@ namespace PresetConverter
         }
     }
 
+    public static class XmlHelpers
+    {
+        public static byte[] GetInnerValueAsByteArray(XElement? xVstPluginBuffer)
+        {
+            if (xVstPluginBuffer == null) return new byte[0];
+
+            string vstPluginBuffer = xVstPluginBuffer.Value;
+            vstPluginBuffer = vstPluginBuffer.Replace(" ", string.Empty)
+                            .Replace("\n", string.Empty)
+                            .Replace("\r", string.Empty)
+                            .Replace("\t", string.Empty);
+
+            // convert from string to byte array
+            byte[] vstPluginBufferBytes = new byte[vstPluginBuffer.Length / 2];
+            for (int i = 0; i < vstPluginBufferBytes.Length; i++)
+            {
+                vstPluginBufferBytes[i] = Convert.ToByte(vstPluginBuffer.Substring(i * 2, 2), 16);
+            }
+
+            return vstPluginBufferBytes;
+        }
+
+        public static string GetXPath(XElement? element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            var ancestors = element.AncestorsAndSelf().Select(e => e.Name.ToString());
+            return string.Join("/", ancestors.Reverse());
+        }
+
+        public static Tuple<string, string> SplitXPath(string input, string pattern, string removePrefix, string removeSuffix)
+        {
+            int lastIndexOfPattern = input.LastIndexOf(pattern);
+
+            string beforeLastPattern = lastIndexOfPattern != -1 ? input.Substring(0, lastIndexOfPattern) : input;
+            string afterLastPattern = lastIndexOfPattern != -1 ? input.Substring(lastIndexOfPattern + pattern.Length) : input;
+
+            // Remove the specified suffix from afterLastPattern
+            afterLastPattern = afterLastPattern.EndsWith(removeSuffix) ? afterLastPattern.Substring(0, afterLastPattern.Length - removeSuffix.Length) : afterLastPattern;
+
+            // Remove the specified prefix from beforeLastPattern
+            beforeLastPattern = beforeLastPattern.StartsWith(removePrefix) ? beforeLastPattern.Substring(removePrefix.Length) : beforeLastPattern;
+
+            return Tuple.Create(beforeLastPattern, afterLastPattern);
+        }
+    }
+
+    public static class JsonHelpers
+    {
+        // output booleans as 1 and 0 instead of true and false
+        public class BooleanConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType)
+            {
+                return objectType == typeof(bool);
+            }
+
+            public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+            {
+                writer.WriteValue((bool)value ? 1 : 0);
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private static JToken SortJTokenAlphabetically(JToken token)
+        {
+            if (token is JObject obj)
+            {
+                var sortedObj = new JObject();
+
+                foreach (var property in obj.Properties().OrderBy(p => p.Name))
+                {
+                    sortedObj.Add(property.Name, SortJTokenAlphabetically(property.Value));
+                }
+
+                return sortedObj;
+            }
+            else if (token is JArray array)
+            {
+                var sortedArray = new JArray(array.Select(SortJTokenAlphabetically));
+                return sortedArray;
+            }
+            else
+            {
+                return token;
+            }
+        }
+
+        public static JObject SortJObjectAlphabetically(JObject jsonObject)
+        {
+            var sortedObject = new JObject();
+
+            foreach (var property in jsonObject.Properties().OrderBy(p => p.Name))
+            {
+                sortedObject.Add(property.Name, SortJTokenAlphabetically(property.Value));
+            }
+
+            return sortedObject;
+        }
+
+        public static void WriteJsonToFile(string filePath, JObject data)
+        {
+            var settings = new JsonSerializerSettings()
+            {
+                Converters = { new BooleanConverter() },
+                Formatting = Formatting.Indented
+            };
+
+            // Serialize
+            string json = JsonConvert.SerializeObject(data, settings);
+
+            File.WriteAllText(filePath, json);
+            Log.Debug($"Data written to: {filePath}");
+        }
+    }
+
+    public static class AbletonAutomation
+    {
+        public enum InterpolationType
+        {
+            Linear,
+            Logarithmic
+        }
+
+        public class AutomationEvent : IEquatable<AutomationEvent>
+        {
+            public long Position;
+            public int Value;
+
+            public override string ToString()
+            {
+                return $"[{Position}] {Value}";
+            }
+
+            public bool Equals(AutomationEvent? other)
+            {
+                if (other == null)
+                    return false;
+
+                return Position == other.Position && Value == other.Value;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return Equals(obj as AutomationEvent);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Position, Value);
+            }
+        }
+
+        // class that holds the last element added for a given key and ensures that the keys are ordered 
+        private class OrderedLastElementDictionary<TKey, TValue>
+        {
+            private readonly SortedDictionary<TKey, TValue> dictionary = new SortedDictionary<TKey, TValue>();
+
+            public void AddOrUpdate(TKey key, TValue value)
+            {
+                dictionary[key] = value;
+            }
+
+            public TValue this[TKey key] => dictionary[key];
+
+            public IEnumerable<TKey> Keys => dictionary.Keys;
+
+            public IEnumerable<TValue> Values => dictionary.Values;
+        }
+
+        public static List<AutomationEvent> InterpolateEvents(List<AutomationEvent> events)
+        {
+            var interpolatedEvents = new List<AutomationEvent>();
+            AutomationEvent? lastAddedEvent = null;
+
+            for (int i = 0; i < events.Count - 1; i++)
+            {
+                var currentEvent = events[i];
+                var nextEvent = events[i + 1];
+
+                // Check if there is a difference between values and positions
+                if (currentEvent.Value != nextEvent.Value && currentEvent.Position != nextEvent.Position)
+                {
+                    // Interpolate events here
+                    int difference = Math.Abs(nextEvent.Value - currentEvent.Value);
+                    int numSteps = Math.Max(difference / 10, 1); // Adjust the divisor as needed
+                    var interpolatedValues = Interpolate(currentEvent, nextEvent, numSteps, InterpolationType.Linear);
+
+                    // Create new events with interpolated values
+                    for (int j = 0; j < interpolatedValues.Count; j++)
+                    {
+                        var newEvent = new AutomationEvent()
+                        {
+                            Position = interpolatedValues[j].Position,
+                            Value = interpolatedValues[j].Value
+                        };
+
+                        if (lastAddedEvent == null || !lastAddedEvent.Equals(newEvent))
+                        {
+                            interpolatedEvents.Add(newEvent);
+                            lastAddedEvent = newEvent;
+                        }
+                    }
+                }
+                else
+                {
+                    // If values are the same, add the original events without interpolation
+                    interpolatedEvents.Add(currentEvent);
+                    lastAddedEvent = currentEvent;
+                }
+            }
+
+            // Add the last event if it hasn't been added already
+            if (lastAddedEvent == null || !lastAddedEvent.Equals(events[^1]))
+            {
+                interpolatedEvents.Add(events[^1]);
+            }
+
+            return interpolatedEvents;
+        }
+
+        private static List<AutomationEvent> Interpolate(AutomationEvent startEvent, AutomationEvent endEvent, int numSteps, InterpolationType interpolationType)
+        {
+            var dictionary = new OrderedLastElementDictionary<long, AutomationEvent>();
+
+            float valueStep = (float)(endEvent.Value - startEvent.Value) / numSteps;
+            float positionStep = (float)(endEvent.Position - startEvent.Position) / numSteps;
+
+            for (int i = 0; i < numSteps; i++)
+            {
+                long pos = (int)(startEvent.Position + i * positionStep);
+                float t = i / (float)(numSteps - 1);
+
+                AutomationEvent interpolatedEvent;
+
+                switch (interpolationType)
+                {
+                    case InterpolationType.Linear:
+                        interpolatedEvent = new AutomationEvent { Position = pos, Value = (int)(startEvent.Value + i * valueStep) };
+                        break;
+                    case InterpolationType.Logarithmic:
+                        interpolatedEvent = new AutomationEvent { Position = pos, Value = (int)(startEvent.Value + (endEvent.Value - startEvent.Value) * Math.Log10(1 + 9 * t)) };
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(interpolationType), interpolationType, null);
+                }
+
+                // Add or update the event in the dictionary
+                dictionary.AddOrUpdate(pos, interpolatedEvent);
+            }
+
+            return dictionary.Values.ToList();
+        }
+
+        public static void PlotAutomationEvents(List<AutomationEvent> automationEvents, string fileName)
+        {
+            // Extract Position and Value from AutomationEvent list
+            double[] x = automationEvents.Select(eventItem => (double)eventItem.Position).ToArray();
+            double[] y = automationEvents.Select(eventItem => (double)eventItem.Value).ToArray();
+
+            // Create a scatter plot
+            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 3840), Math.Max(y.Length, 480));
+            plt.AddScatter(x, y, markerSize: 4);
+
+            // Set the minimum value for the x-axis to ensure it starts from x = 0
+            plt.SetAxisLimits(xMin: -100);
+
+            // Save the plot as a PNG file
+            plt.SaveFig(fileName);
+
+            Console.WriteLine($"Plot saved as {fileName}");
+        }
+    }
+
     public static class AbletonFunctions
     {
+        public static double[] HexToRgbDouble(string hex)
+        {
+            // Convert a hexadecimal value #FF00FF to RGB. Returns a array of double between 0 and 1.
+
+            hex = hex.TrimStart('#');
+            if (hex.Length != 6)
+            {
+                throw new ArgumentException("Invalid hexadecimal color code");
+            }
+
+            int r = Convert.ToInt32(hex.Substring(0, 2), 16);
+            int g = Convert.ToInt32(hex.Substring(2, 2), 16);
+            int b = Convert.ToInt32(hex.Substring(4, 2), 16);
+
+            double factor = 1.0 / 255.0f;
+
+            return new double[] { r * factor, g * factor, b * factor };
+        }
+
+        public static byte[] RgbDoubleToRgbBytes(double[] rgb)
+        {
+            return new byte[] { (byte)(rgb[0] * 255), (byte)(rgb[1] * 255), (byte)(rgb[2] * 255) };
+        }
+
+        public static double ScaleValue(double value, double minValue, double maxValue)
+        {
+            return (value - minValue) / (maxValue - minValue) * 127;
+        }
+
         public static dynamic CloneExpandoObject(dynamic srcObject)
         {
             dynamic destObject = new System.Dynamic.ExpandoObject();
@@ -1841,6 +1747,7 @@ namespace PresetConverter
             }
         }
 
+        // notelist_data.py and auto.py
         public static List<dynamic> Move(List<dynamic> list, double pos)
         {
             List<dynamic> newList = new List<dynamic>();
@@ -1859,6 +1766,7 @@ namespace PresetConverter
             return newList;
         }
 
+        // notelist_data.py and auto.py
         public static List<dynamic> Trim(List<dynamic> list, double pos)
         {
             List<dynamic> newList = new List<dynamic>();
@@ -1874,25 +1782,25 @@ namespace PresetConverter
             return newList;
         }
 
+        // notelist_data.py and auto.py
         public static List<dynamic> TrimMove(List<dynamic> list, double? startAt, double? endAt)
         {
             List<dynamic> newList = new List<dynamic>(list);
 
             if (endAt != null)
             {
-                // TODO: This only seem to work correctly if trimming and moving with newList, not the original list
                 newList = Trim(newList, (double)endAt);
             }
 
             if (startAt != null)
             {
-                // TODO: This only seem to work correctly if trimming and moving with newList, not the original list
                 newList = Move(newList, -(double)startAt);
             }
 
             return newList;
         }
 
+        // notelist_data.py and auto.py
         public static double GetDuration(List<dynamic> list)
         {
             double durationFinal = 0;
@@ -1910,10 +1818,11 @@ namespace PresetConverter
             return durationFinal;
         }
 
+        // auto.py
         public static Tuple<double, double> GetDurPos(List<dynamic> list, double startPos)
         {
             double durationFinal = 0;
-            double posFinal = 100000000; // double.MaxValue
+            double posFinal = 100000000;
 
             foreach (var element in list)
             {
@@ -1933,6 +1842,7 @@ namespace PresetConverter
             return Tuple.Create(posFinal, durationFinal);
         }
 
+        // auto.py
         public static List<dynamic> Multiply(List<dynamic> list, double addVal, double mulVal)
         {
             foreach (var element in list)
@@ -1951,41 +1861,153 @@ namespace PresetConverter
 
             return list;
         }
+
+        //  loops_remove.py
+        public static List<dynamic> RemoveLoopsDoPlacements(dynamic notePlacements, HashSet<string> outPlacementLoop)
+        {
+            List<dynamic> newPlacements = new List<dynamic>();
+
+            foreach (var notePlacement in notePlacements)
+            {
+                if (notePlacement.cut != null)
+                {
+                    string cutType = notePlacement.cut.type;
+
+                    if ((cutType == "loop" || cutType == "loop_off" || cutType == "loop_adv") && !outPlacementLoop.Contains(cutType))
+                    {
+                        dynamic notePlacementBase = AbletonFunctions.CloneExpandoObject(notePlacement);
+                        dynamic notePlacementCut = notePlacement.cut;
+
+                        // cast to dictionary to be able to check for and remove fields
+                        var notePlacementBaseDict = (IDictionary<string, object>)notePlacementBase;
+                        var notePlacementCutDict = (IDictionary<string, object>)notePlacementCut;
+
+                        notePlacementBaseDict.Remove("cut");
+                        notePlacementBaseDict.Remove("position");
+                        notePlacementBaseDict.Remove("duration");
+
+                        double loopBasePosition = notePlacement.position;
+                        double loopBaseDuration = notePlacement.duration;
+
+                        double loopStart = 0;
+                        double loopLoopStart = 0;
+                        double loopLoopEnd = loopBaseDuration;
+                        if (notePlacementCutDict.ContainsKey("start")) loopStart = notePlacementCut.start;
+                        if (notePlacementCutDict.ContainsKey("loopstart")) loopLoopStart = notePlacementCut.loopstart;
+                        if (notePlacementCutDict.ContainsKey("loopend")) loopLoopEnd = notePlacementCut.loopend;
+
+                        List<double[]> cutpoints = XtraMath.CutLoop(loopBasePosition, loopBaseDuration, loopStart, loopLoopStart, loopLoopEnd);
+
+                        foreach (var cutpoint in cutpoints)
+                        {
+                            dynamic notePlacementCutted = AbletonFunctions.CloneExpandoObject(notePlacementBase);
+                            notePlacementCutted.position = cutpoint[0];
+                            notePlacementCutted.duration = cutpoint[1];
+                            notePlacementCutted.cut = new System.Dynamic.ExpandoObject();
+                            notePlacementCutted.cut.type = "cut";
+                            notePlacementCutted.cut.start = cutpoint[2];
+                            notePlacementCutted.cut.end = cutpoint[3];
+
+                            newPlacements.Add(notePlacementCutted);
+                        }
+                    }
+                    else
+                    {
+                        newPlacements.Add(notePlacement);
+                    }
+                }
+                else
+                {
+                    newPlacements.Add(notePlacement);
+                }
+            }
+
+            return newPlacements;
+        }
+
+        //  removecut.py
+        public static void RemoveCutDoPlacements(dynamic notePlacements)
+        {
+            foreach (var notePlacement in notePlacements)
+            {
+                if (notePlacement.cut != null)
+                {
+                    double cutEnd = notePlacement.duration;
+
+                    if (notePlacement.cut.type == "cut")
+                    {
+                        double cutStart = notePlacement.cut.start ?? 0;
+                        cutEnd += cutStart;
+
+                        notePlacement.notelist = AbletonFunctions.TrimMove(notePlacement.notelist, cutStart, cutEnd);
+                        // remove field cannot be done setting the field to null: notePlacement.cut = null;
+                        ((IDictionary<string, object>)notePlacement).Remove("cut");
+                    }
+                }
+            }
+        }
+
+        // placement_data.py
+        public static dynamic CutLoopData(double start, double loopStart, double loopEnd)
+        {
+            dynamic output = new System.Dynamic.ExpandoObject();
+
+            if (start == 0 && loopStart == 0)
+            {
+                output.type = "loop";
+                output.loopend = loopEnd;
+            }
+            else if (loopStart == 0)
+            {
+                output.type = "loop_off";
+                output.start = start;
+                output.loopend = loopEnd;
+            }
+            else
+            {
+                output.type = "loop_adv";
+                output.start = start;
+                output.loopstart = loopStart;
+                output.loopend = loopEnd;
+            }
+
+            return output;
+        }
     }
 
     public static class XtraMath
     {
         //  -------------------------------------------- placement_loop --------------------------------------------
 
-        public static List<double[]> LoopBefore(double blPPos, double blPDur, double blPStart, double blLStart, double blLEnd)
+        public static List<double[]> LoopBefore(double placementPos, double placementDur, double placementStart, double loopStart, double loopEnd)
         {
-            List<double[]> cutpoints = new List<double[]>();
-            double tempPos = Math.Min(blLEnd, blPDur);
+            List<double[]> cutPoints = new List<double[]>();
+            double tempPos = Math.Min(loopEnd, placementDur);
 
-            cutpoints.Add(new double[]
+            cutPoints.Add(new double[]
             {
-                (blPPos + blPStart) - blPStart,
-                tempPos - blPStart,
-                blPStart,
-                Math.Min(blLEnd, blPDur)
+                placementPos + placementStart - placementStart,
+                tempPos - placementStart,
+                placementStart,
+                Math.Min(loopEnd, placementDur)
             });
 
-            blPDur += blPStart;
-            double placementLoopSize = blLEnd - blLStart;
+            placementDur += placementStart;
+            double placementLoopSize = loopEnd - loopStart;
 
-            if (blLEnd < blPDur && blLEnd > blLStart)
+            if (loopEnd < placementDur && loopEnd > loopStart)
             {
-                double remainingCuts = (blPDur - blLEnd) / placementLoopSize;
+                double remainingCuts = (placementDur - loopEnd) / placementLoopSize;
 
                 while (remainingCuts > 0)
                 {
                     double outDur = Math.Min(remainingCuts, 1);
-                    cutpoints.Add(new double[]
+                    cutPoints.Add(new double[]
                     {
-                        (blPPos + tempPos) - blPStart,
+                        placementPos + tempPos - placementStart,
                         placementLoopSize * outDur,
-                        blLStart,
-                        blLEnd * outDur
+                        loopStart,
+                        loopEnd * outDur
                     });
 
                     tempPos += placementLoopSize;
@@ -1993,22 +2015,20 @@ namespace PresetConverter
                 }
             }
 
-            return cutpoints;
+            return cutPoints;
         }
 
-        public static List<double[]> LoopAfter(double blPPos, double blPDur, double blPStart, double blLStart, double blLEnd)
+        public static List<double[]> LoopAfter(double placementPos, double placementDur, double placementStart, double loopStart, double loopEnd)
         {
-            List<double[]> cutpoints = new List<double[]>();
-            double placementLoopSize = blLEnd - blLStart;
+            List<double[]> cutPoints = new List<double[]>();
+            double placementLoopSize = loopEnd - loopStart;
 
-            double blPDurMo = blPDur - blLStart;
-            double blPStartMo = blPStart - blLStart;
-            double blLStartMo = blLStart - blLStart;
-            double blLEndMo = blLEnd - blLStart;
+            double placementDurMo = placementDur - loopStart;
+            double placementStartMo = placementStart - loopStart;
 
-            double remainingCuts = (blPDurMo + blPStartMo) / placementLoopSize;
-            double tempPos = blPPos;
-            tempPos -= blPStartMo;
+            double remainingCuts = (placementDurMo + placementStartMo) / placementLoopSize;
+            double tempPos = placementPos;
+            tempPos -= placementStartMo;
 
             bool flagFirstPl = true;
 
@@ -2018,23 +2038,23 @@ namespace PresetConverter
 
                 if (flagFirstPl)
                 {
-                    cutpoints.Add(new double[]
+                    cutPoints.Add(new double[]
                     {
-                        tempPos + blPStartMo,
-                        (outDur * placementLoopSize) - blPStartMo,
-                        blLStart + blPStartMo,
-                        outDur * blLEnd
+                        tempPos + placementStartMo,
+                        (outDur * placementLoopSize) - placementStartMo,
+                        loopStart + placementStartMo,
+                        outDur * loopEnd
                     });
                 }
 
                 if (!flagFirstPl)
                 {
-                    cutpoints.Add(new double[]
+                    cutPoints.Add(new double[]
                     {
                         tempPos,
                         outDur * placementLoopSize,
-                        blLStart,
-                        outDur * blLEnd
+                        loopStart,
+                        outDur * loopEnd
                     });
                 }
 
@@ -2043,20 +2063,20 @@ namespace PresetConverter
                 flagFirstPl = false;
             }
 
-            return cutpoints;
+            return cutPoints;
         }
 
-        public static List<double[]> CutLoop(double position, double duration, double startOffset, double loopStart, double loopEnd)
+        public static List<double[]> CutLoop(double placementPos, double placementDur, double placementStart, double loopStart, double loopEnd)
         {
             List<double[]> cutpoints;
 
-            if (loopStart > startOffset)
+            if (loopStart > placementStart)
             {
-                cutpoints = LoopBefore(position, duration, startOffset, loopStart, loopEnd);
+                cutpoints = LoopBefore(placementPos, placementDur, placementStart, loopStart, loopEnd);
             }
             else
             {
-                cutpoints = LoopAfter(position, duration, startOffset, loopStart, loopEnd);
+                cutpoints = LoopAfter(placementPos, placementDur, placementStart, loopStart, loopEnd);
             }
 
             return cutpoints;
