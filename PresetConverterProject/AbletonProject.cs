@@ -748,16 +748,16 @@ namespace PresetConverter
             // // string jsonFilePath2 = "..\\DawVert\\out.cvpj";
             // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
 
-            ConvertToMidi(cvpj, file, outputDirectoryPath, true);
+            ConvertToMidi(cvpj, file, outputDirectoryPath, false);
 
-            ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, true);
+            ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, false);
 
             // collect found audio clips into a AudioClips folder
             // build up filename
             var fileInfo = new FileInfo(file);
             DirectoryInfo? folder = fileInfo?.Directory;
             string? folderName = folder?.FullName;
-            CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", "AudioClips");
+            CollectAndCopyAudioClips(uniqueAudioClipList.ToList(), folderName ?? "", Path.Combine(outputDirectoryPath, "AudioClips"));
         }
 
         private static void AddAutomationTargets(XElement rootXElement, XElement xDevice, string? trackId, string? trackName, string[] fxLoc, string[] fxLocDetails)
@@ -1799,7 +1799,7 @@ namespace PresetConverter
                         // Copy the file to the destination path
                         File.Copy(fullPath, destinationPath, true);
 
-                        Log.Debug($"Copied: {fileName}");
+                        Log.Debug($"Copied: {fileName} to {destinationPath}");
                     }
                     else
                     {
