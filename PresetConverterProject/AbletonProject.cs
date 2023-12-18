@@ -684,7 +684,10 @@ namespace PresetConverter
                     autoTarget.details = fxLocDetails;
                     autoTarget.path = pathFixed;
 
-                    automationTargetLookup.Add(autoNumId, autoTarget);
+                    if (!automationTargetLookup.ContainsKey(autoNumId))
+                    {
+                        automationTargetLookup.Add(autoNumId, autoTarget);
+                    }
                 }
             }
         }
@@ -695,6 +698,10 @@ namespace PresetConverter
             // Path for Tracks: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
             // where * is internal plugins like <Eq8>, <Limiter> 
             // as well as <PluginDevice Id="X"> elements 
+
+            // or * can be a whole new group of effects AudioEffectGroupDevice
+            // ../AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/*
+            // where * is plugins as well as another AudioEffectGroupDevice with same recursive behaviour
 
             // Read Tracks
             Log.Debug("Found {0} Devices for track: {1} {2}", xTrackDevices.Elements().Count(), trackName, trackId ?? "");
@@ -823,6 +830,12 @@ namespace PresetConverter
                         }
 
                         break;
+                    case "AudioEffectGroupDevice":
+                        // recursively handle group of plugins
+                        XElement xGroupTrackDevices = xDevice?.Descendants("Devices")?.FirstOrDefault();
+                        DoDevices(rootXElement, xGroupTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
+
+                        break;
                     case "MultibandDynamics":
                     case "AutoFilter":
                     case "Reverb":
@@ -833,6 +846,7 @@ namespace PresetConverter
                         if (!string.IsNullOrEmpty(userName))
                         {
                             // we are likely processing an .adv preset file
+                            // TODO: This is not always correct
                             XElement? xFileRef = xDevice?.Descendants("FileRef")?.FirstOrDefault();
 
                             // read the byte data buffer
