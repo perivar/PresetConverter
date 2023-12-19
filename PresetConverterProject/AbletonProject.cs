@@ -692,7 +692,7 @@ namespace PresetConverter
             }
         }
 
-        public static void DoDevices(XElement rootXElement, XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file)
+        public static void DoDevices(XElement rootXElement, XElement xTrackDevices, string? trackId, string? trackName, string[] fxLoc, string outputDirectoryPath, string file, int level = 1)
         {
             // Path for MasterTrack: Ableton/LiveSet/MasterTrack/DeviceChain/DeviceChain/Devices/*            
             // Path for Tracks: Ableton/LiveSet/Tracks/[Audio|Group|Midi]Track/DeviceChain/DeviceChain/Devices/*
@@ -704,14 +704,18 @@ namespace PresetConverter
             // where * is plugins as well as another AudioEffectGroupDevice with same recursive behaviour
 
             // Read Tracks
-            Log.Debug("Found {0} Devices for track: {1} {2}", xTrackDevices.Elements().Count(), trackName, trackId ?? "");
+            Log.Debug($"Found {xTrackDevices.Elements().Count()} devices for track: {trackName} {trackId ?? ""} {(level > 1 ? "[Group]" : "")}");
 
             string fileNameNoExtension = Path.GetFileNameWithoutExtension(file);
 
+            int internalDeviceCount = 0;
             foreach (XElement xDevice in xTrackDevices.Elements())
             {
+                internalDeviceCount++;
+
                 // reset for each element
-                string outputFileName = string.IsNullOrEmpty(trackName) ? fileNameNoExtension : string.Format($"{fileNameNoExtension} - {trackName}");
+                string outputFileName = string.IsNullOrEmpty(trackName) ? fileNameNoExtension : $"{fileNameNoExtension} - {trackName}";
+                outputFileName = $"{outputFileName} - ({level}-{internalDeviceCount})";
                 string outputFilePath;
 
                 string deviceType = xDevice.Name.LocalName;
@@ -724,12 +728,12 @@ namespace PresetConverter
 
                 if (!isOn)
                 {
-                    Log.Debug($"Skipping Device {deviceId} {deviceType} since it is disabled!");
+                    Log.Debug($"Skipping device {internalDeviceCount} '{deviceType}' @ level {level} (id: {deviceId}) since it is disabled!");
                     continue;
                 }
                 else
                 {
-                    Log.Debug($"Processing Device {deviceId} {deviceType} ...");
+                    Log.Debug($"Processing device {internalDeviceCount} '{deviceType}' @ level {level} (id: {deviceId}) ...");
                 }
 
                 AddAutomationTargets(rootXElement, xDevice, trackId, trackName, fxLoc, new string[] { deviceType, deviceId.ToString() });
@@ -752,7 +756,7 @@ namespace PresetConverter
 
                         // convert to Fabfilter Pro Q3 as well
                         var fabfilterProQ3 = eq.ToFabfilterProQ3();
-                        outputFileName = string.Format($"{outputFileName} - {deviceId} EQ8ToFabfilterProQ3");
+                        outputFileName = $"{outputFileName} - EQ8ToFabfilterProQ3";
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
                         fabfilterProQ3.WriteFFP(outputFilePath + ".ffp");
                         break;
@@ -793,18 +797,20 @@ namespace PresetConverter
                         XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                         int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
                         string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Unknown");
-                        Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
+                        // Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
 
                         XElement xPreset = xVstPluginInfo?.Element("Preset");
                         XElement xVstPreset = xPreset?.Element("VstPreset");
                         int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
-                        Log.Debug($"VstPreset Id: {vstPresetId}");
+                        // Log.Debug($"VstPreset Id: {vstPresetId}");
+
+                        Log.Debug($"Found '{vstPlugName}' (id: {vstPresetId}, info-id: {vstPluginInfoId})");
 
                         // read the byte data buffer
                         XElement xVstPluginBuffer = xVstPreset?.Element("Buffer");
                         byte[] vstPluginBufferBytes = XmlHelpers.GetInnerValueAsByteArray(xVstPluginBuffer);
 
-                        outputFileName = string.Format($"{outputFileName} - {deviceId} {StringUtils.MakeValidFileName(vstPlugName)}");
+                        outputFileName = $"{outputFileName} - {StringUtils.MakeValidFileName(vstPlugName)}";
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
                         // check if this is a zlib file
@@ -825,7 +831,7 @@ namespace PresetConverter
                         if (!SaveAsFXP(vstPluginBufferBytes, vstPlugName, outputFilePath, outputFileName))
                         {
                             // store xml as well
-                            Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                            Log.Information($"Writing '{deviceType}' preset xml: '{outputFileName}.xml'");
                             xDevice.Save(outputFilePath + ".xml");
                         }
 
@@ -833,7 +839,7 @@ namespace PresetConverter
                     case "AudioEffectGroupDevice":
                         // recursively handle group of plugins
                         XElement xGroupTrackDevices = xDevice?.Descendants("Devices")?.FirstOrDefault();
-                        DoDevices(rootXElement, xGroupTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file);
+                        DoDevices(rootXElement, xGroupTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file, level + 1);
 
                         break;
                     case "MultibandDynamics":
@@ -846,14 +852,14 @@ namespace PresetConverter
                         if (!string.IsNullOrEmpty(userName))
                         {
                             // we are likely processing an .adv preset file
-                            // TODO: This is not always correct
+                            // TODO: This is not always a correct assumption!
                             XElement? xFileRef = xDevice?.Descendants("FileRef")?.FirstOrDefault();
 
                             // read the byte data buffer
                             XElement xBuffer = xFileRef?.Element("Data");
                             byte[] vstBytes = XmlHelpers.GetInnerValueAsByteArray(xBuffer);
 
-                            outputFileName = string.Format($"{outputFileName} - {deviceId} {StringUtils.MakeValidFileName(userName)}");
+                            outputFileName = $"{outputFileName} - {StringUtils.MakeValidFileName(userName)}";
                             outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
                             if (!SaveAsFXP(vstBytes, StringUtils.ExtractBeforeSpace(userName), outputFilePath, outputFileName))
@@ -865,7 +871,7 @@ namespace PresetConverter
                         }
                         else
                         {
-                            outputFileName = string.Format($"{outputFileName} - {deviceId} {deviceType}");
+                            outputFileName = $"{outputFileName} - {deviceType}";
                             outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
 
                             Log.Information($"Writing {deviceType} Preset: {outputFileName}");
@@ -880,7 +886,7 @@ namespace PresetConverter
         private static bool SaveAsFXP(byte[] vstPluginBufferBytes, string vstPlugName, string outputFilePath, string outputFileName)
         {
             // save preset
-            Log.Information($"Writing PluginDevice ({vstPlugName}) Preset: {outputFileName}");
+            Log.Information($"Writing '{vstPlugName}' preset: '{outputFileName}.fxp'");
             switch (vstPlugName)
             {
                 case "Sylenth1":
@@ -931,7 +937,7 @@ namespace PresetConverter
                     FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
                     break;
                 default:
-                    Log.Error($"Could not save PluginDevice Preset as FXP since I did not recognize vstplugin: {vstPlugName}");
+                    Log.Error($"Could not save preset as fxp since vstplugin '{vstPlugName}' is not recognized!");
                     BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
                     return false;
             }
