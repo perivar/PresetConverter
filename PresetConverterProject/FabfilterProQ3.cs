@@ -306,6 +306,21 @@ namespace PresetConverter
             return memStream.ToArray();
         }
 
+        public bool WriteFXP(string filePath)
+        {
+            var memStream = new MemoryStream();
+            using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+            {
+                binFile.Write("FFBS");
+                binFile.Write(1);
+                binFile.Write(GetBandsContent());
+            }
+
+            FXP.WriteRaw2FXP(filePath, memStream.ToArray(), "FQ3p");
+
+            return true;
+        }
+
         public override string ToString()
         {
             var writer = new StringWriter();
@@ -490,7 +505,7 @@ namespace PresetConverter
 
         public override string ToString()
         {
-            return String.Format("[{4,-3}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", Shape, Frequency, Gain, Q, Enabled == true ? "On" : "Off", Slope, StereoPlacement);
+            return string.Format("[{4,-3}] {0}: {1:0.00} Hz, {2:0.00} dB, Q: {3:0.00}, {5}, {6}", Shape, Frequency, Gain, Q, Enabled == true ? "On" : "Off", Slope, StereoPlacement);
         }
     }
 }

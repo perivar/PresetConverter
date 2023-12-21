@@ -759,6 +759,7 @@ namespace PresetConverter
                         outputFileName = $"{outputFileName} - EQ8ToFabfilterProQ3";
                         outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
                         fabfilterProQ3.WriteFFP(outputFilePath + ".ffp");
+                        fabfilterProQ3.WriteFXP(outputFilePath + ".fxp");
                         break;
                     case "Compressor2":
                         // Convert Compressor2 to Steinberg Compressor
