@@ -1010,7 +1010,7 @@ namespace PresetConverter
         {
             string outputFileName = Path.GetFileNameWithoutExtension(file);
 
-            float[] floatArray = null;
+            float[]? floatArray = null;
             floatArray = FabfilterProQBase.ReadFloats(file, "FPQr");
             if (floatArray != null)
             {

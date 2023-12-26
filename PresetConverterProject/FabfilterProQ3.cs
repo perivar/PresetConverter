@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
 using CommonUtils;
 using Serilog;
@@ -58,14 +54,13 @@ namespace PresetConverter
             finally
             {
                 binFile.Close();
-
             }
         }
 
         public bool ReadFFP(BinaryFile binFile)
         {
-            Version = binFile.ReadInt32();
-            ParameterCount = binFile.ReadInt32();
+            Version = (int)binFile.ReadUInt32();
+            ParameterCount = (int)binFile.ReadUInt32();
 
             // parametercount = 334
             // 24 bands with 13 parameters each = 312
@@ -246,7 +241,7 @@ namespace PresetConverter
             using (BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian, true))
             {
                 binFile.Write("FQ3p");
-                binFile.Write((int)Version);
+                binFile.Write((UInt32)Version);
                 binFile.Write(GetBandsContent());
             }
 
@@ -258,41 +253,46 @@ namespace PresetConverter
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
-                binFile.Write((UInt32)(int)Bands.Count * 13 + 22);
+                // write total parameter count
+                // parametercount = 334
+                // 24 bands with 13 parameters each = 312
+                // and then 22 parameters at the end
+                binFile.Write((UInt32)24 * 13 + 22);
+                // binFile.Write((UInt32)Bands.Count * 13 + 22);
 
                 for (int i = 0; i < 24; i++)
                 {
                     if (i < Bands.Count)
                     {
                         binFile.Write((float)(Bands[i].Enabled ? 1 : 0));
-                        binFile.Write((float)(1)); // unknown 1
-                        binFile.Write((float)FabfilterProQ2.FreqConvert(Bands[i].Frequency));
+                        binFile.Write((float)1); // unknown 1
+                        binFile.Write((float)FreqConvert(Bands[i].Frequency));
                         binFile.Write((float)Bands[i].Gain);
                         binFile.Write((float)Bands[i].DynamicRange);
-                        binFile.Write((float)(1)); // unknown 3
+                        binFile.Write((float)1); // unknown 3
                         binFile.Write((float)Bands[i].DynamicThreshold);
-                        binFile.Write((float)FabfilterProQ2.QConvert(Bands[i].Q));
+                        binFile.Write((float)QConvert(Bands[i].Q));
                         binFile.Write((float)Bands[i].Shape);
                         binFile.Write((float)Bands[i].Slope);
                         binFile.Write((float)Bands[i].StereoPlacement);
-                        binFile.Write((float)(1)); // unknown 5
-                        binFile.Write((float)(0)); // unknown 6
+                        binFile.Write((float)1); // unknown 5
+                        binFile.Write((float)0); // unknown 6
                     }
                     else
                     {
                         binFile.Write((float)0);
-                        binFile.Write((float)(1));  // unknown 1
-                        binFile.Write((float)FabfilterProQ2.FreqConvert(1000));
-                        binFile.Write((float)0);    // gain
-                        binFile.Write((float)0);    // dynamic range
-                        binFile.Write((float)(1));  // unknown 3
-                        binFile.Write((float)(1));  // dynamic threshold
-                        binFile.Write((float)FabfilterProQ2.QConvert(1));
+                        binFile.Write((float)1);  // unknown 1
+                        binFile.Write((float)FreqConvert(1000));
+                        binFile.Write((float)0);  // gain
+                        binFile.Write((float)0);  // dynamic range
+                        binFile.Write((float)1);  // unknown 3
+                        binFile.Write((float)1);  // dynamic threshold
+                        binFile.Write((float)QConvert(1));
                         binFile.Write((float)ProQ2Shape.Bell);
                         binFile.Write((float)ProQSlope.Slope24dB_oct);
                         binFile.Write((float)ProQ2StereoPlacement.Stereo);
-                        binFile.Write((float)(1));  // unknown 5
-                        binFile.Write((float)(0));  // unknown 6                        
+                        binFile.Write((float)1);  // unknown 5
+                        binFile.Write((float)0);  // unknown 6                        
                     }
                 }
 
@@ -308,11 +308,23 @@ namespace PresetConverter
 
         public bool WriteFXP(string filePath)
         {
+            // parametercount = 334
+            // 24 bands with 13 parameters each = 312
+            // and then 22 parameters at the end
+            int remainingParameterCount = 22;
+            ParameterCount = 24 * 13 + remainingParameterCount;
+
+            UnknownParameters = new List<float>();
+            for (int i = 0; i < remainingParameterCount; i++)
+            {
+                UnknownParameters.Add(0.0f);
+            }
+
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
                 binFile.Write("FFBS");
-                binFile.Write(1);
+                binFile.Write((UInt32)1); // version
                 binFile.Write(GetBandsContent());
             }
 
@@ -372,8 +384,8 @@ namespace PresetConverter
                     binFile.Write(GetBandsContent());
 
                     // add some unknown variables
-                    binFile.Write((int)1);
-                    binFile.Write((int)1);
+                    binFile.Write(1);
+                    binFile.Write(1);
                 }
 
                 this.CompChunkData = memStream.ToArray();

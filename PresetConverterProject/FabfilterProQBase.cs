@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using CommonUtils;
 using Serilog;
 
@@ -19,21 +14,20 @@ namespace PresetConverter
 
         public abstract bool WriteFFP(string filePath);
 
-        public static float[] ReadFloats(string filePath, string headerExpected)
+        public static float[]? ReadFloats(string filePath, string headerExpected)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
 
             string header = binFile.ReadString(4);
             if (header == headerExpected) // "FPQr", "FQ2p" or "FQ3p"
             {
-                int version = binFile.ReadInt32();
-                int parameterCount = binFile.ReadInt32();
+                int version = (int)binFile.ReadUInt32();
+                int parameterCount = (int)binFile.ReadUInt32();
 
                 var floatArray = new float[parameterCount];
-                int i = 0;
                 try
                 {
-                    for (i = 0; i < parameterCount; i++)
+                    for (int i = 0; i < parameterCount; i++)
                     {
                         floatArray[i] = binFile.ReadSingle();
                     }
