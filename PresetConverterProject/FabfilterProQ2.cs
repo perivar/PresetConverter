@@ -130,8 +130,8 @@ namespace PresetConverter
             string header = binFile.ReadString(4);
             if (header != "FQ2p") return false;
 
-            Version = binFile.ReadInt32();
-            ParameterCount = binFile.ReadInt32();
+            Version = (int)binFile.ReadUInt32();
+            ParameterCount = (int)binFile.ReadUInt32();
 
             Bands = new List<ProQ2Band>();
             for (int i = 0; i < 24; i++)
@@ -289,16 +289,19 @@ namespace PresetConverter
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
-                binFile.Write((UInt32)(int)Bands.Count * 7 + 22);
+                // write total parameter count
+                // 24 bands with 7 parameters each = 168
+                // pluss the 22 parameters at the end
+                binFile.Write((UInt32)(24 * 7 + 22));
 
                 for (int i = 0; i < 24; i++)
                 {
                     if (i < Bands.Count)
                     {
                         binFile.Write((float)(Bands[i].Enabled ? 1 : 2));
-                        binFile.Write((float)FabfilterProQ2.FreqConvert(Bands[i].Frequency));
+                        binFile.Write((float)FreqConvert(Bands[i].Frequency));
                         binFile.Write((float)Bands[i].Gain);
-                        binFile.Write((float)FabfilterProQ2.QConvert(Bands[i].Q));
+                        binFile.Write((float)QConvert(Bands[i].Q));
                         binFile.Write((float)Bands[i].Shape);
                         binFile.Write((float)Bands[i].Slope);
                         binFile.Write((float)Bands[i].StereoPlacement);
@@ -306,9 +309,9 @@ namespace PresetConverter
                     else
                     {
                         binFile.Write((float)2);
-                        binFile.Write((float)FabfilterProQ2.FreqConvert(1000));
+                        binFile.Write((float)FreqConvert(1000));
                         binFile.Write((float)0);
-                        binFile.Write((float)FabfilterProQ2.QConvert(1));
+                        binFile.Write((float)QConvert(1));
                         binFile.Write((float)ProQ2Shape.Bell);
                         binFile.Write((float)ProQSlope.Slope24dB_oct);
                         binFile.Write((float)ProQ2StereoPlacement.Stereo);
