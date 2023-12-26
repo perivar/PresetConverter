@@ -248,17 +248,30 @@ namespace PresetConverter
             return true;
         }
 
+        public bool WriteFXP(string filePath)
+        {
+            var memStream = new MemoryStream();
+            using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
+            {
+                binFile.Write("FFBS");
+                binFile.Write((UInt32)Version);
+                binFile.Write(GetBandsContent());
+            }
+
+            FXP.WriteRaw2FXP(filePath, memStream.ToArray(), "FQ3p");
+
+            return true;
+        }
+
         private byte[] GetBandsContent()
         {
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
                 // write total parameter count
-                // parametercount = 334
                 // 24 bands with 13 parameters each = 312
-                // and then 22 parameters at the end
-                binFile.Write((UInt32)24 * 13 + 22);
-                // binFile.Write((UInt32)Bands.Count * 13 + 22);
+                // pluss the optional parameters at the end
+                binFile.Write((UInt32)(24 * 13 + UnknownParameters.Count));
 
                 for (int i = 0; i < 24; i++)
                 {
@@ -304,33 +317,6 @@ namespace PresetConverter
             }
 
             return memStream.ToArray();
-        }
-
-        public bool WriteFXP(string filePath)
-        {
-            // parametercount = 334
-            // 24 bands with 13 parameters each = 312
-            // and then 22 parameters at the end
-            int remainingParameterCount = 22;
-            ParameterCount = 24 * 13 + remainingParameterCount;
-
-            UnknownParameters = new List<float>();
-            for (int i = 0; i < remainingParameterCount; i++)
-            {
-                UnknownParameters.Add(0.0f);
-            }
-
-            var memStream = new MemoryStream();
-            using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
-            {
-                binFile.Write("FFBS");
-                binFile.Write((UInt32)1); // version
-                binFile.Write(GetBandsContent());
-            }
-
-            FXP.WriteRaw2FXP(filePath, memStream.ToArray(), "FQ3p");
-
-            return true;
         }
 
         public override string ToString()
