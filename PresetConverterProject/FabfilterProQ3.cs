@@ -250,12 +250,55 @@ namespace PresetConverter
 
         public bool WriteFXP(string filePath)
         {
+            // Note, even if a DAW adds all these default parameters when saving a fxp
+            // they does not seem to be needed when saving the FXP
+            // add default unknown parameters
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(-1.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(2.0f);
+            // UnknownParameters.Add(2.0f);
+            // UnknownParameters.Add(3.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(1.0f);
+            // UnknownParameters.Add(2.0f);
+            // UnknownParameters.Add(0.0f);
+            // UnknownParameters.Add(0.0f);
+            // for (int i = 0; i < 24; i++)
+            // {
+            //     UnknownParameters.Add(0.0f);
+            // }
+
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {
                 binFile.Write("FFBS");
-                binFile.Write((UInt32)Version);
+                binFile.Write((UInt32)1); // this seems to always be a 1, not Version ?!
                 binFile.Write(GetBandsContent());
+
+                // add bottom bytes which seems to be mandatory to make the preset actually active
+                // if this is not added, the preset seems to load, but stays inactive
+                binFile.Write("FQ3p");
+                binFile.Write(1);
+                var presetName = Path.GetFileNameWithoutExtension(filePath);
+                binFile.Write(presetName.Length);
+                binFile.Write(presetName);
+                binFile.Write(-1);
+                binFile.Write(1);
+                var pluginName = "Pro-Q";
+                binFile.Write(pluginName.Length);
+                binFile.Write(pluginName);
             }
 
             FXP.WriteRaw2FXP(filePath, memStream.ToArray(), "FQ3p");

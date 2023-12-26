@@ -450,7 +450,7 @@ namespace CommonUtils
             fxpContent.FxMagic = "FPCh"; // FPCh = FXP (preset), FBCh = FXB (bank)
             fxpContent.Version = 1; // Format Version (should be 1)
             fxpContent.FxID = fxID.Substring(0, 4);
-            fxpContent.FxVersion = 1100;
+            fxpContent.FxVersion = 1;
             fxpContent.NumPrograms = 1;
             fxpContent.Name = "";
             fxpContent.ChunkSize = chunkData.Length;
