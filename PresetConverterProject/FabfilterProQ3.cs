@@ -40,6 +40,45 @@ namespace PresetConverter
             }
         }
 
+        public void AddDefaultUnknownParameters()
+        {
+            // Note, even if a DAW adds all these default parameters when saving a FFP
+            // they does not seem to be needed when saving the FXP
+
+            // first 24 float parameters seems to normally be included
+            UnknownParameters = new List<float>
+            {
+                0.0f,
+                1.0f,
+                1.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                1.0f,
+                1.0f,
+                -1.0f,
+                1.0f,
+                2.0f,
+                2.0f,
+                3.0f,
+                0.0f,
+                1.0f,
+                1.0f,
+                2.0f,
+                0.0f,
+                0.0f
+            };
+
+            // the second 24 seems to be optional and always 0 
+            for (int i = 0; i < 24; i++)
+            {
+                UnknownParameters.Add(0.0f);
+            }
+        }
+
         public bool ReadFFP(string filePath)
         {
             BinaryFile binFile = new BinaryFile(filePath, BinaryFile.ByteOrder.LittleEndian);
@@ -250,36 +289,6 @@ namespace PresetConverter
 
         public bool WriteFXP(string filePath)
         {
-            // Note, even if a DAW adds all these default parameters when saving a fxp
-            // they does not seem to be needed when saving the FXP
-            // add default unknown parameters
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(-1.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(2.0f);
-            // UnknownParameters.Add(2.0f);
-            // UnknownParameters.Add(3.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(1.0f);
-            // UnknownParameters.Add(2.0f);
-            // UnknownParameters.Add(0.0f);
-            // UnknownParameters.Add(0.0f);
-            // for (int i = 0; i < 24; i++)
-            // {
-            //     UnknownParameters.Add(0.0f);
-            // }
-
             var memStream = new MemoryStream();
             using (BinaryFile binFile = new BinaryFile(memStream, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII))
             {

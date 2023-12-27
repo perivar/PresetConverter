@@ -1,8 +1,3 @@
-/* cSpell:disable */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -201,32 +196,32 @@ namespace PresetConverter
 
             public Parameter(string name, int index, double value)
             {
-                this.Name = name;
-                this.Index = index;
-                this.Number = value;
-                this.Type = ParameterType.Number;
+                Name = name;
+                Index = index;
+                Number = value;
+                Type = ParameterType.Number;
             }
 
             public Parameter(string name, int index, string value)
             {
-                this.Name = name;
-                this.Index = index;
-                this.String = value;
-                this.Type = ParameterType.String;
+                Name = name;
+                Index = index;
+                String = value;
+                Type = ParameterType.String;
             }
 
             public Parameter(string name, int index, byte[] value)
             {
-                this.Name = name;
-                this.Index = index;
-                this.Bytes = value;
-                this.Type = ParameterType.Bytes;
+                Name = name;
+                Index = index;
+                Bytes = value;
+                Type = ParameterType.Bytes;
             }
 
             public override string ToString()
             {
                 string shortenedString;
-                switch (this.Type)
+                switch (Type)
                 {
                     case ParameterType.Number:
                         return string.Format("{1,-6} | {0,-20} | {2,8:0.00}", Name, Index, Number);
@@ -266,7 +261,7 @@ namespace PresetConverter
         /// </summary>
         public long CompDataEndPosition
         {
-            get { return (CompDataStartPos + CompDataChunkSize); }
+            get { return CompDataStartPos + CompDataChunkSize; }
         }
 
         /// <summary>
@@ -274,7 +269,7 @@ namespace PresetConverter
         /// </summary>
         public long ContDataEndPosition
         {
-            get { return (ContDataStartPos + ContDataChunkSize); }
+            get { return ContDataStartPos + ContDataChunkSize; }
         }
 
         /// <summary>
@@ -282,7 +277,7 @@ namespace PresetConverter
         /// </summary>
         public long InfoXmlEndPosition
         {
-            get { return (InfoXmlStartPos + InfoXmlChunkSize); }
+            get { return InfoXmlStartPos + InfoXmlChunkSize; }
         }
 
         public VstPreset()
@@ -297,8 +292,8 @@ namespace PresetConverter
 
         public VstPreset(FXP fxp)
         {
-            this.FXP = fxp;
-            SetCompChunkData(this.FXP);
+            FXP = fxp;
+            SetCompChunkData(FXP);
         }
 
         #region Parameter methods
@@ -497,7 +492,7 @@ namespace PresetConverter
                     fxp.Write(bf);
                 }
 
-                this.CompChunkData = memStream.ToArray();
+                CompChunkData = memStream.ToArray();
             }
         }
 
@@ -505,14 +500,14 @@ namespace PresetConverter
         {
             get
             {
-                return this.fxp != null;
+                return fxp != null;
             }
         }
 
         public FXP FXP
         {
-            get { return this.fxp; }
-            set { this.fxp = value; }
+            get { return fxp; }
+            set { fxp = value; }
         }
 
         public void SetFXP(byte[] presetBytes)
@@ -524,7 +519,7 @@ namespace PresetConverter
         {
             get
             {
-                return (this.InfoXml != null && this.InfoXmlBytesWithBOM != null);
+                return InfoXml != null && InfoXmlBytesWithBOM != null;
             }
         }
 
@@ -592,10 +587,10 @@ namespace PresetConverter
                 UInt32 fileVersion = bf.ReadUInt32();
 
                 // Read VST3 ID:
-                this.Vst3ID = bf.ReadString(32);
+                Vst3ID = bf.ReadString(32);
 
                 // Read position of 'List' section 
-                this.ListPos = (long)bf.ReadUInt64();
+                ListPos = (long)bf.ReadUInt64();
                 Log.Verbose("listPos: {0}", ListPos);
 
                 // Store current position
@@ -603,7 +598,7 @@ namespace PresetConverter
 
                 // seek to the 'List' position
                 // List = kChunkList
-                bf.Seek(this.ListPos, SeekOrigin.Begin);
+                bf.Seek(ListPos, SeekOrigin.Begin);
 
                 // read LIST and 4 bytes
                 string listElement = bf.ReadString(4);
@@ -634,20 +629,20 @@ namespace PresetConverter
 
                         if (element.ID.Equals("Comp"))
                         {
-                            this.CompDataStartPos = element.Offset;
-                            this.CompDataChunkSize = element.Size;
+                            CompDataStartPos = element.Offset;
+                            CompDataChunkSize = element.Size;
                         }
 
                         if (element.ID.Equals("Cont"))
                         {
-                            this.ContDataStartPos = element.Offset;
-                            this.ContDataChunkSize = element.Size;
+                            ContDataStartPos = element.Offset;
+                            ContDataChunkSize = element.Size;
                         }
 
                         if (element.ID.Equals("Info"))
                         {
-                            this.InfoXmlStartPos = element.Offset;
-                            this.InfoXmlChunkSize = element.Size;
+                            InfoXmlStartPos = element.Offset;
+                            InfoXmlChunkSize = element.Size;
                         }
                     }
                 }
@@ -681,7 +676,7 @@ namespace PresetConverter
             if (dataChunkID == "LPXF")
             {
                 // Check file size:
-                if (fileSize != ((long)this.ListPos + (bf.Position - 4)))
+                if (fileSize != ((long)ListPos + (bf.Position - 4)))
                     throw new FormatException("Invalid file size: " + fileSize);
 
                 // This is most likely a single preset:
@@ -703,8 +698,8 @@ namespace PresetConverter
                 // Check file size (The other check is needed because Cubase tends to forget the items of this header
                 if (performFileSizeChecks)
                 {
-                    if ((fileSize != ((long)this.ListPos + bf.Position + 4))
-                    && (fileSize != ((long)this.ListPos + bf.Position - 16)))
+                    if ((fileSize != ((long)ListPos + bf.Position + 4))
+                    && (fileSize != ((long)ListPos + bf.Position - 16)))
                         throw new FormatException("Invalid file size: " + fileSize);
                 }
 
@@ -732,13 +727,13 @@ namespace PresetConverter
                     AddParameter(parameterName, parameterNumber, parameterNumberValue);
                 }
 
-                if (this.ContDataChunkSize > 0)
+                if (ContDataChunkSize > 0)
                 {
                     // seek to start of cont
-                    bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(ContDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                    ContChunkData = bf.ReadBytes((int)ContDataChunkSize);
                 }
 
                 // try to read the info xml 
@@ -751,46 +746,46 @@ namespace PresetConverter
             else
             {
                 if (
-                    this.Vst3ID.Equals(VstIDs.SteinbergAmpSimulator) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergAutoPan) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergBrickwallLimiter) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergDeEsserNew) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergDJEq) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergDualFilter) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergEnvelopeShaper) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergEQ) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergExpander) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergGate) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergGEQ10) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergLimiter) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMagnetoII) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMaximizer) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergModMachine) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMorphFilter) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergMultibandEnvelopeShaper) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergNoiseGate) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergOctaver) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergStudioChorus) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergTuner) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergUV22HR) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergVintageCompressor) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergVSTDynamics)
+                    Vst3ID.Equals(VstIDs.SteinbergAmpSimulator) ||
+                    Vst3ID.Equals(VstIDs.SteinbergAutoPan) ||
+                    Vst3ID.Equals(VstIDs.SteinbergBrickwallLimiter) ||
+                    Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
+                    Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
+                    Vst3ID.Equals(VstIDs.SteinbergDeEsserNew) ||
+                    Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
+                    Vst3ID.Equals(VstIDs.SteinbergDJEq) ||
+                    Vst3ID.Equals(VstIDs.SteinbergDualFilter) ||
+                    Vst3ID.Equals(VstIDs.SteinbergEnvelopeShaper) ||
+                    Vst3ID.Equals(VstIDs.SteinbergEQ) ||
+                    Vst3ID.Equals(VstIDs.SteinbergExpander) ||
+                    Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
+                    Vst3ID.Equals(VstIDs.SteinbergGate) ||
+                    Vst3ID.Equals(VstIDs.SteinbergGEQ10) ||
+                    Vst3ID.Equals(VstIDs.SteinbergLimiter) ||
+                    Vst3ID.Equals(VstIDs.SteinbergMagnetoII) ||
+                    Vst3ID.Equals(VstIDs.SteinbergMaximizer) ||
+                    Vst3ID.Equals(VstIDs.SteinbergModMachine) ||
+                    Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
+                    Vst3ID.Equals(VstIDs.SteinbergMorphFilter) ||
+                    Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
+                    Vst3ID.Equals(VstIDs.SteinbergMultibandEnvelopeShaper) ||
+                    Vst3ID.Equals(VstIDs.SteinbergNoiseGate) ||
+                    Vst3ID.Equals(VstIDs.SteinbergOctaver) ||
+                    Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
+                    Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
+                    Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
+                    Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
+                    Vst3ID.Equals(VstIDs.SteinbergStudioChorus) ||
+                    Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
+                    Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
+                    Vst3ID.Equals(VstIDs.SteinbergTuner) ||
+                    Vst3ID.Equals(VstIDs.SteinbergUV22HR) ||
+                    Vst3ID.Equals(VstIDs.SteinbergVintageCompressor) ||
+                    Vst3ID.Equals(VstIDs.SteinbergVSTDynamics)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // read 4 bytes which probably is the version number
                     var versionBytes = bf.ReadBytes(4);
@@ -821,13 +816,13 @@ namespace PresetConverter
                     return;
                 }
                 else if (
-                    this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
+                    Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
                 {
                     // rewind 4 bytes (seek to data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
-                    var xmlContent = bf.ReadString((int)this.CompDataChunkSize);
+                    var xmlContent = bf.ReadString((int)CompDataChunkSize);
 
                     AddParameter("XmlContent", 1, xmlContent);
 
@@ -838,33 +833,33 @@ namespace PresetConverter
                 }
 
                 else if (
-                    this.Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergHALionSonicSE) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergPadShop) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergRetrologue) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergSamplerTrack) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergSpector) ||
-                    this.Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
+                    Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
+                    Vst3ID.Equals(VstIDs.SteinbergHALionSonicSE) ||
+                    Vst3ID.Equals(VstIDs.SteinbergPadShop) ||
+                    Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
+                    Vst3ID.Equals(VstIDs.SteinbergRetrologue) ||
+                    Vst3ID.Equals(VstIDs.SteinbergSamplerTrack) ||
+                    Vst3ID.Equals(VstIDs.SteinbergSpector) ||
+                    Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
                     // as in:
                     // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
                     // read until all bytes have been read
-                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+                    CompChunkData = bf.ReadBytes((int)CompDataChunkSize);
 
                     // seek to cont start pos
-                    if (this.ContDataChunkSize > 0)
+                    if (ContDataChunkSize > 0)
                     {
-                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+                        bf.Seek(ContDataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                        ContChunkData = bf.ReadBytes((int)ContDataChunkSize);
                     }
 
                     // try to read the info xml 
@@ -874,10 +869,10 @@ namespace PresetConverter
                 }
 
                 else if (
-                    this.Vst3ID.Equals(VstIDs.SteinbergREVerence))
+                    Vst3ID.Equals(VstIDs.SteinbergREVerence))
                 {
                     // rewind 4 bytes (seek to data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
                     Log.Verbose("Wave Path 1: {0}", wavFilePath1);
@@ -950,10 +945,10 @@ namespace PresetConverter
 
 
                 else if (
-                   this.Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
+                   Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
                 {
                     // rewind 4 bytes (seek to data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // read floats
                     AddParameter("Unknown1", 1, bf.ReadSingle());
@@ -971,50 +966,50 @@ namespace PresetConverter
                 }
 
                 else if (
-                    this.Vst3ID.Equals(VstIDs.WavesAPI2500Mono) ||
-                    this.Vst3ID.Equals(VstIDs.WavesBassRiderStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesC1CompStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesC4Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesCLAGuitarsStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesDeBreathMono) ||
-                    this.Vst3ID.Equals(VstIDs.WavesDeEsserStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesDoubler2Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesDoubler4Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesHDelayStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesKramerTapeStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesL3LLMultiStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesL3MultiMaximizerStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesLinEQLowbandStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesMannyMReverbStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesMetaFlangerStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesOneKnobFilterStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesPuigChild670Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesPuigTecEQP1AStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesQ10Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesQ2Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesRBassStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesRChannelStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesRCompressorStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesRDeEsserStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesREQ6Stereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesRVerbStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesS1ImagerStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesSSLChannelStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesSSLCompStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesSSLEQMono) ||
-                    this.Vst3ID.Equals(VstIDs.WavesSSLEQStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsMonoStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesSuperTap2TapsStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesTrueVerbStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesTuneLTStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesVitaminStereo) ||
-                    this.Vst3ID.Equals(VstIDs.WavesVocalRiderStereo)
+                    Vst3ID.Equals(VstIDs.WavesAPI2500Mono) ||
+                    Vst3ID.Equals(VstIDs.WavesBassRiderStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesC1CompStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesC4Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesCLAGuitarsStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesDeBreathMono) ||
+                    Vst3ID.Equals(VstIDs.WavesDeEsserStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesDoubler2Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesDoubler4Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesHDelayStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesKramerTapeStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesL3LLMultiStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesL3MultiMaximizerStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesLinEQLowbandStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesMannyMReverbStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesMetaFlangerStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesOneKnobFilterStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesPuigChild670Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesPuigTecEQP1AStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesQ10Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesQ2Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesRBassStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesRChannelStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesRCompressorStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesRDeEsserStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesREQ6Stereo) ||
+                    Vst3ID.Equals(VstIDs.WavesRVerbStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesS1ImagerStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesSSLChannelStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesSSLCompStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesSSLEQMono) ||
+                    Vst3ID.Equals(VstIDs.WavesSSLEQStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesSuperTap2TapsMonoStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesSuperTap2TapsStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesTrueVerbStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesTuneLTStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesVitaminStereo) ||
+                    Vst3ID.Equals(VstIDs.WavesVocalRiderStereo)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
                     var unknown3 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
@@ -1050,7 +1045,7 @@ namespace PresetConverter
                     // read in this also
                     // total size - PresetChunkXMLTree size - 32
                     // e.g. 844 - 777 - 32 = 35
-                    var xmlPostLength = this.CompDataChunkSize - xmlMainLength - 32;
+                    var xmlPostLength = CompDataChunkSize - xmlMainLength - 32;
                     var xmlPostContent = bf.ReadString((int)xmlPostLength);
                     var param2Name = "XmlContentPost";
                     AddParameter(param2Name, 2, xmlPostContent);
@@ -1061,10 +1056,10 @@ namespace PresetConverter
                     return;
                 }
 
-                else if (this.Vst3ID.Equals(VstIDs.NIKontakt5))
+                else if (Vst3ID.Equals(VstIDs.NIKontakt5))
                 {
                     // rewind 4 bytes (seek to data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
 
@@ -1091,27 +1086,27 @@ namespace PresetConverter
                 }
 
                 else if (
-                    this.Vst3ID.Equals(VstIDs.EastWestPlay) ||
-                    this.Vst3ID.Equals(VstIDs.EastWestPlayx64)
+                    Vst3ID.Equals(VstIDs.EastWestPlay) ||
+                    Vst3ID.Equals(VstIDs.EastWestPlayx64)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
                     // as in:
                     // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
                     // read until all bytes have been read
-                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+                    CompChunkData = bf.ReadBytes((int)CompDataChunkSize);
 
                     // seek to cont start pos
-                    if (this.ContDataChunkSize > 0)
+                    if (ContDataChunkSize > 0)
                     {
-                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+                        bf.Seek(ContDataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                        ContChunkData = bf.ReadBytes((int)ContDataChunkSize);
                     }
 
                     // try to read the info xml 
@@ -1122,29 +1117,29 @@ namespace PresetConverter
                 }
 
                 else if (
-                    this.Vst3ID.Equals(VstIDs.MusicLabRealEight) ||
-                    this.Vst3ID.Equals(VstIDs.MusicLabRealGuitarClassic) ||
-                    this.Vst3ID.Equals(VstIDs.MusicLabRealLPC) ||
-                    this.Vst3ID.Equals(VstIDs.MusicLabRealStrat)
+                    Vst3ID.Equals(VstIDs.MusicLabRealEight) ||
+                    Vst3ID.Equals(VstIDs.MusicLabRealGuitarClassic) ||
+                    Vst3ID.Equals(VstIDs.MusicLabRealLPC) ||
+                    Vst3ID.Equals(VstIDs.MusicLabRealStrat)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
                     // as in:
                     // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
                     // read until all bytes have been read
-                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+                    CompChunkData = bf.ReadBytes((int)CompDataChunkSize);
 
                     // seek to cont start pos
-                    if (this.ContDataChunkSize > 0)
+                    if (ContDataChunkSize > 0)
                     {
-                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+                        bf.Seek(ContDataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                        ContChunkData = bf.ReadBytes((int)ContDataChunkSize);
                     }
 
                     // try to read the info xml 
@@ -1157,22 +1152,22 @@ namespace PresetConverter
                 else
                 {
                     // rewind 4 bytes (seek to comp data start pos)
-                    bf.Seek(this.CompDataStartPos, SeekOrigin.Begin);
+                    bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // Note: the first 4 bytes (int32) of both the ComChunk and the ContChunk is the VST3PresetVersion,
                     // as in:
                     // <Attribute id="VST3PresetVersion" value="675282944" type="int" flags="hidden|writeProtected"/>
 
                     // read until all bytes have been read
-                    this.CompChunkData = bf.ReadBytes((int)this.CompDataChunkSize);
+                    CompChunkData = bf.ReadBytes((int)CompDataChunkSize);
 
                     // seek to cont start pos
-                    if (this.ContDataChunkSize > 0)
+                    if (ContDataChunkSize > 0)
                     {
-                        bf.Seek(this.ContDataStartPos, SeekOrigin.Begin);
+                        bf.Seek(ContDataStartPos, SeekOrigin.Begin);
 
                         // read until all bytes have been read
-                        this.ContChunkData = bf.ReadBytes((int)this.ContDataChunkSize);
+                        ContChunkData = bf.ReadBytes((int)ContDataChunkSize);
                     }
 
                     // try to read the info xml 
@@ -1237,10 +1232,10 @@ namespace PresetConverter
             var fxpChunkData = bf.ReadBytes((int)fxpChunkSize);
 
             // see if if the chunk data is FXP
-            this.FXP = new FXP(fxpChunkData);
+            FXP = new FXP(fxpChunkData);
 
             // set the chunk data to fxp data
-            SetCompChunkData(this.FXP);
+            SetCompChunkData(FXP);
 
             // try to read the info xml 
             TryReadInfoXml(bf);
@@ -1297,8 +1292,8 @@ namespace PresetConverter
             SeekToInfoXmlPosition(bf);
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            this.InfoXmlBytesWithBOM = bf.ReadBytes((int)this.InfoXmlChunkSize);
-            this.InfoXml = Encoding.UTF8.GetString(this.InfoXmlBytesWithBOM);
+            InfoXmlBytesWithBOM = bf.ReadBytes((int)InfoXmlChunkSize);
+            InfoXml = Encoding.UTF8.GetString(InfoXmlBytesWithBOM);
 
             // parse out the key plugin variables
             InitFromInfoXml();
@@ -1306,39 +1301,39 @@ namespace PresetConverter
 
         private void SeekToInfoXmlPosition(BinaryFile bf)
         {
-            long skipBytes = (this.InfoXmlStartPos - bf.Position);
+            long skipBytes = InfoXmlStartPos - bf.Position;
             if (skipBytes > 0)
             {
                 Log.Information("Skipping bytes: {0}", skipBytes);
 
                 // seek to start of meta xml
-                bf.Seek(this.InfoXmlStartPos, SeekOrigin.Begin);
+                bf.Seek(InfoXmlStartPos, SeekOrigin.Begin);
             }
         }
 
         private void InitFromInfoXml()
         {
-            if (null == this.InfoXml || "".Equals(this.InfoXml)) return;
+            if (null == InfoXml || "".Equals(InfoXml)) return;
 
-            var xmlString = RemoveByteOrderMark(this.InfoXml);
+            var xmlString = RemoveByteOrderMark(InfoXml);
             var xelement = XElement.Parse(xmlString);
 
             var plugInCategoryNode = xelement.Descendants("Attribute").Where(a => a.Attribute("id").Value == "PlugInCategory").Attributes("value").FirstOrDefault();
             if (plugInCategoryNode != null)
             {
-                this.PlugInCategory = plugInCategoryNode.Value;
+                PlugInCategory = plugInCategoryNode.Value;
             }
 
             var plugInNameNode = xelement.Descendants("Attribute").Where(a => a.Attribute("id").Value == "PlugInName").Attributes("value").FirstOrDefault();
             if (plugInNameNode != null)
             {
-                this.PlugInName = plugInNameNode.Value;
+                PlugInName = plugInNameNode.Value;
             }
 
             var plugInVendorNode = xelement.Descendants("Attribute").Where(a => a.Attribute("id").Value == "PlugInVendor").Attributes("value").FirstOrDefault();
             if (plugInVendorNode != null)
             {
-                this.PlugInVendor = plugInVendorNode.Value;
+                PlugInVendor = plugInVendorNode.Value;
             }
         }
 
@@ -1418,10 +1413,10 @@ namespace PresetConverter
                 bf.Write((UInt32)1);
 
                 // Write VST3 ID
-                bf.Write(this.Vst3ID);
+                bf.Write(Vst3ID);
 
-                // Write listPoss
-                bf.Write(this.ListPos);
+                // Write listPos
+                bf.Write(ListPos);
 
                 // Write binary content
                 if (HasCompChunkData)
@@ -1434,26 +1429,48 @@ namespace PresetConverter
                 }
 
                 // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-                bf.Write(this.InfoXmlBytesWithBOM);
+                bf.Write(InfoXmlBytesWithBOM);
 
                 // write LIST and 4 bytes
                 bf.Write("List");
-                bf.Write((UInt32)3);
+                int numListChunks = 0;
+                if (CompDataChunkSize > 0)
+                {
+                    numListChunks++;
+                }
+                if (ContDataChunkSize > 0)
+                {
+                    numListChunks++;
+                }
+                if (InfoXmlChunkSize > 0)
+                {
+                    numListChunks++;
+                }
+                bf.Write((UInt32)numListChunks); // number of chunks
 
-                // write COMP and 16 bytes
-                bf.Write("Comp");
-                bf.Write((UInt64)this.CompDataStartPos); // parameter data start position (Comp)
-                bf.Write((UInt64)this.CompDataChunkSize); // byte length of parameter data (Comp)
+                if (CompDataChunkSize > 0)
+                {
+                    // write COMP and 16 bytes
+                    bf.Write("Comp");
+                    bf.Write((UInt64)CompDataStartPos); // parameter data start position (Comp)
+                    bf.Write((UInt64)CompDataChunkSize); // byte length of parameter data (Comp)
+                }
 
-                // write Cont and 16 bytes
-                bf.Write("Cont");
-                bf.Write((UInt64)this.ContDataStartPos); // parameter data start position (Cont)
-                bf.Write((UInt64)this.ContDataChunkSize); // byte length of parameter data (Cont)
+                if (ContDataChunkSize > 0)
+                {
+                    // write Cont and 16 bytes
+                    bf.Write("Cont");
+                    bf.Write((UInt64)ContDataStartPos); // parameter data start position (Cont)
+                    bf.Write((UInt64)ContDataChunkSize); // byte length of parameter data (Cont)
+                }
 
-                // write Info and 16 bytes
-                bf.Write("Info");
-                bf.Write((UInt64)this.InfoXmlStartPos); // info xml start position
-                bf.Write((UInt64)this.InfoXmlChunkSize); // byte length of info xml data
+                if (InfoXmlChunkSize > 0)
+                {
+                    // write Info and 16 bytes
+                    bf.Write("Info");
+                    bf.Write((UInt64)InfoXmlStartPos); // info xml start position
+                    bf.Write((UInt64)InfoXmlChunkSize); // byte length of info xml data
+                }
 
                 if (closeBinaryFile) bf.Close();
 
@@ -1470,23 +1487,23 @@ namespace PresetConverter
         /// </summary>
         public void CalculateBytePositions()
         {
-            this.CompDataStartPos = 48; // parameter data start position
-            this.CompDataChunkSize = 0;
+            CompDataStartPos = 48; // parameter data start position
+            CompDataChunkSize = 0;
             if (HasCompChunkData)
             {
-                this.CompDataChunkSize = CompChunkData.Length; // byte length of Comp parameter data 
+                CompDataChunkSize = CompChunkData.Length; // byte length of Comp parameter data 
             }
 
-            this.ContDataStartPos = this.CompDataStartPos + this.CompDataChunkSize;
-            this.ContDataChunkSize = 0;
+            ContDataStartPos = CompDataStartPos + CompDataChunkSize;
+            ContDataChunkSize = 0;
             if (HasContChunkData)
             {
-                this.ContDataChunkSize = ContChunkData.Length; // byte length of Cont parameter data 
+                ContDataChunkSize = ContChunkData.Length; // byte length of Cont parameter data 
             }
 
-            this.InfoXmlStartPos = this.ContDataStartPos + this.ContDataChunkSize;
-            this.InfoXmlChunkSize = InfoXmlBytesWithBOM.Length;
-            this.ListPos = (this.InfoXmlStartPos + this.InfoXmlBytesWithBOM.Length); // position of List chunk
+            InfoXmlStartPos = ContDataStartPos + ContDataChunkSize;
+            InfoXmlChunkSize = InfoXmlBytesWithBOM.Length;
+            ListPos = InfoXmlStartPos + InfoXmlBytesWithBOM.Length; // position of List chunk
         }
 
         /// <summary>
@@ -1510,30 +1527,30 @@ namespace PresetConverter
 
             XmlElement attr2 = xml.CreateElement("Attribute");
             attr2.SetAttribute("id", "PlugInCategory");
-            attr2.SetAttribute("value", this.PlugInCategory);
+            attr2.SetAttribute("value", PlugInCategory);
             attr2.SetAttribute("type", "string");
             attr2.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr2);
 
             XmlElement attr3 = xml.CreateElement("Attribute");
             attr3.SetAttribute("id", "PlugInName");
-            attr3.SetAttribute("value", this.PlugInName);
+            attr3.SetAttribute("value", PlugInName);
             attr3.SetAttribute("type", "string");
             attr3.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr3);
 
             XmlElement attr4 = xml.CreateElement("Attribute");
             attr4.SetAttribute("id", "PlugInVendor");
-            attr4.SetAttribute("value", this.PlugInVendor);
+            attr4.SetAttribute("value", PlugInVendor);
             attr4.SetAttribute("type", "string");
             attr4.SetAttribute("flags", "writeProtected");
             root.AppendChild(attr4);
 
-            this.InfoXml = BeautifyXml(xml);
+            InfoXml = BeautifyXml(xml);
 
             // The UTF-8 representation of the Byte order mark is the (hexadecimal) byte sequence 0xEF,0xBB,0xBF.
-            var xmlBytes = Encoding.UTF8.GetBytes(this.InfoXml);
-            this.InfoXmlBytesWithBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
+            var xmlBytes = Encoding.UTF8.GetBytes(InfoXml);
+            InfoXmlBytesWithBOM = Encoding.UTF8.GetPreamble().Concat(xmlBytes).ToArray();
         }
 
         /// <summary>
@@ -1580,18 +1597,18 @@ namespace PresetConverter
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("Vst3ID: {0}\n", this.Vst3ID);
+            sb.AppendFormat("Vst3ID: {0}\n", Vst3ID);
 
-            if (this.Parameters.Count > 0)
+            if (Parameters.Count > 0)
             {
                 // output parameters
-                foreach (var parameter in this.Parameters.Values)
+                foreach (var parameter in Parameters.Values)
                 {
                     sb.AppendLine(parameter.ToString());
                 }
             }
 
-            if (null != this.InfoXml) sb.AppendLine(this.InfoXml);
+            if (null != InfoXml) sb.AppendLine(InfoXml);
             return sb.ToString();
         }
     }

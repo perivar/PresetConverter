@@ -174,7 +174,7 @@ namespace PresetConverter
                     var fabFilterProQ3 = preset as FabfilterProQ3;
                     fabFilterProQ3.InitFromParameters();
 
-                    break;                    
+                    break;
                 case VstPreset.VstIDs.WavesSSLChannelStereo:
                     VstPreset.Parameter sslChannelXml = null;
                     vstPreset.Parameters.TryGetValue("XmlContent", out sslChannelXml);

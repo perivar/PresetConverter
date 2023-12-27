@@ -11,7 +11,6 @@ namespace PresetConverter
             var fabfilterProQ3 = new FabfilterProQ3
             {
                 Bands = new List<ProQ3Band>(),
-                UnknownParameters = new List<float>()
             };
 
             foreach (var band in eq.Bands)
@@ -64,6 +63,8 @@ namespace PresetConverter
                     fabfilterProQ3.Bands.Add(proQ3Band);
                 }
             }
+
+            fabfilterProQ3.AddDefaultUnknownParameters();
 
             return fabfilterProQ3;
         }
