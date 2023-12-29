@@ -1,4 +1,3 @@
-using System;
 using Serilog;
 
 namespace PresetConverter
@@ -10,69 +9,74 @@ namespace PresetConverter
         {
             var frequency = new SteinbergFrequency();
 
+            if (eq.Mode != AbletonEq8.ChannelMode.Stereo)
+            {
+                throw new NotImplementedException($"Only Stereo conversion is supported. ChannelMode was {eq.Mode}!");
+            }
+
             foreach (var band in eq.Bands)
             {
                 if (band.Parameter.Equals("ParameterA"))
                 {
                     int bandNumber = band.Number + 1; // zero indexed
-                    frequency.Parameters[String.Format("equalizerAbandon{0}", bandNumber)].Number = band.IsOn ? 1.00 : 0.00;
-                    frequency.Parameters[String.Format("equalizerAgain{0}", bandNumber)].Number = band.Gain;
-                    frequency.Parameters[String.Format("equalizerAfreq{0}", bandNumber)].Number = band.Freq;
-                    frequency.Parameters[String.Format("equalizerAq{0}", bandNumber)].Number = band.Q;
+                    frequency.Parameters[string.Format("equalizerAbandon{0}", bandNumber)].Number = band.IsOn ? 1.00 : 0.00;
+                    frequency.Parameters[string.Format("equalizerAgain{0}", bandNumber)].Number = band.Gain;
+                    frequency.Parameters[string.Format("equalizerAfreq{0}", bandNumber)].Number = band.Freq;
+                    frequency.Parameters[string.Format("equalizerAq{0}", bandNumber)].Number = band.Q;
 
                     switch (band.Mode)
                     {
                         case AbletonEq8.BandMode.LowCut48:
-                            frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut48;
+                            frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut48;
                             break;
                         case AbletonEq8.BandMode.LowCut12:
-                            frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut12;
+                            frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut12;
                             break;
                         case AbletonEq8.BandMode.LeftShelf:
                             if (bandNumber == 1 || bandNumber == 8)
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.LowShelf;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.LowShelf;
                             }
                             else
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.LowShelf;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.LowShelf;
                             }
                             break;
                         case AbletonEq8.BandMode.Bell:
                             if (bandNumber == 1 || bandNumber == 8)
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Peak;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Peak;
                             }
                             else
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.Peak;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.Peak;
                             }
                             break;
                         case AbletonEq8.BandMode.Notch:
                             if (bandNumber == 1 || bandNumber == 8)
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Notch;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Notch;
                             }
                             else
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.Notch;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.Notch;
                             }
                             break;
                         case AbletonEq8.BandMode.RightShelf:
                             if (bandNumber == 1 || bandNumber == 8)
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.HighShelf;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.HighShelf;
                             }
                             else
                             {
-                                frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.HighShelf;
+                                frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode2To7.HighShelf;
                             }
                             break;
                         case AbletonEq8.BandMode.HighCut12:
-                            frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut12;
+                            frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut12;
                             break;
                         case AbletonEq8.BandMode.HighCut48:
-                            frequency.Parameters[String.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut48;
+                            frequency.Parameters[string.Format("equalizerAtype{0}", bandNumber)].Number = SteinbergFrequency.BandMode1And8.Cut48;
                             break;
                     }
 

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace PresetConverter
@@ -20,6 +17,13 @@ namespace PresetConverter
             HighCut48
         }
 
+        public enum ChannelMode
+        {
+            Stereo = 0, // Default
+            LeftRight = 1,
+            MidSide = 2
+        }
+
         public class Band
         {
             public string Parameter;
@@ -36,11 +40,16 @@ namespace PresetConverter
             }
         }
 
+        public ChannelMode Mode = ChannelMode.Stereo;
         public List<Band> Bands = new List<Band>();
 
-        public AbletonEq8(XElement xelement)
+        public AbletonEq8(XElement xElement)
         {
-            var bands = from d in xelement.Descendants()
+            // check mode: <Mode Value="0" />
+            XElement? xMode = xElement?.Element("Mode");
+            Mode = (ChannelMode)int.Parse(xMode.Attribute("Value")?.Value ?? "0");
+
+            var bands = from d in xElement.Descendants()
                         where d.Name.LocalName.Contains("Bands")
                         select d;
 
@@ -53,15 +62,41 @@ namespace PresetConverter
 
         private Band ParseBand(XElement bandElement, string parameter)
         {
-            var band = new Band();
-            band.Parameter = parameter;
-            band.Number = int.Parse(bandElement.Name.LocalName.Substring(bandElement.Name.LocalName.LastIndexOf('.') + 1));
-            band.IsOn = bandElement.Descendants(parameter).Descendants("IsOn").Descendants("Manual").Attributes("Value").First().Value.Equals("true");
-            band.Mode = (BandMode)int.Parse(bandElement.Descendants(parameter).Descendants("Mode").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            band.Freq = float.Parse(bandElement.Descendants(parameter).Descendants("Freq").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            band.Gain = float.Parse(bandElement.Descendants(parameter).Descendants("Gain").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            band.Q = float.Parse(bandElement.Descendants(parameter).Descendants("Q").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
+            var band = new Band
+            {
+                Parameter = parameter,
+                Number = int.Parse(bandElement.Name.LocalName.Substring(bandElement.Name.LocalName.LastIndexOf('.') + 1)),
+                IsOn = bandElement.Descendants(parameter).Descendants("IsOn").Descendants("Manual").Attributes("Value").First().Value.Equals("true"),
+                Mode = (BandMode)int.Parse(bandElement.Descendants(parameter).Descendants("Mode").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
+                Freq = float.Parse(bandElement.Descendants(parameter).Descendants("Freq").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
+                Gain = float.Parse(bandElement.Descendants(parameter).Descendants("Gain").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
+                Q = float.Parse(bandElement.Descendants(parameter).Descendants("Q").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture)
+            };
+
             return band;
+        }
+
+        /// <summary>
+        /// Checks if the EQ is active due to have been changed from the default values.
+        /// </summary>
+        /// <returns>True if any band is active (on), has a specified BandMode of LowCut48, LowCut12, HighCut12, or HighCut48, and has a non-zero Gain. False otherwise.</returns>
+        public bool IsEQActive()
+        {
+            foreach (var band in Bands)
+            {
+                // Check if the band is on and has a non-zero Gain
+                if (band.IsOn && band.Gain != 0.0)
+                {
+                    return true;
+                }
+                // Check if the band is on and has a specified BandMode
+                else if (band.IsOn && (band.Mode == BandMode.LowCut48 || band.Mode == BandMode.LowCut12 || band.Mode == BandMode.HighCut12 || band.Mode == BandMode.HighCut48))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

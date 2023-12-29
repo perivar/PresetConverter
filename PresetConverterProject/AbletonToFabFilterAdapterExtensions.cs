@@ -13,6 +13,11 @@ namespace PresetConverter
                 Bands = new List<ProQ3Band>(),
             };
 
+            if (eq.Mode != AbletonEq8.ChannelMode.Stereo)
+            {
+                throw new NotImplementedException($"Only Stereo conversion is supported. ChannelMode was {eq.Mode}!");
+            }
+
             foreach (var band in eq.Bands)
             {
                 if (band.Parameter.Equals("ParameterA"))

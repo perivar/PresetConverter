@@ -55,14 +55,18 @@ namespace PresetConverter
         static SortedDictionary<int, dynamic> inData = new SortedDictionary<int, dynamic>();
         static SortedDictionary<int, dynamic> automationTargetLookup = new SortedDictionary<int, dynamic>();
 
-        private static string GetValue(XElement xmlData, string varName, string fallback)
+        private static string GetValue(XElement? xmlData, string varName, string fallback)
         {
+            if (xmlData == null) return fallback;
+
             XElement? xElement = xmlData.Descendants(varName).FirstOrDefault();
             return xElement?.Attribute("Value")?.Value ?? fallback;
         }
 
-        private static string GetId(XElement xmlData, string varName, string fallback)
+        private static string GetId(XElement? xmlData, string varName, string fallback)
         {
+            if (xmlData == null) return fallback;
+
             XElement? xElement = xmlData.Descendants(varName).FirstOrDefault();
             return xElement?.Attribute("Id")?.Value ?? fallback;
         }
@@ -723,7 +727,7 @@ namespace PresetConverter
                 string? userName = xDevice?.Element("UserName")?.Attribute("Value")?.Value; // this is set in .adv preset files
 
                 // check if it's on
-                XElement xOn = xDevice?.Element("On");
+                XElement? xOn = xDevice?.Element("On");
                 bool isOn = bool.Parse(GetValue(xOn, "Manual", "false"));
 
                 if (!isOn)
@@ -743,23 +747,34 @@ namespace PresetConverter
                     case "Eq8":
                         // Convert EQ8 to Steinberg Frequency
                         var eq = new AbletonEq8(xDevice);
-                        var steinbergFrequency = eq.ToSteinbergFrequency();
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
-                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
 
-                        Log.Information($"Writing EQ8 Preset: {outputFileName}");
+                        if (eq.IsEQActive())
+                        {
+                            var steinbergFrequency = eq.ToSteinbergFrequency();
+                            outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
+                            IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
 
-                        steinbergFrequency.Write(outputFilePath + ".vstpreset");
+                            Log.Information($"Writing EQ8 Preset: {outputFileName}");
 
-                        // and dump the text info as well
-                        File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
+                            steinbergFrequency.Write(outputFilePath + ".vstpreset");
 
-                        // convert to Fabfilter Pro Q3 as well
-                        var fabfilterProQ3 = eq.ToFabfilterProQ3();
-                        outputFileName = $"{outputFileName} - EQ8ToFabfilterProQ3";
-                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
-                        fabfilterProQ3.WriteFFP(outputFilePath + ".ffp");
-                        fabfilterProQ3.WriteFXP(outputFilePath + ".fxp");
+                            // and dump the text info as well
+                            File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
+
+                            // convert to Fabfilter Pro Q3 as well
+                            var fabfilterProQ3 = eq.ToFabfilterProQ3();
+                            outputFileName = $"{outputFileName} - EQ8ToFabfilterProQ3";
+                            outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+                            fabfilterProQ3.WriteFFP(outputFilePath + ".ffp");
+                            fabfilterProQ3.WriteFXP(outputFilePath + ".fxp");
+
+                            // debug
+                            // xDevice.Save(outputFilePath + ".xml");
+                        }
+                        else
+                        {
+                            Log.Information($"Not converting EQ8 preset since it has not been changed from default values: {outputFileName}");
+                        }
                         break;
                     case "Compressor2":
                         // Convert Compressor2 to Steinberg Compressor
@@ -841,6 +856,24 @@ namespace PresetConverter
                         // recursively handle group of plugins
                         XElement xGroupTrackDevices = xDevice?.Descendants("Devices")?.FirstOrDefault();
                         DoDevices(rootXElement, xGroupTrackDevices, trackId, trackName, fxLoc, outputDirectoryPath, file, level + 1);
+
+                        break;
+                    case "MidiPitcher":
+                        // read <Pitch><Manual Value="0" />
+                        XElement? xPitch = xDevice?.Element("Pitch");
+                        XElement? xPitchValue = xPitch?.Element("Manual");
+                        if (xPitchValue != null)
+                        {
+                            double pitchValue = double.Parse(xPitchValue.Attribute("Value").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                            if (pitchValue != 0)
+                            {
+                                outputFileName = $"{outputFileName} - {deviceType} ({pitchValue})";
+                                outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                                Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                                xDevice.Save(outputFilePath + ".xml");
+                            }
+                        }
 
                         break;
                     case "MultibandDynamics":
