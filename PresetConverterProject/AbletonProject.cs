@@ -843,6 +843,35 @@ namespace PresetConverter
                         File.WriteAllText(outputFilePath + ".txt", abletonLimiter.ToString());
                         break;
 
+
+                    case "AutoPan":
+                        var abletonAutoPan = new AbletonAutoPan(xDevice);
+
+                        if (!abletonAutoPan.HasBeenModified())
+                        {
+                            outputFileName = $"{outputFileName} - {deviceType} - DefaultSettings";
+                        }
+                        else
+                        {
+                            if (abletonAutoPan.RateType == AbletonAutoPan.LFORateType.TempoSync)
+                            {
+                                outputFileName = $"{outputFileName} - {deviceType} - {abletonAutoPan.BeatRate}";
+                            }
+                            else
+                            {
+                                outputFileName = $"{outputFileName} - {deviceType} - {abletonAutoPan.Frequency}hz";
+                            }
+                        }
+
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                        Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                        // xDevice.Save(outputFilePath + ".xml");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", abletonAutoPan.ToString());
+                        break;
+
                     case "PluginDevice":
                         // Handle Plugin Presets
                         // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
@@ -1123,6 +1152,13 @@ namespace PresetConverter
 
         public static void ConvertAutomationToMidi(dynamic cvpj, string file, string outputDirectoryPath, bool doOutputDebugFile)
         {
+            // check if we have automation
+            if (!((IDictionary<string, dynamic>)cvpj).ContainsKey("automation"))
+            {
+                Log.Debug($"Skipping converting automation to midi since no automation was found!");
+                return;
+            }
+
             double tempo = cvpj.parameters.bpm.value;
 
             // Set the ticks per beat and BPM
