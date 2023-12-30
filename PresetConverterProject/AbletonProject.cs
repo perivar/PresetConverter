@@ -1045,6 +1045,9 @@ namespace PresetConverter
                     var vstPluginVVVBytes = TruncateByteArray(vstPluginBufferBytes, 8, 2);
                     BinaryFile.ByteArrayToFile(outputFilePath + "_Clipboard.xml", vstPluginVVVBytes);
                     break;
+                case "SINE Player":
+                    FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Y355");
+                    break;
                 default:
                     Log.Error($"Could not save preset as fxp since vstplugin '{vstPlugName}' is not recognized!");
                     BinaryFile.ByteArrayToFile(outputFilePath + ".dat", vstPluginBufferBytes);
