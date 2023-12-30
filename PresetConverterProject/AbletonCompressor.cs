@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using System.Linq;
 using System.Xml.Linq;
 using Serilog;
 
@@ -8,41 +6,41 @@ namespace PresetConverter
 {
     public class AbletonCompressor
     {
-        public const float MaxFloatMinusEpsilon = 340282326356119260000000000000000000000f;
+        public const double MaxFloatMinusEpsilon = 340282326356119260000000000000000000000f;
 
-        public float Threshold;
+        public double Threshold;
         public float Ratio;
-        public float ExpansionRatio;
-        public float Attack;
-        public float Release;
+        public double ExpansionRatio;
+        public double Attack;
+        public double Release;
         public bool AutoReleaseControlOnOff;
-        public float Gain;
+        public double Gain;
         public bool GainCompensation;
-        public float DryWet;
-        public float Model;
-        public float LegacyModel;
-        public float Knee;
-        public float LookAhead;
+        public double DryWet;
+        public double Model;
+        public double LegacyModel;
+        public double Knee;
+        public double LookAhead;
 
-        public AbletonCompressor(XElement xelement)
+        public AbletonCompressor(XElement xElement)
         {
-            this.Threshold = float.Parse(xelement.Descendants("Threshold").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Ratio = float.Parse(xelement.Descendants("Ratio").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            if (this.Ratio == MaxFloatMinusEpsilon)
+            Threshold = double.Parse(xElement?.Element("Threshold")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Ratio = float.Parse(xElement?.Element("Ratio")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            if (Ratio == MaxFloatMinusEpsilon)
             {
                 Log.Debug("AbletonCompressor ratio is set to max: {0}", MaxFloatMinusEpsilon);
             }
-            this.ExpansionRatio = float.Parse(xelement.Descendants("ExpansionRatio").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Attack = float.Parse(xelement.Descendants("Attack").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Release = float.Parse(xelement.Descendants("Release").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.AutoReleaseControlOnOff = xelement.Descendants("AutoReleaseControlOnOff").Descendants("Manual").Attributes("Value").First().Value.Equals("true");
-            this.Gain = float.Parse(xelement.Descendants("Gain").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.GainCompensation = xelement.Descendants("GainCompensation").Descendants("Manual").Attributes("Value").First().Value.Equals("true");
-            this.DryWet = float.Parse(xelement.Descendants("DryWet").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Model = float.Parse(xelement.Descendants("Model").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.LegacyModel = float.Parse(xelement.Descendants("LegacyModel").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Knee = float.Parse(xelement.Descendants("Knee").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.LookAhead = float.Parse(xelement.Descendants("LookAhead").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
+            ExpansionRatio = double.Parse(xElement?.Element("ExpansionRatio")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Attack = double.Parse(xElement?.Element("Attack")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Release = double.Parse(xElement?.Element("Release")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            AutoReleaseControlOnOff = xElement?.Element("AutoReleaseControlOnOff")?.Element("Manual")?.Attribute("Value")?.Value.Equals("true") ?? false;
+            Gain = double.Parse(xElement?.Element("Gain")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            GainCompensation = xElement?.Element("GainCompensation")?.Element("Manual")?.Attribute("Value")?.Value.Equals("true") ?? false;
+            DryWet = double.Parse(xElement?.Element("DryWet")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Model = double.Parse(xElement?.Element("Model")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            LegacyModel = double.Parse(xElement?.Element("LegacyModel")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Knee = double.Parse(xElement?.Element("Knee")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            LookAhead = double.Parse(xElement?.Element("LookAhead")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
         }
 
         public override string ToString()

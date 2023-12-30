@@ -30,9 +30,9 @@ namespace PresetConverter
             public int Number;
             public bool IsOn;
             public BandMode Mode;
-            public float Freq;
-            public float Gain;
-            public float Q;
+            public double Freq;
+            public double Gain;
+            public double Q;
 
             public override string ToString()
             {
@@ -68,9 +68,9 @@ namespace PresetConverter
                 Number = int.Parse(bandElement.Name.LocalName.Substring(bandElement.Name.LocalName.LastIndexOf('.') + 1)),
                 IsOn = bandElement.Descendants(parameter).Descendants("IsOn").Descendants("Manual").Attributes("Value").First().Value.Equals("true"),
                 Mode = (BandMode)int.Parse(bandElement.Descendants(parameter).Descendants("Mode").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
-                Freq = float.Parse(bandElement.Descendants(parameter).Descendants("Freq").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
-                Gain = float.Parse(bandElement.Descendants(parameter).Descendants("Gain").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
-                Q = float.Parse(bandElement.Descendants(parameter).Descendants("Q").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture)
+                Freq = double.Parse(bandElement.Descendants(parameter).Descendants("Freq").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
+                Gain = double.Parse(bandElement.Descendants(parameter).Descendants("Gain").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture),
+                Q = double.Parse(bandElement.Descendants(parameter).Descendants("Q").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture)
             };
 
             return band;
@@ -80,7 +80,7 @@ namespace PresetConverter
         /// Checks if the EQ is active due to have been changed from the default values.
         /// </summary>
         /// <returns>True if any band is active (on), has a specified BandMode of LowCut48, LowCut12, HighCut12, or HighCut48, and has a non-zero Gain. False otherwise.</returns>
-        public bool IsEQActive()
+        public bool HasBeenModified()
         {
             foreach (var band in Bands)
             {

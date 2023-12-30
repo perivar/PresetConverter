@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace PresetConverter
@@ -36,25 +34,25 @@ namespace PresetConverter
             Ratio_10_1
         }
 
-        public float Threshold;
-        public float Range;
-        public float Makeup;
+        public double Threshold;
+        public double Range;
+        public double Makeup;
         public AttackType Attack;
         public RatioType Ratio;
         public ReleaseType Release;
-        public float DryWet;
+        public double DryWet;
         public bool PeakClipIn;
 
-        public AbletonGlueCompressor(XElement xelement)
+        public AbletonGlueCompressor(XElement xElement)
         {
-            this.Threshold = float.Parse(xelement.Descendants("Threshold").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Range = float.Parse(xelement.Descendants("Range").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Makeup = float.Parse(xelement.Descendants("Makeup").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Attack = (AttackType)int.Parse(xelement.Descendants("Attack").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Ratio = (RatioType)int.Parse(xelement.Descendants("Ratio").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.Release = (ReleaseType)int.Parse(xelement.Descendants("Release").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.DryWet = float.Parse(xelement.Descendants("DryWet").Descendants("Manual").Attributes("Value").First().Value, CultureInfo.InvariantCulture);
-            this.PeakClipIn = xelement.Descendants("PeakClipIn").Descendants("Manual").Attributes("Value").First().Value.Equals("true");
+            Threshold = double.Parse(xElement?.Element("Threshold")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Range = double.Parse(xElement?.Element("Range")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Makeup = double.Parse(xElement?.Element("Makeup")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Attack = (AttackType)int.Parse(xElement?.Element("Attack")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Ratio = (RatioType)int.Parse(xElement?.Element("Ratio")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            Release = (ReleaseType)int.Parse(xElement?.Element("Release")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            DryWet = double.Parse(xElement?.Element("DryWet")?.Element("Manual")?.Attribute("Value")?.Value ?? "0", CultureInfo.InvariantCulture);
+            PeakClipIn = xElement?.Element("PeakClipIn")?.Element("Manual")?.Attribute("Value")?.Value.Equals("true") ?? false;
         }
 
         public override string ToString()

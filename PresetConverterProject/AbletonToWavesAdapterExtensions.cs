@@ -1,4 +1,3 @@
-using System;
 
 namespace PresetConverter
 {
@@ -7,21 +6,22 @@ namespace PresetConverter
     {
         public static WavesSSLComp ToWavesSSLComp(this AbletonGlueCompressor comp)
         {
-            var compressor = new WavesSSLComp();
+            var compressor = new WavesSSLComp
+            {
+                PresetName = "",
+                PresetGenericType = "SLCO",
+                PresetGroup = "",
+                PresetPluginName = "SSLComp",
+                PresetPluginSubComp = "SLCS",
+                PresetPluginVersion = "10.0.0.16",
+                PresetActiveSetup = "SETUP_A",
+                PresetSetupName = "",
 
-            compressor.PresetName = "";
-            compressor.PresetGenericType = "SLCO";
-            compressor.PresetGroup = "";
-            compressor.PresetPluginName = "SSLComp";
-            compressor.PresetPluginSubComp = "SLCS";
-            compressor.PresetPluginVersion = "10.0.0.16";
-            compressor.PresetActiveSetup = "SETUP_A";
-            compressor.PresetSetupName = "";
+                // invert threshold ?!
+                Threshold = (float)-comp.Threshold
+            };
 
-            // invert threshold ?!
-            compressor.Threshold = -comp.Threshold;
-
-            var ratio = WavesSSLComp.RatioType.Ratio_4_1;
+            WavesSSLComp.RatioType ratio;
             switch (comp.Ratio)
             {
                 case AbletonGlueCompressor.RatioType.Ratio_10_1:
@@ -38,7 +38,7 @@ namespace PresetConverter
             compressor.Ratio = ratio;
 
             // Attack [0 - 5, .1 ms, .3 ms, 1 ms, 3 ms, 10 ms, 30 ms)
-            var attack = WavesSSLComp.AttackType.Attack_1;
+            WavesSSLComp.AttackType attack;
             switch (comp.Attack)
             {
                 case AbletonGlueCompressor.AttackType.Attack_0_01:
@@ -67,7 +67,7 @@ namespace PresetConverter
             compressor.Attack = attack;
 
             // Release: 0 - 4, .1 s, .3 s, .6 s, 1.2 s, Auto (-1)
-            var release = WavesSSLComp.ReleaseType.Release_Auto;
+            WavesSSLComp.ReleaseType release;
             switch (comp.Release)
             {
                 case AbletonGlueCompressor.ReleaseType.Release_0_1:
@@ -95,7 +95,7 @@ namespace PresetConverter
             }
             compressor.Release = release;
 
-            compressor.MakeupGain = comp.Makeup;
+            compressor.MakeupGain = (float)comp.Makeup;
             compressor.RateS = 0;
             compressor.In = true;
             compressor.Analog = false;

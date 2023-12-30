@@ -744,13 +744,31 @@ namespace PresetConverter
 
                 switch (deviceType)
                 {
-                    case "Eq8":
-                        // Convert EQ8 to Steinberg Frequency
-                        var eq = new AbletonEq8(xDevice);
+                    case "FilterEQ3":
+                        // read EQ
+                        var eq3 = new AbletonEq3(xDevice);
 
-                        if (eq.IsEQActive())
+                        if (eq3.HasBeenModified())
                         {
-                            var steinbergFrequency = eq.ToSteinbergFrequency();
+                            // TODO: convert to Fabfilter Pro Q3 as well
+
+                            outputFileName = $"{outputFileName} - {deviceType}";
+                            outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                            Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                            xDevice.Save(outputFilePath + ".xml");
+                        }
+
+                        break;
+
+                    case "Eq8":
+                        // read EQ
+                        var eq8 = new AbletonEq8(xDevice);
+
+                        if (eq8.HasBeenModified())
+                        {
+                            // Convert EQ8 to Steinberg Frequency
+                            var steinbergFrequency = eq8.ToSteinbergFrequency();
                             outputFilePath = Path.Combine(outputDirectoryPath, "Frequency", "Ableton - " + outputFileName);
                             IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Frequency"));
 
@@ -762,7 +780,7 @@ namespace PresetConverter
                             File.WriteAllText(outputFilePath + ".txt", steinbergFrequency.ToString());
 
                             // convert to Fabfilter Pro Q3 as well
-                            var fabfilterProQ3 = eq.ToFabfilterProQ3();
+                            var fabfilterProQ3 = eq8.ToFabfilterProQ3();
                             outputFileName = $"{outputFileName} - EQ8ToFabfilterProQ3";
                             outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
                             fabfilterProQ3.WriteFFP(outputFilePath + ".ffp");
@@ -804,19 +822,39 @@ namespace PresetConverter
                         // and dump the text info as well
                         File.WriteAllText(outputFilePath + ".txt", wavesSSLComp.ToString());
                         break;
+                    case "Limiter":
+                        var abletonLimiter = new AbletonLimiter(xDevice);
+
+                        if (!abletonLimiter.HasBeenModified())
+                        {
+                            outputFileName = $"{outputFileName} - {deviceType} - DefaultSettings";
+                        }
+                        else
+                        {
+                            outputFileName = $"{outputFileName} - {deviceType}";
+                        }
+
+                        outputFilePath = Path.Combine(outputDirectoryPath, "Ableton - " + outputFileName);
+
+                        Log.Information($"Writing {deviceType} Preset: {outputFileName}");
+                        // xDevice.Save(outputFilePath + ".xml");
+
+                        // and dump the text info as well
+                        File.WriteAllText(outputFilePath + ".txt", abletonLimiter.ToString());
+                        break;
 
                     case "PluginDevice":
                         // Handle Plugin Presets
                         // Path: PluginDevice/PluginDesc/VstPluginInfo/Preset/VstPreset
 
-                        XElement xPluginDesc = xDevice?.Element("PluginDesc");
-                        XElement xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
+                        XElement? xPluginDesc = xDevice?.Element("PluginDesc");
+                        XElement? xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                         int vstPluginInfoId = int.Parse(xVstPluginInfo?.Attribute("Id")?.Value ?? "0");
                         string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Unknown");
                         // Log.Debug($"VstPluginInfo Id: {vstPluginInfoId}, VstPluginName: {vstPlugName}");
 
-                        XElement xPreset = xVstPluginInfo?.Element("Preset");
-                        XElement xVstPreset = xPreset?.Element("VstPreset");
+                        XElement? xPreset = xVstPluginInfo?.Element("Preset");
+                        XElement? xVstPreset = xPreset?.Element("VstPreset");
                         int vstPresetId = int.Parse(xVstPreset?.Attribute("Id")?.Value ?? "0");
                         // Log.Debug($"VstPreset Id: {vstPresetId}");
 
@@ -864,7 +902,7 @@ namespace PresetConverter
                         XElement? xPitchValue = xPitch?.Element("Manual");
                         if (xPitchValue != null)
                         {
-                            double pitchValue = double.Parse(xPitchValue.Attribute("Value").Value, NumberStyles.Any, CultureInfo.InvariantCulture);
+                            double pitchValue = double.Parse(xPitchValue?.Attribute("Value")?.Value ?? "0", NumberStyles.Any, CultureInfo.InvariantCulture);
                             if (pitchValue != 0)
                             {
                                 outputFileName = $"{outputFileName} - {deviceType} ({pitchValue})";
@@ -890,7 +928,7 @@ namespace PresetConverter
                             XElement? xFileRef = xDevice?.Descendants("FileRef")?.FirstOrDefault();
 
                             // read the byte data buffer
-                            XElement xBuffer = xFileRef?.Element("Data");
+                            XElement? xBuffer = xFileRef?.Element("Data");
                             byte[] vstBytes = XmlHelpers.GetInnerValueAsByteArray(xBuffer);
 
                             outputFileName = $"{outputFileName} - {StringUtils.MakeValidFileName(userName)}";
@@ -965,10 +1003,18 @@ namespace PresetConverter
                 case "ValhallaRoom":
                 case "ValhallaRoom_x64":
                     FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "Ruum");
+
+                    // also save as xml format
+                    var vstPluginVRBytes = TruncateByteArray(vstPluginBufferBytes, 8, 2);
+                    BinaryFile.ByteArrayToFile(outputFilePath + "_Clipboard.xml", vstPluginVRBytes);
                     break;
                 case "ValhallaVintageVerb":
                 case "ValhallaVintageVerb_x64":
                     FXP.WriteRaw2FXP(outputFilePath + ".fxp", vstPluginBufferBytes, "vee3");
+
+                    // also save as xml format
+                    var vstPluginVVVBytes = TruncateByteArray(vstPluginBufferBytes, 8, 2);
+                    BinaryFile.ByteArrayToFile(outputFilePath + "_Clipboard.xml", vstPluginVVVBytes);
                     break;
                 default:
                     Log.Error($"Could not save preset as fxp since vstplugin '{vstPlugName}' is not recognized!");
@@ -977,6 +1023,20 @@ namespace PresetConverter
             }
 
             return true;
+        }
+
+        private static byte[] TruncateByteArray(byte[] originalArray, int skipFirst, int skipLast)
+        {
+            // Calculate the length of the truncated array
+            int truncatedLength = originalArray.Length - skipFirst - skipLast;
+
+            // Create a span over the original array
+            Span<byte> originalSpan = originalArray.AsSpan();
+
+            // Slice the span to get the truncated portion
+            Span<byte> truncatedSpan = originalSpan.Slice(skipFirst, truncatedLength);
+
+            return truncatedSpan.ToArray(); // Convert the span to an array before returning
         }
 
         private static bool Compat(dynamic cvpj)
