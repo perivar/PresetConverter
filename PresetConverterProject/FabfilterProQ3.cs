@@ -19,7 +19,7 @@ namespace PresetConverter
         {
             Version = 4;
 
-            Vst3ClassID = Vst3ClassIDs.FabFilterProQ3;
+            Vst3ClassID = VstClassIDs.FabFilterProQ3;
             PlugInCategory = "Fx";
             PlugInName = "FabFilter Pro-Q 3";
             PlugInVendor = "FabFilter";

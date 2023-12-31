@@ -17,7 +17,7 @@ namespace PresetConverter
     {
         public NIKontakt6_64out()
         {
-            Vst3ClassID = Vst3ClassIDs.NIKontakt6_64out;
+            Vst3ClassID = VstClassIDs.NIKontakt6_64out;
             PlugInCategory = "Instrument";
             PlugInName = "Kontakt 6";
             PlugInVendor = "Native Instruments GmbH";

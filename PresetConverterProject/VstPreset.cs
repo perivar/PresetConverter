@@ -42,9 +42,9 @@ namespace PresetConverter
         EOF +---------------------------+   
         */
 
-        // cannot use Enums with strings, struct works
         // 32 Bytes ASCII-encoded class id
-        public struct Vst3ClassIDs
+        // cannot use Enums with strings, struct works
+        public struct VstClassIDs
         {
             // Steinberg
             public const string SteinbergAmpSimulator = "E4B91D8420B74C48A8B10F2DB9CB707E";
@@ -807,42 +807,42 @@ namespace PresetConverter
             else
             {
                 if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergAmpSimulator) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergAutoPan) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergBrickwallLimiter) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergCompressor) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDeEsser) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDeEsserNew) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDistortion) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDJEq) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDualFilter) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergEnvelopeShaper) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergEQ) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergExpander) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergFrequency) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGate) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGEQ10) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergLimiter) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMagnetoII) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMaximizer) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergModMachine) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMonoDelay) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMorphFilter) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMultibandCompressor) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMultibandEnvelopeShaper) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergNoiseGate) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergOctaver) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPingPongDelay) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPitchCorrect) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStereoDelay) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStereoEnhancer) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStudioChorus) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStudioEQ) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergTremolo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergTuner) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergUV22HR) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergVintageCompressor) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergVSTDynamics)
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergAmpSimulator) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergAutoPan) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergBrickwallLimiter) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergCompressor) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergDeEsser) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergDeEsserNew) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergDistortion) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergDJEq) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergDualFilter) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergEnvelopeShaper) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergEQ) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergExpander) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergFrequency) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergGate) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergGEQ10) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergLimiter) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergMagnetoII) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergMaximizer) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergModMachine) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergMonoDelay) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergMorphFilter) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergMultibandCompressor) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergMultibandEnvelopeShaper) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergNoiseGate) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergOctaver) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergPingPongDelay) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergPitchCorrect) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergStereoDelay) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergStereoEnhancer) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergStudioChorus) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergStudioEQ) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergTremolo) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergTuner) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergUV22HR) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergVintageCompressor) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergVSTDynamics)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -877,7 +877,7 @@ namespace PresetConverter
                     return;
                 }
                 else if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGrooveAgentONE))
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergGrooveAgentONE))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -894,14 +894,14 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGrooveAgentSE) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergHALionSonicSE) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPadShop) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPrologue) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergRetrologue) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergSamplerTrack) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergSpector) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergVSTAmpRack)
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergGrooveAgentSE) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergHALionSonicSE) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergPadShop) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergPrologue) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergRetrologue) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergSamplerTrack) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergSpector) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergVSTAmpRack)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
@@ -930,7 +930,7 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergREVerence))
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergREVerence))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -1006,7 +1006,7 @@ namespace PresetConverter
 
 
                 else if (
-                   Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStandardPanner))
+                   Vst3ClassID.Equals(VstClassIDs.SteinbergStandardPanner))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -1027,46 +1027,46 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesAPI2500Mono) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesBassRiderStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesC1CompStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesC4Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesCLAGuitarsStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDeBreathMono) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDeEsserStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDoubler2Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDoubler4Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesHDelayStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesKramerTapeStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesL3LLMultiStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesL3MultiMaximizerStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesLinEQLowbandStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMannyMReverbStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMaseratiACGStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMaseratiVX1Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMetaFlangerStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesOneKnobFilterStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesPuigChild670Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesPuigTecEQP1AStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesQ10Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesQ2Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRBassStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRChannelStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRCompressorStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRDeEsserStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesREQ6Stereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRVerbStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesS1ImagerStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLChannelStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLCompStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLEQMono) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLEQStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSuperTap2TapsMonoStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSuperTap2TapsStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesTrueVerbStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesTuneLTStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesVitaminStereo) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.WavesVocalRiderStereo)
+                    Vst3ClassID.Equals(VstClassIDs.WavesAPI2500Mono) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesBassRiderStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesC1CompStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesC4Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesCLAGuitarsStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesDeBreathMono) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesDeEsserStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesDoubler2Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesDoubler4Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesHDelayStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesKramerTapeStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesL3LLMultiStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesL3MultiMaximizerStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesLinEQLowbandStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesMannyMReverbStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesMaseratiACGStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesMaseratiVX1Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesMetaFlangerStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesOneKnobFilterStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesPuigChild670Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesPuigTecEQP1AStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesQ10Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesQ2Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesRBassStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesRChannelStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesRCompressorStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesRDeEsserStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesREQ6Stereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesRVerbStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesS1ImagerStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesSSLChannelStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesSSLCompStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesSSLEQMono) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesSSLEQStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesSuperTap2TapsMonoStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesSuperTap2TapsStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesTrueVerbStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesTuneLTStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesVitaminStereo) ||
+                    Vst3ClassID.Equals(VstClassIDs.WavesVocalRiderStereo)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -1117,7 +1117,7 @@ namespace PresetConverter
                     return;
                 }
 
-                else if (Vst3ClassID.Equals(Vst3ClassIDs.NIKontakt5))
+                else if (Vst3ClassID.Equals(VstClassIDs.NIKontakt5))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -1147,8 +1147,8 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.EastWestPlay) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.EastWestPlayx64)
+                    Vst3ClassID.Equals(VstClassIDs.EastWestPlay) ||
+                    Vst3ClassID.Equals(VstClassIDs.EastWestPlayx64)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
@@ -1178,10 +1178,10 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealEight) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealGuitarClassic) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealLPC) ||
-                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealStrat)
+                    Vst3ClassID.Equals(VstClassIDs.MusicLabRealEight) ||
+                    Vst3ClassID.Equals(VstClassIDs.MusicLabRealGuitarClassic) ||
+                    Vst3ClassID.Equals(VstClassIDs.MusicLabRealLPC) ||
+                    Vst3ClassID.Equals(VstClassIDs.MusicLabRealStrat)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)

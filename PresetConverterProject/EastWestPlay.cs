@@ -17,7 +17,7 @@ namespace PresetConverter
     {
         public EastWestPlay()
         {
-            Vst3ClassID = Vst3ClassIDs.EastWestPlay;
+            Vst3ClassID = VstClassIDs.EastWestPlay;
             PlugInCategory = "Instrument";
             PlugInName = "Play";
             PlugInVendor = "East West";
