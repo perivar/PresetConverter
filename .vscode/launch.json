@@ -765,6 +765,26 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
+      "name": ".NET Core Launch (DAW) VstPreset (Single)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        // "C:\\Users\\periv\\OneDrive\\Documents\\VST3 Presets\\D16 Group Audio Software\\Repeater\\Make Pop Music Stereo Vox Delay 1-4.vstpreset",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\FL\\FL SINE Player.vstpreset",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": ".NET Core Launch (DAW) Xps",
       "type": "coreclr",
       "request": "launch",

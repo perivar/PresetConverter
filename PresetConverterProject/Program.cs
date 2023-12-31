@@ -989,8 +989,8 @@ namespace PresetConverter
                     else
                     {
                         // output the vstpreset
-                        string presetOutputFilePath = Path.Combine(outputDirectoryPath, vstPreset.PlugInName, fileNameNoExtension);
-                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName));
+                        string presetOutputFilePath = Path.Combine(outputDirectoryPath, vstPreset.PlugInName ?? "Unknown", fileNameNoExtension);
+                        IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, vstPreset.PlugInName ?? "Unknown"));
                         vstPreset.Write(presetOutputFilePath + ".vstpreset");
 
                         // and dump the text info as well

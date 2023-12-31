@@ -1494,37 +1494,44 @@ namespace PresetConverter
 
                 // write LIST and 4 bytes
                 bf.Write("List");
-                int numListChunks = 0;
-                if (CompDataChunkSize > 0)
-                {
-                    numListChunks++;
-                }
-                if (ContDataChunkSize > 0)
-                {
-                    numListChunks++;
-                }
+
+                // Disable checking for Comp and Cont chunk sizes - always write both.
+                // Only check for the optional Info section
+                int numListChunks = 2;
+                // int numListChunks = 0;
+                // if (CompDataChunkSize > 0)
+                // {
+                //     numListChunks++;
+                // }
+                // if (ContDataChunkSize > 0)
+                // {
+                //     numListChunks++;
+                // }
                 if (InfoXmlChunkSize > 0)
                 {
                     numListChunks++;
                 }
                 bf.Write((UInt32)numListChunks); // number of chunks
 
-                if (CompDataChunkSize > 0)
-                {
-                    // write COMP and 16 bytes
-                    bf.Write("Comp");
-                    bf.Write((UInt64)CompDataStartPos); // parameter data start position (Comp)
-                    bf.Write((UInt64)CompDataChunkSize); // byte length of parameter data (Comp)
-                }
+                // Disable checking for Comp and Cont chunk sizes - always write both.
+                // if (CompDataChunkSize > 0)
+                // {
+                // write COMP and 16 bytes
+                bf.Write("Comp");
+                bf.Write((UInt64)CompDataStartPos); // parameter data start position (Comp)
+                bf.Write((UInt64)CompDataChunkSize); // byte length of parameter data (Comp)
+                // }
 
-                if (ContDataChunkSize > 0)
-                {
-                    // write Cont and 16 bytes
-                    bf.Write("Cont");
-                    bf.Write((UInt64)ContDataStartPos); // parameter data start position (Cont)
-                    bf.Write((UInt64)ContDataChunkSize); // byte length of parameter data (Cont)
-                }
+                // Disable checking for Comp and Cont chunk sizes - always write both.
+                // if (ContDataChunkSize > 0)
+                // {
+                // write Cont and 16 bytes
+                bf.Write("Cont");
+                bf.Write((UInt64)ContDataStartPos); // parameter data start position (Cont)
+                bf.Write((UInt64)ContDataChunkSize); // byte length of parameter data (Cont)
+                                                     // }
 
+                // Check for optional Info chunk
                 if (InfoXmlChunkSize > 0)
                 {
                     // write Info and 16 bytes
