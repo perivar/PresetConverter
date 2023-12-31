@@ -14,7 +14,7 @@ namespace PresetConverter
     {
         public SteinbergCompressor()
         {
-            Vst3ID = VstIDs.SteinbergCompressor;
+            Vst3ClassID = Vst3ClassIDs.SteinbergCompressor;
             PlugInCategory = "Fx|Dynamics";
             PlugInName = "Compressor";
             PlugInVendor = "Steinberg Media Technologies";

@@ -26,40 +26,40 @@ namespace PresetConverter
             VstPreset preset = null;
             switch (guid)
             {
-                case VstPreset.VstIDs.SteinbergCompressor:
+                case VstPreset.Vst3ClassIDs.SteinbergCompressor:
                     preset = new SteinbergCompressor();
                     break;
-                case VstPreset.VstIDs.SteinbergFrequency:
+                case VstPreset.Vst3ClassIDs.SteinbergFrequency:
                     preset = new SteinbergFrequency();
                     break;
-                case VstPreset.VstIDs.SteinbergREVerence:
+                case VstPreset.Vst3ClassIDs.SteinbergREVerence:
                     preset = new SteinbergREVerence();
                     break;
-                case VstPreset.VstIDs.FabFilterProQ:
-                case VstPreset.VstIDs.FabFilterProQx64:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ:
+                case VstPreset.Vst3ClassIDs.FabFilterProQx64:
                     preset = new FabfilterProQ();
-                    preset.Vst3ID = guid;
+                    preset.Vst3ClassID = guid;
                     break;
-                case VstPreset.VstIDs.FabFilterProQ2:
-                case VstPreset.VstIDs.FabFilterProQ2x64:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ2:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ2x64:
                     preset = new FabfilterProQ2();
-                    preset.Vst3ID = guid;
+                    preset.Vst3ClassID = guid;
                     break;
-                case VstPreset.VstIDs.NIKontakt5:
+                case VstPreset.Vst3ClassIDs.NIKontakt5:
                     preset = new NIKontakt5();
                     break;
-                case VstPreset.VstIDs.NIKontakt6:
+                case VstPreset.Vst3ClassIDs.NIKontakt6:
                     preset = new NIKontakt6();
                     break;
-                case VstPreset.VstIDs.NIKontakt6_64out:
+                case VstPreset.Vst3ClassIDs.NIKontakt6_64out:
                     preset = new NIKontakt6_64out();
                     break;
-                case VstPreset.VstIDs.EastWestPlay:
+                case VstPreset.Vst3ClassIDs.EastWestPlay:
                     preset = new EastWestPlay();
                     break;
                 default:
                     preset = new SteinbergVstPreset();
-                    preset.Vst3ID = guid;
+                    preset.Vst3ClassID = guid;
                     break;
             }
 
@@ -74,30 +74,30 @@ namespace PresetConverter
             {
                 preset.ReadData(new BinaryFile(presetBytes, BinaryFile.ByteOrder.LittleEndian, Encoding.ASCII), (UInt32)presetBytes.Length, false);
 
-                if (preset.Vst3ID == VstPreset.VstIDs.SteinbergREVerence)
+                if (preset.Vst3ClassID == VstPreset.Vst3ClassIDs.SteinbergREVerence)
                 {
                     // init wave paths and images from the parameters
                     var reverence = preset as SteinbergREVerence;
                     reverence.InitFromParameters();
                 }
 
-                else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ
-                    || preset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                else if (preset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ
+                    || preset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQx64)
                 {
                     // init variables from the parameters or FXP object
                     var fabFilterProQ = preset as FabfilterProQ;
                     fabFilterProQ.InitFromParameters();
                 }
 
-                else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2
-                    || preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                else if (preset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ2
+                    || preset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ2x64)
                 {
                     // init variables from the parameters or FXP object
                     var fabFilterProQ2 = preset as FabfilterProQ2;
                     fabFilterProQ2.InitFromParameters();
                 }
 
-                else if (preset.Vst3ID == VstPreset.VstIDs.FabFilterProQ3)
+                else if (preset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ3)
                 {
                     // init variables from the parameters or FXP object
                     var fabFilterProQ3 = preset as FabfilterProQ3;
@@ -123,19 +123,19 @@ namespace PresetConverter
             VstPreset vstPreset = new SteinbergVstPreset(file);
 
             VstPreset preset = null;
-            switch (vstPreset.Vst3ID)
+            switch (vstPreset.Vst3ClassID)
             {
-                case VstPreset.VstIDs.SteinbergCompressor:
+                case VstPreset.Vst3ClassIDs.SteinbergCompressor:
                     preset = new SteinbergCompressor();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
                     break;
-                case VstPreset.VstIDs.SteinbergFrequency:
+                case VstPreset.Vst3ClassIDs.SteinbergFrequency:
                     preset = new SteinbergFrequency();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
                     break;
-                case VstPreset.VstIDs.SteinbergREVerence:
+                case VstPreset.Vst3ClassIDs.SteinbergREVerence:
                     preset = new SteinbergREVerence();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
@@ -144,8 +144,8 @@ namespace PresetConverter
                     var reverence = preset as SteinbergREVerence;
                     reverence.InitFromParameters();
                     break;
-                case VstPreset.VstIDs.FabFilterProQ:
-                case VstPreset.VstIDs.FabFilterProQx64:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ:
+                case VstPreset.Vst3ClassIDs.FabFilterProQx64:
                     preset = new FabfilterProQ();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
@@ -154,8 +154,8 @@ namespace PresetConverter
                     var fabFilterProQ = preset as FabfilterProQ;
                     fabFilterProQ.InitFromParameters();
                     break;
-                case VstPreset.VstIDs.FabFilterProQ2:
-                case VstPreset.VstIDs.FabFilterProQ2x64:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ2:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ2x64:
                     preset = new FabfilterProQ2();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
@@ -165,7 +165,7 @@ namespace PresetConverter
                     fabFilterProQ2.InitFromParameters();
 
                     break;
-                case VstPreset.VstIDs.FabFilterProQ3:
+                case VstPreset.Vst3ClassIDs.FabFilterProQ3:
                     preset = new FabfilterProQ3();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
@@ -175,7 +175,7 @@ namespace PresetConverter
                     fabFilterProQ3.InitFromParameters();
 
                     break;
-                case VstPreset.VstIDs.WavesSSLChannelStereo:
+                case VstPreset.Vst3ClassIDs.WavesSSLChannelStereo:
                     VstPreset.Parameter sslChannelXml = null;
                     vstPreset.Parameters.TryGetValue("XmlContent", out sslChannelXml);
                     if (sslChannelXml != null && sslChannelXml.String != null)
@@ -188,7 +188,7 @@ namespace PresetConverter
                         preset.FXP = vstPreset.FXP;
                     }
                     break;
-                case VstPreset.VstIDs.WavesSSLCompStereo:
+                case VstPreset.Vst3ClassIDs.WavesSSLCompStereo:
                     VstPreset.Parameter sslCompXml = null;
                     vstPreset.Parameters.TryGetValue("XmlContent", out sslCompXml);
                     if (sslCompXml != null && sslCompXml.String != null)
@@ -201,13 +201,13 @@ namespace PresetConverter
                         preset.FXP = vstPreset.FXP;
                     }
                     break;
-                case VstPreset.VstIDs.NIKontakt5:
+                case VstPreset.Vst3ClassIDs.NIKontakt5:
                     preset = new NIKontakt5();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
                     break;
 
-                case VstPreset.VstIDs.EastWestPlay:
+                case VstPreset.Vst3ClassIDs.EastWestPlay:
                     preset = new EastWestPlay();
                     preset.Parameters = vstPreset.Parameters;
                     preset.FXP = vstPreset.FXP;
@@ -218,7 +218,7 @@ namespace PresetConverter
                     break;
             }
 
-            preset.Vst3ID = vstPreset.Vst3ID;
+            preset.Vst3ClassID = vstPreset.Vst3ClassID;
 
             return preset as T;
         }

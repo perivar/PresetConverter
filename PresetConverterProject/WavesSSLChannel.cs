@@ -60,7 +60,7 @@ namespace PresetConverter
 
         public WavesSSLChannel()
         {
-            Vst3ID = VstIDs.WavesSSLChannelStereo;
+            Vst3ClassID = Vst3ClassIDs.WavesSSLChannelStereo;
             PlugInCategory = "Fx|Channel Strip";
             PlugInName = "SSLChannel Stereo";
             PlugInVendor = "Waves";

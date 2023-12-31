@@ -22,7 +22,7 @@ namespace PresetConverter
             | header id ('VST3')        |       4 Bytes
             | version                   |       4 Bytes (int32)
             | ASCII-encoded class id    |       32 Bytes 
-        +--| offset to chunk list      |       8 Bytes (int64)
+        +--| offset to chunk list      |        8 Bytes (int64)
         |  +---------------------------+
         |  | DATA AREA                 |<-+
         |  | data of chunks 1..n       |  |
@@ -43,7 +43,8 @@ namespace PresetConverter
         */
 
         // cannot use Enums with strings, struct works
-        public struct VstIDs
+        // 32 Bytes ASCII-encoded class id
+        public struct Vst3ClassIDs
         {
             // Steinberg
             public const string SteinbergAmpSimulator = "E4B91D8420B74C48A8B10F2DB9CB707E";
@@ -237,23 +238,83 @@ namespace PresetConverter
             }
         }
 
-        public Dictionary<string, Parameter> Parameters = new Dictionary<string, Parameter>();
-        public string Vst3ID;
+        #region Vst Preset Fields
+        /// <summary>
+        /// Vst3ClassID is a 32 Bytes ASCII-encoded class id
+        /// </summary>
+        public string Vst3ClassID;
+
+        /// <summary>
+        /// Plugin Category, e.g. "Fx|Dynamics", "Fx|EQ" or "Instrument"
+        /// </summary>
         public string PlugInCategory;
+
+        /// <summary>
+        /// Plugin Name, e.g. "Compressor", "SSLChannel Stereo" or "FabFilter Pro-Q 3"
+        /// </summary>
         public string PlugInName;
+
+        /// <summary>
+        /// Plugin Vendor, e.g. "Steinberg Media Technologies";
+        /// </summary>
         public string PlugInVendor;
-        public string InfoXml; // VstPreset MetaInfo Xml section as string
-        public byte[] InfoXmlBytesWithBOM; // VstPreset MetaInfo Xml section as bytes, including the BOM
 
-        // byte positions and sizes within a vstpreset (for writing)
-        public long ListPos; // position of List chunk
-        public long CompDataStartPos; // parameter data start position (Comp)
-        public long CompDataChunkSize; // byte length of parameter data (Comp)
-        public long ContDataStartPos; // parameter data start position (Cont)
-        public long ContDataChunkSize; // byte length of parameter data (Cont)
-        public long InfoXmlStartPos; // info xml section start position (Info)
-        public long InfoXmlChunkSize; // info xml section length in bytes including BOM (Info)
+        /// <summary>
+        /// VstPreset MetaInfo Xml section as string
+        /// </summary>
+        public string InfoXml;
 
+        /// <summary>
+        /// VstPreset MetaInfo Xml section as bytes, including the BOM
+        /// </summary>
+        public byte[] InfoXmlBytesWithBOM;
+        #endregion
+
+        #region Byte positions and sizes within a vstpreset (for writing)
+        /// <summary>
+        /// Position of List chunk
+        /// </summary>
+        public long ListPos;
+
+        /// <summary>
+        /// Parameter data start position (ComponentState)
+        /// </summary>
+        public long CompDataStartPos;
+
+        /// <summary>
+        /// Byte length of parameter data (ComponentState)
+        /// </summary>
+        public long CompDataChunkSize;
+
+        /// <summary>
+        /// Parameter data start position (ControllerState)
+        /// </summary>
+        public long ContDataStartPos;
+
+        /// <summary>
+        /// Byte length of parameter data (ControllerState)
+        /// </summary>
+        public long ContDataChunkSize;
+
+        /// <summary>
+        /// Info xml section start position (Info)
+        /// </summary>
+        public long InfoXmlStartPos;
+
+        /// <summary>
+        /// Info xml section length in bytes including BOM (Info)
+        /// </summary>
+        public long InfoXmlChunkSize;
+        #endregion 
+
+        /// <summary>
+        /// Dictionary to hold preset parameters
+        /// </summary>
+        public Dictionary<string, Parameter> Parameters = new Dictionary<string, Parameter>();
+
+        /// <summary>
+        /// Vst2 Preset Format (FXP)
+        /// </summary>
         private FXP fxp;
 
         /// <summary>
@@ -586,8 +647,8 @@ namespace PresetConverter
                 // Read version
                 UInt32 fileVersion = bf.ReadUInt32();
 
-                // Read VST3 ID:
-                Vst3ID = bf.ReadString(32);
+                // Read Vst3 Class ID:
+                Vst3ClassID = bf.ReadString(32);
 
                 // Read position of 'List' section 
                 ListPos = (long)bf.ReadUInt64();
@@ -655,9 +716,9 @@ namespace PresetConverter
                 {
                     ReadData(bf, fileSize);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
-                    Log.Error("Failed reading {0} with Vst3Id: '{1}'. Error: {2}", fileName, Vst3ID, e.Message);
+                    Log.Error("Failed reading {0} with Vst3Id: '{1}'. Error: {2}", fileName, Vst3ClassID, e.Message);
                 }
 
                 VerifyListElements(bf);
@@ -746,42 +807,42 @@ namespace PresetConverter
             else
             {
                 if (
-                    Vst3ID.Equals(VstIDs.SteinbergAmpSimulator) ||
-                    Vst3ID.Equals(VstIDs.SteinbergAutoPan) ||
-                    Vst3ID.Equals(VstIDs.SteinbergBrickwallLimiter) ||
-                    Vst3ID.Equals(VstIDs.SteinbergCompressor) ||
-                    Vst3ID.Equals(VstIDs.SteinbergDeEsser) ||
-                    Vst3ID.Equals(VstIDs.SteinbergDeEsserNew) ||
-                    Vst3ID.Equals(VstIDs.SteinbergDistortion) ||
-                    Vst3ID.Equals(VstIDs.SteinbergDJEq) ||
-                    Vst3ID.Equals(VstIDs.SteinbergDualFilter) ||
-                    Vst3ID.Equals(VstIDs.SteinbergEnvelopeShaper) ||
-                    Vst3ID.Equals(VstIDs.SteinbergEQ) ||
-                    Vst3ID.Equals(VstIDs.SteinbergExpander) ||
-                    Vst3ID.Equals(VstIDs.SteinbergFrequency) ||
-                    Vst3ID.Equals(VstIDs.SteinbergGate) ||
-                    Vst3ID.Equals(VstIDs.SteinbergGEQ10) ||
-                    Vst3ID.Equals(VstIDs.SteinbergLimiter) ||
-                    Vst3ID.Equals(VstIDs.SteinbergMagnetoII) ||
-                    Vst3ID.Equals(VstIDs.SteinbergMaximizer) ||
-                    Vst3ID.Equals(VstIDs.SteinbergModMachine) ||
-                    Vst3ID.Equals(VstIDs.SteinbergMonoDelay) ||
-                    Vst3ID.Equals(VstIDs.SteinbergMorphFilter) ||
-                    Vst3ID.Equals(VstIDs.SteinbergMultibandCompressor) ||
-                    Vst3ID.Equals(VstIDs.SteinbergMultibandEnvelopeShaper) ||
-                    Vst3ID.Equals(VstIDs.SteinbergNoiseGate) ||
-                    Vst3ID.Equals(VstIDs.SteinbergOctaver) ||
-                    Vst3ID.Equals(VstIDs.SteinbergPingPongDelay) ||
-                    Vst3ID.Equals(VstIDs.SteinbergPitchCorrect) ||
-                    Vst3ID.Equals(VstIDs.SteinbergStereoDelay) ||
-                    Vst3ID.Equals(VstIDs.SteinbergStereoEnhancer) ||
-                    Vst3ID.Equals(VstIDs.SteinbergStudioChorus) ||
-                    Vst3ID.Equals(VstIDs.SteinbergStudioEQ) ||
-                    Vst3ID.Equals(VstIDs.SteinbergTremolo) ||
-                    Vst3ID.Equals(VstIDs.SteinbergTuner) ||
-                    Vst3ID.Equals(VstIDs.SteinbergUV22HR) ||
-                    Vst3ID.Equals(VstIDs.SteinbergVintageCompressor) ||
-                    Vst3ID.Equals(VstIDs.SteinbergVSTDynamics)
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergAmpSimulator) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergAutoPan) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergBrickwallLimiter) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergCompressor) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDeEsser) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDeEsserNew) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDistortion) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDJEq) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergDualFilter) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergEnvelopeShaper) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergEQ) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergExpander) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergFrequency) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGate) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGEQ10) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergLimiter) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMagnetoII) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMaximizer) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergModMachine) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMonoDelay) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMorphFilter) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMultibandCompressor) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergMultibandEnvelopeShaper) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergNoiseGate) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergOctaver) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPingPongDelay) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPitchCorrect) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStereoDelay) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStereoEnhancer) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStudioChorus) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStudioEQ) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergTremolo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergTuner) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergUV22HR) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergVintageCompressor) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergVSTDynamics)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -816,7 +877,7 @@ namespace PresetConverter
                     return;
                 }
                 else if (
-                    Vst3ID.Equals(VstIDs.SteinbergGrooveAgentONE))
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGrooveAgentONE))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -833,14 +894,14 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ID.Equals(VstIDs.SteinbergGrooveAgentSE) ||
-                    Vst3ID.Equals(VstIDs.SteinbergHALionSonicSE) ||
-                    Vst3ID.Equals(VstIDs.SteinbergPadShop) ||
-                    Vst3ID.Equals(VstIDs.SteinbergPrologue) ||
-                    Vst3ID.Equals(VstIDs.SteinbergRetrologue) ||
-                    Vst3ID.Equals(VstIDs.SteinbergSamplerTrack) ||
-                    Vst3ID.Equals(VstIDs.SteinbergSpector) ||
-                    Vst3ID.Equals(VstIDs.SteinbergVSTAmpRack)
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergGrooveAgentSE) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergHALionSonicSE) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPadShop) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergPrologue) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergRetrologue) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergSamplerTrack) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergSpector) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergVSTAmpRack)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
@@ -869,7 +930,7 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ID.Equals(VstIDs.SteinbergREVerence))
+                    Vst3ClassID.Equals(Vst3ClassIDs.SteinbergREVerence))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -945,7 +1006,7 @@ namespace PresetConverter
 
 
                 else if (
-                   Vst3ID.Equals(VstIDs.SteinbergStandardPanner))
+                   Vst3ClassID.Equals(Vst3ClassIDs.SteinbergStandardPanner))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -966,46 +1027,46 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ID.Equals(VstIDs.WavesAPI2500Mono) ||
-                    Vst3ID.Equals(VstIDs.WavesBassRiderStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesC1CompStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesC4Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesCLAGuitarsStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesDeBreathMono) ||
-                    Vst3ID.Equals(VstIDs.WavesDeEsserStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesDoubler2Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesDoubler4Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesHDelayStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesKramerTapeStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesL3LLMultiStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesL3MultiMaximizerStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesLinEQLowbandStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesMannyMReverbStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesMaseratiACGStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesMaseratiVX1Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesMetaFlangerStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesOneKnobFilterStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesPuigChild670Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesPuigTecEQP1AStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesQ10Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesQ2Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesRBassStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesRChannelStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesRCompressorStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesRDeEsserStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesREQ6Stereo) ||
-                    Vst3ID.Equals(VstIDs.WavesRVerbStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesS1ImagerStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesSSLChannelStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesSSLCompStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesSSLEQMono) ||
-                    Vst3ID.Equals(VstIDs.WavesSSLEQStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesSuperTap2TapsMonoStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesSuperTap2TapsStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesTrueVerbStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesTuneLTStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesVitaminStereo) ||
-                    Vst3ID.Equals(VstIDs.WavesVocalRiderStereo)
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesAPI2500Mono) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesBassRiderStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesC1CompStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesC4Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesCLAGuitarsStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDeBreathMono) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDeEsserStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDoubler2Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesDoubler4Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesHDelayStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesKramerTapeStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesL3LLMultiStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesL3MultiMaximizerStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesLinEQLowbandStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMannyMReverbStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMaseratiACGStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMaseratiVX1Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesMetaFlangerStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesOneKnobFilterStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesPuigChild670Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesPuigTecEQP1AStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesQ10Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesQ2Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRBassStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRChannelStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRCompressorStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRDeEsserStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesREQ6Stereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesRVerbStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesS1ImagerStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLChannelStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLCompStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLEQMono) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSSLEQStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSuperTap2TapsMonoStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesSuperTap2TapsStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesTrueVerbStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesTuneLTStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesVitaminStereo) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.WavesVocalRiderStereo)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
@@ -1056,7 +1117,7 @@ namespace PresetConverter
                     return;
                 }
 
-                else if (Vst3ID.Equals(VstIDs.NIKontakt5))
+                else if (Vst3ClassID.Equals(Vst3ClassIDs.NIKontakt5))
                 {
                     // rewind 4 bytes (seek to data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
@@ -1086,8 +1147,8 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ID.Equals(VstIDs.EastWestPlay) ||
-                    Vst3ID.Equals(VstIDs.EastWestPlayx64)
+                    Vst3ClassID.Equals(Vst3ClassIDs.EastWestPlay) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.EastWestPlayx64)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
@@ -1117,10 +1178,10 @@ namespace PresetConverter
                 }
 
                 else if (
-                    Vst3ID.Equals(VstIDs.MusicLabRealEight) ||
-                    Vst3ID.Equals(VstIDs.MusicLabRealGuitarClassic) ||
-                    Vst3ID.Equals(VstIDs.MusicLabRealLPC) ||
-                    Vst3ID.Equals(VstIDs.MusicLabRealStrat)
+                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealEight) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealGuitarClassic) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealLPC) ||
+                    Vst3ClassID.Equals(Vst3ClassIDs.MusicLabRealStrat)
                     )
                 {
                     // rewind 4 bytes (seek to comp data start pos)
@@ -1413,7 +1474,7 @@ namespace PresetConverter
                 bf.Write((UInt32)1);
 
                 // Write VST3 ID
-                bf.Write(Vst3ID);
+                bf.Write(Vst3ClassID);
 
                 // Write listPos
                 bf.Write(ListPos);
@@ -1597,7 +1658,7 @@ namespace PresetConverter
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("Vst3ID: {0}\n", Vst3ID);
+            sb.AppendFormat("Vst3ID: {0}\n", Vst3ClassID);
 
             if (Parameters.Count > 0)
             {

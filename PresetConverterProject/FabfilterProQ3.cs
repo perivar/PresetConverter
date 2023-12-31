@@ -19,7 +19,7 @@ namespace PresetConverter
         {
             Version = 4;
 
-            Vst3ID = VstIDs.FabFilterProQ3;
+            Vst3ClassID = Vst3ClassIDs.FabFilterProQ3;
             PlugInCategory = "Fx";
             PlugInName = "FabFilter Pro-Q 3";
             PlugInVendor = "FabFilter";
@@ -374,7 +374,7 @@ namespace PresetConverter
         public override string ToString()
         {
             var writer = new StringWriter();
-            writer.WriteLine(string.Format("Vst3ID: {0}", this.Vst3ID));
+            writer.WriteLine(string.Format("Vst3ID: {0}", this.Vst3ClassID));
 
             writer.WriteLine("Bands:");
             foreach (var band in this.Bands)

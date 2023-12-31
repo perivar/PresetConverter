@@ -600,19 +600,19 @@ namespace PresetConverter
                 string fxpOutputFilePath = Path.Combine(outputDirectoryPath, fileNameNoExtension + ".fxp");
                 fxp.Write(fxpOutputFilePath);
 
-                if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQx64)
                 {
                     var fabFilterProQ = vstPreset as FabfilterProQ;
                     HandleFabfilterPresetFile(fabFilterProQ, "FabFilterProQx64", outputDirectoryPath, fileNameNoExtensionPart);
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ2x64)
                 {
                     var fabFilterProQ2 = vstPreset as FabfilterProQ2;
                     HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2x64", outputDirectoryPath, fileNameNoExtensionPart);
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.NIKontakt5)
                 {
                     var kontakt = vstPreset as NIKontakt5;
                     origPluginName = "Kontakt 5";
@@ -621,14 +621,14 @@ namespace PresetConverter
                     if (doConvertToKontakt6)
                     {
                         origPluginName = "Kontakt 6";
-                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6_64out;
+                        kontakt.Vst3ClassID = VstPreset.Vst3ClassIDs.NIKontakt6_64out;
                         kontakt.FXP.Content.FxID = "Ni$D"; // make sure to set the fxID to the right kontakt version
                     }
 
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt6)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.NIKontakt6)
                 {
                     var kontakt = vstPreset as NIKontakt6;
                     origPluginName = "Kontakt 6";
@@ -637,14 +637,14 @@ namespace PresetConverter
                     if (doConvertToKontakt6)
                     {
                         origPluginName = "Kontakt 6";
-                        kontakt.Vst3ID = VstPreset.VstIDs.NIKontakt6_64out;
+                        kontakt.Vst3ClassID = VstPreset.Vst3ClassIDs.NIKontakt6_64out;
                         kontakt.FXP.Content.FxID = "Ni$D"; // make sure to set the fxID to the right kontakt version
                     }
 
                     HandleNIKontaktFXP(kontakt, fxp, origPluginName, fileNameNoExtension, outputDirectoryPath);
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt6_64out)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.NIKontakt6_64out)
                 {
                     var kontakt = vstPreset as NIKontakt6_64out;
                     origPluginName = "Kontakt 6";
@@ -659,20 +659,20 @@ namespace PresetConverter
                 if (vstPreset.Parameters.Count > 0)
                 {
                     // FabFilterProQ stores the parameters as floats not chunk
-                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                    if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ)
                     {
                         var fabFilterProQ = vstPreset as FabfilterProQ;
                         HandleFabfilterPresetFile(fabFilterProQ, "FabfilterProQ", outputDirectoryPath, fileNameNoExtensionPart);
                     }
 
                     // FabFilterProQ2 stores the parameters as floats not chunk
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                    else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ2)
                     {
                         var fabFilterProQ2 = vstPreset as FabfilterProQ2;
                         HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtensionPart);
                     }
 
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.EastWestPlay)
+                    else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.EastWestPlay)
                     {
                         var play = vstPreset as EastWestPlay;
 
@@ -866,7 +866,7 @@ namespace PresetConverter
             // if not using chunk-data but parameters instead
             if (vstPreset.Parameters.Count > 0 && !vstPreset.HasFXP)
             {
-                if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLCompStereo))
+                if (vstPreset.Vst3ClassID.Equals(VstPreset.Vst3ClassIDs.WavesSSLCompStereo))
                 {
                     // output the vstpreset
                     string wavesSSLCompOutputFilePath = Path.Combine(outputDirectoryPath, "Waves", fileNameNoExtension);
@@ -876,7 +876,7 @@ namespace PresetConverter
                     // and dump the text info as well
                     File.WriteAllText(wavesSSLCompOutputFilePath + ".txt", vstPreset.ToString());
                 }
-                else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.WavesSSLChannelStereo))
+                else if (vstPreset.Vst3ClassID.Equals(VstPreset.Vst3ClassIDs.WavesSSLChannelStereo))
                 {
                     // output the vstpreset
                     string wavesSSLChannelOutputFilePath = Path.Combine(outputDirectoryPath, "Waves", fileNameNoExtension);
@@ -899,7 +899,7 @@ namespace PresetConverter
                     // and store FXP as well
                     // uadSSLChannel.WriteFXP(outputPresetFilePath + ".fxp");
                 }
-                else if (vstPreset.Vst3ID.Equals(VstPreset.VstIDs.SteinbergREVerence))
+                else if (vstPreset.Vst3ClassID.Equals(VstPreset.Vst3ClassIDs.SteinbergREVerence))
                 {
                     // output the vstpreset
                     string reverenceOutputFilePath = Path.Combine(outputDirectoryPath, "REVerence", fileNameNoExtension);
@@ -910,19 +910,19 @@ namespace PresetConverter
                     File.WriteAllText(reverenceOutputFilePath + ".txt", vstPreset.ToString());
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ)
                 {
                     var fabFilterProQ = vstPreset as FabfilterProQ;
                     HandleFabfilterPresetFile(fabFilterProQ, "FabfilterProQ", outputDirectoryPath, fileNameNoExtension);
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ2)
                 {
                     var fabFilterProQ2 = vstPreset as FabfilterProQ2;
                     HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2", outputDirectoryPath, fileNameNoExtension);
                 }
 
-                else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ3)
+                else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ3)
                 {
                     var fabFilterProQ3 = vstPreset as FabfilterProQ3;
                     HandleFabfilterPresetFile(fabFilterProQ3, "FabFilterProQ3", outputDirectoryPath, fileNameNoExtension);
@@ -946,27 +946,27 @@ namespace PresetConverter
                 if (vstPreset.HasFXP)
                 {
                     // check if FabFilterProQx64
-                    if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQx64)
+                    if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQx64)
                     {
                         var fabFilterProQ = vstPreset as FabfilterProQ;
                         HandleFabfilterPresetFile(fabFilterProQ, "FabFilterProQx64", outputDirectoryPath, fileNameNoExtension);
                     }
 
                     // check if FabFilterProQ2x64
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ2x64)
+                    else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ2x64)
                     {
                         var fabFilterProQ2 = vstPreset as FabfilterProQ2;
                         HandleFabfilterPresetFile(fabFilterProQ2, "FabFilterProQ2x64", outputDirectoryPath, fileNameNoExtension);
                     }
 
                     // check if FabFilter Pro Q3
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.FabFilterProQ3)
+                    else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.FabFilterProQ3)
                     {
                         var fabFilterProQ3 = vstPreset as FabfilterProQ3;
                         HandleFabfilterPresetFile(fabFilterProQ3, "FabFilterProQ3", outputDirectoryPath, fileNameNoExtension);
                     }
 
-                    else if (vstPreset.Vst3ID == VstPreset.VstIDs.NIKontakt5)
+                    else if (vstPreset.Vst3ClassID == VstPreset.Vst3ClassIDs.NIKontakt5)
                     {
                         var snpid = GetSNPIDFromKontaktFXP(vstPreset.FXP);
                         if (!string.IsNullOrEmpty(snpid))

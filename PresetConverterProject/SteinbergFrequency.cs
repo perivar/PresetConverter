@@ -45,7 +45,7 @@ namespace PresetConverter
 
         public SteinbergFrequency()
         {
-            Vst3ID = VstIDs.SteinbergFrequency;
+            Vst3ClassID = Vst3ClassIDs.SteinbergFrequency;
             PlugInCategory = "Fx|EQ";
             PlugInName = "Frequency";
             PlugInVendor = "Steinberg Media Technologies";
@@ -111,7 +111,7 @@ namespace PresetConverter
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("Vst3ID: {0}\n", this.Vst3ID);
+            sb.AppendFormat("Vst3ID: {0}\n", this.Vst3ClassID);
             sb.AppendLine("Bands:");
 
             for (int bandNumber = 1; bandNumber <= 8; bandNumber++)
