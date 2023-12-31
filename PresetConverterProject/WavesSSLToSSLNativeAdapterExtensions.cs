@@ -23,11 +23,12 @@ namespace PresetConverter
 
             if (wavesSSLChannel.ExpGate)
             {
-                sslNativeChannel.GateExpander = 1;
+                // if waves gate is set, then make sure the expander is off
+                sslNativeChannel.GateExpander = 0;
             }
             else
             {
-                sslNativeChannel.GateExpander = 0;
+                sslNativeChannel.GateExpander = 1;
             }
             sslNativeChannel.GateThreshold = wavesSSLChannel.ExpThreshold;
             sslNativeChannel.GateRange = wavesSSLChannel.ExpRange;
