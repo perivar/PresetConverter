@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Linq;
+﻿using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Globalization;
@@ -16,15 +12,15 @@ namespace PresetConverter
     /// </summary>
     public abstract class WavesPreset : VstPreset
     {
-        public string PresetName = null;
-        public string PresetGenericType = null;
-        public string PresetGroup = null;
-        public string PresetPluginName = null;
-        public string PresetPluginSubComp = null;
-        public string PresetPluginVersion = null;
+        public string PresetName = "";
+        public string PresetGenericType = "";
+        public string? PresetGroup = null;
+        public string? PresetPluginName = null;
+        public string? PresetPluginSubComp = null;
+        public string? PresetPluginVersion = null;
         public string PresetActiveSetup = "CURRENT";
-        public string PresetSetupName = null;
-        public string PresetRealWorldParameters = null;
+        public string? PresetSetupName = null;
+        public string PresetRealWorldParameters = "";
 
         public bool ReadFXP(string filePath)
         {
@@ -89,7 +85,7 @@ namespace PresetConverter
         /// </example>
         /// <remarks>This method is using generics to allow us to specify which preset type we are processing</remarks>
         /// <returns>a list of the WavesPreset type</returns>
-        public static List<T> ReadXps<T>(string filePath) where T : WavesPreset, new()
+        public static List<T>? ReadXps<T>(string filePath) where T : WavesPreset, new()
         {
             string xmlString = File.ReadAllText(filePath);
             return ParseXml<T>(xmlString);
@@ -105,7 +101,7 @@ namespace PresetConverter
         /// </example>
         /// <remarks>This method is using generics to allow us to specify which preset type we are processing</remarks>
         /// <returns>a list of the WavesPreset type</returns>
-        public static List<T> ParseXml<T>(string xmlString) where T : WavesPreset, new()
+        public static List<T>? ParseXml<T>(string xmlString) where T : WavesPreset, new()
         {
             var presetList = new List<T>();
 
@@ -115,13 +111,16 @@ namespace PresetConverter
                 if (xmlString != null) xml.LoadXml(xmlString);
 
                 // foreach Preset node that has a Name attribute
-                XmlNodeList presetNodeList = xml.SelectNodes("//Preset[@Name]");
-                foreach (XmlNode presetNode in presetNodeList)
+                XmlNodeList? presetNodeList = xml.SelectNodes("//Preset[@Name]");
+                if (presetNodeList != null)
                 {
-                    var preset = new T();
-                    if (preset.ParsePresetNode(presetNode))
+                    foreach (XmlNode presetNode in presetNodeList)
                     {
-                        presetList.Add(preset);
+                        var preset = new T();
+                        if (preset.ParsePresetNode(presetNode))
+                        {
+                            presetList.Add(preset);
+                        }
                     }
                 }
             }
@@ -188,13 +187,13 @@ namespace PresetConverter
             return ParseXml(xmlString, null);
         }
 
-        public static string GetPluginName(byte[] chunkDataByteArray)
+        public static string? GetPluginName(byte[] chunkDataByteArray)
         {
             string xmlString = ParseChunkData(chunkDataByteArray);
             return GetPluginName(xmlString);
         }
 
-        private static string GetPluginName(string xmlString)
+        private static string? GetPluginName(string xmlString)
         {
             var xml = new XmlDocument();
             try
@@ -203,13 +202,13 @@ namespace PresetConverter
 
                 // Get preset node that has a Name attribute
                 // e.g. <Preset Name=""><PresetHeader><PluginName>SSLChannel</PluginName></PresetHeader></Preset>
-                XmlNode firstPresetNode = xml.SelectSingleNode("//Preset[@Name]");
+                XmlNode? firstPresetNode = xml.SelectSingleNode("//Preset[@Name]");
 
                 if (firstPresetNode != null)
                 {
 
                     // Read some values from the PresetHeader section
-                    XmlNode pluginNameNode = firstPresetNode.SelectSingleNode("PresetHeader/PluginName");
+                    XmlNode? pluginNameNode = firstPresetNode.SelectSingleNode("PresetHeader/PluginName");
                     if (pluginNameNode != null && pluginNameNode.InnerText != null)
                     {
                         return pluginNameNode.InnerText;
@@ -223,7 +222,7 @@ namespace PresetConverter
             }
         }
 
-        private bool ParseXml(string xmlString, TextWriter tw)
+        private bool ParseXml(string xmlString, TextWriter? tw)
         {
             var xml = new XmlDocument();
             try
@@ -231,22 +230,25 @@ namespace PresetConverter
                 if (xmlString != null) xml.LoadXml(xmlString);
 
                 // foreach Preset node that has a Name attribute
-                XmlNodeList presetNodeList = xml.SelectNodes("//Preset[@Name]");
-                foreach (XmlNode presetNode in presetNodeList)
+                XmlNodeList? presetNodeList = xml.SelectNodes("//Preset[@Name]");
+                if (presetNodeList != null)
                 {
-                    if (ParsePresetNode(presetNode))
+                    foreach (XmlNode presetNode in presetNodeList)
                     {
-                        if (tw != null)
+                        if (ParsePresetNode(presetNode))
                         {
-                            tw.WriteLine(ToString());
-                            tw.WriteLine();
-                            tw.WriteLine("-------------------------------------------------------");
+                            if (tw != null)
+                            {
+                                tw.WriteLine(ToString());
+                                tw.WriteLine();
+                                tw.WriteLine("-------------------------------------------------------");
+                            }
+                            return true;
                         }
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
+                        else
+                        {
+                            return false;
+                        }
                     }
                 }
             }
@@ -265,7 +267,7 @@ namespace PresetConverter
         private bool ParsePresetNode(XmlNode presetNode)
         {
             // Get the preset node's attributes
-            XmlAttribute nameAtt = presetNode.Attributes["Name"];
+            XmlAttribute? nameAtt = presetNode.Attributes?["Name"];
             if (nameAtt != null && nameAtt.Value != null)
             {
                 PresetName = nameAtt.Value;
@@ -275,7 +277,7 @@ namespace PresetConverter
                 PresetName = "";
             }
 
-            XmlAttribute genericTypeAtt = presetNode.Attributes["GenericType"];
+            XmlAttribute? genericTypeAtt = presetNode.Attributes?["GenericType"];
             if (genericTypeAtt != null && genericTypeAtt.Value != null)
             {
                 PresetGenericType = genericTypeAtt.Value;
@@ -286,7 +288,7 @@ namespace PresetConverter
             }
 
             // Read some values from the PresetHeader section
-            XmlNode pluginNameNode = presetNode.SelectSingleNode("PresetHeader/PluginName");
+            XmlNode? pluginNameNode = presetNode.SelectSingleNode("PresetHeader/PluginName");
             if (pluginNameNode != null && pluginNameNode.InnerText != null)
             {
                 PresetPluginName = pluginNameNode.InnerText;
@@ -296,7 +298,7 @@ namespace PresetConverter
                 PresetPluginName = "";
             }
 
-            XmlNode pluginSubCompNode = presetNode.SelectSingleNode("PresetHeader/PluginSubComp");
+            XmlNode? pluginSubCompNode = presetNode.SelectSingleNode("PresetHeader/PluginSubComp");
             if (pluginSubCompNode != null && pluginSubCompNode.InnerText != null)
             {
                 PresetPluginSubComp = pluginSubCompNode.InnerText;
@@ -306,7 +308,7 @@ namespace PresetConverter
                 PresetPluginSubComp = "";
             }
 
-            XmlNode pluginVersionNode = presetNode.SelectSingleNode("PresetHeader/PluginVersion");
+            XmlNode? pluginVersionNode = presetNode.SelectSingleNode("PresetHeader/PluginVersion");
             if (pluginVersionNode != null && pluginVersionNode.InnerText != null)
             {
                 PresetPluginVersion = pluginVersionNode.InnerText;
@@ -316,7 +318,7 @@ namespace PresetConverter
                 PresetPluginVersion = "";
             }
 
-            XmlNode pluginGroupNode = presetNode.SelectSingleNode("PresetHeader/Group");
+            XmlNode? pluginGroupNode = presetNode.SelectSingleNode("PresetHeader/Group");
             if (pluginGroupNode != null && pluginGroupNode.InnerText != null)
             {
                 PresetGroup = pluginGroupNode.InnerText;
@@ -326,7 +328,7 @@ namespace PresetConverter
                 PresetGroup = null;
             }
 
-            XmlNode activeSetupNode = presetNode.SelectSingleNode("PresetHeader/ActiveSetup");
+            XmlNode? activeSetupNode = presetNode.SelectSingleNode("PresetHeader/ActiveSetup");
             if (activeSetupNode != null && activeSetupNode.InnerText != null)
             {
                 PresetActiveSetup = activeSetupNode.InnerText;
@@ -337,18 +339,18 @@ namespace PresetConverter
             }
 
             // Read the preset data node
-            XmlNode presetDataNode = presetNode.SelectSingleNode("PresetData[@Setup='" + PresetActiveSetup + "']");
+            XmlNode? presetDataNode = presetNode.SelectSingleNode("PresetData[@Setup='" + PresetActiveSetup + "']");
             if (presetDataNode != null)
             {
                 // Get the preset data node's attributes
-                XmlAttribute setupNameAtt = presetDataNode.Attributes["SetupName"];
+                XmlAttribute? setupNameAtt = presetDataNode.Attributes?["SetupName"];
                 if (setupNameAtt != null && setupNameAtt.Value != null)
                 {
                     PresetSetupName = setupNameAtt.Value;
                 }
 
                 // And get the real world data
-                XmlNode parametersNode = presetDataNode.SelectSingleNode("Parameters[@Type='RealWorld']");
+                XmlNode? parametersNode = presetDataNode.SelectSingleNode("Parameters[@Type='RealWorld']");
                 if (parametersNode != null && parametersNode.InnerText != null)
                 {
                     PresetRealWorldParameters = StringUtils.TrimMultiLine(parametersNode.InnerText);

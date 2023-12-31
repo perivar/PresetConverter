@@ -1,7 +1,5 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using System.Globalization;
-using System.IO;
 using System.Xml.Linq;
 
 using CommonUtils;
@@ -76,23 +74,23 @@ namespace PresetConverter
 
                 CompThreshold = float.Parse(splittedPhrase[0], CultureInfo.InvariantCulture); // compression threshold in dB
                 CompRatio = float.Parse(splittedPhrase[1], CultureInfo.InvariantCulture); // compression ratio
-                CompFastAttack = (splittedPhrase[2] == "1"); // compression fast attack
+                CompFastAttack = splittedPhrase[2] == "1"; // compression fast attack
                 CompRelease = float.Parse(splittedPhrase[3], CultureInfo.InvariantCulture); // compression release in ms
 
-                string Delimiter1 = splittedPhrase[4];
+                string delimiter1 = splittedPhrase[4];
 
                 ExpThreshold = float.Parse(splittedPhrase[5], CultureInfo.InvariantCulture); // expander threshold in dB
                 ExpRange = float.Parse(splittedPhrase[6], CultureInfo.InvariantCulture); // expander range in dB
-                ExpGate = (splittedPhrase[7] == "1"); // expander gate
-                ExpFastAttack = (splittedPhrase[8] == "1"); // expander fast attack
+                ExpGate = splittedPhrase[7] == "1"; // expander gate
+                ExpFastAttack = splittedPhrase[8] == "1"; // expander fast attack
                 ExpRelease = float.Parse(splittedPhrase[9], CultureInfo.InvariantCulture); // expander release in ms
 
-                string Delimiter2 = splittedPhrase[10];
+                string delimiter2 = splittedPhrase[10];
 
-                DynToByPass = (splittedPhrase[11] == "1"); // Dyn To By Pass
-                DynToChannelOut = (splittedPhrase[12] == "1"); // Dyn To Channel Out
+                DynToByPass = splittedPhrase[11] == "1"; // Dyn To By Pass
+                DynToChannelOut = splittedPhrase[12] == "1"; // Dyn To Channel Out
 
-                LFTypeBell = (splittedPhrase[13] == "1"); // Bell
+                LFTypeBell = splittedPhrase[13] == "1"; // Bell
                 LFGain = float.Parse(splittedPhrase[14], CultureInfo.InvariantCulture); // dB
                 LFFrq = float.Parse(splittedPhrase[15], CultureInfo.InvariantCulture); // Hz
 
@@ -104,34 +102,34 @@ namespace PresetConverter
                 HMFFrq = float.Parse(splittedPhrase[20], CultureInfo.InvariantCulture); // KHz
                 HMFQ = float.Parse(splittedPhrase[21], CultureInfo.InvariantCulture);
 
-                HFTypeBell = (splittedPhrase[22] == "1"); // Bell
+                HFTypeBell = splittedPhrase[22] == "1"; // Bell
                 HFGain = float.Parse(splittedPhrase[23], CultureInfo.InvariantCulture); // dB
                 HFFrq = float.Parse(splittedPhrase[24], CultureInfo.InvariantCulture); // KHz
 
-                EQToBypass = (splittedPhrase[25] == "1");
-                EQToDynSC = (splittedPhrase[26] == "1");
+                EQToBypass = splittedPhrase[25] == "1";
+                EQToDynSC = splittedPhrase[26] == "1";
 
                 HPFrq = float.Parse(splittedPhrase[27], CultureInfo.InvariantCulture); // Hz
                 LPFrq = float.Parse(splittedPhrase[28], CultureInfo.InvariantCulture); // KHz
 
-                FilterSplit = (splittedPhrase[29] == "1");
+                FilterSplit = splittedPhrase[29] == "1";
 
                 Gain = float.Parse(splittedPhrase[30], CultureInfo.InvariantCulture); // dB
 
-                Analog = (splittedPhrase[31] == "1");
+                Analog = splittedPhrase[31] == "1";
 
-                string Delimiter3 = splittedPhrase[32];
-                string Delimiter4 = splittedPhrase[33];
+                string delimiter3 = splittedPhrase[32];
+                string delimiter4 = splittedPhrase[33];
 
-                VUShowOutput = (splittedPhrase[34] == "1");
+                VUShowOutput = splittedPhrase[34] == "1";
 
-                string Delimiter5 = splittedPhrase[35];
-                string Delimiter6 = splittedPhrase[36];
+                string delimiter5 = splittedPhrase[35];
+                string delimiter6 = splittedPhrase[36];
 
-                float Unknown1 = float.Parse(splittedPhrase[37], CultureInfo.InvariantCulture);
-                float Unknown2 = float.Parse(splittedPhrase[38], CultureInfo.InvariantCulture);
+                float unknown1 = float.Parse(splittedPhrase[37], CultureInfo.InvariantCulture);
+                float unknown2 = float.Parse(splittedPhrase[38], CultureInfo.InvariantCulture);
 
-                PhaseReverse = (splittedPhrase[39] == "1");
+                PhaseReverse = splittedPhrase[39] == "1";
                 InputTrim = float.Parse(splittedPhrase[40], CultureInfo.InvariantCulture); // dB
 
                 return true;
@@ -146,10 +144,10 @@ namespace PresetConverter
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(String.Format("PresetName: {0}", PresetName));
+            sb.AppendLine(string.Format("PresetName: {0}", PresetName));
             if (PresetGroup != null)
             {
-                sb.AppendLine(String.Format("Group: {0}", PresetGroup));
+                sb.AppendLine(string.Format("Group: {0}", PresetGroup));
             }
             sb.AppendLine();
 
@@ -169,58 +167,58 @@ namespace PresetConverter
             sb.AppendLine();
 
             sb.AppendLine("Low and High Pass Filters:");
-            sb.AppendLine(String.Format("\tHP Frequency (18 dB/octave): {0:0.##} Hz (16 - 350 Hz)", HPFrq));
-            sb.AppendLine(String.Format("\tLP Frequency (12 dB/octave): {0:0.##} KHz (22 - 3 KHz)", LPFrq));
-            sb.AppendLine(String.Format("\tFilter Split (Filters before Dynamics): {0}", FilterSplit));
+            sb.AppendLine(string.Format("\tHP Frequency (18 dB/octave): {0:0.##} Hz (16 - 350 Hz)", HPFrq));
+            sb.AppendLine(string.Format("\tLP Frequency (12 dB/octave): {0:0.##} KHz (22 - 3 KHz)", LPFrq));
+            sb.AppendLine(string.Format("\tFilter Split (Filters before Dynamics): {0}", FilterSplit));
             sb.AppendLine();
 
             sb.AppendLine("Compression:");
-            sb.AppendLine(String.Format("\tThreshold: {0:0.##} dB", CompThreshold));
-            sb.AppendLine(String.Format("\tRatio: {0}", CompRatio));
-            sb.AppendLine(String.Format("\tFast Attack: {0} (Fast=1 ms otherwise Auto-Sense)", CompFastAttack));
-            sb.AppendLine(String.Format("\tRelease: {0:0.##} s", CompRelease));
+            sb.AppendLine(string.Format("\tThreshold: {0:0.##} dB", CompThreshold));
+            sb.AppendLine(string.Format("\tRatio: {0}", CompRatio));
+            sb.AppendLine(string.Format("\tFast Attack: {0} (Fast=1 ms otherwise Auto-Sense)", CompFastAttack));
+            sb.AppendLine(string.Format("\tRelease: {0:0.##} s", CompRelease));
             sb.AppendLine();
 
             sb.AppendLine("Expander/Gate:");
-            sb.AppendLine(String.Format("\tThreshold: {0:0.##} dB", ExpThreshold));
-            sb.AppendLine(String.Format("\tRange: {0:0.##} dB", ExpRange));
-            sb.AppendLine(String.Format("\tGate: {0}", ExpGate));
-            sb.AppendLine(String.Format("\tFast Attack: {0} (Fast=1 ms otherwise Auto-Sense)", ExpFastAttack));
-            sb.AppendLine(String.Format("\tRelease: {0:0.##} s", ExpRelease));
+            sb.AppendLine(string.Format("\tThreshold: {0:0.##} dB", ExpThreshold));
+            sb.AppendLine(string.Format("\tRange: {0:0.##} dB", ExpRange));
+            sb.AppendLine(string.Format("\tGate: {0}", ExpGate));
+            sb.AppendLine(string.Format("\tFast Attack: {0} (Fast=1 ms otherwise Auto-Sense)", ExpFastAttack));
+            sb.AppendLine(string.Format("\tRelease: {0:0.##} s", ExpRelease));
             sb.AppendLine();
 
             sb.AppendLine("Dynamics To:");
-            sb.AppendLine(String.Format("\tBypass: {0}", DynToByPass));
-            sb.AppendLine(String.Format("\tChannel Out (Dynamics after EQ): {0}", DynToChannelOut));
+            sb.AppendLine(string.Format("\tBypass: {0}", DynToByPass));
+            sb.AppendLine(string.Format("\tChannel Out (Dynamics after EQ): {0}", DynToChannelOut));
             sb.AppendLine();
 
             sb.AppendLine("EQ Section:");
-            sb.AppendLine(String.Format("\tLF Type Bell: {0}", LFTypeBell));
-            sb.AppendLine(String.Format("\tLF Gain: {0:0.##} dB", LFGain));
-            sb.AppendLine(String.Format("\tLF Frequency: {0:0.##} Hz", LFFrq));
+            sb.AppendLine(string.Format("\tLF Type Bell: {0}", LFTypeBell));
+            sb.AppendLine(string.Format("\tLF Gain: {0:0.##} dB", LFGain));
+            sb.AppendLine(string.Format("\tLF Frequency: {0:0.##} Hz", LFFrq));
 
-            sb.AppendLine(String.Format("\tLMF Gain: {0:0.##} dB", LMFGain));
-            sb.AppendLine(String.Format("\tLMF Frequency: {0:0.##} KHz", LMFFrq));
-            sb.AppendLine(String.Format("\tLMF Q: {0:0.##}", LMFQ));
+            sb.AppendLine(string.Format("\tLMF Gain: {0:0.##} dB", LMFGain));
+            sb.AppendLine(string.Format("\tLMF Frequency: {0:0.##} KHz", LMFFrq));
+            sb.AppendLine(string.Format("\tLMF Q: {0:0.##}", LMFQ));
 
-            sb.AppendLine(String.Format("\tHMF Gain: {0:0.##} dB", HMFGain));
-            sb.AppendLine(String.Format("\tHMF Frequency: {0:0.##} KHz", HMFFrq));
-            sb.AppendLine(String.Format("\tHMF Q: {0:0.##}", HMFQ));
+            sb.AppendLine(string.Format("\tHMF Gain: {0:0.##} dB", HMFGain));
+            sb.AppendLine(string.Format("\tHMF Frequency: {0:0.##} KHz", HMFFrq));
+            sb.AppendLine(string.Format("\tHMF Q: {0:0.##}", HMFQ));
 
-            sb.AppendLine(String.Format("\tHF Type Bell: {0}", HFTypeBell));
-            sb.AppendLine(String.Format("\tHF Gain: {0:0.##} dB", HFGain));
-            sb.AppendLine(String.Format("\tHF Frequency: {0:0.##} KHz", HFFrq));
+            sb.AppendLine(string.Format("\tHF Type Bell: {0}", HFTypeBell));
+            sb.AppendLine(string.Format("\tHF Gain: {0:0.##} dB", HFGain));
+            sb.AppendLine(string.Format("\tHF Frequency: {0:0.##} KHz", HFFrq));
 
-            sb.AppendLine(String.Format("\tTo Bypass: {0}", EQToBypass));
-            sb.AppendLine(String.Format("\tTo Dynamics Side-Chain: {0}", EQToDynSC));
+            sb.AppendLine(string.Format("\tTo Bypass: {0}", EQToBypass));
+            sb.AppendLine(string.Format("\tTo Dynamics Side-Chain: {0}", EQToDynSC));
             sb.AppendLine();
 
             sb.AppendLine("Master Section:");
-            sb.AppendLine(String.Format("\tGain: {0:0.##} dB", Gain));
-            sb.AppendLine(String.Format("\tAnalog: {0}", Analog));
-            sb.AppendLine(String.Format("\tVU Show Output: {0}", VUShowOutput));
-            sb.AppendLine(String.Format("\tPhase Reverse: {0}", PhaseReverse));
-            sb.AppendLine(String.Format("\tInput Trim : {0:0.##} dB", InputTrim));
+            sb.AppendLine(string.Format("\tGain: {0:0.##} dB", Gain));
+            sb.AppendLine(string.Format("\tAnalog: {0}", Analog));
+            sb.AppendLine(string.Format("\tVU Show Output: {0}", VUShowOutput));
+            sb.AppendLine(string.Format("\tPhase Reverse: {0}", PhaseReverse));
+            sb.AppendLine(string.Format("\tInput Trim : {0:0.##} dB", InputTrim));
 
             return sb.ToString();
         }
@@ -309,7 +307,6 @@ namespace PresetConverter
 
         private string GeneratePresetXML()
         {
-            // string realWorldParameters = RealWorldParameters + '\n';
             string realWorldParameters = GenerateRealWorldParameters();
 
             // Use Linq XML (XElement) because they are easier to work with
@@ -342,15 +339,15 @@ namespace PresetConverter
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
             {
                 // length of the xml section until xmlPostContent including 12 bytes
-                UInt32 xmlContentFullLength = (uint)xmlContent.Length + 32;
-                bf.Write((UInt32)xmlContentFullLength);
-                bf.Write((UInt32)3);
-                bf.Write((UInt32)1);
+                uint xmlContentFullLength = (uint)xmlContent.Length + 32;
+                bf.Write((uint)xmlContentFullLength);
+                bf.Write((uint)3);
+                bf.Write((uint)1);
 
                 bf.Write("SCHS");
                 bf.Write("setA");
 
-                UInt32 xmlMainLength = (uint)xmlContent.Length;
+                uint xmlMainLength = (uint)xmlContent.Length;
                 bf.Write(xmlMainLength);
 
                 bf.Write("XPst");
@@ -361,7 +358,7 @@ namespace PresetConverter
                 bf.Write(xmlPostContent);
             }
 
-            this.CompChunkData = memStream.ToArray();
+            CompChunkData = memStream.ToArray();
         }
     }
 }

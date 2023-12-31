@@ -1,8 +1,4 @@
-﻿using System;
-using System.Text;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Text;
 using System.Xml.Linq;
 using System.Globalization;
 
@@ -15,7 +11,7 @@ namespace PresetConverter
     /// </summary>
     public class UADSSLChannel : VstPreset
     {
-        string FilePath;
+        public string FilePath;
         public string PresetName;
         public int PresetHeaderVar1 = 3;
         public int PresetHeaderVar2 = 2;
@@ -171,11 +167,11 @@ namespace PresetConverter
             double result;
 
             // Try parsing in the current culture
-            if (!double.TryParse(value, System.Globalization.NumberStyles.Any, CultureInfo.CurrentCulture, out result) &&
+            if (!double.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out result) &&
                 // Then try in US english
-                !double.TryParse(value, System.Globalization.NumberStyles.Any, CultureInfo.GetCultureInfo("en-US"), out result) &&
+                !double.TryParse(value, NumberStyles.Any, CultureInfo.GetCultureInfo("en-US"), out result) &&
                 // Then in neutral language
-                !double.TryParse(value, System.Globalization.NumberStyles.Any, CultureInfo.InvariantCulture, out result))
+                !double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
             {
                 result = defaultValue;
             }
@@ -223,6 +219,9 @@ namespace PresetConverter
         public bool ReadFXP(FXP fxp, string filePath = "")
         {
             if (fxp == null || fxp.Content == null) return false;
+
+            // store filepath
+            FilePath = filePath;
 
             var byteArray = new byte[0];
             if (fxp.Content is FXP.FxProgramSet)
@@ -341,9 +340,9 @@ namespace PresetConverter
 
             if (fxMagic.Equals("FBCh"))
             {
-                bf.Write((UInt32)3);
-                bf.Write((UInt32)0);
-                bf.Write((UInt32)32);
+                bf.Write((uint)3);
+                bf.Write((uint)0);
+                bf.Write((uint)32);
             }
 
             // Write UAD Preset Header information
@@ -400,43 +399,43 @@ namespace PresetConverter
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(String.Format("PresetName: {0}", PresetName));
-            sb.Append("Input:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", Input).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Input", Input), "-20.0 dB -> 20.0 dB");
-            sb.Append("Phase:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", Phase).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Phase", Phase), "Normal -> Inverted");
-            sb.Append("HP Freq:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HPFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HP Freq", HPFreq), "Out -> 304 Hz");
-            sb.Append("LP Freq:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LPFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LP Freq", LPFreq), "Out -> 3.21 k");
-            sb.Append("HP/LP Dyn SC:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HP_LPDynSC).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HP/LP Dyn SC", HP_LPDynSC), "Off -> On");
-            sb.Append("CMP Ratio:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", CMPRatio).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Ratio", CMPRatio), "1.00:1 -> Limit");
-            sb.Append("CMP Thresh:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", CMPThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Thresh", CMPThresh), "10.0 dB -> -20.0 dB");
-            sb.Append("CMP Release:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", CMPRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Release", CMPRelease), "0.10 s -> 4.00 s");
-            sb.Append("CMP Attack:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", CMPAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Attack", CMPAttack), "Auto -> Fast");
-            sb.Append("Stereo Link:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", StereoLink).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Stereo Link", StereoLink), "UnLink -> Link");
-            sb.Append("Select:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", Select).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Select", Select), "Expand -> Gate 2");
-            sb.Append("EXP Thresh:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EXPThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Thresh", EXPThresh), "-30.0 dB -> 10.0 dB");
-            sb.Append("EXP Range:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EXPRange).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Range", EXPRange), "0.0 dB -> 40.0 dB");
-            sb.Append("EXP Release:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EXPRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Release", EXPRelease), "0.10 s -> 4.00 s");
-            sb.Append("EXP Attack:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EXPAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Attack", EXPAttack), "Auto -> Fast");
-            sb.Append("DYN In:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", DYNIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("DYN In", DYNIn), "Out -> In");
-            sb.Append("Comp In:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", CompIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Comp In", CompIn), "Out -> In");
-            sb.Append("Exp In:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", ExpIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Exp In", ExpIn), "Out -> In");
-            sb.Append("LF Gain:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Gain", LFGain), "-10.0 dB -> 10.0 dB");
-            sb.Append("LF Freq:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Freq", LFFreq), "36.1 Hz -> 355 Hz");
-            sb.Append("LF Bell:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LFBell).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Bell", LFBell), "Shelf -> Bell");
-            sb.Append("LMF Gain:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LMFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LMF Gain", LMFGain), "-15.6 dB -> 15.6 dB");
-            sb.Append("LMF Freq:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LMFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LMF Freq", LMFFreq), "251 Hz -> 2.17 k");
-            sb.Append("LMF Q:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", LMFQ).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LMF Q", LMFQ), "2.50 -> 2.50");
-            sb.Append("HMF Q:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HMFQ).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HMF Q", HMFQ), "4.00 -> 0.40");
-            sb.Append("HMF Gain:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HMFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HMF Gain", HMFGain), "-16.5 dB -> 16.5 dB");
-            sb.Append("HMF Freq:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HMFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HMF Freq", HMFFreq), "735 Hz -> 6.77 k");
-            sb.Append("HF Gain:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HF Gain", HFGain), "-16.0 dB -> 16.1 dB");
-            sb.Append("HF Freq:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HF Freq", HFFreq), "6.93 k -> 21.7 k");
-            sb.Append("HF Bell:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", HFBell).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HF Bell", HFBell), "Shelf -> Bell");
-            sb.Append("EQ In:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EQIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EQ In", EQIn), "Out -> In");
-            sb.Append("EQ Dyn SC:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EQDynSC).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EQ Dyn SC", EQDynSC), "Off -> On");
-            sb.Append("Pre Dyn:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", PreDyn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Pre Dyn", PreDyn), "Off -> On");
-            sb.Append("Output:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", Output).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Output", Output), "-20.0 dB -> 20.0 dB");
-            sb.Append("EQ Type:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", EQType).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EQ Type", EQType), "Black -> Brown");
-            sb.Append("Power:".PadRight(15)).AppendFormat(String.Format("{0:0.00}", Power).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Power", Power), "Off -> On");
+            sb.AppendLine(string.Format("PresetName: {0}", PresetName));
+            sb.Append("Input:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", Input).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Input", Input), "-20.0 dB -> 20.0 dB");
+            sb.Append("Phase:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", Phase).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Phase", Phase), "Normal -> Inverted");
+            sb.Append("HP Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HPFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HP Freq", HPFreq), "Out -> 304 Hz");
+            sb.Append("LP Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LPFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LP Freq", LPFreq), "Out -> 3.21 k");
+            sb.Append("HP/LP Dyn SC:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HP_LPDynSC).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HP/LP Dyn SC", HP_LPDynSC), "Off -> On");
+            sb.Append("CMP Ratio:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPRatio).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Ratio", CMPRatio), "1.00:1 -> Limit");
+            sb.Append("CMP Thresh:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Thresh", CMPThresh), "10.0 dB -> -20.0 dB");
+            sb.Append("CMP Release:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Release", CMPRelease), "0.10 s -> 4.00 s");
+            sb.Append("CMP Attack:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Attack", CMPAttack), "Auto -> Fast");
+            sb.Append("Stereo Link:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", StereoLink).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Stereo Link", StereoLink), "UnLink -> Link");
+            sb.Append("Select:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", Select).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Select", Select), "Expand -> Gate 2");
+            sb.Append("EXP Thresh:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Thresh", EXPThresh), "-30.0 dB -> 10.0 dB");
+            sb.Append("EXP Range:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPRange).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Range", EXPRange), "0.0 dB -> 40.0 dB");
+            sb.Append("EXP Release:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Release", EXPRelease), "0.10 s -> 4.00 s");
+            sb.Append("EXP Attack:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Attack", EXPAttack), "Auto -> Fast");
+            sb.Append("DYN In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", DYNIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("DYN In", DYNIn), "Out -> In");
+            sb.Append("Comp In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CompIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Comp In", CompIn), "Out -> In");
+            sb.Append("Exp In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", ExpIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Exp In", ExpIn), "Out -> In");
+            sb.Append("LF Gain:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Gain", LFGain), "-10.0 dB -> 10.0 dB");
+            sb.Append("LF Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Freq", LFFreq), "36.1 Hz -> 355 Hz");
+            sb.Append("LF Bell:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LFBell).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Bell", LFBell), "Shelf -> Bell");
+            sb.Append("LMF Gain:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LMFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LMF Gain", LMFGain), "-15.6 dB -> 15.6 dB");
+            sb.Append("LMF Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LMFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LMF Freq", LMFFreq), "251 Hz -> 2.17 k");
+            sb.Append("LMF Q:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LMFQ).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LMF Q", LMFQ), "2.50 -> 2.50");
+            sb.Append("HMF Q:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HMFQ).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HMF Q", HMFQ), "4.00 -> 0.40");
+            sb.Append("HMF Gain:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HMFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HMF Gain", HMFGain), "-16.5 dB -> 16.5 dB");
+            sb.Append("HMF Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HMFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HMF Freq", HMFFreq), "735 Hz -> 6.77 k");
+            sb.Append("HF Gain:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HF Gain", HFGain), "-16.0 dB -> 16.1 dB");
+            sb.Append("HF Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HFFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HF Freq", HFFreq), "6.93 k -> 21.7 k");
+            sb.Append("HF Bell:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HFBell).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HF Bell", HFBell), "Shelf -> Bell");
+            sb.Append("EQ In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EQIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EQ In", EQIn), "Out -> In");
+            sb.Append("EQ Dyn SC:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EQDynSC).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EQ Dyn SC", EQDynSC), "Off -> On");
+            sb.Append("Pre Dyn:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", PreDyn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Pre Dyn", PreDyn), "Off -> On");
+            sb.Append("Output:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", Output).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Output", Output), "-20.0 dB -> 20.0 dB");
+            sb.Append("EQ Type:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EQType).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EQ Type", EQType), "Black -> Brown");
+            sb.Append("Power:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", Power).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Power", Power), "Off -> On");
             return sb.ToString();
         }
     }

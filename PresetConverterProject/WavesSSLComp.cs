@@ -1,9 +1,6 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using System.Globalization;
-using System.Xml;
 using System.Xml.Linq;
-using System.IO;
 
 using CommonUtils;
 
@@ -113,10 +110,10 @@ namespace PresetConverter
                 RateS = float.Parse(splittedPhrase[7], CultureInfo.InvariantCulture);
 
                 // In
-                In = (splittedPhrase[8] == "1");
+                In = splittedPhrase[8] == "1";
 
                 // Analog
-                Analog = (splittedPhrase[9] == "1");
+                Analog = splittedPhrase[9] == "1";
 
                 return true;
             }
@@ -130,16 +127,16 @@ namespace PresetConverter
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine(String.Format("PresetName: {0}", PresetName));
+            sb.AppendLine(string.Format("PresetName: {0}", PresetName));
             if (PresetGroup != null)
             {
-                sb.AppendLine(String.Format("Group: {0}", PresetGroup));
+                sb.AppendLine(string.Format("Group: {0}", PresetGroup));
             }
             sb.AppendLine();
 
             sb.AppendLine("Compression:");
-            sb.AppendLine(String.Format("\tThreshold: {0:0.##} dB", Threshold));
-            sb.AppendLine(String.Format("\tMake-up Gain: {0:0.##} dB", MakeupGain));
+            sb.AppendLine(string.Format("\tThreshold: {0:0.##} dB", Threshold));
+            sb.AppendLine(string.Format("\tMake-up Gain: {0:0.##} dB", MakeupGain));
 
             float attack = 0;
             switch (Attack)
@@ -163,7 +160,7 @@ namespace PresetConverter
                     attack = 30.0f;
                     break;
             }
-            sb.AppendLine(String.Format("\tAttack: {0:0.##} ms", attack));
+            sb.AppendLine(string.Format("\tAttack: {0:0.##} ms", attack));
 
             if (Release == ReleaseType.Release_Auto)
             {
@@ -190,14 +187,14 @@ namespace PresetConverter
                         release = -1.0f;
                         break;
                 }
-                sb.AppendLine(String.Format("\tRelease: {0} s", release));
+                sb.AppendLine(string.Format("\tRelease: {0} s", release));
             }
 
-            sb.AppendLine(String.Format("\tRatio: {0}", Ratio));
-            sb.AppendLine(String.Format("\tRate-S (Autofade duration): {0} s", RateS));
-            sb.AppendLine(String.Format("\tIn: {0}", In));
-            sb.AppendLine(String.Format("\tAnalog: {0}", Analog));
-            sb.AppendLine(String.Format("\tFade: {0}", Fade));
+            sb.AppendLine(string.Format("\tRatio: {0}", Ratio));
+            sb.AppendLine(string.Format("\tRate-S (Autofade duration): {0} s", RateS));
+            sb.AppendLine(string.Format("\tIn: {0}", In));
+            sb.AppendLine(string.Format("\tAnalog: {0}", Analog));
+            sb.AppendLine(string.Format("\tFade: {0}", Fade));
             sb.AppendLine();
 
             return sb.ToString();
@@ -253,7 +250,6 @@ namespace PresetConverter
 
         private string GeneratePresetXML()
         {
-            // string realWorldParameters = RealWorldParameters + '\n';
             string realWorldParameters = GenerateRealWorldParameters();
 
             // Use Linq XML (XElement) because they are easier to work with
@@ -286,15 +282,15 @@ namespace PresetConverter
             using (BinaryFile bf = new BinaryFile(memStream, BinaryFile.ByteOrder.BigEndian, Encoding.ASCII))
             {
                 // length of the xml section until xmlPostContent including 12 bytes
-                UInt32 xmlContentFullLength = (uint)xmlContent.Length + 32;
-                bf.Write((UInt32)xmlContentFullLength); // 809 ?
-                bf.Write((UInt32)3);
-                bf.Write((UInt32)1);
+                uint xmlContentFullLength = (uint)xmlContent.Length + 32;
+                bf.Write((uint)xmlContentFullLength); // 809 ?
+                bf.Write((uint)3);
+                bf.Write((uint)1);
 
                 bf.Write("SLCS");
                 bf.Write("setA");
 
-                UInt32 xmlMainLength = (uint)xmlContent.Length;
+                uint xmlMainLength = (uint)xmlContent.Length;
                 bf.Write(xmlMainLength);
 
                 bf.Write("XPst");
@@ -305,8 +301,7 @@ namespace PresetConverter
                 bf.Write(xmlPostContent);
             }
 
-            this.CompChunkData = memStream.ToArray();
+            CompChunkData = memStream.ToArray();
         }
-
     }
 }

@@ -78,7 +78,7 @@ namespace PresetConverter
 
                     if (!doPack)
                     {
-                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".ncw", ".exe", ".dll", ".wcx64" };
+                        var extensions = new List<string> { ".als", ".adv", ".vstpreset", ".xps", ".wav", ".sdir", ".cpr", ".ffp", ".nkx", ".nks", ".nkr", ".nki", ".nicnt", ".ncw", ".exe", ".dll", ".wcx64", ".xml" };
                         var filePaths = HandleMultipleInputPaths(optionInputDirectoryOrFilePath, extensions);
 
                         foreach (var inputFilePath in filePaths)
@@ -99,6 +99,9 @@ namespace PresetConverter
                                     break;
                                 case ".xps":
                                     HandleWavesXpsPreset(inputFilePath, outputDirectoryPath);
+                                    break;
+                                case ".xml":
+                                    HandleSSLNativeVstPreset(inputFilePath, outputDirectoryPath);
                                     break;
                                 case ".wav":
                                     HandleWaveFile(inputFilePath, outputDirectoryPath, extraInformation);
@@ -898,6 +901,18 @@ namespace PresetConverter
 
                     // and store FXP as well
                     // uadSSLChannel.WriteFXP(outputPresetFilePath + ".fxp");
+
+                    // convert to SSL Native Channel 2
+                    var sslNativeChannel = wavesSSLChannel.ToSSLNativeChannel();
+                    string outputPresetFilePathNative = Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2", sslNativeChannel.PresetName);
+                    IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2"));
+                    sslNativeChannel.Write(outputPresetFilePathNative + ".vstpreset");
+
+                    // and dump the SSL Native Channel info as well
+                    File.WriteAllText(outputPresetFilePathNative + ".txt", sslNativeChannel.ToString());
+
+                    // and store xml format as well
+                    sslNativeChannel.SaveToFile(outputPresetFilePathNative + ".xml");
                 }
                 else if (vstPreset.Vst3ClassID.Equals(VstPreset.VstClassIDs.SteinbergREVerence))
                 {
@@ -1174,6 +1189,26 @@ namespace PresetConverter
                 tw.WriteLine("-------------------------------------------------------");
             }
             tw.Close();
+        }
+
+        private static void HandleSSLNativeVstPreset(string file, string outputDirectoryPath)
+        {
+            var sslNativeChannel = SSLNativeChannel.LoadFromFile(file);
+
+            if (string.IsNullOrEmpty(sslNativeChannel.PlugInName))
+            {
+                // this is not a ssl native preset, failing
+                Log.Error($"Could not process since the file is not recognized as a SSL Native XML preset file!");
+            }
+            else
+            {
+                string outputFileName = Path.GetFileNameWithoutExtension(file);
+                string outputFilePath = Path.Combine(outputDirectoryPath, outputFileName);
+
+                File.WriteAllText(outputFilePath + ".txt", sslNativeChannel.ToString());
+
+                sslNativeChannel.SaveToFile(outputFilePath + ".xml");
+            }
         }
 
         private static void HandleWaveFile(string file, string outputDirectoryPath, string inputExtra)

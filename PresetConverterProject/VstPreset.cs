@@ -140,6 +140,9 @@ namespace PresetConverter
             // UAD
             public const string UADSSLEChannel = "5653544A3941557561642073736C2065";
 
+            // Solid State Logic
+            public const string SSLNativeChannel2 = "5653544E43533273736C206E61746976";
+
             // Native Instruments
             public const string NIKontakt5 = "5653544E694F356B6F6E74616B742035";
             public const string NIKontakt6 = "5653544E694F356B6F6E74616B740000"; // this opens as as a vstpreset file if in the Kontakt 5 folder (NiO5) using a Kontakt6 portable dll copy
@@ -170,7 +173,7 @@ namespace PresetConverter
 
         private class ListElement
         {
-            public string ID;
+            public string ID = "";
             public long Offset;
             public long Size;
         }
@@ -1339,10 +1342,12 @@ namespace PresetConverter
             //  | size of chunk data   |    8 Bytes (int64)
             //  +----------------------+ 
 
-            var elem = new ListElement();
-            elem.ID = bf.ReadString(4);
-            elem.Offset = (long)bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
-            elem.Size = (long)bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian);
+            var elem = new ListElement
+            {
+                ID = bf.ReadString(4),
+                Offset = (long)bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian),
+                Size = (long)bf.ReadUInt64(BinaryFile.ByteOrder.LittleEndian)
+            };
 
             return elem;
         }
