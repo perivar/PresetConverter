@@ -8,69 +8,73 @@ namespace PresetConverter
     {
         public static SSLNativeChannel ToSSLNativeChannel(this WavesSSLChannel wavesSSLChannel)
         {
-            var sslNativeChannel = new SSLNativeChannel();
-            sslNativeChannel.PresetName = wavesSSLChannel.PresetName;
-
-            sslNativeChannel.HighPassFreq = wavesSSLChannel.HPFrq;
-            sslNativeChannel.LowPassFreq = wavesSSLChannel.LPFrq;
-
-            sslNativeChannel.CompThreshold = wavesSSLChannel.CompThreshold;
-            sslNativeChannel.CompRatio = wavesSSLChannel.CompRatio;
-            sslNativeChannel.CompRelease = wavesSSLChannel.CompRelease;
-            sslNativeChannel.CompFastAttack = wavesSSLChannel.CompFastAttack ? 1 : 0;
-            sslNativeChannel.CompMix = 100;
-            sslNativeChannel.CompPeak = 0;
-
-            if (wavesSSLChannel.ExpGate)
+            var sslNativeChannel = new SSLNativeChannel
             {
-                // if waves gate is set, then make sure the expander is off
-                sslNativeChannel.GateExpander = 0;
-            }
-            else
-            {
-                sslNativeChannel.GateExpander = 1;
-            }
-            sslNativeChannel.GateThreshold = wavesSSLChannel.ExpThreshold;
-            sslNativeChannel.GateRange = wavesSSLChannel.ExpRange;
-            sslNativeChannel.GateHold = 0.25;
-            sslNativeChannel.GateFastAttack = wavesSSLChannel.ExpFastAttack ? 1 : 0;
-            sslNativeChannel.GateRelease = wavesSSLChannel.ExpRelease;
+                PresetName = wavesSSLChannel.PresetName,
 
-            sslNativeChannel.DynamicsIn = !wavesSSLChannel.DynToByPass ? 1 : 0;
-            sslNativeChannel.DynamicsPreEq = wavesSSLChannel.DynToChannelOut ? 0 : 1;
-            sslNativeChannel.FiltersToInput = wavesSSLChannel.FilterSplit ? 1 : 0;
-            sslNativeChannel.FiltersToSidechain = 0;
+                HighPassFreq = wavesSSLChannel.HPFrq,
+                LowPassFreq = wavesSSLChannel.LPFrq,
 
-            sslNativeChannel.EqE = 0.0;
-            sslNativeChannel.EqIn = Convert.ToSingle(!wavesSSLChannel.EQToBypass);
-            sslNativeChannel.EqToSidechain = Convert.ToSingle(wavesSSLChannel.EQToDynSC);
+                CompThreshold = wavesSSLChannel.CompThreshold,
+                CompRatio = wavesSSLChannel.CompRatio,
+                CompRelease = wavesSSLChannel.CompRelease,
+                CompFastAttack = wavesSSLChannel.CompFastAttack,
+                CompMix = 100,
+                CompPeak = 0,
 
-            sslNativeChannel.LowEqBell = Convert.ToSingle(wavesSSLChannel.LFTypeBell);
-            sslNativeChannel.LowEqGain = wavesSSLChannel.LFGain;
-            sslNativeChannel.LowEqFreq = wavesSSLChannel.LFFrq;
+                GateDisabledExpEnabled = !wavesSSLChannel.ExpDisabledGateEnabled,
 
-            sslNativeChannel.LowMidEqGain = wavesSSLChannel.LMFGain;
-            sslNativeChannel.LowMidEqFreq = wavesSSLChannel.LMFFrq;
-            sslNativeChannel.LowMidEqQ = wavesSSLChannel.LMFQ;
+                GateThreshold = wavesSSLChannel.ExpThreshold,
+                GateRange = wavesSSLChannel.ExpRange,
+                GateHold = 0.25,
+                GateFastAttack = wavesSSLChannel.ExpFastAttack,
+                GateRelease = wavesSSLChannel.ExpRelease,
 
-            sslNativeChannel.HighMidEqGain = wavesSSLChannel.HMFGain;
-            sslNativeChannel.HighMidEqFreq = wavesSSLChannel.HMFFrq;
-            sslNativeChannel.HighMidEqQ = wavesSSLChannel.HMFQ;
+                // Dyn To Ch Out (Dynamics to Channel Out) moves the dynamics to the output, making it post-EQ.
+                // Filter Split determines whether low pass and high pass filters are placed before the dynamics processors.
+                // The routing diagram is determined based on the values of FilterSplit and DynToChannelOut, and the result
+                // is appended to a StringBuilder (sb) to represent the routing configuration.
+                // The routing options are:
+                // 1. If FilterSplit is true and DynToChannelOut is true, the order is FLTR -> EQ -> DYN.
+                // 2. If FilterSplit is true and DynToChannelOut is false, the order is FLTR -> DYN -> EQ.
+                // 3. If FilterSplit is false, the default order is DYN -> FLTR -> EQ.
+                DynamicsPreEq = !wavesSSLChannel.DynToChannelOut,
+                FiltersToInput = wavesSSLChannel.FilterSplit,
 
-            sslNativeChannel.HighEqBell = Convert.ToSingle(wavesSSLChannel.HFTypeBell);
-            sslNativeChannel.HighEqGain = wavesSSLChannel.HFGain;
-            sslNativeChannel.HighEqFreq = wavesSSLChannel.HFFrq;
+                DynamicsIn = !wavesSSLChannel.DynToByPass,
+                FiltersToSidechain = false,
 
-            // master section
-            sslNativeChannel.Bypass = 0.0;
-            sslNativeChannel.InputTrim = wavesSSLChannel.InputTrim;
-            sslNativeChannel.OutputTrim = wavesSSLChannel.Gain;
-            sslNativeChannel.Pan = 0;
-            sslNativeChannel.PhaseInvert = Convert.ToSingle(wavesSSLChannel.PhaseReverse);
-            sslNativeChannel.SidechainListen = 0;
-            sslNativeChannel.UseExternalKey = 0;
-            sslNativeChannel.Width = 100;
-            sslNativeChannel.HighQuality = 0;
+                EqE = true, // E or G Series characteristics
+                EqIn = !wavesSSLChannel.EQToBypass,
+                EqToSidechain = wavesSSLChannel.EQToDynSC,
+
+                LowEqBell = wavesSSLChannel.LFTypeBell,
+                LowEqGain = wavesSSLChannel.LFGain,
+                LowEqFreq = wavesSSLChannel.LFFrq,
+
+                LowMidEqGain = wavesSSLChannel.LMFGain,
+                LowMidEqFreq = wavesSSLChannel.LMFFrq,
+                LowMidEqQ = wavesSSLChannel.LMFQ,
+
+                HighMidEqGain = wavesSSLChannel.HMFGain,
+                HighMidEqFreq = wavesSSLChannel.HMFFrq,
+                HighMidEqQ = wavesSSLChannel.HMFQ,
+
+                HighEqBell = wavesSSLChannel.HFTypeBell,
+                HighEqGain = wavesSSLChannel.HFGain,
+                HighEqFreq = wavesSSLChannel.HFFrq,
+
+                // master section
+                Bypass = false,
+                InputTrim = wavesSSLChannel.InputTrim,
+                OutputTrim = wavesSSLChannel.Gain,
+                Pan = 0,
+                PhaseInvert = wavesSSLChannel.PhaseReverse,
+                SidechainListen = false,
+                UseExternalKey = false,
+                Width = 100,
+                HighQuality = false
+            };
 
             return sslNativeChannel;
         }

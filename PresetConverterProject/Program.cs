@@ -892,7 +892,7 @@ namespace PresetConverter
                     // convert to UAD SSL Channel
                     var wavesSSLChannel = vstPreset as WavesSSLChannel;
                     var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
-                    string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
+                    string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", fileNameNoExtension); // use filename not PresetName
                     IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip"));
                     uadSSLChannel.Write(outputPresetFilePath + ".vstpreset");
 
@@ -904,7 +904,7 @@ namespace PresetConverter
 
                     // convert to SSL Native Channel 2
                     var sslNativeChannel = wavesSSLChannel.ToSSLNativeChannel();
-                    string outputPresetFilePathNative = Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2", sslNativeChannel.PresetName);
+                    string outputPresetFilePathNative = Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2", fileNameNoExtension); // use filename not PresetName
                     IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2"));
                     sslNativeChannel.Write(outputPresetFilePathNative + ".vstpreset");
 
@@ -1149,6 +1149,14 @@ namespace PresetConverter
             List<WavesSSLChannel> channelPresetList = WavesPreset.ReadXps<WavesSSLChannel>(file);
             foreach (var wavesSSLChannel in channelPresetList)
             {
+                // output the vstpreset
+                string wavesSSLChannelOutputFilePath = Path.Combine(outputDirectoryPath, "Waves SSL Channel", wavesSSLChannel.PresetName);
+                IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "Waves SSL Channel"));
+                wavesSSLChannel.Write(wavesSSLChannelOutputFilePath + ".vstpreset");
+
+                // and dump the text info as well
+                File.WriteAllText(wavesSSLChannelOutputFilePath + ".txt", wavesSSLChannel.ToString());
+
                 // convert to UAD SSL Channel
                 var uadSSLChannel = wavesSSLChannel.ToUADSSLChannel();
                 string outputPresetFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName);
@@ -1159,8 +1167,7 @@ namespace PresetConverter
                 File.WriteAllText(outputPresetFilePath + ".txt", uadSSLChannel.ToString());
 
                 // and store FXP as well
-                // string outputFXPFilePath = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + ".fxp");
-                // uadSSLChannel.WriteFXP(outputFXPFilePath);
+                // uadSSLChannel.WriteFXP(outputPresetFilePath + ".fxp");
 
                 // // dump original Wave SSL Channel preset
                 // string outputPresetFilePathOrig = Path.Combine(outputDirectoryPath, "UAD SSL E Channel Strip", uadSSLChannel.PresetName + "_wavesorig.vstpreset");
@@ -1173,13 +1180,25 @@ namespace PresetConverter
                 // wavesSSLChannelNew.Write(outputPresetFilePathNew);
                 // wavesSSLChannelNew.WriteTextSummary(outputPresetFilePathNew + "_text.txt");
 
+                // convert to SSL Native Channel 2
+                var sslNativeChannel = wavesSSLChannel.ToSSLNativeChannel();
+                string outputPresetFilePathNative = Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2", sslNativeChannel.PresetName);
+                IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, "SSL Native Channel Strip 2"));
+                sslNativeChannel.Write(outputPresetFilePathNative + ".vstpreset");
+
+                // and dump the SSL Native Channel info as well
+                File.WriteAllText(outputPresetFilePathNative + ".txt", sslNativeChannel.ToString());
+
+                // and store xml format as well
+                sslNativeChannel.SaveToFile(outputPresetFilePathNative + ".xml");
+
                 // write text content
                 tw.WriteLine(wavesSSLChannel);
                 tw.WriteLine();
                 tw.WriteLine("-------------------------------------------------------");
             }
 
-            // Convert Waves SSLComp to UAD SSLComp
+            // TODO: Convert Waves SSLComp to UAD SSLComp
             List<WavesSSLComp> compPresetList = WavesPreset.ReadXps<WavesSSLComp>(file);
             foreach (var wavesSSLComp in compPresetList)
             {

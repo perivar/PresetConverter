@@ -19,12 +19,9 @@ namespace PresetConverter
 
         public float ExpThreshold;
         public float ExpRange;
-        public bool ExpGate;
+        public bool ExpDisabledGateEnabled;
         public bool ExpFastAttack;
         public float ExpRelease;
-
-        public bool DynToByPass;
-        public bool DynToChannelOut;
 
         public bool LFTypeBell;
         public float LFGain;
@@ -47,7 +44,18 @@ namespace PresetConverter
 
         public float HPFrq;
         public float LPFrq;
+
+        // Dyn To Ch Out (Dynamics to Channel Out) moves the dynamics to the output, making it post-EQ.
+        // Filter Split determines whether low pass and high pass filters are placed before the dynamics processors.
+        // The routing diagram is determined based on the values of FilterSplit and DynToChannelOut, and the result
+        // is appended to a StringBuilder (sb) to represent the routing configuration.
+        // The routing options are:
+        // 1. If FilterSplit is true and DynToChannelOut is true, the order is FLTR -> EQ -> DYN.
+        // 2. If FilterSplit is true and DynToChannelOut is false, the order is FLTR -> DYN -> EQ.
+        // 3. If FilterSplit is false, the default order is DYN -> FLTR -> EQ.
         public bool FilterSplit;
+        public bool DynToChannelOut;
+        public bool DynToByPass;
 
         public float Gain;
         public bool Analog;
@@ -81,7 +89,7 @@ namespace PresetConverter
 
                 ExpThreshold = float.Parse(splittedPhrase[5], CultureInfo.InvariantCulture); // expander threshold in dB
                 ExpRange = float.Parse(splittedPhrase[6], CultureInfo.InvariantCulture); // expander range in dB
-                ExpGate = splittedPhrase[7] == "1"; // expander gate
+                ExpDisabledGateEnabled = splittedPhrase[7] == "1"; // expander gate
                 ExpFastAttack = splittedPhrase[8] == "1"; // expander fast attack
                 ExpRelease = float.Parse(splittedPhrase[9], CultureInfo.InvariantCulture); // expander release in ms
 
@@ -151,18 +159,26 @@ namespace PresetConverter
             }
             sb.AppendLine();
 
+            // Dyn To Ch Out (Dynamics to Channel Out) moves the dynamics to the output, making it post-EQ.
+            // Filter Split determines whether low pass and high pass filters are placed before the dynamics processors.
+            // The routing diagram is determined based on the values of FilterSplit and DynToChannelOut, and the result
+            // is appended to a StringBuilder (sb) to represent the routing configuration.
+            // The routing options are:
+            // 1. If FilterSplit is true and DynToChannelOut is true, the order is FLTR -> EQ -> DYN.
+            // 2. If FilterSplit is true and DynToChannelOut is false, the order is FLTR -> DYN -> EQ.
+            // 3. If FilterSplit is false, the default order is DYN -> FLTR -> EQ.
             sb.Append("Routing Diagram: ");
-            if (!FilterSplit && !DynToChannelOut)
+            if (FilterSplit && DynToChannelOut)
             {
-                sb.AppendLine("DYN -> FLTR -> EQ (default)");
+                sb.AppendLine("FLTR -> EQ -> DYN");
             }
             else if (FilterSplit && !DynToChannelOut)
             {
                 sb.AppendLine("FLTR -> DYN -> EQ");
             }
-            else if (DynToChannelOut)
+            else if (!FilterSplit)
             {
-                sb.AppendLine("FLTR -> EQ -> DYN");
+                sb.AppendLine("DYN -> FLTR -> EQ (default)");
             }
             sb.AppendLine();
 
@@ -174,7 +190,7 @@ namespace PresetConverter
 
             sb.AppendLine("Compression:");
             sb.AppendLine(string.Format("\tThreshold: {0:0.##} dB", CompThreshold));
-            sb.AppendLine(string.Format("\tRatio: {0}", CompRatio));
+            sb.AppendLine(string.Format("\tRatio: {0:0.##}:1", CompRatio));
             sb.AppendLine(string.Format("\tFast Attack: {0} (Fast=1 ms otherwise Auto-Sense)", CompFastAttack));
             sb.AppendLine(string.Format("\tRelease: {0:0.##} s", CompRelease));
             sb.AppendLine();
@@ -182,7 +198,7 @@ namespace PresetConverter
             sb.AppendLine("Expander/Gate:");
             sb.AppendLine(string.Format("\tThreshold: {0:0.##} dB", ExpThreshold));
             sb.AppendLine(string.Format("\tRange: {0:0.##} dB", ExpRange));
-            sb.AppendLine(string.Format("\tGate: {0}", ExpGate));
+            sb.AppendLine(string.Format("\tGate: {0}", ExpDisabledGateEnabled));
             sb.AppendLine(string.Format("\tFast Attack: {0} (Fast=1 ms otherwise Auto-Sense)", ExpFastAttack));
             sb.AppendLine(string.Format("\tRelease: {0:0.##} s", ExpRelease));
             sb.AppendLine();
@@ -244,7 +260,7 @@ namespace PresetConverter
 
             sb.AppendFormat("{0} ", FormatRealWorldParameter(ExpThreshold)); // expander threshold in dB
             sb.AppendFormat("{0} ", FormatRealWorldParameter(ExpRange)); // expander range in dB
-            sb.AppendFormat("{0} ", ExpGate ? 1 : 0); // expander gate
+            sb.AppendFormat("{0} ", ExpDisabledGateEnabled ? 1 : 0); // expander gate
             sb.AppendFormat("{0} ", ExpFastAttack ? 1 : 0); // expander fast attack
             sb.AppendFormat("{0} ", FormatRealWorldParameter(ExpRelease)); // expander release in ms
             sb.Append("\n");

@@ -11,14 +11,14 @@ namespace PresetConverter
             var uadSSLChannel = new UADSSLChannel();
             uadSSLChannel.PresetName = wavesSSLChannel.PresetName;
 
-            uadSSLChannel.CMPThresh = uadSSLChannel.FindClosestValue("CMP Thresh", wavesSSLChannel.CompThreshold);
-            uadSSLChannel.CMPRatio = uadSSLChannel.FindClosestValue("CMP Ratio", wavesSSLChannel.CompRatio);
-            uadSSLChannel.CMPAttack = Convert.ToSingle(wavesSSLChannel.CompFastAttack);
-            uadSSLChannel.CMPRelease = uadSSLChannel.FindClosestValue("CMP Release", wavesSSLChannel.CompRelease);
+            uadSSLChannel.CompThresh = uadSSLChannel.FindClosestValue("CMP Thresh", wavesSSLChannel.CompThreshold);
+            uadSSLChannel.CompRatio = uadSSLChannel.FindClosestValue("CMP Ratio", wavesSSLChannel.CompRatio);
+            uadSSLChannel.CompAttack = Convert.ToSingle(wavesSSLChannel.CompFastAttack);
+            uadSSLChannel.CompRelease = uadSSLChannel.FindClosestValue("CMP Release", wavesSSLChannel.CompRelease);
 
-            uadSSLChannel.EXPThresh = uadSSLChannel.FindClosestValue("EXP Thresh", wavesSSLChannel.ExpThreshold);
-            uadSSLChannel.EXPRange = uadSSLChannel.FindClosestValue("EXP Range", wavesSSLChannel.ExpRange);
-            if (wavesSSLChannel.ExpGate)
+            uadSSLChannel.ExpThresh = uadSSLChannel.FindClosestValue("EXP Thresh", wavesSSLChannel.ExpThreshold);
+            uadSSLChannel.ExpRange = uadSSLChannel.FindClosestValue("EXP Range", wavesSSLChannel.ExpRange);
+            if (wavesSSLChannel.ExpDisabledGateEnabled)
             {
                 uadSSLChannel.Select = uadSSLChannel.FindClosestValue("Select", 0.5f);
             }
@@ -26,12 +26,21 @@ namespace PresetConverter
             {
                 uadSSLChannel.Select = uadSSLChannel.FindClosestValue("Select", 0.0f);
             }
-            uadSSLChannel.EXPAttack = Convert.ToSingle(wavesSSLChannel.ExpFastAttack);
-            uadSSLChannel.EXPRelease = uadSSLChannel.FindClosestValue("EXP Release", wavesSSLChannel.ExpRelease);
+            uadSSLChannel.ExpAttack = Convert.ToSingle(wavesSSLChannel.ExpFastAttack);
+            uadSSLChannel.ExpRelease = uadSSLChannel.FindClosestValue("EXP Release", wavesSSLChannel.ExpRelease);
             uadSSLChannel.ExpIn = 1.0f;
 
+            // Dyn To Ch Out (Dynamics to Channel Out) moves the dynamics to the output, making it post-EQ.
+            // Filter Split determines whether low pass and high pass filters are placed before the dynamics processors.
+            // The routing diagram is determined based on the values of FilterSplit and DynToChannelOut, and the result
+            // is appended to a StringBuilder (sb) to represent the routing configuration.
+            // The routing options are:
+            // 1. If FilterSplit is true and DynToChannelOut is true, the order is FLTR -> EQ -> DYN.
+            // 2. If FilterSplit is true and DynToChannelOut is false, the order is FLTR -> DYN -> EQ.
+            // 3. If FilterSplit is false, the default order is DYN -> FLTR -> EQ. 
+            //wavesSSLChannel.FilterSplit;
             uadSSLChannel.CompIn = Convert.ToSingle(!wavesSSLChannel.DynToByPass);
-            uadSSLChannel.DYNIn = Convert.ToSingle(!wavesSSLChannel.DynToByPass);
+            uadSSLChannel.DynIn = Convert.ToSingle(!wavesSSLChannel.DynToByPass);
             uadSSLChannel.PreDyn = Convert.ToSingle(wavesSSLChannel.DynToChannelOut);
 
             uadSSLChannel.LFBell = Convert.ToSingle(wavesSSLChannel.LFTypeBell);
@@ -62,7 +71,6 @@ namespace PresetConverter
             {
                 uadSSLChannel.LPFreq = uadSSLChannel.FindClosestValue("LP Freq", wavesSSLChannel.LPFrq * 1000);
             }
-            //wavesSSLChannel.FilterSplit;
 
             uadSSLChannel.Output = uadSSLChannel.FindClosestValue("Output", wavesSSLChannel.Gain);
             //wavesSSLChannel.Analog;

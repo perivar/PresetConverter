@@ -22,17 +22,17 @@ namespace PresetConverter
         public float HPFreq;     // (Out -> 304 Hz)
         public float LPFreq;     // (Out -> 3.21 k)
         public float HP_LPDynSC; // (Off -> On)
-        public float CMPRatio;   // (1.00:1 -> Limit)
-        public float CMPThresh;  // (10.0 dB -> -20.0 dB)
-        public float CMPRelease; // (0.10 s -> 4.00 s)
-        public float CMPAttack;  // (Auto -> Fast)
+        public float CompRatio;   // (1.00:1 -> Limit)
+        public float CompThresh;  // (10.0 dB -> -20.0 dB)
+        public float CompRelease; // (0.10 s -> 4.00 s)
+        public float CompAttack;  // (Auto -> Fast)
         public float StereoLink; // (UnLink -> Link)
         public float Select;     // (Expand -> Gate 2)
-        public float EXPThresh;  // (-30.0 dB -> 10.0 dB)
-        public float EXPRange;   // (0.0 dB -> 40.0 dB)
-        public float EXPRelease; // (0.10 s -> 4.00 s)
-        public float EXPAttack;  // (Auto -> Fast)
-        public float DYNIn;      // (Out -> In)
+        public float ExpThresh;  // (-30.0 dB -> 10.0 dB)
+        public float ExpRange;   // (0.0 dB -> 40.0 dB)
+        public float ExpRelease; // (0.10 s -> 4.00 s)
+        public float ExpAttack;  // (Auto -> Fast)
+        public float DynIn;      // (Out -> In)
         public float CompIn;     // (Out -> In)
         public float ExpIn;      // (Out -> In)
         public float LFGain;     // (-10.0 dB -> 10.0 dB)
@@ -99,13 +99,13 @@ namespace PresetConverter
         {
             XDocument xmlDoc = XDocument.Load(xmlfilename);
 
-            var entries = (from entry in xmlDoc.Descendants("Entry")
-                           group entry by (string)entry.Parent.Attribute("name").Value into g
-                           select new
-                           {
-                               g.Key,
-                               Value = g.ToList()
-                           });
+            var entries = from entry in xmlDoc.Descendants("Entry")
+                          group entry by (string)entry.Parent.Attribute("name").Value into g
+                          select new
+                          {
+                              g.Key,
+                              Value = g.ToList()
+                          };
 
             displayTextDict = entries.ToDictionary(o => o.Key, o => o.Value.Elements("DisplayText").Select(p => p.Value).ToList());
             displayNumbersDict = entries.ToDictionary(o => o.Key, o => o.Value.Elements("DisplayNumber").Select(p => (float)GetDouble(p.Value, 0)).ToList());
@@ -246,17 +246,17 @@ namespace PresetConverter
             HPFreq = bFile.ReadSingle();
             LPFreq = bFile.ReadSingle();
             HP_LPDynSC = bFile.ReadSingle();
-            CMPRatio = bFile.ReadSingle();
-            CMPThresh = bFile.ReadSingle();
-            CMPRelease = bFile.ReadSingle();
-            CMPAttack = bFile.ReadSingle();
+            CompRatio = bFile.ReadSingle();
+            CompThresh = bFile.ReadSingle();
+            CompRelease = bFile.ReadSingle();
+            CompAttack = bFile.ReadSingle();
             StereoLink = bFile.ReadSingle();
             Select = bFile.ReadSingle();
-            EXPThresh = bFile.ReadSingle();
-            EXPRange = bFile.ReadSingle();
-            EXPRelease = bFile.ReadSingle();
-            EXPAttack = bFile.ReadSingle();
-            DYNIn = bFile.ReadSingle();
+            ExpThresh = bFile.ReadSingle();
+            ExpRange = bFile.ReadSingle();
+            ExpRelease = bFile.ReadSingle();
+            ExpAttack = bFile.ReadSingle();
+            DynIn = bFile.ReadSingle();
             CompIn = bFile.ReadSingle();
             ExpIn = bFile.ReadSingle();
             LFGain = bFile.ReadSingle();
@@ -356,17 +356,17 @@ namespace PresetConverter
             bf.Write((float)HPFreq); // (Out -> 304 Hz)
             bf.Write((float)LPFreq); // (Out -> 3.21 k)
             bf.Write((float)HP_LPDynSC); // (Off -> On)
-            bf.Write((float)CMPRatio); // (1.00:1 -> Limit)
-            bf.Write((float)CMPThresh); // (10.0 dB -> -20.0 dB)
-            bf.Write((float)CMPRelease); // (0.10 s -> 4.00 s)
-            bf.Write((float)CMPAttack); // (Auto -> Fast)
+            bf.Write((float)CompRatio); // (1.00:1 -> Limit)
+            bf.Write((float)CompThresh); // (10.0 dB -> -20.0 dB)
+            bf.Write((float)CompRelease); // (0.10 s -> 4.00 s)
+            bf.Write((float)CompAttack); // (Auto -> Fast)
             bf.Write((float)StereoLink); // (UnLink -> Link)
             bf.Write((float)Select); // (Expand -> Gate 2)
-            bf.Write((float)EXPThresh); // (-30.0 dB -> 10.0 dB)
-            bf.Write((float)EXPRange); // (0.0 dB -> 40.0 dB)
-            bf.Write((float)EXPRelease); // (0.10 s -> 4.00 s)
-            bf.Write((float)EXPAttack); // (Auto -> Fast)
-            bf.Write((float)DYNIn); // (Out -> In)
+            bf.Write((float)ExpThresh); // (-30.0 dB -> 10.0 dB)
+            bf.Write((float)ExpRange); // (0.0 dB -> 40.0 dB)
+            bf.Write((float)ExpRelease); // (0.10 s -> 4.00 s)
+            bf.Write((float)ExpAttack); // (Auto -> Fast)
+            bf.Write((float)DynIn); // (Out -> In)
             bf.Write((float)CompIn); // (Out -> In)
             bf.Write((float)ExpIn); // (Out -> In)
             bf.Write((float)LFGain); // (-10.0 dB -> 10.0 dB)
@@ -405,17 +405,17 @@ namespace PresetConverter
             sb.Append("HP Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HPFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HP Freq", HPFreq), "Out -> 304 Hz");
             sb.Append("LP Freq:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LPFreq).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LP Freq", LPFreq), "Out -> 3.21 k");
             sb.Append("HP/LP Dyn SC:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", HP_LPDynSC).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("HP/LP Dyn SC", HP_LPDynSC), "Off -> On");
-            sb.Append("CMP Ratio:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPRatio).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Ratio", CMPRatio), "1.00:1 -> Limit");
-            sb.Append("CMP Thresh:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Thresh", CMPThresh), "10.0 dB -> -20.0 dB");
-            sb.Append("CMP Release:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Release", CMPRelease), "0.10 s -> 4.00 s");
-            sb.Append("CMP Attack:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CMPAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Attack", CMPAttack), "Auto -> Fast");
+            sb.Append("CMP Ratio:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CompRatio).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Ratio", CompRatio), "1.00:1 -> Limit");
+            sb.Append("CMP Thresh:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CompThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Thresh", CompThresh), "10.0 dB -> -20.0 dB");
+            sb.Append("CMP Release:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CompRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Release", CompRelease), "0.10 s -> 4.00 s");
+            sb.Append("CMP Attack:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CompAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("CMP Attack", CompAttack), "Auto -> Fast");
             sb.Append("Stereo Link:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", StereoLink).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Stereo Link", StereoLink), "UnLink -> Link");
             sb.Append("Select:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", Select).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Select", Select), "Expand -> Gate 2");
-            sb.Append("EXP Thresh:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Thresh", EXPThresh), "-30.0 dB -> 10.0 dB");
-            sb.Append("EXP Range:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPRange).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Range", EXPRange), "0.0 dB -> 40.0 dB");
-            sb.Append("EXP Release:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Release", EXPRelease), "0.10 s -> 4.00 s");
-            sb.Append("EXP Attack:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", EXPAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Attack", EXPAttack), "Auto -> Fast");
-            sb.Append("DYN In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", DYNIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("DYN In", DYNIn), "Out -> In");
+            sb.Append("EXP Thresh:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", ExpThresh).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Thresh", ExpThresh), "-30.0 dB -> 10.0 dB");
+            sb.Append("EXP Range:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", ExpRange).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Range", ExpRange), "0.0 dB -> 40.0 dB");
+            sb.Append("EXP Release:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", ExpRelease).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Release", ExpRelease), "0.10 s -> 4.00 s");
+            sb.Append("EXP Attack:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", ExpAttack).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("EXP Attack", ExpAttack), "Auto -> Fast");
+            sb.Append("DYN In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", DynIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("DYN In", DynIn), "Out -> In");
             sb.Append("Comp In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", CompIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Comp In", CompIn), "Out -> In");
             sb.Append("Exp In:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", ExpIn).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("Exp In", ExpIn), "Out -> In");
             sb.Append("LF Gain:".PadRight(15)).AppendFormat(string.Format("{0:0.00}", LFGain).PadRight(5)).AppendFormat("= {0} ({1})\n", FindClosestDisplayText("LF Gain", LFGain), "-10.0 dB -> 10.0 dB");

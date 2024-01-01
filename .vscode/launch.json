@@ -786,7 +786,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": ".NET Core Launch (DAW) SSL Native VstPresets",
+      "name": ".NET Core Launch (DAW) SSL Native Presets",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
