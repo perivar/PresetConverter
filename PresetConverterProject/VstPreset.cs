@@ -94,6 +94,7 @@ namespace PresetConverter
             public const string SteinbergVintageCompressor = "E0E5F5FC9F854334B69096445A7B2FA8";
             public const string SteinbergVSTAmpRack = "04F35DB10F0C47B9965EA7D63B0CCE67";
             public const string SteinbergVSTDynamics = "A920B15DBBF04B359CB8A471C58E3B91";
+            public const string SteinbergRotary = "54B0BB1DD40B4222BE4E876A87430F64";
 
             // Waves
             public const string WavesAPI2500Mono = "5653544150434D6170692D3235303020";
@@ -845,7 +846,8 @@ namespace PresetConverter
                     Vst3ClassID.Equals(VstClassIDs.SteinbergTuner) ||
                     Vst3ClassID.Equals(VstClassIDs.SteinbergUV22HR) ||
                     Vst3ClassID.Equals(VstClassIDs.SteinbergVintageCompressor) ||
-                    Vst3ClassID.Equals(VstClassIDs.SteinbergVSTDynamics)
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergVSTDynamics) ||
+                    Vst3ClassID.Equals(VstClassIDs.SteinbergRotary)
                     )
                 {
                     // rewind 4 bytes (seek to data start pos)
