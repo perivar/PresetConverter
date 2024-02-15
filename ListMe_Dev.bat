@@ -3,7 +3,7 @@
 SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\net7.0\win-x64\publish"
 SET "OUTPUTDIR=%UserProfile%\Projects\Temp"
 SET "CONVERTER=PresetConverter.exe"
-SET "DOTNET_ENVIRONMENT=Production"
+SET "DOTNET_ENVIRONMENT=Development"
 
 FOR %%i IN (%*) DO IF EXIST %%~si\NUL (CALL :ISDIR %%i) ELSE (CALL :ISFILE %%i)
 %SystemRoot%\explorer.exe "%OUTPUTDIR%"

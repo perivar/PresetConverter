@@ -3,7 +3,7 @@
 SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\net7.0\win-x64\publish"
 SET "OUTPUTDIR=%UserProfile%\Projects\Temp"
 SET "CONVERTER=PresetConverter.exe"
-SET "DOTNET_ENVIRONMENT=Production"
+SET "DOTNET_ENVIRONMENT=Development"
 
 FOR %%i IN (%*) DO IF EXIST %%~si\NUL (CALL :ISDIR %%i) ELSE (CALL :ISFILE %%i)
 %SystemRoot%\explorer.exe "%OUTPUTDIR%"
@@ -13,9 +13,9 @@ GOTO EXIT
 ECHO %1 is a directory ...
 IF "%DOTNET_ENVIRONMENT%" == "Development" (
     ECHO DOTNET_ENVIRONMENT is Development, using verbose logging ...
-    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%" -l -v
+    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%" -v
 ) ELSE (
-    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%" -l
+    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%"
 )
 PAUSE
 GOTO EXIT
@@ -24,9 +24,9 @@ GOTO EXIT
 ECHO %1 is a file ...
 IF "%DOTNET_ENVIRONMENT%" == "Development" (
     ECHO DOTNET_ENVIRONMENT is Development, using verbose logging ...
-    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%" -k6 -l -v
+    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%" -v
 ) ELSE (
-    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%" -k6 -l
+    CALL "%CONVERTERDIR%\%CONVERTER%" -i %1 -o "%OUTPUTDIR%"
 )
 PAUSE
 GOTO EXIT
