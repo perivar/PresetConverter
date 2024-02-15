@@ -54,7 +54,8 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\Taiga - We Made It (Remake).als",
         "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp",
+        "-v"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
@@ -74,7 +75,8 @@
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\Bayze - Move On REMAKE.als",
         "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
+        "C:\\Users\\periv\\Projects\\Temp",
+        "-v"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

@@ -89,7 +89,7 @@ namespace PresetConverter
                             switch (extension)
                             {
                                 case ".als":
-                                    HandleAbletonLiveProject(inputFilePath, outputDirectoryPath);
+                                    HandleAbletonLiveProject(inputFilePath, outputDirectoryPath, doList, doVerbose);
                                     break;
                                 case ".adv":
                                     HandleAbletonLivePreset(inputFilePath, outputDirectoryPath);
@@ -220,7 +220,7 @@ namespace PresetConverter
             return files;
         }
 
-        private static void HandleAbletonLiveProject(string file, string outputDirectoryPath)
+        private static void HandleAbletonLiveProject(string file, string outputDirectoryPath, bool doList, bool doVerbose)
         {
             var bytes = File.ReadAllBytes(file);
             var decompressed = bytes;
@@ -231,7 +231,7 @@ namespace PresetConverter
             var str = Encoding.UTF8.GetString(decompressed);
             var rootXElement = XElement.Parse(str);
 
-            AbletonProject.HandleAbletonLiveContent(rootXElement, file, outputDirectoryPath);
+            AbletonProject.HandleAbletonLiveContent(rootXElement, file, outputDirectoryPath, doList, doVerbose);
         }
 
         private static void HandleAbletonLivePreset(string file, string outputDirectoryPath)

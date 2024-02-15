@@ -279,7 +279,7 @@ namespace PresetConverter
             list[pos].Add(cmd);
         }
 
-        public static void HandleAbletonLiveContent(XElement rootXElement, string file, string outputDirectoryPath)
+        public static void HandleAbletonLiveContent(XElement rootXElement, string file, string outputDirectoryPath, bool doList, bool doVerbose)
         {
             // all credits go to SatyrDiamond and the DawVert code
             // https://raw.githubusercontent.com/SatyrDiamond/DawVert/main/plugin_input/r_ableton.py
@@ -622,9 +622,9 @@ namespace PresetConverter
             // // string jsonFilePath2 = "..\\DawVert\\out.cvpj";
             // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
 
-            ConvertToMidi(cvpj, file, outputDirectoryPath, false);
+            ConvertToMidi(cvpj, file, outputDirectoryPath, doVerbose);
 
-            ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, false);
+            ConvertAutomationToMidi(cvpj, file, outputDirectoryPath, doVerbose);
 
             // collect found audio clips into a AudioClips folder
             // build up filename
@@ -1271,7 +1271,7 @@ namespace PresetConverter
                                 var interpolatedEvents = AbletonAutomation.InterpolateEvents(events);
 
                                 // save the interpolated events as a png
-                                if (doOutputDebugFile) AbletonAutomation.PlotAutomationEvents(interpolatedEvents, $"automation_{fileNum:D2}_{trackNum:D2}_{midiTrackName}.png");
+                                if (doOutputDebugFile) AbletonAutomation.PlotAutomationEvents(interpolatedEvents, outputDirectoryPath, $"automation_{fileNum:D2}_{trackNum:D2}_{midiTrackName}.png");
 
                                 int controlNumber = 11;
                                 long prevPos = 0;
@@ -1313,7 +1313,7 @@ namespace PresetConverter
                         // see https://github.com/melanchall/drywetmidi/issues/59        
                         midiFile.Write(outputFilePath);
 
-                        if (doOutputDebugFile) LogMidiFile(midiFile, $"midifile_{fileNum:D2}.log");
+                        if (doOutputDebugFile) LogMidiFile(midiFile, $"{outputFilePath}.{fileNum:D2}.log");
 
                         fileNum++;
                     }
@@ -1481,7 +1481,7 @@ namespace PresetConverter
             // see https://github.com/melanchall/drywetmidi/issues/59        
             midiFile.Write(outputFilePath);
 
-            if (doOutputDebugFile) LogMidiFile(midiFile);
+            if (doOutputDebugFile) LogMidiFile(midiFile, $"{outputFilePath}.log");
         }
 
         // this code outputs in the same way as python mido format
@@ -1495,9 +1495,9 @@ namespace PresetConverter
         //             log_file.write(str(msg) + '\n')
         //         log_file.write('\n')
         // print(f"MIDI content written to {log_file_path}")
-        private static void LogMidiFile(MidiFile midiFile, string logFilePath = "midifile.log")
+        private static void LogMidiFile(MidiFile midiFile, string filePath = "midifile.log")
         {
-            using (var logFile = new StreamWriter(logFilePath))
+            using (var logFile = new StreamWriter(filePath))
             {
                 logFile.WriteLine("MIDI File Content:");
 
@@ -1569,7 +1569,7 @@ namespace PresetConverter
                 }
             }
 
-            Console.WriteLine($"MIDI content written to {logFilePath}");
+            Console.WriteLine($"MIDI content written to {filePath}");
         }
 
         private static void CollectAndCopyAudioClips(List<string> filePaths, string prefixPath, string destinationFolder)
@@ -1869,23 +1869,28 @@ namespace PresetConverter
             return dictionary.Values.ToList();
         }
 
-        public static void PlotAutomationEvents(List<AutomationEvent> automationEvents, string fileName)
+        public static void PlotAutomationEvents(List<AutomationEvent> automationEvents, string outputDirectoryPath, string filePath)
         {
+            string plotFilePath = Path.Combine(outputDirectoryPath, filePath);
+
             // Extract Position and Value from AutomationEvent list
             double[] x = automationEvents.Select(eventItem => (double)eventItem.Position).ToArray();
             double[] y = automationEvents.Select(eventItem => (double)eventItem.Value).ToArray();
 
             // Create a scatter plot
-            var plt = new ScottPlot.Plot(Math.Max(x.Length * 30, 3840), Math.Max(y.Length, 480));
-            plt.AddScatter(x, y, markerSize: 4);
+            ScottPlot.Plot plt = new();
+
+            var sp = plt.Add.Scatter(x, y);
+            sp.MarkerSize = 4;
 
             // Set the minimum value for the x-axis to ensure it starts from x = 0
-            plt.SetAxisLimits(xMin: -100);
+            // and crop the y-axix between 0 and 127
+            plt.Axes.SetLimits(0, x.Max(), 0, 127);
 
             // Save the plot as a PNG file
-            plt.SaveFig(fileName);
+            plt.SavePng(plotFilePath, Math.Max(x.Length * 30, 3840), Math.Max(y.Length, 480));
 
-            Console.WriteLine($"Plot saved as {fileName}");
+            Console.WriteLine($"Plot saved as {plotFilePath}");
         }
     }
 
