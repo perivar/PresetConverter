@@ -155,7 +155,8 @@
       "args": [
         "-i",
         // "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ennio Morricone - Gabriels Oboe\\Gabriels Oboe (Cubase 10)-01.cpr",
-        "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-01.cpr",
+        // "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-01.cpr",
+        "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-02.cpr",
         "-o",
         "C:\\Users\\periv\\Projects\\Temp"
       ],

@@ -850,7 +850,7 @@ namespace PresetConverter
                     Vst3ClassID.Equals(VstClassIDs.SteinbergRotary)
                     )
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // read 4 bytes which probably is the version number
@@ -884,7 +884,7 @@ namespace PresetConverter
                 else if (
                     Vst3ClassID.Equals(VstClassIDs.SteinbergGrooveAgentONE))
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // read until all bytes have been read
@@ -937,7 +937,7 @@ namespace PresetConverter
                 else if (
                     Vst3ClassID.Equals(VstClassIDs.SteinbergREVerence))
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     var wavFilePath1 = ReadStringNullAndSkip(bf, Encoding.Unicode, 1024);
@@ -1013,7 +1013,7 @@ namespace PresetConverter
                 else if (
                    Vst3ClassID.Equals(VstClassIDs.SteinbergStandardPanner))
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     // read floats
@@ -1074,7 +1074,7 @@ namespace PresetConverter
                     Vst3ClassID.Equals(VstClassIDs.WavesVocalRiderStereo)
                     )
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
                     var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.BigEndian);
@@ -1124,26 +1124,39 @@ namespace PresetConverter
 
                 else if (Vst3ClassID.Equals(VstClassIDs.NIKontakt5))
                 {
-                    // rewind 4 bytes (seek to data start pos)
+                    // rewind 4 bytes (seek to comp data start pos)
                     bf.Seek(CompDataStartPos, SeekOrigin.Begin);
 
-                    var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+                    // read until all bytes have been read
+                    CompChunkData = bf.ReadBytes((int)CompDataChunkSize);
 
-                    while (bf.Position != CompDataEndPosition)
+                    // seek to cont start pos
+                    if (ContDataChunkSize > 0)
                     {
-                        // read the null terminated string
-                        var parameterName = bf.ReadStringNull();
+                        bf.Seek(ContDataStartPos, SeekOrigin.Begin);
 
-                        // read until 128 bytes have been read
-                        var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
-
-                        var parameterNumber = (int)bf.ReadUInt32();
-
-                        // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
-                        var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
-
-                        AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                        // read until all bytes have been read
+                        ContChunkData = bf.ReadBytes((int)ContDataChunkSize);
                     }
+
+                    // TODO: This does not seem to work for Cubase 13 ?
+                    // var unknown2 = bf.ReadUInt32(BinaryFile.ByteOrder.LittleEndian);
+
+                    // while (bf.Position != CompDataEndPosition)
+                    // {
+                    //     // read the null terminated string
+                    //     var parameterName = bf.ReadStringNull();
+
+                    //     // read until 128 bytes have been read
+                    //     var ignore = bf.ReadBytes(128 - parameterName.Length - 1);
+
+                    //     var parameterNumber = (int)bf.ReadUInt32();
+
+                    //     // Note! For some reason bf.ReadDouble() doesn't work, neither with LittleEndian or BigEndian
+                    //     var parameterNumberValue = BitConverter.ToDouble(bf.ReadBytes(0, 8), 0);
+
+                    //     AddParameter(parameterName, parameterNumber, parameterNumberValue);
+                    // }
 
                     // try to read the info xml 
                     TryReadInfoXml(bf);

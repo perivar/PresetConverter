@@ -546,7 +546,7 @@ namespace PresetConverter
             string guid,
             int vstEffectIndex,
             string pluginName,
-            string origPluginName,
+            string? origPluginName,
             string outputDirectoryPath,
             string outputFileName,
             bool doConvertToKontakt6
@@ -556,10 +556,12 @@ namespace PresetConverter
             var audioComponentField = binaryFile.ReadString(audioComponentPattern.Length, Encoding.ASCII).TrimEnd('\0');
             if (IsWrongField("audioComponent", audioComponentField, binaryFile.Position)) return false;
 
-            binaryFile.ReadInt32();
+            var unknownInt32 = binaryFile.ReadInt32();
+            Log.Debug("Found unknown: {0} at index: {1}", unknownInt32, binaryFile.Position - 4);
 
             var presetByteLen = binaryFile.ReadInt32();
-            Log.Debug("Reading {0} bytes ...", presetByteLen);
+            Log.Information("Found byte length: {0:0,0} at index: {1}", presetByteLen, binaryFile.Position - 4);
+
             var presetBytes = binaryFile.ReadBytes(0, presetByteLen, BinaryFile.ByteOrder.LittleEndian);
 
             // store in processed preset list
@@ -688,6 +690,13 @@ namespace PresetConverter
                         File.WriteAllText(playOutputFilePath + ".txt", play.ToString());
                     }
 
+                    else if (vstPreset.Vst3ClassID == VstPreset.VstClassIDs.NIKontakt5)
+                    {
+                        var kontakt = vstPreset as NIKontakt5;
+
+                        HandleNIKontaktByteArray(kontakt, vstPreset.CompChunkData, origPluginName, fileNameNoExtension, outputDirectoryPath);
+                    }
+
                     // Save the preset parameters
                     else
                     {
@@ -766,42 +775,49 @@ namespace PresetConverter
         }
 
         private static void HandleNIKontaktFXP(NIKontaktBase kontakt, FXP fxp,
-        string origPluginName,
+            string? origPluginName,
+            string fileNameNoExtension,
+            string outputDirectoryPath)
+        {
+            var snpid = GetSNPIDFromKontaktFXP(fxp);
+            string? kontaktLibraryName = LookupKontaktLibraryName(snpid);
+            if (kontaktLibraryName != null)
+            {
+                fileNameNoExtension += " - " + kontaktLibraryName;
+            }
+
+            SaveNIKontaktBase(kontakt, origPluginName, fileNameNoExtension, outputDirectoryPath);
+        }
+
+        private static void HandleNIKontaktByteArray(NIKontaktBase kontakt, byte[] byteArray,
+           string? origPluginName,
+           string fileNameNoExtension,
+           string outputDirectoryPath)
+        {
+            var snpid = GetSNPIDFromKontaktByteArray(byteArray);
+            string? kontaktLibraryName = LookupKontaktLibraryName(snpid);
+            if (kontaktLibraryName != null)
+            {
+                fileNameNoExtension += " - " + kontaktLibraryName;
+            }
+
+            SaveNIKontaktBase(kontakt, origPluginName, fileNameNoExtension, outputDirectoryPath);
+        }
+
+        private static void SaveNIKontaktBase(NIKontaktBase kontakt,
+        string? origPluginName,
         string fileNameNoExtension,
         string outputDirectoryPath)
         {
-            string kontaktLibraryName = "";
-            var snpid = GetSNPIDFromKontaktFXP(fxp);
-            if (!string.IsNullOrEmpty(snpid))
+            if (string.IsNullOrEmpty(origPluginName))
             {
-                Log.Debug("snpid: " + snpid);
-
-                // loookup library name
-                NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == snpid).FirstOrDefault().Value;
-                if (lib != null)
-                {
-                    kontaktLibraryName = lib.Name;
-                }
-                else
-                {
-                    var snpidNum = NKS.ConvertToBase10(snpid);
-                    if (snpidNum != snpid)
-                    {
-                        Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " (" + snpidNum + ") and filename: " + fileNameNoExtension);
-                    }
-                    else
-                    {
-                        Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " and filename: " + fileNameNoExtension);
-                    }
-
-                    kontaktLibraryName = snpid;
-                }
-                fileNameNoExtension += (" - " + kontaktLibraryName);
+                origPluginName = "Kontakt";
             }
 
-            // save the kontakt presets as .vstpreset files
             string kontaktOutputFilePath = Path.Combine(outputDirectoryPath, origPluginName, fileNameNoExtension);
             IOUtils.CreateDirectoryIfNotExist(Path.Combine(outputDirectoryPath, origPluginName));
+
+            // save the kontakt presets as .vstpreset files
             kontakt.Write(kontaktOutputFilePath + ".vstpreset");
 
             // also save as Kontakt NKI preset file
@@ -825,6 +841,12 @@ namespace PresetConverter
             }
 
             // read the snpid
+            return GetSNPIDFromKontaktByteArray(byteArray);
+        }
+
+        private static string? GetSNPIDFromKontaktByteArray(byte[] byteArray)
+        {
+            // read the snpid
             string? snpid = null;
             using (BinaryFile bf = new(byteArray))
             {
@@ -834,17 +856,60 @@ namespace PresetConverter
                 {
                     bf.Seek(543, SeekOrigin.Begin);
                     int snpidCount = bf.ReadInt32();
-                    snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
+                    Log.Debug("SNPID character count: {0:0,0} at index: {1}", snpidCount, bf.Position - 4);
 
                     // snpid cannot have more than 4 characters (?!)
                     if (snpidCount > 4)
                     {
                         snpid = null;
                     }
+                    else
+                    {
+                        snpid = bf.ReadString(snpidCount * 2, Encoding.Unicode);
+                    }
                 }
             }
 
             return snpid;
+        }
+
+        private static string? LookupKontaktLibraryName(string? snpid)
+        {
+            string? kontaktLibraryName;
+            if (!string.IsNullOrEmpty(snpid))
+            {
+                Log.Debug("Looking up Kontakt Library Name using snpid: " + snpid);
+
+                // loookup library name
+                NksLibraryDesc lib = NKSLibraries.Libraries.Where(a => a.Key == snpid).FirstOrDefault().Value;
+                if (lib != null)
+                {
+                    kontaktLibraryName = lib.Name;
+                    Log.Information("Found Kontakt Library Name '" + kontaktLibraryName + "' using snpid: " + snpid);
+                }
+                else
+                {
+                    var snpidNum = NKS.ConvertToBase10(snpid);
+                    if (snpidNum != snpid)
+                    {
+                        Log.Error("Could not find any kontakt libraries using the snpid: " + snpid + " (" + snpidNum + ")");
+                    }
+                    else
+                    {
+                        Log.Error("Could not find any kontakt libraries using the snpid: " + snpid);
+                    }
+
+                    kontaktLibraryName = snpid;
+                }
+
+                return kontaktLibraryName;
+            }
+            else
+            {
+                Log.Warning("SNPID not found!");
+            }
+
+            return null;
         }
 
         private static bool IsWrongField(string? expectedValue, string foundValue, long position)
@@ -986,8 +1051,8 @@ namespace PresetConverter
                         var snpid = GetSNPIDFromKontaktFXP(vstPreset.FXP);
                         if (!string.IsNullOrEmpty(snpid))
                         {
-                            Log.Debug("snpid: " + snpid);
-                            fileNameNoExtension += ("_" + snpid);
+                            Log.Debug("Found SNPID: " + snpid);
+                            fileNameNoExtension += "_" + snpid;
                         }
 
                         // save the kontakt presets as .vstpreset files
