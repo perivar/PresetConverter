@@ -15,15 +15,18 @@ namespace TestProject
         }
 
         [Theory]
-        [InlineData(
-            @"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\viola_sus_short-portato_64-127_E4 - AB-comp Samples\\viola_sus_short-portato_64-127_E4 - AB.ncw",
-            @"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB.wav")
-        ]
-        public void ReadNCW(string inputFilePath, string compareToFilePath)
+        [UserHomeRelativeData(
+            "/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB-comp Samples/viola_sus_short-portato_64-127_E4 - AB.ncw", // inputFilePath
+            "/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB.wav",  // compareToFilePath
+            "/Projects/Temp" // outputDirectoryPath
+        )]
+        public void ReadNCW(string inputFilePath, string compareToFilePath, string outputDirectoryPath)
         {
-            var outputDirectoryPath = "C:\\Users\\periv\\Projects\\Temp";
+            // Ensure the output directory exists
+            Directory.CreateDirectory(outputDirectoryPath);
 
             output.WriteLine("Reading NCW - {0}", inputFilePath);
+            output.WriteLine("Comparing to WAV - {0}", compareToFilePath);
 
             bool doVerbose = true;
             var ncwParser = new NCWParser(doVerbose);
@@ -53,10 +56,12 @@ namespace TestProject
         }
 
         [Theory]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\viola_sus_short-portato_64-127_E4 - AB-comp Samples\\viola_sus_short-portato_64-127_E4 - AB.ncw")]
-        public void WriteNCW(string inputFilePath)
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB-comp Samples/viola_sus_short-portato_64-127_E4 - AB.ncw", "/Projects/Temp"
+        )]
+        public void WriteNCW(string inputFilePath, string outputDirectoryPath)
         {
-            var outputDirectoryPath = "C:\\Users\\periv\\Projects\\Temp";
+            // Ensure the output directory exists
+            Directory.CreateDirectory(outputDirectoryPath);
 
             output.WriteLine("Reading NCW - {0}", inputFilePath);
 
@@ -100,15 +105,16 @@ namespace TestProject
         }
 
         [Theory]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB.wav")]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - u8bit.wav")]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 16bit.wav")]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 24bit.wav")]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 32bit.wav")]
-        [InlineData(@"C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB Samples\\viola_sus_short-portato_64-127_E4 - AB - 32bit float.wav")]
-        public void ReadWAV(string inputFilePath)
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB.wav", "/Projects/Temp")]
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB - u8bit.wav", "/Projects/Temp")]
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB - 16bit.wav", "/Projects/Temp")]
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB - 24bit.wav", "/Projects/Temp")]
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB - 32bit.wav", "/Projects/Temp")]
+        [UserHomeRelativeData("/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB Samples/viola_sus_short-portato_64-127_E4 - AB - 32bit float.wav", "/Projects/Temp")]
+        public void ReadWAV(string inputFilePath, string outputDirectoryPath)
         {
-            var outputDirectoryPath = "C:\\Users\\periv\\Projects\\Temp";
+            // Ensure the output directory exists
+            Directory.CreateDirectory(outputDirectoryPath);
 
             // read wave file
             var wp = new WAVParser();

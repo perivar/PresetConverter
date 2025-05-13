@@ -7,18 +7,15 @@ namespace TestProject
     public class SteinbergTests
     {
         [Theory]
-        [InlineData(@"Compressor\Sidechain - Default.vstpreset")]
-        [InlineData(@"Compressor\Sidechain - Vocal Delay Throws.vstpreset")]
-        [InlineData(@"Frequency\Boost High Side (Stereo).vstpreset")]
-        [InlineData(@"Frequency\Subtle Stereo Enhancer (Stereo).vstpreset")]
-        [InlineData(@"MultibandCompressor\Drum Bus (Get Bass Under Control Before Saturation).vstpreset")]
-        [InlineData(@"Groove Agent SE\Loveless - They Don't Know.vstpreset")]
-        // [InlineData(@"REVerence\Bricasti - Small Room 27.vstpreset")]
-        public void Test2(string fileName)
+        [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/Compressor/Sidechain - Default.vstpreset")]
+        [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/Compressor/Sidechain - Vocal Delay Throws.vstpreset")]
+        [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/Frequency/Boost High Side (Stereo).vstpreset")]
+        [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/Frequency/Subtle Stereo Enhancer (Stereo).vstpreset")]
+        [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/MultibandCompressor/Drum Bus (Get Bass Under Control Before Saturation).vstpreset")]
+        [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/Groove Agent SE/Loveless - They Don't Know.vstpreset")]
+        // [UserHomeRelativeData(@"/OneDrive/DevProjects/Steinberg Media Technologies/REVerence/Bricasti - Small Room 27.vstpreset")]
+        public void Test2(string filePath)
         {
-            string outputDirectoryPath = @"C:\Users\periv\OneDrive\DevProjects\Steinberg Media Technologies";
-            string filePath = Path.Combine(outputDirectoryPath, fileName);
-
             var readBytes = File.ReadAllBytes(filePath);
 
             var preset = VstPresetFactory.GetVstPreset<VstPreset>(filePath);
