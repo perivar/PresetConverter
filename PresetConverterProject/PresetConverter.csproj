@@ -24,13 +24,15 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
+    <Content Include="appsettings.*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-    <Copy SourceFiles="appsettings.json" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="@(Content)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
   <Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
-    <Copy SourceFiles="appsettings.json" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="appsettings.Development.json" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="@(Content)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

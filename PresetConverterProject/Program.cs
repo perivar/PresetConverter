@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Xml.Linq;
+using System.Runtime.InteropServices; // Added for OS detection
 
 using CommonUtils;
 using CommonUtils.Audio;
@@ -17,15 +18,42 @@ namespace PresetConverter
     {
         static void Main(string[] args)
         {
+            // Get the environment name (e.g., Development, Production)
             var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            Console.WriteLine("Using Environment (DOTNET_ENVIRONMENT): {0}", environmentName ?? "Not set");
 
-            Console.WriteLine("Using Environment (DOTNET_ENVIRONMENT): {0}", environmentName);
+            // Determine the platform (macOS, Windows, etc.)
+            string platformConfig;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                platformConfig = "mac";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                platformConfig = "windows";
+            }
+            else
+            {
+                platformConfig = "default"; // Fallback for other platforms (e.g., Linux)
+            }
+            Console.WriteLine("Detected Platform: {0}", platformConfig);
 
-            IConfiguration config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables()
-            .Build();
+            // Build configuration
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory) // Ensure base path is set to the app's directory
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{platformConfig}.json", optional: true, reloadOnChange: true);
+
+
+            // Add environment-specific settings if environment is set
+            if (!string.IsNullOrEmpty(environmentName))
+            {
+                builder.AddJsonFile($"appsettings.{platformConfig}.{environmentName}.json", optional: true, reloadOnChange: true);
+            }
+
+            builder.AddEnvironmentVariables();
+
+            IConfiguration config = builder.Build();
 
             // uncomment to generate new combined SPNID CSV List
             // SNPID_CSVParsers.GenerateSNPIDList(config["NksSettingsPath"]);

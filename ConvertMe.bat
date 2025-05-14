@@ -1,6 +1,6 @@
 @ECHO off
 
-SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\net7.0\win-x64\publish"
+SET "CONVERTERDIR=%~dp0\PresetConverterProject\bin\Release\net9.0\win-x64\publish"
 SET "OUTPUTDIR=%UserProfile%\Projects\Temp"
 SET "CONVERTER=PresetConverter.exe"
 SET "DOTNET_ENVIRONMENT=Production"

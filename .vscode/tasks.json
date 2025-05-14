@@ -14,6 +14,13 @@
       "problemMatcher": "$msCompile"
     },
     {
+      "label": "clean-solution",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["clean", "${workspaceFolder}/PresetConverter.sln"],
+      "problemMatcher": "$msCompile"
+    },
+    {
       "label": "publish-solution",
       "command": "dotnet",
       "type": "process",

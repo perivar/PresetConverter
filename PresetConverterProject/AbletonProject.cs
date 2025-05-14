@@ -311,7 +311,7 @@ namespace PresetConverter
             string abletonVersion = rootXElement?.Attribute("MinorVersion")?.Value.Split('.')[0];
             if (abletonVersion != "11")
             {
-                Log.Error("Ableton version " + abletonVersion + " is not supported.");
+                Log.Error("Ableton version " + abletonVersion + " is not supported. Only Ableton 11 is supported.");
                 return;
             }
 
@@ -621,6 +621,9 @@ namespace PresetConverter
             // string jsonFilePath2 = "..\\DawVert\\midiinput.cvpj";
             // // string jsonFilePath2 = "..\\DawVert\\out.cvpj";
             // CompareCvpJson(jsonFilePath1, jsonFilePath2, false, true);
+
+            JObject jcvpj = JObject.FromObject(cvpj);
+            JsonHelpers.WriteJsonToFile("output_pre_convert.json", jcvpj);
 
             ConvertToMidi(cvpj, file, outputDirectoryPath, doVerbose);
 

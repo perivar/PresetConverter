@@ -6,6 +6,7 @@ using Microsoft.Win32; // for registry access
 
 using CommonUtils;
 using Serilog;
+using System.Runtime.InteropServices;
 
 namespace PresetConverterProject.NIKontaktNKS
 {
@@ -48,14 +49,17 @@ namespace PresetConverterProject.NIKontaktNKS
                 }
             }
 
-            // read libs from registry
-            var regList = NksGetRegistryLibraries();
-            if (regList != null)
+            // read libs from registry on Windows
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                foreach (var regEntry in regList)
+                var regList = NksGetRegistryLibraries();
+                if (regList != null)
                 {
-                    // ignore duplicates, they are are silently eliminated
-                    NKSLibraries.Libraries[regEntry.Id] = regEntry;
+                    foreach (var regEntry in regList)
+                    {
+                        // ignore duplicates, they are are silently eliminated
+                        NKSLibraries.Libraries[regEntry.Id] = regEntry;
+                    }
                 }
             }
 
@@ -333,21 +337,24 @@ namespace PresetConverterProject.NIKontaktNKS
 
         #endregion
 
-        #region Read Library Descriptors from Registry
+        #region Read Library Descriptors from Registry in Windows
         public static void PrintRegistryLibraryInfo(TextWriter writer)
         {
-            var list = NKS.NksGetRegistryLibraries();
-
-            if (list != null)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                foreach (NksLibraryDesc entry in list)
-                {
-                    var id = entry.Id;
-                    var name = entry.Name;
-                    var keyHex = StringUtils.ByteArrayToHexString(entry.GenKey.Key);
-                    var ivHEx = StringUtils.ByteArrayToHexString(entry.GenKey.IV);
+                var list = NKS.NksGetRegistryLibraries();
 
-                    writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}\nIV: {3}", id, name, keyHex, ivHEx);
+                if (list != null)
+                {
+                    foreach (NksLibraryDesc entry in list)
+                    {
+                        var id = entry.Id;
+                        var name = entry.Name;
+                        var keyHex = StringUtils.ByteArrayToHexString(entry.GenKey.Key);
+                        var ivHEx = StringUtils.ByteArrayToHexString(entry.GenKey.IV);
+
+                        writer.WriteLine("Id: {0}\nName: {1}\nKey: {2}\nIV: {3}", id, name, keyHex, ivHEx);
+                    }
                 }
             }
         }

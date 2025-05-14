@@ -10,7 +10,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "env": { "DOTNET_ENVIRONMENT": "Development" },
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [],
       "cwd": "${workspaceFolder}/PresetConverterProject",
       "console": "internalConsole",
@@ -23,573 +23,13 @@
     },
 
     {
-      "name": ".NET Core Launch (LAPTOP) Ableton",
+      "name": ".NET Core Launch (DAW) NI Kontakt INFO NKX (wcx)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Ableton",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Ableton ALS (Taiga)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\Taiga - We Made It (Remake).als",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Ableton ALS (Bayze)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\Bayze - Move On REMAKE.als",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) VstPresets",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Steinberg Media Technologies",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Waves",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Waves",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Waves Xps",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\WavesXPS",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Cubase CPR",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        // "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ennio Morricone - Gabriels Oboe\\Gabriels Oboe (Cubase 10)-01.cpr",
-        // "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-01.cpr",
-        "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-02.cpr",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Cubase CPR TEST",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-k6"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) Fabfilter",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\FabFilter",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt Instruments",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-l"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt Instrument Single",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato.nki",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato Absolute Path.nki",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB.nki",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-comp.nki",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-monolith.nki",
-        // "-i",
-        // "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB-monolith\\Resources\\002patch.nki",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        // "-l"
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt Spitfire NKX",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Sacconi_vln1_MainMics_Add_0.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicBrass__Bass Trombones a2003.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_048.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_050.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicWoods_Alto Flute003.nkx",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-        // "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt Other NKX",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        // NKR = Resource File
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineBrass.nkr",
-        // NKX = Sample File
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Whole Woodwinds Swells Samples.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\06. Harp.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Neo-Soul Keys\\NSR.nkx",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-        // "-l"
-        // "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT unpack (wcx)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "--wcx"
-        // "-l",
-        // "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT pack (wcx)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Berlin Brass",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Berlin Strings",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Berlin Woodwinds",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\CineStrings CORE",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Spitfire HARP",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Brass",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Strings",
-        "-i",
-        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Woodwinds",
-        "-e",
-        "nicnt",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-p",
-        "--wcx"
-        // "-l",
-        // "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT unpack",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Metropolis Ark 3.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Symphobia.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Ostinato.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings.nicnt",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Session Horns.nicnt",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        // "-l",
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt NICNT pack",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Spitfire HARP",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Berlin Woodwinds",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Spitfire Symphonic Woodwinds",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Spitfire Symphonic Strings",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Symphobia",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Ostinato",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\LA Scoring Strings",
-        "-i",
-        "C:\\Development Projects\\Own Projects\\Temp\\Session Horns",
-        "-e",
-        "nicnt",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        "-p",
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt INFO NKX",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings_info.nkx",
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Orchestral Brass Classic_info.nkx",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp"
-        // "--wcx"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-
-    {
-      "name": ".NET Core Launch (LAPTOP) NI Kontakt Audio (ncw)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-comp Samples\\viola_sus_short-portato_64-127_E4 - AB.ncw",
-        // "-i",
-        // "C:\\Users\\periv\\Projects\\Temp\\Bass Trombones a2\\BML Bones - Bass A2 MM_5 Samples\\BMLBONES_basstrombsA2_trpltongue_ff_RR2_a_F#4.ncw",
-        // "-i",
-        // "C:\\Users\\periv\\Projects\\Temp\\Bass Trombones a2\\BML Bones - Bass A2 MM_5 Samples\\BMLBONES_basstrombsA2_trpltongue_ff_RR2_t_F#4.ncw",
-        // "-i",
-        // "C:\\Users\\periv\\Projects\\Temp",
-        // "-i",
-        // "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\NCW Samples",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        // "-l"
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-
-    {
-      "name": ".NET Core Launch (LAPTOP) Extract DLL Resources",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "env": { "DOTNET_ENVIRONMENT": "Development" },
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [
-        "-i",
-        "${workspaceFolder}/PresetConverterProject/WCXPlugins/nkx.wcx64",
-        // "-i",
-        // "C:\\Windows\\System32\\imageres.dll",
-        // "-i",
-        // "C:\\Windows\\System32\\shell32.dll",
-        // "-i",
-        // "C:\\Windows\\System32\\pifmgr.dll",
-        "-o",
-        "C:\\Users\\periv\\Projects\\Temp",
-        // "-l",
-        "-v"
-      ],
-      "cwd": "${workspaceFolder}",
-      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-      "console": "internalConsole",
-      "stopAtEntry": false,
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": ".NET Core Launch (DAW) NI Kontakt INFO NKX",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\LA Scoring Strings_info.nkx",
@@ -610,8 +50,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "${workspaceFolder}/PresetConverterProject/WCXPlugins/nkx.wcx64",
@@ -637,8 +78,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Ableton",
@@ -656,8 +98,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\Downloads\\EDMProd+OTT+Preset+Pack\\EDMProd OTT Preset Pack\\OTT (Crisp High End Only).adv",
@@ -675,8 +118,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\Audio\\Presets\\Xfer\\waproduction\\What_About_Free_Welcome_Pack\\WAProd_Free_Welcome_Pack_2\\WAV MIDI Presets\\Melodic Dubstep - Construction Kit\\Kit 150 BPM Em\\Project",
@@ -696,7 +140,7 @@
       "preLaunchTask": "build",
       "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\Downloads\\Songs\\Ableton\\Taiga - We Made It (Remake) Project\\Taiga - We Made It (Remake).als",
@@ -716,7 +160,7 @@
       "preLaunchTask": "build",
       "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\Downloads\\Songs\\Ableton\\Bayze - Move On REMAKE Project\\Bayze - Move On REMAKE.als",
@@ -736,7 +180,7 @@
       "preLaunchTask": "build",
       "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\AbletonALS\\AutoPan Project\\AutoPan.als",
@@ -754,8 +198,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\Documents\\VST3 Presets",
@@ -773,8 +218,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         // "C:\\Users\\periv\\OneDrive\\Documents\\VST3 Presets\\D16 Group Audio Software\\Repeater\\Make Pop Music Stereo Vox Delay 1-4.vstpreset",
@@ -794,8 +240,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\ProgramData\\Solid State Logic\\PlugIns\\Presets\\ChannelStrip2",
@@ -813,8 +260,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\Public\\Waves Audio\\Plug-In Settings",
@@ -832,8 +280,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\IMPULSE RESPONSES\\Altiverb 6.3.5 Library (Stereo and Quad)",
@@ -851,8 +300,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
@@ -872,8 +322,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\IMPULSE RESPONSES\\TCE System 6000 hardware reverb unit\\Samplicity T600 - 04 - Wave Quad files, 32 bit, 48 khz",
@@ -893,8 +344,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\IMPULSE RESPONSES\\Lexicon 480",
@@ -912,8 +364,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\IMPULSE RESPONSES\\Logic Space Designer",
@@ -931,8 +384,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Polar Express",
@@ -950,8 +404,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Gladiator\\Gladiator-02-perivar-new-01.cpr",
@@ -970,8 +425,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\DaVinci Code\\DaVinci Code-01.cpr",
@@ -990,8 +446,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Inception\\Inception-01.cpr",
@@ -1010,8 +467,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Cubase and Nuendo Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\Maze Runner\\Maze Runner BTS.cpr",
@@ -1030,8 +488,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "G:\\Downloads\\CUBASE PROJECTS\\Cinemaman Resources\\Cinemaman Cubase 10.5 Project\\Cinemaman.cpr",
@@ -1050,8 +509,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
@@ -1069,8 +529,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\FabFilter\\FabFilter Pro-Q 3",
@@ -1088,8 +549,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments",
@@ -1107,8 +569,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\SAMPLES\\NI Kontakt\\Orchestral Tools METROPOLIS ARK 3\\Samples\\Horn Ensemble_2.nkx",
@@ -1130,8 +593,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Metropolis Ark 3.nicnt",
@@ -1175,8 +639,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "C:\\Development Projects\\Own Projects\\Temp\\Spitfire HARP",
@@ -1212,8 +677,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "G:\\Downloads\\CUBASE PROJECTS\\c8_free_start\\Cubase Pro 8 Starter - Labofmusic Records.cpr",
@@ -1231,8 +697,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
       "args": [
         "-i",
         "H:\\IMPULSE RESPONSES\\Bricasti M7 reverb unit\\Samplicity M7 Main - 04 - Wave Quad files, 32 bit, 48 Khz, v1.1",
@@ -1246,14 +713,19 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": ".NET Core Launch (console)",
+      "name": ".NET Core Launch (DAW) Waves",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "env": { "DOTNET_ENVIRONMENT": "Development" },
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net7.0/PresetConverter.dll",
-      "args": [],
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Waves",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
       "console": "internalConsole",
@@ -1261,10 +733,803 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": ".NET Core Attach",
+      "name": ".NET Core Launch (DAW) Waves Xps",
       "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:pickProcess}"
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\WavesXPS",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) Cubase CPR",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        // "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ennio Morricone - Gabriels Oboe\\Gabriels Oboe (Cubase 10)-01.cpr",
+        // "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-01.cpr",
+        "C:\\Users\\periv\\OneDrive\\Audio\\Cubase Projects\\Music To Copy Learn\\Soundtracks\\Ashton Gleckman - Behind the Score\\The Martian\\The Martian-02.cpr",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) Cubase CPR TEST",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\CubaseCPR",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp",
+        "-k6"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt Instrument Single",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato.nki",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Kontakt 5\\Berlin Woodwinds Flute 1 Legato Absolute Path.nki",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB.nki",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-comp.nki",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-monolith.nki",
+        // "-i",
+        // "C:\\Users\\periv\\Projects\\Temp\\viola_sus_short-portato_64-127_E4 - AB-monolith\\Resources\\002patch.nki",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp",
+        // "-l"
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt Spitfire NKX",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Sacconi_vln1_MainMics_Add_0.nkx",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicBrass__Bass Trombones a2003.nkx",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_048.nkx",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicStrings_050.nkx",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\SymphonicWoods_Alto Flute003.nkx",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+        // "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt Other NKX",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        // NKR = Resource File
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineBrass.nkr",
+        // NKX = Sample File
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Whole Woodwinds Swells Samples.nkx",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\06. Harp.nkx",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Neo-Soul Keys\\NSR.nkx",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp"
+        // "-l"
+        // "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt NICNT unpack (wcx)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Brass.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Strings.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Berlin Woodwinds.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\CineStrings CORE.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire HARP.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Brass.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Strings.nicnt",
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\Spitfire Symphonic Woodwinds.nicnt",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp",
+        "--wcx"
+        // "-l",
+        // "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt NICNT pack (wcx)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Berlin Brass",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Berlin Strings",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Berlin Woodwinds",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\CineStrings CORE",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire HARP",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Brass",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Strings",
+        "-i",
+        "C:\\Users\\periv\\Projects\\Temp\\Spitfire Symphonic Woodwinds",
+        "-e",
+        "nicnt",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp",
+        "-p",
+        "--wcx"
+        // "-l",
+        // "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (DAW) NI Kontakt Audio (ncw)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\viola_sus_short-portato_64-127_E4 - AB-comp Samples\\viola_sus_short-portato_64-127_E4 - AB.ncw",
+        // "-i",
+        // "C:\\Users\\periv\\Projects\\Temp\\Bass Trombones a2\\BML Bones - Bass A2 MM_5 Samples\\BMLBONES_basstrombsA2_trpltongue_ff_RR2_a_F#4.ncw",
+        // "-i",
+        // "C:\\Users\\periv\\Projects\\Temp\\Bass Trombones a2\\BML Bones - Bass A2 MM_5 Samples\\BMLBONES_basstrombsA2_trpltongue_ff_RR2_t_F#4.ncw",
+        // "-i",
+        // "C:\\Users\\periv\\Projects\\Temp",
+        // "-i",
+        // "C:\\Users\\periv\\OneDrive\\DevProjects\\Native Instruments GmbH\\Instruments\\NCW Samples",
+        "-o",
+        "C:\\Users\\periv\\Projects\\Temp",
+        // "-l"
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Extract DLL Resources",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "${workspaceFolder}/PresetConverterProject/WCXPlugins/nkx.wcx64",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Ableton",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Ableton",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Ableton ALS",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/Audio/Presets/Xfer/waproduction/What_About_Free_Welcome_Pack/WAProd_Free_Welcome_Pack_2/WAV MIDI Presets/Melodic Dubstep - Construction Kit/Kit 150 BPM Em/Project",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Ableton ALS (Bayze)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/development/presetconverter-cloudflare/app/utils/__tests__/data/Ableton/Bayze - Move On REMAKE.als",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Ableton ALS (AutoPan)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/AbletonALS/AutoPan Project/AutoPan.als",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) VstPresets",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/Documents/VST3 Presets",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) VstPreset (Single)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/Documents/VST3 Presets/Waves/SSLChannel Stereo",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Cubase CPR Folder",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/CubaseCPR",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Fabfilter",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/FabFilter/FabFilter Pro-Q 3",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt Instruments",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt NICNT unpack",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Metropolis Ark 3.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Berlin Brass.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Berlin Strings.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Berlin Woodwinds.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/CineStrings CORE.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire HARP.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire Symphonic Brass.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire Symphonic Strings.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire Symphonic Woodwinds.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Symphobia.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Ostinato.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/LA Scoring Strings.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Session Horns.nicnt",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt NICNT pack",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire HARP",
+        "-i",
+        "/Users/perivar/Projects/Temp/Berlin Woodwinds",
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire Symphonic Woodwinds",
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire Symphonic Strings",
+        "-i",
+        "/Users/perivar/Projects/Temp/Symphobia",
+        "-i",
+        "/Users/perivar/Projects/Temp/Ostinato",
+        "-i",
+        "/Users/perivar/Projects/Temp/LA Scoring Strings",
+        "-i",
+        "/Users/perivar/Projects/Temp/Session Horns",
+        "-e",
+        "nicnt",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-p",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Waves",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Waves",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Waves Xps",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/WavesXPS",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Cubase CPR",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/Audio/Cubase Projects/Music To Copy Learn/Soundtracks/Ashton Gleckman - Behind the Score/The Martian/The Martian-02.cpr",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) Cubase CPR TEST",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/CubaseCPR",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-k6"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Kontakt 5",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt Instrument Single",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Kontakt 5/Berlin Woodwinds Flute 1 Legato.nki",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Kontakt 5/Berlin Woodwinds Flute 1 Legato Absolute Path.nki",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB.nki",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB-comp.nki",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB-monolith.nki",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt Spitfire NKX",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Sacconi_vln1_MainMics_Add_0.nkx",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/SymphonicBrass__Bass Trombones a2003.nkx",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/SymphonicStrings_048.nkx",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/SymphonicStrings_050.nkx",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/SymphonicWoods_Alto Flute003.nkx",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt Other NKX",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/CineBrass.nkr",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Whole Woodwinds Swells Samples.nkx",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/06. Harp.nkx",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Neo-Soul Keys/NSR.nkx",
+        "-o",
+        "/Users/perivar/Projects/Temp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt NICNT unpack (wcx)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Berlin Brass.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Berlin Strings.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Berlin Woodwinds.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/CineStrings CORE.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire HARP.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire Symphonic Brass.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire Symphonic Strings.nicnt",
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/Spitfire Symphonic Woodwinds.nicnt",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "--wcx"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt NICNT pack (wcx)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/Projects/Temp/Berlin Brass",
+        "-i",
+        "/Users/perivar/Projects/Temp/Berlin Strings",
+        "-i",
+        "/Users/perivar/Projects/Temp/Berlin Woodwinds",
+        "-i",
+        "/Users/perivar/Projects/Temp/CineStrings CORE",
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire HARP",
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire Symphonic Brass",
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire Symphonic Strings",
+        "-i",
+        "/Users/perivar/Projects/Temp/Spitfire Symphonic Woodwinds",
+        "-e",
+        "nicnt",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-p",
+        "--wcx"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": ".NET Core Launch (OSX) NI Kontakt Audio (ncw)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "env": { "DOTNET_ENVIRONMENT": "Development" },
+      "program": "${workspaceFolder}/PresetConverterProject/bin/Debug/net9.0/PresetConverter.dll",
+      "args": [
+        "-i",
+        "/Users/perivar/OneDrive/DevProjects/Native Instruments GmbH/Instruments/viola_sus_short-portato_64-127_E4 - AB-comp Samples/viola_sus_short-portato_64-127_E4 - AB.ncw",
+        "-o",
+        "/Users/perivar/Projects/Temp",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

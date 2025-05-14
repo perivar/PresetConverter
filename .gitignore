@@ -270,3 +270,12 @@ Settings.cfg
 *.dat
 *.xlsx
 *.png
+
+!appsettings.json
+!appsettings.Development.json
+!appsettings.mac.json
+!appsettings.mac.Development.json
+!appsettings.windows.json
+!appsettings.windows.Development.json
+!appsettings.default.json
+!appsettings.default.Development.json
