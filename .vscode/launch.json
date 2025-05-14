@@ -1080,7 +1080,8 @@
         "-i",
         "/Users/perivar/development/presetconverter-cloudflare/app/utils/__tests__/data/Ableton/Bayze - Move On REMAKE.als",
         "-o",
-        "/Users/perivar/Projects/Temp"
+        "/Users/perivar/Projects/Temp",
+        "-v"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
