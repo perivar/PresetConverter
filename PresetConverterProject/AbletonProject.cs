@@ -654,7 +654,7 @@ namespace PresetConverter
                     // "Ableton/LiveSet/Tracks/GroupTrack/DeviceChain/DeviceChain/Devices/AudioEffectGroupDevice/Branches/AudioEffectBranch/DeviceChain/AudioToAudioDeviceChain/Devices/PluginDevice/ParameterList/PluginFloatParameter/ParameterValue/AutomationTarget"
 
                     // Split the path into before and after the last "Devices/" and trim first and last element
-                    var paths = XmlHelpers.SplitXPath(path, "Devices/", "Ableton/", "/AutomationTarget");
+                    var paths = XmlHelpers.SplitXPath(path, "Devices/", "/Ableton/", "/AutomationTarget");
 
                     // Replace / with _
                     string pathFixed = paths.Item2;
@@ -672,12 +672,6 @@ namespace PresetConverter
                             XElement? xPluginDesc = xFoundElement?.Element("PluginDesc");
                             XElement? xVstPluginInfo = xPluginDesc?.Element("VstPluginInfo");
                             string vstPlugName = GetValue(xVstPluginInfo, "PlugName", "Unknown");
-
-                            // remove PluginDevice/
-                            // pathFixed = pathFixed.Replace("PluginDevice", "");
-
-                            // and add back the path suffix
-                            // pathFixed = $"{vstPlugName}{pathFixed}";
 
                             pathFixed = vstPlugName;
                         }
@@ -1635,13 +1629,52 @@ namespace PresetConverter
             return vstPluginBufferBytes;
         }
 
+        /// <summary>
+        /// Builds an XPath-like string for the supplied <see cref="XElement"/>.
+        /// <para>
+        /// • Each step is the element name.<br/>
+        /// • If an element has ≥ 2 siblings with the same name, a 1‑based index
+        ///   (<c>[n]</c>) is appended to distinguish it, so that the XPath is unique.
+        /// </para>
+        /// Example:
+        /// <code>
+        /// &lt;Root&gt;
+        ///   &lt;Item&gt;A&lt;/Item&gt;
+        ///   &lt;Item&gt;B&lt;/Item&gt;   &lt;!-- current element --&gt;
+        /// &lt;/Root&gt;
+        /// </code>
+        /// returns <c>/Root/Item[2]</c>.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="element"/> is <c>null</c>.</exception>
         public static string GetXPath(XElement? element)
         {
             if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
-            var ancestors = element.AncestorsAndSelf().Select(e => e.Name.ToString());
-            return string.Join("/", ancestors.Reverse());
+            // Walk from element up to the root, building each segment
+            var segments = element
+                .AncestorsAndSelf()                         // self → root
+                .Select(e =>
+                {
+                    var parent = e.Parent;
+                    if (parent == null)
+                        return e.Name.LocalName;            // Document root: no index
+
+                    // Count how many siblings share the same name
+                    var sameNameSiblings = parent
+                        .Elements(e.Name)
+                        .ToList();
+
+                    if (sameNameSiblings.Count == 1)
+                        return e.Name.LocalName;            // unique → no index
+
+                    // Find 1‑based position among siblings with same name
+                    var index = sameNameSiblings.IndexOf(e) + 1;
+                    return $"{e.Name.LocalName}[{index}]";
+                })
+                .Reverse();                                 // root → self
+
+            return "/" + string.Join("/", segments);
         }
 
         public static Tuple<string, string> SplitXPath(string input, string pattern, string removePrefix, string removeSuffix)
