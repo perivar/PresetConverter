@@ -662,8 +662,11 @@ namespace PresetConverter
 
                     if (pathFixed.StartsWith("PluginDevice"))
                     {
+                        // get the PluginDevice with index by reading getting the first word before /
+                        var pluginIndexWIndex = paths.Item2.Split('/')[0];
+
                         // lookup VST Plugin Name using the path
-                        var lookupXPath = $"{paths.Item1}Devices/PluginDevice";
+                        var lookupXPath = $"{paths.Item1}Devices/{pluginIndexWIndex}";
 
                         // Use XPathSelectElement with the full path
                         XElement? xFoundElement = rootXElement.XPathSelectElement(lookupXPath);
