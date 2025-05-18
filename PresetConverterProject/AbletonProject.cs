@@ -1217,7 +1217,7 @@ namespace PresetConverter
                             string midiTrackName = pluginNameKey;
                             int midiChannel = midiChannelManager.GetUnusedChannel();
 
-                            Log.Debug($"Adding MIDI track: {trackNum} {midiTrackName} ({trackTypeEntryKey}, {trackNameKey}, {pluginNameKey}) on Channel: {midiChannel}");
+                            Log.Debug($"Adding MIDI track: {trackNum} {midiTrackName} ({trackTypeKey}:{trackTypeEntryKey}, {trackNameKey}, {pluginNameKey}) on Channel: {midiChannel}");
 
                             // Create a track
                             var trackChunk = new TrackChunk();
@@ -1271,7 +1271,7 @@ namespace PresetConverter
                                 var interpolatedEvents = AbletonAutomation.InterpolateEvents(events);
 
                                 // save the interpolated events as a png
-                                if (doOutputDebugFile) AbletonAutomation.PlotAutomationEvents(interpolatedEvents, outputDirectoryPath, $"automation_{fileNum:D2}_{trackNum:D2}_{midiTrackName}.png");
+                                if (doOutputDebugFile) AbletonAutomation.PlotAutomationEvents(interpolatedEvents, outputDirectoryPath, $"automation_{fileNum:D2}_{trackNum:D2}_{trackTypeKey}_{trackNameKey}_{midiTrackName}.png");
 
                                 int controlNumber = 11;
                                 long prevPos = 0;
