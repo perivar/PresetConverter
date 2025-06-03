@@ -184,7 +184,7 @@ namespace PresetConverter
 
             sb.AppendLine("Low and High Pass Filters:");
             sb.AppendLine(string.Format("\tHP Frequency (18 dB/octave): {0:0.##} Hz (16 - 350 Hz)", HPFrq));
-            sb.AppendLine(string.Format("\tLP Frequency (12 dB/octave): {0:0.##} KHz (22 - 3 KHz)", LPFrq));
+            sb.AppendLine(string.Format("\tLP Frequency (12 dB/octave): {0:0.##} KHz (22 - 30 KHz)", LPFrq));
             sb.AppendLine(string.Format("\tFilter Split (Filters before Dynamics): {0}", FilterSplit));
             sb.AppendLine();
 
